@@ -25,6 +25,7 @@ Find every row that matches the task at hand and read those files before produci
 | Files the owner dropped for you | `source/inbox/README.md` |
 | Repeated items (gallery pieces, products, projects, events) | the collections section of `source/formats/website.md` |
 | Facts about the owner or project (bio, dates, prices, claims) | `source/content/` (never invent facts; ask if missing) |
+| A third-party stat, benchmark, or figure from outside the project | `source/facts/` (never invent facts; every entry needs a source) |
 | Publishing, hosting, domains | `docs/deploy-cloudflare.md` |
 
 ## Working rules
@@ -53,6 +54,7 @@ This is what makes the system compound: feedback given once becomes a rule appli
 source/brief.md              project brief: read every session
 source/inbox/                drop zone (processed then emptied)
 source/content/              canonical texts, facts, and data files
+source/facts/                sourced third-party facts and key figures
 source/brand/voice.md        how we write
 source/brand/design.md       how we look
 source/brand/tokens.css      the only place colors/fonts/spacing are defined

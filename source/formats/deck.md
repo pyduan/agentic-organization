@@ -10,7 +10,7 @@ Start every new deck from `source/formats/deck-template.html`, which provides th
 
 ## Building one
 
-1. Establish with the owner: audience, occasion, the one thing the audience should remember, and language. Pull facts from `source/content/`; never invent numbers.
+1. Establish with the owner: audience, occasion, the one thing the audience should remember, and language. Pull facts from `source/content/` and any sourced third-party figures from `source/facts/`; never invent numbers.
 2. Draft the narrative as a slide list (title + one line each) and confirm it before designing. Restructuring an outline is cheap; restructuring finished slides is not.
 3. Design within the system: tokens for everything, one idea per slide, type large enough for the back of a room. If a slide needs a smaller font to fit, the slide has too much on it.
 4. Preview locally (serve via the site's dev server or open the file directly), walk the owner through it, iterate.
@@ -19,7 +19,7 @@ Start every new deck from `source/formats/deck-template.html`, which provides th
 ## Content rules
 
 - The deck supports a person speaking; slides carry the anchor, the speaker carries the detail.
-- Numbers get a source; either in `source/content/` or in small print on the slide.
+- Numbers get a source; either in `source/content/`/`source/facts/` or in small print on the slide.
 - Consistent slide anatomy: recurring layouts (title slide, statement slide, evidence slide) rather than a new composition each time.
 
 ## Presenting and sharing

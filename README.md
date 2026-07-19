@@ -34,6 +34,7 @@ source/              your source of truth
   brief.md           who you are, what the site is for, current priorities
   inbox/             drop zone: put anything here and tell the AI about it
   content/           your canonical texts, facts, and data (prices, catalogs...)
+  facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
   formats/           one playbook per output: website pages, decks
 site/                the website itself (Astro, deployed by Cloudflare Pages)
@@ -42,7 +43,7 @@ docs/                how the system works + the Cloudflare deploy guide
 .claude/             skills (setup, publish, new deck, reflect) + session hooks
 ```
 
-The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then either ingests documents you drop in the inbox or scrapes your existing live site and rebuilds it from what it finds.
+The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.
 
 ## Getting started
 

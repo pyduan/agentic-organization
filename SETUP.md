@@ -28,10 +28,12 @@ cd ~/my-site
 claude
 ```
 
-Say: **"set up my site"**. Claude runs a guided interview (what the site is for, what pages, what tone) and then ingests content one of two ways:
+Say: **"set up my site"**. Claude runs a guided interview (what the site is for, what pages, what tone) and then ingests content one of a few ways:
 
 - **You have an existing site**: give Claude the URL. It scrapes every page, saves the copy and images into `source/`, notes the design cues, and rebuilds on this system.
+- **You have an existing repo** (even a messy one, even a different framework): point Claude at it. It clones it somewhere separate, reads the raw files instead of the rendered pages (often richer: drafts, structured data, higher-res images), and builds this kit's own `source/`/`site/` fresh from what it finds. None of the old code carries over.
 - **You're starting from documents**: drop everything into `source/inbox/` (texts, bios, photos, brand PDFs, old decks, anything) and tell Claude. It files it all and builds from that.
+- **You're starting from nothing**: Claude interviews you a bit deeper and drafts a first version for you to react to.
 
 Claude then personalizes the guides in `source/brand/`, builds a first version of the site, and shows it to you locally. Iterate by talking until the owner likes it. This is the fun part; budget most of the hour here.
 

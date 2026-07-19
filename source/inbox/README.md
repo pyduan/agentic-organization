@@ -7,7 +7,8 @@
 1. Look at everything in this folder, including subfolders.
 2. Ask the few questions that actually matter (a price, a date, which of two photos). Batch your questions; don't drip them one by one.
 3. File each item where it belongs:
-   - texts, facts, data → `source/content/`
+   - texts, the owner's own facts, data → `source/content/`
+   - a third-party stat, report, or benchmark (with its source) → `source/facts/`
    - images, logos, scans (keep originals at full resolution) → `source/brand/assets/`
    - anything expressing taste ("I like this site", a brand PDF) → fold the lesson into `source/brand/voice.md` or `design.md`, then archive or delete the file as appropriate
 4. Do whatever the drop was for (add the gallery piece, update the bio, build the deck).

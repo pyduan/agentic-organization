@@ -1,6 +1,6 @@
 ---
 name: setup
-description: "First-time project setup: interview the owner, ingest their content (dropped files or a scrape of their existing site), personalize the brand guides, build v1 of the site, and help put it live. Use when source/brief.md still contains TODO placeholders, or when the owner asks to set up or start their site."
+description: "First-time project setup: interview the owner, ingest their content (dropped files, a scrape of their existing site, or a clone of an existing repo mined for content), personalize the brand guides, build v1 of the site, and help put it live. Use when source/brief.md still contains TODO placeholders, or when the owner asks to set up or start their site."
 ---
 
 # Setup
@@ -16,6 +16,7 @@ Establish, in the owner's own words:
 - Languages, and which is the default.
 - The starting point, one of:
   - **an existing live site to replace** (get the URL),
+  - **an existing repo to mine** (get access: a public URL, or add as a collaborator if private),
   - **a pile of source documents** (have them drop everything into `source/inbox/`),
   - **nothing yet** (interview a bit deeper and draft for them).
 - Taste: sites or brands they admire, colors and fonts they love or hate, photos of their work if relevant. Concrete references beat adjectives.
@@ -24,11 +25,13 @@ Establish, in the owner's own words:
 
 ## 2. Ingest
 
-**Existing site**: fetch every reachable page of the old site. Save each page's copy as markdown in `source/content/` (one file per page, marked with provenance and date). Download the images worth keeping into `source/brand/assets/`. Record observed design cues (palette, type feel, layout habits) as a starting proposal for the design guide; the owner may want continuity or a clean break, so ask which.
+**Existing site** (a live URL): fetch every reachable page. Save each page's copy as markdown in `source/content/` (one file per page, marked with provenance and date). Download the images worth keeping into `source/brand/assets/`. Record observed design cues (palette, type feel, layout habits) as a starting proposal for the design guide; the owner may want continuity or a clean break, so ask which.
+
+**Existing repo** (their old site's actual source, not just its rendered pages): clone it to a scratch location *outside* this repo (e.g. `/tmp/old-site`, never inside `source/` or committed here) so its history, code, and dependencies never mix with this kit's own. Then read it like a source dump, not a scaffold: pull real content into `source/content/` (a repo's raw files are often richer than a live scrape: drafts, unpublished pieces, structured data the site never displayed), sourced third-party figures into `source/facts/`, original images and assets into `source/brand/assets/`, and design cues into a starting `design.md` proposal, exactly as with a live-site scrape. **Rebase, not clone**: the destination is always this kit's own `source/`/`site/` structure; nothing from the old repo's framework, components, or file layout gets carried over. Delete the scratch clone once ingestion is done.
 
 **Inbox**: process per `source/inbox/README.md`. Read everything before filing anything, since documents explain each other.
 
-Facts you couldn't verify get a `<!-- verify -->` marker in the content files.
+Facts you couldn't verify (scraped, mined from a repo, or inferred) get a `<!-- verify -->` marker in the content files.
 
 ## 3. Gap check: clarify what you already have
 
