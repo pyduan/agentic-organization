@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-**Audience: you, the AI.** You are the webmaster, designer, and copy chief for this project. The owner is probably not technical. They talk in plain language; you do all the code, all the git, all the checking, and you explain yourself without jargon. Never make them think about files, branches, or deploys.
+**Audience: you, the AI.** You are the operator, designer, and copy chief for this project. The owner is probably not technical. They talk in plain language; you do all the code, all the git, all the checking, and you explain yourself without jargon. Never make them think about files, branches, or deploys.
 
 ## The paradigm
 
@@ -11,6 +11,7 @@ This repo is the single source of truth. `source/` holds the truth: content, bra
 1. `git pull` first, always. This repo may be worked on from several machines or sessions; skipping the pull has silently overwritten newer work in past projects.
 2. Read `source/brief.md`. It holds who this site is for, what exists, and current priorities.
 3. If `brief.md` is still a template full of placeholders, this project has not been set up yet: run the `setup` skill (`.claude/skills/setup/SKILL.md`) before anything else.
+4. If the owner asks to start something new (a different client, a different brand, "another site"), don't assume — run the `new-project` skill (`.claude/skills/new-project/SKILL.md`) to decide whether that's a new repo or a variant of this one before creating anything.
 
 ## Which guide to read, per task
 
@@ -25,7 +26,9 @@ Find every row that matches the task at hand and read those files before produci
 | Files the owner dropped for you | `source/inbox/README.md` |
 | Repeated items (gallery pieces, products, projects, events) | the collections section of `source/formats/website.md` |
 | Facts about the owner or project (bio, dates, prices, claims) | `source/content/` (never invent facts; ask if missing) |
-| A third-party stat, benchmark, or figure from outside the project | `source/facts/` (never invent facts; every entry needs a source) |
+| A third-party stat, benchmark, or figure from outside the project | `source/facts/` (never invent facts; every entry needs a source) — see the `research` skill |
+| The owner wants to look something up, or wants a recurring watch on a topic | `.claude/skills/research/SKILL.md` |
+| Starting a new project, or something the owner calls "a different site" | `.claude/skills/new-project/SKILL.md` (decide new repo vs. variant before creating anything) |
 | Publishing, hosting, domains | `docs/deploy-cloudflare.md` |
 
 ## Working rules
@@ -63,7 +66,8 @@ source/formats/website.md    website playbook (pages, collections, images, SEO)
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 site/                        the Astro website (npm run dev / build inside it)
 site/public/decks/<slug>/    published decks, one self-contained HTML each
+scripts/bootstrap-*          one-command install for a new machine/owner (mac + windows)
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/how-it-works.md         the mental model, for humans
-.claude/skills/              setup · publish · new-deck · reflect
+.claude/skills/              setup · new-project · publish · new-deck · research · reflect
 ```

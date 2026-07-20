@@ -25,3 +25,20 @@ a URL, a document name and date, or who told you.
   which is which; a page or deck that mixes them should make the distinction obvious to the reader.
 - The AI never invents a number here. If a stat comes up in conversation, it either finds the real
   source or asks you for it.
+
+## What counts as a useful fact here
+
+<!-- TEMPLATE: the setup skill fills this in during the gap-check step, from what the owner
+     actually cares about. Until it's personalized, ask before running a broad research pass —
+     otherwise this folder fills up with generic internet noise nobody asked for. -->
+
+- **In scope**: TODO — the topics/sectors/competitors where an outside number would actually
+  strengthen this project's pages or decks (e.g. for a nonprofit: sector adoption stats and peer
+  benchmarks; for a shop: competitor pricing and category trends; for a consultant: market-size
+  and demand evidence).
+- **Out of scope**: TODO — adjacent-sounding topics that aren't actually relevant, so a research
+  pass doesn't wander into them by default.
+- **Where to look first**: TODO — sources the owner already trusts or references (a specific
+  publication, industry body, or competitor set), if any.
+
+See the `research` skill (`.claude/skills/research/SKILL.md`) for how a fact gets found and banked.

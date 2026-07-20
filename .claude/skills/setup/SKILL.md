@@ -41,6 +41,10 @@ Between ingesting and writing any guide, take stock. For each of the four target
 - **Voice** (`voice.md`): the tone you observed in their material versus the tone they want; words they reach for; words to ban; the exact notation of the project name.
 - **Design** (`design.md` + `tokens.css`): the palette, type, and layout cues you extracted; continuity with the old look or a clean break; references they admire.
 - **Brief** (`brief.md`): audience, what a visitor should do, current priorities.
+- **Facts relevance** (`source/facts/README.md`'s "What counts as a useful fact here"): ask what
+  outside numbers would actually strengthen this project — a sector, a set of competitors, a kind
+  of benchmark — and what's out of scope. This is what keeps the `research` skill from wandering
+  into generic noise later; a couple of concrete examples from the owner beats a vague category.
 
 Where the interface offers structured questions (AskUserQuestion), use it with concrete options. Don't move on while a guide would still contain a guess on something the owner could settle in one sentence.
 
@@ -52,6 +56,7 @@ Replace every TODO in these files with what you learned, keeping each file's str
 - `source/brand/voice.md`: tone words with meanings, banned words, notation of the project name, languages.
 - `source/brand/design.md`: the philosophy paragraph, type choices, imagery style.
 - `source/brand/tokens.css`: the real palette and fonts. If using webfonts, self-host them per the design guide.
+- `source/facts/README.md`'s relevance section: in-scope/out-of-scope topics and trusted sources, from what the owner just told you.
 
 Read each personalized guide back as a whole; it must read as this project's guide, with no template smell left.
 
