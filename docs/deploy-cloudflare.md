@@ -44,3 +44,9 @@ Add both `yourdomain.com` and `www.yourdomain.com` as custom domains so either o
 ## Day-to-day
 
 There is no day-to-day. Pushing is publishing. If the live site ever looks stale, check **Workers & Pages → your project → Deployments** for a failed build; the log says why. A previous deployment can be restored from that same screen with **Rollback**, and the AI can also revert the offending commit.
+
+## Why Cloudflare (and how to swap it)
+
+Cloudflare Pages is the default here for three reasons: it's free with generous, unlimited bandwidth on static sites; one owner-controlled account holds the domain, DNS, and — if an app later needs a backend — Workers + D1/KV (the sovereign-backend tier in `source/formats/webapp.md`); and it builds straight from the repo on every push, no config to babysit.
+
+None of that is lock-in. The host only builds a static site from your repo, so the repo stays the source of truth and the host is a swappable build-and-CDN layer. **Vercel, Netlify, or GitHub Pages would all work the same way** — you repoint DNS and set one build command (`npm run build`, output `dist`, root `site`), and the content doesn't move. Pick Cloudflare unless you already live somewhere else; the choice costs you nothing later.
