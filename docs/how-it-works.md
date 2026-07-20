@@ -27,6 +27,17 @@ The AI publishes routine changes on its own; that's the point. It's instructed t
 
 The kit is tuned for one owner (with the AI doing the work). When a second regular contributor joins, the sane next step is the one bigger organizations use: contributors work on branches, changes become pull requests, one person merges. Ask the AI to set that up; the switch is one conversation. The same escalation exists for content (from data files to a real CMS) and for features (forms, shops); start simple, upgrade when reality asks for it.
 
+## Governance is part of the setup, in plain terms
+
+Running an organization from a repo raises the same questions any shared system does, and git happens to have precise answers. In plain terms:
+
+- **Who owns the vault** — the GitHub and Cloudflare accounts belong to the owner, never to a helper or vendor. That's the whole point of owning your source of truth.
+- **Who can look** — read access: they can see everything, change nothing.
+- **Who can propose** — write access: they (or their AI session) can push branches and open pull requests, but nothing they do goes live.
+- **Who publishes** — merge rights: whoever can merge to `main` publishes, because pushing is publishing. Solo mode collapses all of this into one person; team mode separates proposing from publishing.
+
+The setup interview asks these questions in exactly these terms and records the answers in `source/brief.md` ▸ Governance. Scope rights to the actual use case, not to trust in the abstract: a helper who only edits copy needs write, not admin; a reviewer needs merge, not admin; almost nobody needs admin. Revisit the section whenever someone new joins.
+
 ## Lineage
 
 The rules in these guides are distilled from real projects: a multi-contributor organization site with a design system and a deck engine (where the guide-routing and reflection habits come from), an artist's gallery and shop updated weekly through an inbox folder (the inbox protocol and the publish-without-being-asked rule), a brand built from source documents before any website existed (brand kit first, derivatives after), and small personal sites (the bias for fewer moving parts).

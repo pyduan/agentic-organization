@@ -22,6 +22,13 @@ Establish, in the owner's own words:
 - Taste: sites or brands they admire, colors and fonts they love or hate, photos of their work if relevant. Concrete references beat adjectives.
 - Domain: do they own one, where is it registered. (Setup works fine before the domain exists; the site lives on a `.pages.dev` URL meanwhile.)
 - Any recurring content: gallery, products, events. These become collections.
+- **Governance, in plain terms**: who else, if anyone, will work on this — and who should have
+  the last word before something goes live? Just the owner → simplest mode, talking to Claude
+  publishes. Owner + a helper or a team → each person gets a right sized to their role (look,
+  propose, or publish), and a review gate goes in front of publishing. Don't solve every case now:
+  record the answers in `brief.md` ▸ Governance, grant GitHub access accordingly (repo Settings →
+  Collaborators: read / write; publishing rights stay with the owner unless they delegate them),
+  and revisit when someone new joins.
 
 ## 2. Ingest
 

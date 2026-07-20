@@ -21,6 +21,16 @@
 ## Derivatives
 
 - **Decks**: TODO (list decks under site/public/decks/, each with its purpose and audience)
+- **Apps**: TODO (list apps under apps/, each with what it does and where it's published)
+
+## Governance
+
+<!-- Filled during setup, in plain terms; revisit whenever someone new joins. -->
+
+- **Who owns the accounts**: TODO (the GitHub and Cloudflare accounts belong to the owner, not to a helper or vendor)
+- **Who can ask for changes**: TODO (just the owner? a teammate? anyone at the organization?)
+- **Who publishes**: TODO (solo mode: owner + AI push to main, pushing is publishing; team mode: changes become proposals — pull requests — and a named person approves before anything goes live)
+- **Access granted so far**: TODO (each person added to the repo, with their level: read = can look, write = can propose changes, maintain/admin = can publish and change settings)
 
 ## Current priorities
 
