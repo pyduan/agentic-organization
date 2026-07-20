@@ -15,8 +15,8 @@ Open Claude Code — the **desktop app** is the easiest on-ramp if you're not co
 terminal ([claude.com/claude-code](https://claude.com/claude-code), Mac and Windows); the CLI works
 just as well if you already have a terminal you like. Then paste this:
 
-> I want to set up my own site using the ai-operator template
-> (github.com/pyduan/ai-operator). Check what's already on my machine (git,
+> I want to set up my own site using the agentic-organization template
+> (github.com/pyduan/agentic-organization). Check what's already on my machine (git,
 > Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
 > Windows if you can't tell from my system. Install whatever's missing, one
 > step at a time: explain each step in plain language, verify it actually
@@ -38,12 +38,12 @@ else remotely:
 
 **Mac**, in Terminal:
 ```sh
-curl -fsSL https://raw.githubusercontent.com/pyduan/ai-operator/main/scripts/bootstrap-mac.sh | bash
+curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-mac.sh | bash
 ```
 
 **Windows**, in PowerShell (right-click the Start button → *Terminal*):
 ```powershell
-irm https://raw.githubusercontent.com/pyduan/ai-operator/main/scripts/bootstrap-windows.ps1 | iex
+irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
 ```
 
 Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing;
@@ -71,7 +71,7 @@ default:
 
 ```sh
 mkdir -p ~/Projects && cd ~/Projects
-gh repo create <name> --template pyduan/ai-operator --private --clone
+gh repo create <name> --template pyduan/agentic-organization --private --clone
 cd <name>
 ```
 
