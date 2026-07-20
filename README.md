@@ -67,8 +67,8 @@ About an hour, three ways to do it — pick whichever fits, they all end the sam
 
 The prompt to paste, if you go the first route:
 
-> I want to set up my own site using the agentic-org template
-> (github.com/pyduan/agentic-org). Check what's already on my machine (git,
+> I want to set up my own site using the ai-operator template
+> (github.com/pyduan/ai-operator). Check what's already on my machine (git,
 > Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
 > Windows if you can't tell from my system. Install whatever's missing,
 > explaining each step in plain language and asking before anything that

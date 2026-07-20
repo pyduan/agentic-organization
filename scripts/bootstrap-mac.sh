@@ -1,19 +1,19 @@
 #!/bin/bash
-# Bootstrap a new agentic-org project on macOS: installs whatever's missing
+# Bootstrap a new ai-operator project on macOS: installs whatever's missing
 # (Homebrew, git, Node, GitHub CLI, Claude Code), authenticates GitHub, creates
 # a new repo from this template, clones it, and hands off to Claude.
 #
 # Run it directly:
-#   curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-org/main/scripts/bootstrap-mac.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/pyduan/ai-operator/main/scripts/bootstrap-mac.sh | bash
 # or clone the repo first and run ./scripts/bootstrap-mac.sh
 #
 # Safe to re-run: every step checks whether it's already done before acting.
 
 set -e
 
-TEMPLATE="pyduan/agentic-org"
+TEMPLATE="pyduan/ai-operator"
 
-echo "== agentic-org setup =="
+echo "== ai-operator setup =="
 echo
 
 # --- Homebrew ---
