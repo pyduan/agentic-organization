@@ -1,8 +1,10 @@
-# AI operator
+# Agentic organization starter kit
 
-Your website, your decks, your whole public presence, run by an AI operator from one repo you own.
+Run your organization as code: your website, your decks, your facts and your voice in one repo you own, operated by AI. You talk; it reads your guides, does the work, publishes, and learns.
 
 This is the workflow I use to run everything from a nonprofit's full marketing site to an artist's gallery and shop to my own one-page projects. Enough people have asked "how do you do that?" that I packaged it. Clone this, spend an hour on setup with a technical friend (or with me), and from then on you update your site by talking.
+
+The bet behind it: AI should pay off on both horizons at once. It saves you time today (a post, a deck, a site update in minutes), and because every use leaves a rule, a fact, or a guide in the repo, the thousandth request is served better than the first. Disposable AI is fast today and worthless tomorrow; a grand IT scheme is the opposite. An agentic organization gets both, because the same gesture serves both.
 
 Paul Duan · [@pyduan](https://github.com/pyduan) · [paulduan.com](https://www.paulduan.com)
 
@@ -64,8 +66,8 @@ About an hour, three ways to do it — pick whichever fits, they all end the sam
 
 The prompt to paste, if you go the first route:
 
-> I want to set up my own site using the ai-operator template
-> (github.com/pyduan/ai-operator). Check what's already on my machine (git,
+> I want to set up my own site using the agentic-org template
+> (github.com/pyduan/agentic-org). Check what's already on my machine (git,
 > Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
 > Windows if you can't tell from my system. Install whatever's missing,
 > explaining each step in plain language and asking before anything that

@@ -1,17 +1,17 @@
-# Bootstrap a new ai-operator project on Windows: installs whatever's missing
+# Bootstrap a new agentic-org project on Windows: installs whatever's missing
 # (git, Node, GitHub CLI, Claude Code), authenticates GitHub, creates a new
 # repo from this template, clones it, and hands off to Claude.
 #
 # Run it directly, from a PowerShell window (right-click Start -> "Terminal"):
-#   irm https://raw.githubusercontent.com/pyduan/ai-operator/main/scripts/bootstrap-windows.ps1 | iex
+#   irm https://raw.githubusercontent.com/pyduan/agentic-org/main/scripts/bootstrap-windows.ps1 | iex
 # or clone the repo first and run .\scripts\bootstrap-windows.ps1
 #
 # Safe to re-run: every step checks whether it's already done before acting.
 
 $ErrorActionPreference = "Stop"
-$Template = "pyduan/ai-operator"
+$Template = "pyduan/agentic-org"
 
-Write-Host "== ai-operator setup =="
+Write-Host "== agentic-org setup =="
 Write-Host ""
 
 function Test-Command($name) {

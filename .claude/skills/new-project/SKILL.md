@@ -39,7 +39,7 @@ Different owner, different brand, or content that must never mix with what's alr
 prices, and voice. Instead:
 
 1. Point the owner (or run yourself, if you're already set up to) at `SETUP.md`'s Option A/B/C to
-   create a **fresh** copy of the template (`gh repo create <name> --template pyduan/ai-operator
+   create a **fresh** copy of the template (`gh repo create <name> --template pyduan/agentic-org
    --private --clone`) — a brand-new, independent repo, not a fork of this one.
 2. Run the **setup** skill there, from scratch, with that project's own interview.
 3. **Rebase, not clone**, if the owner wants to reuse something specific from this project (a
