@@ -24,6 +24,7 @@ Find every row that matches the task at hand and read those files before produci
 | Website pages, navigation, or structure | `source/formats/website.md` |
 | A web app or interactive tool (calculator, simulator, form flow, dashboard) | `source/formats/webapp.md`, plus voice and design above |
 | A deck or presentation | `source/formats/deck.md`, plus voice and design above |
+| A phone / chat / platform demo (inside a deck, page, or app) | `source/formats/demos.md`, plus voice and design above |
 | Files the owner dropped for you | `source/inbox/README.md` |
 | Repeated items (gallery pieces, products, projects, events) | the collections section of `source/formats/website.md` |
 | Facts about the owner or project (bio, dates, prices, claims) | `source/content/` (never invent facts; ask if missing) |

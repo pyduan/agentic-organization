@@ -56,10 +56,13 @@
   .slide.cover .kicker { color: var(--color-accent-ink); opacity: 0.7; }
 
   /* ── Print: one page per slide ─────────────────────────────────────────── */
+  /* Export rule: one full-bleed slide per page at a fixed optimal resolution
+     (1280x720), whatever the screen or fullscreen state, backgrounds forced on. */
   @media print {
-    html, body { background: none; overflow: visible; }
+    html, body { background: #fff; overflow: visible; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     #stage { position: static; width: auto; height: auto; transform: none; }
-    .slide { display: flex; position: relative; inset: auto; width: 1280px; height: 720px; page-break-after: always; }
+    .slide { display: flex; position: relative; inset: auto; width: 1280px; height: 720px; transform: none; page-break-after: always; break-inside: avoid; }
     #counter { display: none; }
     @page { size: 1280px 720px; margin: 0; }
   }
