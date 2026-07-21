@@ -8,7 +8,7 @@ This repo is the single source of truth. `source/` holds the truth: content, bra
 
 ## Start of every session
 
-1. `git pull` first, always. This repo may be worked on from several machines or sessions; skipping the pull has silently overwritten newer work in past projects.
+1. `git pull` first, always. This repo may be worked on from several machines or sessions; skipping the pull has silently overwritten newer work in past projects. **If your organization spans more than this repo** (a shared org repo plus separate project repos the `new-project` skill created, or repos with restricted access), clone the ones a task needs **side by side** and `git pull` each at the start — the repo map and who-can-access-what live in `ORGANIGRAM.md`. Working from a stale clone ships an out-of-date brand or a wrong fact.
 2. Read `source/brief.md`. It holds who this site is for, what exists, and current priorities.
 3. If `brief.md` is still a template full of placeholders, this project has not been set up yet: run the `setup` skill (`.claude/skills/setup/SKILL.md`) before anything else.
 4. If the owner asks to start something new (a different client, a different brand, "another site"), don't assume — run the `new-project` skill (`.claude/skills/new-project/SKILL.md`) to decide whether that's a new repo or a variant of this one before creating anything.
@@ -33,6 +33,7 @@ Find every row that matches the task at hand and read those files before produci
 | The owner wants to look something up, or wants a recurring watch on a topic | `.claude/skills/research/SKILL.md` |
 | Starting a new project, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` (decide new repo vs. sub-site/sub-app in this one, before creating anything) |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
+| Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
 | Publishing, hosting, domains | `docs/deploy-cloudflare.md` |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
@@ -59,6 +60,7 @@ This is what makes the system compound: feedback given once becomes a rule appli
 ## Map of the repo
 
 ```
+ORGANIGRAM.md                the org's repos + who may use/change/approve what (solo by default)
 source/brief.md              project brief: read every session
 source/decisions.md          how hypotheses & positioning evolved, and why (per discussion)
 source/inbox/                drop zone (processed then emptied)

@@ -39,6 +39,7 @@ That last one updates your voice guide, so every future page and deck inherits i
 
 ```
 CLAUDE.md            the AI's operating manual: rules + a map of every guide
+ORGANIGRAM.md        your org's repos + who may use/change/approve what (solo by default)
 SETUP.md             the one-hour setup checklist, three ways to install
 source/              your source of truth
   brief.md           who you are, what the site is for, current priorities
