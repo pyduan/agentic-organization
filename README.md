@@ -98,6 +98,12 @@ A few things to say once you're in, to get a feel for it:
 
 This kit keeps improving. Your project is your own copy, so it doesn't change on its own — when you want the latest, open your project in Claude Code and say **"update the framework"** (the `update-kit` skill). It pulls the newest guides, skills, and scripts from the template, **leaves all your content untouched** (your pages, your facts, your voice), and tells you if any improvement needs a small follow-up. Then it commits and publishes as usual. Nothing you've built is at risk.
 
+**If you set up before the `update-kit` skill existed** (early adopter — you won't see it in `.claude/skills/`), do the first refresh by pasting this once, and you'll have the skill for every update after:
+
+> Pull the latest framework files from the `pyduan/agentic-organization` template into this project — the scaffolding only (`.claude/`, `docs/`, `scripts/`, `source/formats/`, and the root `CLAUDE.md`/`SETUP.md`/`README.md`), never my own content under `source/`, `site/` or `apps/`. Add the template as a git remote if needed, bring those paths over, reconcile `CLAUDE.md` by merging rather than overwriting, then commit and publish.
+
+That's not a git rebase and it won't touch your work: the framework files are updated in place, your content carries forward as-is. Claude flags anything a change implies you should redo.
+
 ## When you grow
 
 The kit is tuned for one owner working solo on `main`. When a second regular contributor joins, the switch is one conversation: contributors move to branches and pull requests, one person merges, and everything else stays the same — the same guides, the same cascade, now with a review before publishing. The mental model (and the escalation paths for content and features) is in [docs/how-it-works.md](docs/how-it-works.md).
