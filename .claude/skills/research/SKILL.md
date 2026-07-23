@@ -13,11 +13,12 @@ things *other people* found, that are worth citing.
 
 ## Check relevance first
 
-Read `source/facts/README.md`'s **"What counts as a useful fact here"** section before researching
-anything. It's personalized per project (filled in during setup) and exists so this folder doesn't
-fill up with generic internet noise — only bank what that section says actually matters for this
-project. If it's still a TODO (setup hasn't personalized it yet), ask the owner what kinds of
-external facts would actually be useful before running a broad search.
+Read `source/facts/README.md`'s **"What counts as a useful fact here"** section, and the themes in
+**`source/facts/methodology.md`**, before researching anything. Both are personalized per project
+(filled in during setup) and exist so this folder doesn't fill up with generic internet noise —
+only bank what actually matters for this project. If either is still a TODO (setup hasn't
+personalized it yet), ask the owner what kinds of external facts would be useful before running a
+broad search.
 
 ## One-off: banking a fact already in hand
 
@@ -56,11 +57,17 @@ which — a page or deck that cites both should make the distinction obvious to 
 ## Recurring watches (if the owner wants one)
 
 Some topics are worth checking periodically rather than once (a competitive landscape, a sector
-that publishes reports regularly). If the owner asks for this ("keep an eye on X, let me know if
-something new comes up"), offer to **schedule** a recurring pass (the `schedule` skill /
-scheduled-tasks, if available in this environment) rather than relying on them to remember to ask
-again. A scheduled pass that finds nothing new banks nothing — it's not obligated to produce a
-file every time it runs.
+that publishes reports regularly). The watch is **driven by `source/facts/methodology.md`** — the
+brief that says what themes to deep-search, where to look, and how. It's a search over *themes*,
+not a list of sites to poll; a named source is only ever an example of where a hit came from. Read
+that file (and personalize it if it's still a template) before running or scheduling a watch.
+
+If the owner asks for this ("keep an eye on X, let me know if something new comes up"), offer to
+**schedule** a recurring pass (the `schedule` skill / scheduled-tasks, if available in this
+environment) rather than relying on them to remember to ask again — e.g. a weekly deep-search every
+Friday at noon. The scheduled run reads `methodology.md` fresh each time, so editing that file
+changes what the watch covers, no rescheduling needed. A pass that finds nothing new banks nothing;
+it's not obligated to produce a file every time it runs.
 
 ## Never invent
 
