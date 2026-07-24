@@ -50,6 +50,28 @@ first time you ask:
 
 The kit is tuned for one owner (with the AI doing the work). When a second regular contributor joins, the sane next step is the one bigger organizations use: contributors work on branches, changes become pull requests, one person merges. Ask the AI to set that up; the switch is one conversation. The same escalation exists for content (from data files to a real CMS) and for features (forms, shops); start simple, upgrade when reality asks for it.
 
+## Several projects: folders, repos, or organizations (advanced)
+
+Once you run more than one thing (a few clients, a program with sub-projects, several sites for the same institution), the question is how to lay them out. There is a spectrum, from most-shared to most-separate:
+
+1. **Different folders in one repo.** Everything shares one source of truth, one brand, one deploy. Simplest, but the projects are welded together: same access, same history, hard to hand one off later.
+2. **Different repos in one GitHub organization** (`org/website`, `org/appX`, `org/appY`). Each project is its own repo, cloned from this kit, but they sit together under one org so access, ownership, and a shared brand can flow between them.
+3. **Different GitHub organizations.** Fully independent. Each org owns its accounts, its brand, its people. Right when the projects have nothing to inherit from each other.
+
+**What decides where you land is inheritance: how much shared source documentation there is, and which project should inherit from which.** Strong shared documentation and one project clearly feeding another point toward nesting (folders in one repo, or repos in one org). Largely independent projects, each with its own identity and its own team, point toward separate organizations. Pick the least separation that honestly reflects how much they share; you can always split later.
+
+Two rules make this hold up over time:
+
+- **Use GitHub organizations, not personal accounts, for anything real.** A personal account cannot grow: it has one owner and no room for a team or for related repos to sit together. Create an org (free on GitHub) and let the project live there from the start.
+- **Name the primary repo `<org>/website`, not `<person>/<project>`.** `bopa/website` stays extensible: when a sub-project appears you add `bopa/appX`, `bopa/appY` alongside it, and the org is the natural home for the brand they share. `ericvibert/bopa` (a project named inside a personal account) is a dead end: the person is not the org, and there is nowhere for `appX` to go. In each org, clone this kit into the `website` repo and work from there.
+
+Worked example, three projects called PEPR, BoPA, and CHB. Two good shapes, chosen by inheritance:
+
+- **Independent** → three organizations (`pepr`, `bopa`, `chb`), each with its own `website` repo cloned from this kit. Right if they share little and answer to different people.
+- **Nested** → one organization (say `chb`) holding the others as repos (`chb/website`, `chb/bopa`, `chb/pepr`), so a shared brand and shared facts cascade from the parent. Right if BoPA and PEPR are really programs under CHB and should inherit from it.
+
+The AI should ask which situation you are in before it starts building; see the `new-project` skill.
+
 ## Governance is part of the setup, in plain terms
 
 Running an organization from a repo raises the same questions any shared system does, and git happens to have precise answers. In plain terms:
