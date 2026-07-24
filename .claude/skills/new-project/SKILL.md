@@ -28,7 +28,7 @@ what already exists:
 - A new page or collection → `source/formats/website.md`, build it in `site/`.
 - A **web app for the same project** (a calculator, a simulator, an intake form, a small tool) →
   `apps/<slug>/` per `source/formats/webapp.md` — same repo, same brand; it publishes under the
-  site or as its own Cloudflare Pages project on this repo, but it is **not** a new repo.
+  site or as its own Cloudflare Worker on this repo, but it is **not** a new repo.
 - A **sub-site** (a seasonal microsite, an event page, a landing for a campaign) that still sounds
   and looks like this project → a section or page of `site/`, or `apps/<slug>/` if it's genuinely
   its own little thing; still this repo.
@@ -41,7 +41,7 @@ what already exists:
 The dividing line, in one question: **would this thing cite this repo's facts and speak in this
 repo's voice?** Yes → it lives here (site page, sub-site, or `apps/`). No → new repo. (Real case:
 someone's personal webapp next to the lab site they contribute to — different project, own repo,
-own Cloudflare Pages project; nesting it as a subfolder of the lab's repo is the mistake.)
+own Cloudflare Worker; nesting it as a subfolder of the lab's repo is the mistake.)
 
 ## It's a new project — a new repo
 

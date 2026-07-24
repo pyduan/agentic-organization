@@ -4,7 +4,7 @@ How the site is built and changed. Read together with `source/brand/design.md` a
 
 ## Shape
 
-The site is a minimal [Astro](https://astro.build) app in `site/`, fully static, hand-written CSS, no UI framework. Run it with `npm run dev` inside `site/`; build with `npm run build`. Cloudflare Pages builds and publishes it on every push to `main`.
+The site is a minimal [Astro](https://astro.build) app in `site/`, fully static, hand-written CSS, no UI framework. Run it with `npm run dev` inside `site/`; build with `npm run build`. Cloudflare Workers builds and publishes it on every push to `main` (the repo-root `wrangler.jsonc` serves the built `site/dist` as static assets; see `docs/deploy-cloudflare.md`).
 
 - `site/src/layouts/Base.astro` holds the shared shell: head, nav, footer. Page-specific styling stays in each page's `<style>` block; shared styling lives in `site/src/styles/site.css`; all values come from tokens.
 - One `.astro` file per page in `site/src/pages/`. Keep pages self-explanatory; a stranger (or a fresh AI session) should understand a page by reading it top to bottom.

@@ -21,7 +21,7 @@ Why Git specifically? Because it's not a technical detail, it's decades of devel
 Git gives the system its memory: every change to every file, forever, with the reason attached. You don't operate it; the AI pulls at the start of each session, commits and pushes at the end of each change. Two things follow that are worth knowing:
 
 - Nothing is ever lost. "Put the gallery back how it was in June" is a valid request.
-- Pushing is publishing. Cloudflare Pages watches the repo and rebuilds the live site on every push, in about a minute.
+- Pushing is publishing. Cloudflare Workers watches the repo and rebuilds the live site on every push, in about a minute.
 
 ## Trust boundaries
 

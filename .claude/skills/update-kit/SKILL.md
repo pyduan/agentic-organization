@@ -9,11 +9,13 @@ This project was created from the `pyduan/agentic-organization` template. The te
 improving (new skills, better guides, fixed scripts). This skill pulls those improvements in
 **without clobbering the owner's own content** — their `source/`, their `site/`, their pages are
 theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format playbooks in
-`source/formats/`, the root `CLAUDE.md`/`SETUP.md`/`README.md`) is what gets refreshed.
+`source/formats/`, the root deploy config `wrangler.jsonc`/`package.json`, and the root
+`CLAUDE.md`/`SETUP.md`/`README.md`) is what gets refreshed.
 
 **The golden distinction.** Two kinds of files live here:
 - **Framework** (comes from the template, safe to update): `.claude/skills/`, `.claude/hooks/`,
-  `docs/`, `scripts/`, `source/formats/*.md`, and the root `CLAUDE.md` / `SETUP.md` / `README.md`.
+  `docs/`, `scripts/`, `source/formats/*.md`, the root deploy config (`package.json`,
+  `wrangler.jsonc`), and the root `CLAUDE.md` / `SETUP.md` / `README.md`.
 - **The owner's** (never overwrite): everything under `source/` *except* `source/formats/`
   (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`), all of `site/`, `apps/`, and
   `site/public/decks/`.
@@ -27,11 +29,20 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    `git fetch template`.
 3. **Bring in framework files only.** Don't merge the whole template (it would fight the owner's
    content and history). Instead, check out just the framework paths from the template's main:
-   `git checkout template/main -- .claude docs scripts source/formats SETUP.md README.md`
+   `git checkout template/main -- .claude docs scripts source/formats SETUP.md README.md package.json`
    Leave `CLAUDE.md` for step 4 (it may carry local rules the owner added).
    Also compare the template's `.gitignore` with this project's and merge in any rules the
-   template added for local-only folders (the team module's `team/*` + `!team/README.md`):
-   those rules are a privacy guarantee, and an updated skill must never run without them.
+   template added for local-only folders (the team module's `team/*` + `!team/README.md`,
+   and `.wrangler/`): those rules are a privacy/hygiene guarantee, and an updated skill must never
+   run without them.
+   **`wrangler.jsonc` is framework but carries one owner value — reconcile it, don't overwrite.**
+   If the project has no `wrangler.jsonc` yet (set up before the Workers migration), bring it in
+   (`git checkout template/main -- wrangler.jsonc`) and set its `name` to the project's slug. If it
+   already has one, keep the owner's `name` and only fold in any other field the template changed.
+   Bringing in `wrangler.jsonc` + `package.json` is safe on its own: it does **not** touch a live
+   site (a still-running Cloudflare Pages deploy keeps working — its build root is `site/`, and
+   these files sit at the repo root where Pages never looks). Switching hosting to Workers is a
+   separate, deliberate step in `docs/deploy-cloudflare.md` ▸ "Already on Cloudflare Pages?".
 4. **Reconcile `CLAUDE.md` by reading, not overwriting.** Diff the template's `CLAUDE.md` against
    this one (`git diff --no-index CLAUDE.md <(git show template/main:CLAUDE.md)`), and fold in the
    new framework rules while **keeping any project-specific rules** the owner or you added over
@@ -43,7 +54,11 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    (e.g. a new `source/facts/` folder → offer to populate it; a new `apps/` convention → note it;
    the update introduced the `projects` and `team` modules → mention them in one sentence each and
    offer to activate, creating `source/objectives.md` from the template if the owner wants
-   prioritization against a north star).
+   prioritization against a north star). **If this update brought in the Workers deploy config and
+   the site is still hosted on Cloudflare Pages**, say so in one plain sentence — the site keeps
+   working untouched, and moving it to Workers is an optional one-time step (create a Worker on the
+   same repo, move the custom domain) they can do whenever they like, per
+   `docs/deploy-cloudflare.md` ▸ "Already on Cloudflare Pages?". Don't do it unprompted.
    Show the owner what changed and what you propose to redo; don't silently rewrite their pages.
 6. **Verify + publish.** `npm run build` inside `site/` is green, run it locally, then commit
    ("chore: update framework from template") and push, per the `publish` skill. Tell the owner in

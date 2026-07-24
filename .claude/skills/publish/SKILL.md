@@ -5,7 +5,7 @@ description: "Save and publish the current state: verify, commit, push, confirm 
 
 # Publish
 
-Publishing is pushing; Cloudflare Pages does the rest. The job here is to do it cleanly and confirm it landed.
+Publishing is pushing; Cloudflare Workers does the rest. The job here is to do it cleanly and confirm it landed.
 
 1. **Verify first.** If the change is visual and hasn't been checked yet, run the site locally and look at it (mobile and desktop) before publishing. A deck: open it and click through. If words changed, reread them once against the voice guide, check any figure or name against `source/content/` and `source/facts/`, and click the links. Nothing invented ever ships.
 2. **Stage explicitly.** `git status`, then `git add` the files you touched, by name. Other sessions or machines may have left unrelated files around; a blind `git add -A` has shipped accidents before.
