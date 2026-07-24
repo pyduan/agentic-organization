@@ -37,6 +37,22 @@ simply where you write the rules down **once** as the team grows: who may change
 approves each area, what stays yours alone. Keep it honest and minimal; don't invent structure you
 don't have yet.
 
+Two files are special whatever the team looks like: `source/objectives.md` (the north star) stays
+the owner's alone to change, and the `team/` folder (the team module's people data) is local-only
+and belongs to nobody's review, not even the owner's reviewers.
+
+## Your responsibility chart, made executable
+
+As the organization grows, this file converges with your actual org chart: the repo map mirrors
+how responsibility is divided (a shared org repo, a repo per client team, a restricted repo for
+what only some may see), and the three rights mirror who owns each area. That's deliberate. "Code
+is law" applied to an organization means the responsibility chart isn't a diagram people try to
+remember; it's **enforced by construction**: repo access decides who can even read an area,
+write access decides who can propose, merge rights decide whose sign-off publishes, and the
+guides' inheritance (org-wide voice → area guides → personal voice) mirrors who answers to whom.
+When responsibilities move, move the access and the rows here in the same change; when the two
+disagree, one of them is lying, and it's usually this file.
+
 ## The rule for the AI
 
 1. **Identify** who's asking (by a stable identifier, not a display name) when more than one person

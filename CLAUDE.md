@@ -31,6 +31,9 @@ Find every row that matches the task at hand and read those files before produci
 | Facts about the owner or project (bio, dates, prices, claims) | `source/content/` (never invent facts; ask if missing) |
 | A third-party stat, benchmark, or figure from outside the project | `source/facts/` (never invent facts; every entry needs a source) — see the `research` skill |
 | The owner wants to look something up, or wants a recurring watch on a topic | `.claude/skills/research/SKILL.md` |
+| A piece of work the org drives (a client engagement, a grant, a launch): start tracking it, log a decision, file its documents, "where do we stand" | `.claude/skills/projects/SKILL.md` — the project's memory lives in `projects/<slug>/`, and a deck or page about it pulls facts from there |
+| The owner's team: 1:1 notes to distill, a management TODO, 1:1 prep, goals to challenge, management advice | `.claude/skills/team/SKILL.md` — people data lives ONLY in the gitignored, local-only `team/` folder; verify the `.gitignore` rules before writing there, and never commit, publish, or relay any of it |
+| Prioritization: what matters most, whether a project or goal is aligned | `source/objectives.md` (the owner's north star; owner-only to change) — if it's still empty, offer to fill it first |
 | Starting a new project, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` (decide new repo vs. sub-site/sub-app in this one, before creating anything) |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
@@ -62,6 +65,7 @@ This is what makes the system compound: feedback given once becomes a rule appli
 ```
 ORGANIGRAM.md                the org's repos + who may use/change/approve what (solo by default)
 source/brief.md              project brief: read every session
+source/objectives.md         the owner's north star: priorities that projects & goals align to
 source/decisions.md          how hypotheses & positioning evolved, and why (per discussion)
 source/inbox/                drop zone (processed then emptied)
 source/content/              canonical texts, facts, and data files
@@ -76,6 +80,8 @@ source/formats/deck.md       deck playbook + source/formats/deck-template.html
 site/                        the Astro website (npm run dev / build inside it)
 site/public/decks/<slug>/    published decks, one self-contained HTML each
 apps/<slug>/                 web apps of this project, one self-contained folder each
+projects/<slug>/             the org's work, tracked: charter, log, files, next steps
+team/                        the owner's team files — gitignored, local-only, never shared
 scripts/bootstrap-*          one-command install for a new machine/owner (mac + windows)
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)

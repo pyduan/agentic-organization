@@ -1,6 +1,6 @@
 # Agentic organization starter kit
 
-Run your organization as code: your website, your apps, your decks, your facts and your voice in one repo you own, operated by AI. You talk; it reads your guides, does the work, publishes, and learns.
+Run your organization as code: your website, your apps, your decks, your facts and your voice — and, if you want, your projects and your team — in one repo you own, operated by AI. You talk; it reads your guides, does the work, publishes, and learns.
 
 This is the workflow I use to run everything from a nonprofit's full marketing site to an artist's gallery and shop to my own one-page projects. Enough people have asked "how do you do that?" that I packaged it. Clone this, spend an hour on setup with a technical friend (or with me), and from then on you update your site by talking.
 
@@ -10,13 +10,17 @@ Paul Duan · [@pyduan](https://github.com/pyduan) · [paulduan.com](https://www.
 
 ## Why this exists
 
-Three problems kept showing up, in organizations and solo projects alike:
+Start with what's newly possible, because it's enormous. One person with an AI operator can now do what used to take a team: run a real website, produce decks and campaigns, follow every project, keep a research watch, even get management-grade help with their team. People half-joke about one-person unicorns; the honest version for the rest of us is that a two-person nonprofit can now operate like a twenty-person one. That's the prize, **if it's done well**.
+
+Done naively, it isn't. Just handing everyone an AI chat window produces the same three failure modes, in organizations and solo projects alike:
 
 - **Middlemen that don't help.** Non-technical people end up fighting a SaaS site builder (a subscription, an editor that fights back, content locked inside, someone else's banner on your own page) or depending on a developer for every comma.
-- **Shadow AI.** Everyone prompts in their own corner. The same work gets redone everywhere, and the AI never learns at the scale of the project or the team: every session starts from scratch.
+- **Shadow AI.** Everyone prompts in their own corner. The same work gets redone everywhere, nothing is reviewable, and the AI never learns at the scale of the project or the team: every session starts from scratch.
 - **Version chaos.** `v3_FINAL_def(reviewed).xlsx` scattered across the Drive, desktops, inboxes, and people's heads. Nobody knows which one is true.
 
 The answer isn't a better prompt or one more tool: it's **governance embedded in the structure of a repo**. Write what the AI must know into plain files that inherit from one another — your identity and facts, your voice, your per-format rules, your personal voice on top — and the AI reads them fresh every session. Change a fact at the source and every future page, deck, and post is right by construction. That's the whole trick: you don't prompt-engineer, you maintain guides, and only once.
+
+That's the best of both worlds: the acceleration of everyone using AI on everything, with none of the shadow. And it's **cumulative**: every correction becomes a rule, every project leaves a playbook, every 1:1 leaves a trace, so the system is measurably smarter after each use instead of starting over.
 
 ## The idea
 
@@ -33,7 +37,11 @@ The answer isn't a better prompt or one more tool: it's **governance embedded in
 
 > "Our tone reads too corporate. Warmer, fewer buzzwords."
 
-That last one updates your voice guide, so every future page and deck inherits it. At the end of each session the AI saves, publishes, and folds anything new it learned about your taste into your guides. You never touch git, code, or a deploy button.
+> "We won the Marseille grant. Log it, file the award letter, and tell me what's next across all projects."
+
+> "Here are my 1:1 notes from this week. What should I not drop as a manager?"
+
+That third one updates your voice guide, so every future page and deck inherits it. At the end of each session the AI saves, publishes, and folds anything new it learned about your taste into your guides. You never touch git, code, or a deploy button.
 
 ## What's in the box
 
@@ -43,6 +51,7 @@ ORGANIGRAM.md        your org's repos + who may use/change/approve what (solo by
 SETUP.md             the one-hour setup checklist, three ways to install
 source/              your source of truth
   brief.md           who you are, what the site is for, current priorities
+  objectives.md      your north star: the few priorities projects & goals align to (yours alone)
   decisions.md       how hypotheses & positioning evolved, and why (per discussion)
   inbox/             drop zone: put anything here and tell the AI about it
   content/           your canonical texts, facts, and data (prices, catalogs...)
@@ -52,9 +61,11 @@ source/              your source of truth
 site/                the website itself (Astro, deployed by Cloudflare Pages)
 site/public/decks/   your presentations, each a single shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
+projects/            (optional module) your real work, tracked: charter, log, files, next steps
+team/                (optional module) your team files — gitignored, local-only, never shared
 scripts/             one-command install scripts (mac + windows)
 docs/                how it works, the Cloudflare deploy guide, the troubleshooting FAQ
-.claude/             skills (setup, new-project, publish, new-deck, research, reflect, update-kit) + hooks
+.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, update-kit) + hooks
 ```
 
 The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.
@@ -93,6 +104,8 @@ A few things to say once you're in, to get a feel for it:
 - **"I want to start a new project for [someone/something else]."** — a different client or brand gets its own repo, never mixed into this one. (Same project's tool or sub-site stays here; the AI makes that call before creating anything.)
 - **"Find me real numbers on [X]."** — a sourced research pass, banked for later.
 - **"Make a deck for [occasion], here are my notes."** — a new presentation from a brief.
+- **"Start tracking the [client / grant / launch] project."** — a charter, a decisions log, and living next steps in `projects/`; every later deck or status question draws on it.
+- **"Here are this week's 1:1 notes."** — distilled into a per-person file and a prioritized management TODO, all in a local-only folder that never leaves your machine.
 - **"This doesn't sound like me — [what's off]."** — corrects the voice guide, permanently, for every future page and deck.
 - **"Update the framework."** — pulls the latest kit improvements (new skills, better guides) into your project, keeping all your own content.
 

@@ -29,6 +29,9 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    content and history). Instead, check out just the framework paths from the template's main:
    `git checkout template/main -- .claude docs scripts source/formats SETUP.md README.md`
    Leave `CLAUDE.md` for step 4 (it may carry local rules the owner added).
+   Also compare the template's `.gitignore` with this project's and merge in any rules the
+   template added for local-only folders (the team module's `team/*` + `!team/README.md`):
+   those rules are a privacy guarantee, and an updated skill must never run without them.
 4. **Reconcile `CLAUDE.md` by reading, not overwriting.** Diff the template's `CLAUDE.md` against
    this one (`git diff --no-index CLAUDE.md <(git show template/main:CLAUDE.md)`), and fold in the
    new framework rules while **keeping any project-specific rules** the owner or you added over
@@ -37,7 +40,10 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    `apps/` were never touched, so nothing to re-apply there. But if a framework change *implies*
    follow-up (a new format playbook, a renamed skill, a changed folder), do that follow-up now:
    re-read the refreshed guides and bring the site/content into line where it's cheap and safe
-   (e.g. a new `source/facts/` folder → offer to populate it; a new `apps/` convention → note it).
+   (e.g. a new `source/facts/` folder → offer to populate it; a new `apps/` convention → note it;
+   the update introduced the `projects` and `team` modules → mention them in one sentence each and
+   offer to activate, creating `source/objectives.md` from the template if the owner wants
+   prioritization against a north star).
    Show the owner what changed and what you propose to redo; don't silently rewrite their pages.
 6. **Verify + publish.** `npm run build` inside `site/` is green, run it locally, then commit
    ("chore: update framework from template") and push, per the `publish` skill. Tell the owner in

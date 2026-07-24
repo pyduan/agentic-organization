@@ -4,3 +4,9 @@ dist/
 .DS_Store
 .env
 .env.*
+
+# The team module's folder is local-only by design: it holds people data
+# (1:1 digests, assessments) that must never leave this machine.
+# Only its README (the structure guide) is committed.
+team/*
+!team/README.md

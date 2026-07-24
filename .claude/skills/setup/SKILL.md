@@ -33,6 +33,15 @@ Establish, in the owner's own words:
   Fill the repo table and the three-rights section of `ORGANIGRAM.md` with their answers, grant
   GitHub access to match (repo Settings → Collaborators: read / write; publishing stays with the
   owner unless delegated), and revisit when someone new joins or a second repo appears.
+- **The optional modules, one plain question each.** The kit can also run more of the
+  organization than its website: *do you want to track your actual work here* (clients, grants,
+  launches: the `projects` skill, a folder per project with its charter, decisions and files)?
+  And *do you manage people and want help with 1:1s and priorities* (the `team` skill; its data
+  stays in a gitignored, local-only folder and never leaves the machine — say that sentence, it's
+  the reason to trust it)? Yes activates the module now (create its folder per the skill); no
+  costs nothing, and saying "start tracking project X" or "sync my team" later activates it then.
+  If either is on, offer to fill `source/objectives.md` (the north star both modules prioritize
+  against) from what the interview already established; it stays the owner's alone to change.
 
 ## 2. Ingest
 
