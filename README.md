@@ -10,7 +10,7 @@ Paul Duan · [@pyduan](https://github.com/pyduan) · [paulduan.com](https://www.
 
 ## Why this exists
 
-Start with what's newly possible, because it's enormous. One person with an AI operator can now do what used to take a team: run a real website, produce decks and campaigns, follow every project, keep a research watch, even get management-grade help with their team. People half-joke about one-person unicorns; the honest version for the rest of us is that a two-person nonprofit can now operate like a twenty-person one. That's the prize, **if it's done well**.
+Start with what's newly possible, because it's enormous. One person with an AI operator can now do what used to take a team: run a real website, produce decks and campaigns, follow every project, keep a research watch, even get management-grade help with their team. People half-joke about one-person unicorns; the honest version for the rest of us is that a two-person nonprofit can now operate like a twenty-person one. It's not hypothetical: this system is how Bayes Impact, with a team of about fifteen, produces the output of a 100+ person organization. That's the prize, **if it's done well**.
 
 Done naively, it isn't. Just handing everyone an AI chat window produces the same three failure modes, in organizations and solo projects alike:
 
