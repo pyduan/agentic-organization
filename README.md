@@ -27,7 +27,7 @@ That's the best of both worlds: the acceleration of everyone using AI on everyth
 - **One repo is the source of truth.** Your content, your voice guide, your design system, and your format playbooks all live here as plain files. The website and every deck are derivatives, rebuilt from those sources. You don't integrate a mockup, you keep a design system; you don't email talking points around in Word files, you keep a facts library that's always current for everyone.
 - **AI is the operator.** You open the folder in [Claude Code](https://claude.com/claude-code) and talk in plain language. It reads your guides on its own (the repo tells it where everything is), makes the change, shows you the result, and publishes.
 - **Git remembers everything.** Every version of every page is kept forever, so nothing you do can break the site permanently.
-- **Publishing is free and automatic.** Cloudflare Pages watches the repo and puts every change live on your domain in about a minute.
+- **Publishing is free and automatic.** Cloudflare Workers watches the repo and puts every change live on your domain in about a minute.
 
 ## What a session feels like
 
@@ -58,7 +58,7 @@ source/              your source of truth
   facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
   formats/           one playbook per output: website pages, decks
-site/                the website itself (Astro, deployed by Cloudflare Pages)
+site/                the website itself (Astro, deployed by Cloudflare Workers)
 site/public/decks/   your presentations, each a single shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
 projects/            (optional module) your real work, tracked: charter, log, files, next steps
@@ -91,7 +91,7 @@ The prompt to paste, if you go the first route:
 
 Either way you end up with your own copy, cloned locally, and a first session that interviews you and builds v1. After that it's yours: open the folder, run `claude` (or the desktop app), talk.
 
-If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixes for the problems everyone actually hits: git vs GitHub vs gh, the Mac command-line-tools popup, "command not found" right after an install, Cloudflare's empty production-branch dropdown, and running Claude Code in the cloud instead of installing anything locally.
+If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixes for the problems everyone actually hits: git vs GitHub vs gh, the Mac command-line-tools popup, "command not found" right after an install, Cloudflare's empty branch dropdown, and running Claude Code in the cloud instead of installing anything locally.
 
 ## Try saying
 
