@@ -13,7 +13,7 @@
 ## The site
 
 - **Domain**: TODO
-- **Live URL**: TODO (the .pages.dev URL until the domain is connected)
+- **Live URL**: TODO (the .workers.dev URL until the domain is connected)
 - **Languages**: TODO (list them; the first one listed is the default)
 - **Pages**: TODO (list current pages and what each is for)
 - **Collections**: TODO (any repeated content: gallery, products, projects, events; where its data file lives)

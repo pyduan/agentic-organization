@@ -22,6 +22,13 @@ repos (a shared org repo plus a client's own repo), or when some material lives 
 repo only some people can open — then list them here so the AI clones and pulls the right ones and
 never assumes access it doesn't have.
 
+**Naming and layout, once there's more than one project.** Put real projects in a **GitHub
+organization, not a personal account**, and name the primary repo **`<org>/website`** (e.g.
+`bopa/website`), so sub-projects can join later as `bopa/appX` without renaming anything. Whether
+several projects share one repo (folders), one org (separate repos), or separate orgs is a spectrum
+decided by how much documentation they share and which inherits from which — the `new-project` skill
+runs that decision, and `docs/how-it-works.md` ▸ "Several projects" explains it for humans.
+
 ## Who may do what — the three rights
 
 - **Use** — ask for something, run a workflow. **Default: you.** As people join, anyone you bring in

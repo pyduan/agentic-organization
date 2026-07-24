@@ -10,7 +10,7 @@ Paul Duan · [@pyduan](https://github.com/pyduan) · [paulduan.com](https://www.
 
 ## Why this exists
 
-Start with what's newly possible, because it's enormous. One person with an AI operator can now do what used to take a team: run a real website, produce decks and campaigns, follow every project, keep a research watch, even get management-grade help with their team. People half-joke about one-person unicorns; the honest version for the rest of us is that a two-person nonprofit can now operate like a twenty-person one. That's the prize, **if it's done well**.
+Start with what's newly possible, because it's enormous. One person with an AI operator can now do what used to take a team: run a real website, produce decks and campaigns, follow every project, keep a research watch, even get management-grade help with their team. People half-joke about one-person unicorns; the honest version for the rest of us is that a two-person nonprofit can now operate like a twenty-person one. It's not hypothetical: this system is how Bayes Impact, with a team of about fifteen, produces the output of a 100+ person organization. That's the prize, **if it's done well**.
 
 Done naively, it isn't. Just handing everyone an AI chat window produces the same three failure modes, in organizations and solo projects alike:
 
@@ -27,7 +27,7 @@ That's the best of both worlds: the acceleration of everyone using AI on everyth
 - **One repo is the source of truth.** Your content, your voice guide, your design system, and your format playbooks all live here as plain files. The website and every deck are derivatives, rebuilt from those sources. You don't integrate a mockup, you keep a design system; you don't email talking points around in Word files, you keep a facts library that's always current for everyone.
 - **AI is the operator.** You open the folder in [Claude Code](https://claude.com/claude-code) and talk in plain language. It reads your guides on its own (the repo tells it where everything is), makes the change, shows you the result, and publishes.
 - **Git remembers everything.** Every version of every page is kept forever, so nothing you do can break the site permanently.
-- **Publishing is free and automatic.** Cloudflare Pages watches the repo and puts every change live on your domain in about a minute.
+- **Publishing is free and automatic.** Cloudflare Workers watches the repo and puts every change live on your domain in about a minute.
 
 ## What a session feels like
 
@@ -58,7 +58,7 @@ source/              your source of truth
   facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
   formats/           one playbook per output: website pages, decks
-site/                the website itself (Astro, deployed by Cloudflare Pages)
+site/                the website itself (Astro, deployed by Cloudflare Workers)
 site/public/decks/   your presentations, each a single shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
 projects/            (optional module) your real work, tracked: charter, log, files, next steps
@@ -91,7 +91,7 @@ The prompt to paste, if you go the first route:
 
 Either way you end up with your own copy, cloned locally, and a first session that interviews you and builds v1. After that it's yours: open the folder, run `claude` (or the desktop app), talk.
 
-If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixes for the problems everyone actually hits: git vs GitHub vs gh, the Mac command-line-tools popup, "command not found" right after an install, Cloudflare's empty production-branch dropdown, and running Claude Code in the cloud instead of installing anything locally.
+If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixes for the problems everyone actually hits: git vs GitHub vs gh, the Mac command-line-tools popup, "command not found" right after an install, Cloudflare's empty branch dropdown, and running Claude Code in the cloud instead of installing anything locally.
 
 ## Try saying
 
@@ -121,7 +121,7 @@ That's not a git rebase and it won't touch your work: the framework files are up
 
 ## When you grow
 
-The kit is tuned for one owner working solo on `main`. When a second regular contributor joins, the switch is one conversation: contributors move to branches and pull requests, one person merges, and everything else stays the same — the same guides, the same cascade, now with a review before publishing. The mental model (and the escalation paths for content and features) is in [docs/how-it-works.md](docs/how-it-works.md).
+The kit is tuned for one owner working solo on `main`. When a second regular contributor joins, the switch is one conversation: contributors move to branches and pull requests, one person merges, and everything else stays the same — the same guides, the same cascade, now with a review before publishing. And when you end up running several projects, there's a spectrum for laying them out (folders in one repo, repos in one GitHub org, or separate orgs) that the AI will walk with you before it builds. The mental model — growth, multiple projects, and the escalation paths for content and features — is in [docs/how-it-works.md](docs/how-it-works.md).
 
 ## Where this comes from
 

@@ -24,7 +24,7 @@ Establish, in the owner's own words:
   - **a pile of source documents** (have them drop everything into `source/inbox/`),
   - **nothing yet** (interview a bit deeper and draft for them).
 - Taste: sites or brands they admire, colors and fonts they love or hate, photos of their work if relevant. Concrete references beat adjectives.
-- Domain: do they own one, where is it registered. (Setup works fine before the domain exists; the site lives on a `.pages.dev` URL meanwhile.)
+- Domain: do they own one, where is it registered. (Setup works fine before the domain exists; the site lives on a `.workers.dev` URL meanwhile.)
 - Any recurring content: gallery, products, events. These become collections.
 - **Governance and repos, in plain terms**: two short questions, both answered into `ORGANIGRAM.md`
   (the governance + repo-map file every future session reads). First, *who else, if anyone, will
@@ -94,13 +94,16 @@ Build the site in `site/` per `source/formats/website.md`: layout shell first (n
 
 ## 6. Go live
 
-Walk the owner (or their helper) through `docs/deploy-cloudflare.md` while they click, one step at
-a time, confirming each screen before moving on. **Commit and push everything first**: Cloudflare's
-production-branch dropdown only lists branches that already exist on GitHub, so until the first
-push there is no `main` to pick (a real stumble — see `docs/troubleshooting.md`). If they hit any
-error along the way, check `docs/troubleshooting.md` before improvising; if their problem isn't in
-it, add the entry once solved. Once the `.pages.dev` URL is live, verify it yourself, record the
-URLs in `brief.md`, and continue to the domain if they own one.
+Set the deploy config first: open `wrangler.jsonc` at the repo root and set `name` to this
+project's slug (it becomes the Worker's name and its `<name>.<subdomain>.workers.dev` URL, and must
+be unique in the owner's Cloudflare account). Then walk the owner (or their helper) through
+`docs/deploy-cloudflare.md` while they click, one step at a time, confirming each screen before
+moving on. **Commit and push everything first**: Cloudflare's branch dropdown only lists branches
+that already exist on GitHub, so until the first push there is no `main` to pick (a real stumble —
+see `docs/troubleshooting.md`). If they hit any error along the way, check `docs/troubleshooting.md`
+before improvising; if their problem isn't in it, add the entry once solved. Once the `.workers.dev`
+URL is live, verify it yourself, record the URLs in `brief.md`, and continue to the domain if they
+own one.
 
 ## 7. Close
 

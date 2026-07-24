@@ -1,0 +1,19 @@
+{
+  // Cloudflare Workers config — how this whole repo publishes.
+  // The website is a static Astro app in `site/`; `npm run build` (at the repo
+  // root) builds it into `site/dist`, and Workers serves that folder directly
+  // as static assets. No Worker script, no server code: assets only.
+  //
+  // Set during setup: `name` becomes your Worker's name and its
+  // `<name>.<your-subdomain>.workers.dev` preview URL, so make it your project
+  // slug (e.g. "acme-site"). It must be unique within your Cloudflare account.
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "my-site",
+  "compatibility_date": "2026-07-24",
+  "assets": {
+    "directory": "./site/dist",
+    // Serve site/dist/404.html for unmatched paths when it exists (Astro emits
+    // it from src/pages/404.astro); otherwise Cloudflare returns a plain 404.
+    "not_found_handling": "404-page"
+  }
+}

@@ -34,7 +34,7 @@ Find every row that matches the task at hand and read those files before produci
 | A piece of work the org drives (a client engagement, a grant, a launch): start tracking it, log a decision, file its documents, "where do we stand" | `.claude/skills/projects/SKILL.md` — the project's memory lives in `projects/<slug>/`, and a deck or page about it pulls facts from there |
 | The owner's team: 1:1 notes to distill, a management TODO, 1:1 prep, goals to challenge, management advice | `.claude/skills/team/SKILL.md` — people data lives ONLY in the gitignored, local-only `team/` folder; verify the `.gitignore` rules before writing there, and never commit, publish, or relay any of it |
 | Prioritization: what matters most, whether a project or goal is aligned | `source/objectives.md` (the owner's north star; owner-only to change) — if it's still empty, offer to fill it first |
-| Starting a new project, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` (decide new repo vs. sub-site/sub-app in this one, before creating anything) |
+| Starting a new project, several projects at once, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` — first ask whether it's one project or several and how much they share, then decide the structure (folders in one repo vs. repos in one org vs. separate orgs; new repo vs. sub-site/sub-app) before creating anything |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
 | Publishing, hosting, domains | `docs/deploy-cloudflare.md` |
@@ -42,7 +42,7 @@ Find every row that matches the task at hand and read those files before produci
 
 ## Working rules
 
-- **Work directly on `main`.** Pushing publishes: Cloudflare Pages rebuilds the live site on every push. This solo mode is the default. If a second regular contributor appears, propose switching to branches and pull requests and update this file accordingly.
+- **Work directly on `main`.** Pushing publishes: Cloudflare Workers rebuilds the live site on every push. This solo mode is the default. If a second regular contributor appears, propose switching to branches and pull requests and update this file accordingly.
 - **You run all the git, never the owner.** Most owners aren't technical. Never ask them to open a terminal, run a command, or touch branches, commits, or deploys — and never paste a command for them to copy. You do the whole thing: stage, commit, push, publish, merge. If a git action is blocked by a permission, ask them to **approve the permission**, then do it yourself; don't hand the git back to them.
 - **Verify before publishing.** Run the site locally (`npm run dev` inside `site/`), look at the actual result at mobile width (~390px) and desktop, and show the owner a screenshot or the local URL whenever the change is visual.
 - **Then publish — how much you pause depends on the mode the owner picked at setup** (recorded in `brief.md`; default is simplified). Stage the files you touched explicitly by name (never a blind `git add -A`) and commit with a clear message either way.
@@ -82,6 +82,7 @@ source/formats/webapp.md     web-app playbook (page vs app, stack, data rules, p
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 site/                        the Astro website (npm run dev / build inside it)
 site/public/decks/<slug>/    published decks, one self-contained HTML each
+wrangler.jsonc + package.json  repo-root deploy layer: builds site/ and serves site/dist on Cloudflare Workers (docs/deploy-cloudflare.md)
 apps/<slug>/                 web apps of this project, one self-contained folder each
 projects/<slug>/             the org's work, tracked: charter, log, files, next steps
 team/                        the owner's team files — gitignored, local-only, never shared

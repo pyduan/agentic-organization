@@ -55,7 +55,7 @@ Three ways to run Claude Code, and the setup differs:
 - **Cloud** (claude.ai/code in the browser) — runs on Anthropic's machines, not yours. It can
   create and edit your GitHub repo directly, and since Cloudflare publishes from GitHub (not from
   your computer), the publish loop works fully in the cloud too. What you lose is the local
-  preview (`npm run dev`) and the local inbox folder; you review via the live `.pages.dev` URL
+  preview (`npm run dev`) and the local inbox folder; you review via the live `.workers.dev` URL
   instead. If installing things locally keeps failing, this is the escape hatch: create your copy
   on GitHub with **Use this template**, open it in Claude Code on the web, and skip every local
   install.
@@ -67,10 +67,11 @@ generate, upload, or lose. If git ever answers `Permission denied (publickey)`, 
 configured for SSH remotes — ask Claude to "switch my remote to HTTPS" (one command), or
 re-run `gh auth login` and pick HTTPS.
 
-## Cloudflare asks for a "Production branch" and the dropdown is empty (or won't take "main")
+## Cloudflare's branch dropdown is empty (or won't take "main")
 
-The dropdown only lists branches that **already exist on GitHub**, and a brand-new repo has none
-until the first push. This trips almost everyone who connects Cloudflare before building anything.
+When connecting the repo (Workers Builds, or the older Pages), the branch dropdown only lists
+branches that **already exist on GitHub**, and a brand-new repo has none until the first push.
+This trips almost everyone who connects Cloudflare before building anything.
 
 Fix: build your v0 with Claude first. When it commits and pushes, the `main` branch comes into
 existence, and Cloudflare's dropdown will then offer it. The production branch is always `main`.
@@ -79,17 +80,18 @@ existence, and Cloudflare's dropdown will then offer it. The production branch i
 
 Two usual causes:
 
-- **Root directory**: the website lives in the `site/` subfolder, and Cloudflare must be told —
-  set **Root directory: `site`** in the build settings (see docs/deploy-cloudflare.md; it's the
-  easy-to-miss field).
-- **Node version complaints in the build log**: add an environment variable `NODE_VERSION` set to
-  a current LTS (for example `22`) in the Pages project settings.
+- **Root directory**: on **Workers** leave the root directory at the repo root (`/`); the
+  `wrangler.jsonc` there already points at the built site (`site/dist`), so you don't set the root
+  to `site`. (The older Pages setup was the opposite: it needed **Root directory: `site`**. If you
+  followed an old Pages guide and set `site`, that's the mismatch.)
+- **Node version complaints in the build log**: set the build's Node version to a current LTS (for
+  example `22`) in the build settings.
 
 ## Second project: new repo or a folder inside this one?
 
 One project = one repo. A genuinely distinct project (a different brand, a different site, a
 webapp next to your lab's site) gets its **own repo** from the template and its own Cloudflare
-Pages project; don't nest it as a subfolder of an existing one. If you're unsure whether
+Worker; don't nest it as a subfolder of an existing one. If you're unsure whether
 something is a new project or a variant of the current one, ask Claude — the `new-project` skill
 exists exactly for that call.
 
