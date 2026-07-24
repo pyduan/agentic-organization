@@ -11,12 +11,52 @@ one's `source/`, and don't spin up a whole new repo for something that was reall
 
 ## Ask first, don't guess
 
-If the owner's request is ambiguous, ask directly:
+When the owner asks you to build several use cases or "a few projects", don't start building.
+Establish the shape first, because the layout you pick is expensive to undo. Ask directly:
 
+- Is this **one project or several**? A single project with several pages or apps is very different
+  from several projects that happen to arrive together.
+- **How much do they share, and which inherits from which?** Common brand, voice, facts, or
+  documentation, with one project clearly feeding another, argues for keeping them together; fully
+  distinct identities with different owners argue for keeping them apart. This is the deciding
+  question for the structure (see below).
 - Is this for the **same** owner/brand as this repo, or someone/something else?
 - Would its content (bio, prices, voice, palette) ever need to appear **alongside** what's already
   in `source/content/` and `source/brand/`, or is it a fully separate identity?
 - Does it need its **own domain**?
+
+Then recommend a structure from the spectrum below *before* creating anything.
+
+## One project or several? The folders / repos / orgs spectrum
+
+When there really are several projects, where they live is a spectrum from most-shared to
+most-separate, decided by how much shared documentation there is and which project inherits from
+which (the human-facing version is in `docs/how-it-works.md` ▸ "Several projects"):
+
+1. **Different folders in one repo** — one source of truth, one brand, one deploy. Simplest, but
+   welds the projects together (same access and history). Right only when they are really one
+   project wearing several hats.
+2. **Different repos in one GitHub organization** (`org/website`, `org/appX`) — each project its own
+   repo cloned from this kit, sitting together under one org so a shared brand and access can flow
+   between them. The usual answer for related-but-distinct projects.
+3. **Different GitHub organizations** — fully independent, each owning its own accounts, brand, and
+   people. Right when the projects share nothing to inherit.
+
+Two rules whenever you set this up:
+
+- **Use a GitHub organization, not a personal account, for anything real.** A personal account has
+  one owner and no room for a team or for sibling repos; an org (free) does. Create the org and let
+  the project live there from the start.
+- **Name the primary repo `<org>/website`, not `<person>/<project>`.** `bopa/website` stays
+  extensible: sub-projects join as `bopa/appX`, `bopa/appY`, and the org owns the shared brand.
+  `ericvibert/bopa` is a dead end — the person is not the org, and `appX` has nowhere to go. In each
+  org, clone this kit into its `website` repo and work from there.
+
+Worked example (projects PEPR, BoPA, CHB): if they are independent, three orgs (`pepr`, `bopa`,
+`chb`), each with its own `website` cloned from this kit; if BoPA and PEPR are really programs under
+CHB, one org `chb` holding `chb/website`, `chb/bopa`, `chb/pepr` so the parent's brand and facts
+cascade down. Propose the shape that matches the inheritance the owner just described; don't default
+blindly to one repo or to separate accounts.
 
 ## It's a variant — stay in this repo
 
@@ -49,17 +89,22 @@ Different owner, different brand, or content that must never mix with what's alr
 `source/`. Don't clone this repo's `source/` into it — that would carry over someone else's bio,
 prices, and voice. Instead:
 
-1. Point the owner (or run yourself, if you're already set up to) at `SETUP.md`'s Option A/B/C to
-   create a **fresh** copy of the template (`gh repo create <name> --template pyduan/agentic-organization
-   --private --clone`) — a brand-new, independent repo, not a fork of this one.
+1. Create it in a **GitHub organization, not a personal account**, and name the primary repo
+   `<org>/website` (see the folders/repos/orgs spectrum above for why: it stays extensible when
+   sub-projects appear). Point the owner (or run yourself, if you're already set up to) at
+   `SETUP.md`'s Option A/B/C to create a **fresh** copy of the template
+   (`gh repo create <org>/website --template pyduan/agentic-organization --private --clone`) — a
+   brand-new, independent repo, not a fork of this one.
 2. Run the **setup** skill there, from scratch, with that project's own interview.
 3. **Rebase, not clone**, if the owner wants to reuse something specific from this project (a
    design language, a voice trait, a photo): carry over that one asset or rule deliberately during
    the new project's own setup interview, the same way an existing-repo ingestion works (see the
    setup skill's "Existing repo" ingestion path) — never bulk-copy `source/` wholesale.
 4. If the two projects are related enough that the owner wants a shared brand kit between them
-   (e.g. two sites for the same organization), that's a bigger structural decision — flag it and
-   propose a monorepo split rather than deciding it silently; don't default into it.
+   (e.g. two sites for the same organization), don't decide it silently: walk the folders/repos/orgs
+   spectrum above with them. Strong shared documentation and one project inheriting from another
+   points to repos in one org (or folders in one repo); genuinely separate identities point to
+   separate orgs.
 
 ## It's a self-contained area — a subfolder here, or its own repo
 

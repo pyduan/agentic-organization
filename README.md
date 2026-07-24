@@ -121,7 +121,7 @@ That's not a git rebase and it won't touch your work: the framework files are up
 
 ## When you grow
 
-The kit is tuned for one owner working solo on `main`. When a second regular contributor joins, the switch is one conversation: contributors move to branches and pull requests, one person merges, and everything else stays the same — the same guides, the same cascade, now with a review before publishing. The mental model (and the escalation paths for content and features) is in [docs/how-it-works.md](docs/how-it-works.md).
+The kit is tuned for one owner working solo on `main`. When a second regular contributor joins, the switch is one conversation: contributors move to branches and pull requests, one person merges, and everything else stays the same — the same guides, the same cascade, now with a review before publishing. And when you end up running several projects, there's a spectrum for laying them out (folders in one repo, repos in one GitHub org, or separate orgs) that the AI will walk with you before it builds. The mental model — growth, multiple projects, and the escalation paths for content and features — is in [docs/how-it-works.md](docs/how-it-works.md).
 
 ## Where this comes from
 
