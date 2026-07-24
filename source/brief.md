@@ -30,6 +30,7 @@
 - **Who owns the accounts**: TODO (the GitHub and Cloudflare accounts belong to the owner, not to a helper or vendor)
 - **Who can ask for changes**: TODO (just the owner? a teammate? anyone at the organization?)
 - **Who publishes**: TODO (solo mode: owner + AI push to main, pushing is publishing; team mode: changes become proposals — pull requests — and a named person approves before anything goes live)
+- **How the AI publishes**: TODO (chosen at setup — **simplified**: the AI commits, pushes, publishes and merges on its own, pausing only for destructive/irreversible changes; **review**: the AI does all the git itself but asks for a yes before each push or merge. Default: simplified. The AI always runs the git; this only sets whether it pauses first.)
 - **Access granted so far**: TODO (each person added to the repo, with their level: read = can look, write = can propose changes, maintain/admin = can publish and change settings)
 
 ## Current priorities

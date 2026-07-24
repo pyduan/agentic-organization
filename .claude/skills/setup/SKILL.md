@@ -12,6 +12,10 @@ The founding session. Unlike normal sessions, here you ask questions liberally: 
 Establish, in the owner's own words:
 
 - Who they are and what this site is for (the elevator pitch, the audience, what a visitor should do).
+- **How you'll handle their code — ask this early, in plain terms.** It sets how every future session publishes. Two modes:
+  - **Simplified (the default; right for most, especially non-technical owners):** you have full code-management rights — you commit, push, publish, and merge on your own, pausing only for destructive or irreversible actions. They never touch git or a command line; you never hand them one.
+  - **Review mode (for owners comfortable with git who want to stay in the loop):** you still do all the git yourself, but you pause for a yes before each push or merge.
+  Ask it simply — *"Once a change looks good, should I just publish it, or check with you first each time?"* — with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `CLAUDE.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
 - What pages they imagine (offer a starting set: home, about, work/gallery, contact; fewer is fine).
 - Languages, and which is the default.
 - The starting point, one of:
