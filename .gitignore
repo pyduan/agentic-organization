@@ -5,6 +5,11 @@ dist/
 .env
 .env.*
 
+# Pages only the organization should see (an internal board, a team dashboard).
+# Never committed means never deployed, since Cloudflare builds from the repo.
+# See "pages that must never be published" in source/formats/website.md.
+site/src/pages/internal/
+
 # The team module's folder is local-only by design: it holds people data
 # (1:1 digests, assessments) that must never leave this machine.
 # Only its README (the structure guide) is committed.

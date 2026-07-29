@@ -69,6 +69,11 @@ Friday at noon. The scheduled run reads `methodology.md` fresh each time, so edi
 changes what the watch covers, no rescheduling needed. A pass that finds nothing new banks nothing;
 it's not obligated to produce a file every time it runs.
 
+Keep the scheduled prompt itself **thin**: a pointer that says pull the repo, read `methodology.md`
+and this skill, then follow them. The logic stays in the repo, where it can be edited and reviewed;
+a scheduled task's own text is a snapshot that silently goes stale. If a scheduled prompt does end up
+carrying detail, keep it verbatim-identical to the file it duplicates, and note in both that it is.
+
 ## Never invent
 
 Same rule as everywhere else in this kit: a number with no real source isn't usable. If nothing

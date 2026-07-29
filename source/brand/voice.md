@@ -14,6 +14,12 @@ TODO: three to five words with a sentence each explaining what the word means he
 - **Precise**: concrete nouns and numbers where we have them, no filler.
 - **Calm**: no exclamation points doing the work adjectives should do.
 
+**Demonstrate, don't describe.** Whenever a point can be shown, show it: a concrete example, an
+illustration, a real number, a live demo, a chart. Reach for what this kit can actually produce (a
+deck slide, a small app, a chart, an image from `source/brand/assets/`) instead of asserting the
+point with adjectives. Describing is the fallback, demonstrating is the default. On decks this
+becomes the "show, don't tell" rule in `source/formats/deck.md`.
+
 ## Rules
 
 These start as sensible defaults; edit them to fit.
@@ -24,6 +30,17 @@ These start as sensible defaults; edit them to fit.
 - Cut buzzwords on sight (leverage, seamless, innovative, solutions...). Keep a running list here of words the owner has banned: TODO.
 - Titles in sentence case, no period.
 - Numbers, dates, and prices follow the conventions of the site language, consistently.
+- **Links point straight at their destination, never through a redirect.** A URL copied out of
+  Google Docs, Gmail, or a notes tool arrives wrapped as `https://www.google.com/url?q=…`: decode it
+  to the real target, and drop tracking params (`usp=`, `ouid=`, `sa=`, `ved=`) that aren't needed to
+  open it. This matters most for links to the owner's own pages and decks, where the reader should
+  see a clean domain in the status bar, not something that looks like tracking. Scan any finished
+  email, document, or page for `google.com/url` before handing it over; none should survive.
+- **Email addresses in a built page are obfuscated and shown as text.** Never hand-write
+  `<a href="mailto:…">` in a page, deck, or app: split the address and assemble it in JS on load, so
+  the full address and the `mailto:` never sit in the static HTML, and render it as selectable text
+  so it works even without a mail client. This doesn't apply to a plain-text email draft, where the
+  address is just written normally.
 
 ## Languages
 

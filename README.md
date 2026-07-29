@@ -65,7 +65,7 @@ projects/            (optional module) your real work, tracked: charter, log, fi
 team/                (optional module) your team files — gitignored, local-only, never shared
 scripts/             one-command install scripts (mac + windows)
 docs/                how it works, the Cloudflare deploy guide, the troubleshooting FAQ
-.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, update-kit) + hooks
+.claude/             skills (setup, new-project, publish, new-deck, research, review, projects, team, reflect, update-kit) + hooks
 ```
 
 The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.
@@ -106,6 +106,7 @@ A few things to say once you're in, to get a feel for it:
 - **"Make a deck for [occasion], here are my notes."** — a new presentation from a brief.
 - **"Start tracking the [client / grant / launch] project."** — a charter, a decisions log, and living next steps in `projects/`; every later deck or status question draws on it.
 - **"Here are this week's 1:1 notes."** — distilled into a per-person file and a prioritized management TODO, all in a local-only folder that never leaves your machine.
+- **"Review this before I post it."** — a pre-publish pass on a finished draft: invented facts, wrong attribution, off-voice lines, broken or wrapped links.
 - **"This doesn't sound like me — [what's off]."** — corrects the voice guide, permanently, for every future page and deck.
 - **"Update the framework."** — pulls the latest kit improvements (new skills, better guides) into your project, keeping all your own content.
 
