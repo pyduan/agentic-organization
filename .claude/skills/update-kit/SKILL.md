@@ -49,6 +49,25 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    ("chore: update framework from template") and push, per the `publish` skill. Tell the owner in
    plain words what improved and anything they should look at.
 
+## What a real update run teaches (learned 2026-07-29, refreshing a live project)
+
+- **"Framework" files get locally customised too.** `docs/deploy-cloudflare.md` had become that
+  project's actual hosting config, `source/facts/README.md` and the format playbooks carried
+  project-specific conventions. Before checking out a framework path, compare it with the template
+  (a quick `md5`/`diff` sweep over the list is enough) and hand-fold the ones that genuinely differ
+  instead of overwriting them. Overwrite only the files that are still the template's own text.
+- **Don't install a module the project has no use for.** An all-volunteer association has no 1:1s,
+  so the `team` module (and its `.gitignore` rules) stayed out, and `SETUP.md` was dropped because
+  the project is long since set up. Say what you left out and why; an unused skill is noise that a
+  future session will try to honour.
+- **Seed the new files, don't leave a TODO template in a live project.** `objectives.md` and
+  `decisions.md` could be filled from the repo itself (the facts file, the brief, the git history),
+  marked as reconstructed and awaiting the owner's confirmation. A file full of TODOs teaches the
+  next session nothing.
+- **A new framework file often overlaps something local.** `facts/methodology.md` duplicated a scope
+  section the project had grown inside `facts/README.md`. Pick one home, move anything unique into
+  it, and leave a pointer from the other, or the two will drift.
+
 ## If the merge gets messy
 
 The template and this project have unrelated histories, so a plain `git merge template/main` will
