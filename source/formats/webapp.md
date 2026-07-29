@@ -37,9 +37,8 @@ stays self-contained); the voice guide applies to every label and message.
   views).
 - **No secrets, ever.** An API key in a static app is public. Anything needing a real backend,
   accounts, payments, or a database is a "needs a human decision" item, same ladder as the site's
-  forms: propose the simplest option (an obfuscated email link, a Stripe link, a hosted form) and let
-  the owner decide. Any address shown in an app follows the obfuscation rule in `voice.md`, same as on
-  the site.
+  forms: propose the simplest option (a mailto, a Stripe link, a hosted form) and let the owner
+  decide.
 - The model that has served well: heavy simulation in a spreadsheet or data file in `source/`,
   the app as an interactive **view** of it — change the assumptions at the source, the app
   follows.
@@ -84,8 +83,7 @@ Two options, simplest first:
 
 Same as the site: check it at ~390px and desktop, click everything, console clean, real alt text.
 Plus, for a tool: try wrong and empty inputs — a calculator that NaNs on a blank field isn't done.
-If the app shows data, its charts and tables follow the charts and tables section of `design.md`
-(tokens for series color, tabular numbers, reduced-motion guard). An app only the organization should
-see follows the "pages that must never be published" section of `website.md`.
+If the app shows data, its charts and tables follow the charts section of `design.md`. An app the
+owner doesn't want published follows the matching section of `website.md`.
 
 Record every app in `source/brief.md` under derivatives (what it is, where it lives, its URL).

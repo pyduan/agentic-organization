@@ -19,7 +19,7 @@ Start every new deck from `source/formats/deck-template.html`, which provides th
 ## Content rules
 
 - The deck supports a person speaking; slides carry the anchor, the speaker carries the detail.
-- **Show, don't tell.** Lead with a concrete example the audience recognizes, an illustration, or a real number rather than an abstract claim, and prefer something dynamic (a live demo, an animated chart, a walkthrough) over a bullet list whenever the point can be shown that way. A demo slide must read as the thing itself running, grasped in two seconds, not as a pitch slide with a headline and bullets. This is the deck side of the "demonstrate, don't describe" rule in `voice.md`; charts follow the charts and tables section of `design.md`.
+- **Show, don't tell.** An example, an image, or a real number beats an abstract claim, and something the audience can watch happen (a demo, a chart drawing itself) beats a bullet list when the point can be shown that way. Charts follow the charts section of `design.md`.
 - Numbers get a source; either in `source/content/`/`source/facts/` or in small print on the slide.
 - Consistent slide anatomy: recurring layouts (title slide, statement slide, evidence slide) rather than a new composition each time.
 

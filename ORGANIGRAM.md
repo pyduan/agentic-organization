@@ -62,14 +62,7 @@ disagree, one of them is lying, and it's usually this file.
 3. **Route** the change by the rights above: the owner (or the area's named owner) may commit and
    merge; anyone else lands a pull request for the owner to review. Governance — this file and the
    rules in `CLAUDE.md` — is the owner's alone to change.
-4. **Bring pending work up to today's guides before merging it.** Asked to merge someone's branch or
-   pull request, check it against the guides as they stand *now*, not as they stood when it was
-   written. The guides move faster than a review queue, so a piece can be perfectly good work, fully
-   up to date with `main`, and still miss a rule that landed since, with no git conflict to warn you.
-   Do the alignment yourself, committed on top of their commit so their authorship survives, and say
-   in the pull request what drifted and why. If the gap is big enough to be a redesign of their work,
-   say so and let them choose, rather than either shipping something off-guide or quietly rewriting a
-   colleague's piece.
-5. **Clean up merged branches.** Once a pull request is merged, delete the local branch (the remote
-   one usually goes automatically). Never delete a branch that is checked out, has an open pull
-   request, or still holds unmerged commits.
+4. **Check pending work against today's guides before merging it.** A branch can be up to date with
+   `main` and still miss a rule that landed after it was written, with no git conflict to warn you.
+   Fix that on top of their commit, so their authorship survives, and say what you changed. If the
+   gap is big enough to redo their work, let them choose. Then delete the merged local branch.

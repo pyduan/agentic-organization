@@ -25,28 +25,19 @@ Current palette and type: see `tokens.css` and keep a one-line rationale here pe
 
 ## Charts and tables
 
-Data should be the most legible thing on the page, and dynamic wherever it can be. If a `dataviz`
-skill is available in the environment, load it before writing any chart (it carries the form
-heuristic, the color formula, and mark specs); this section is the project layer on top.
+The kit has no chart library: a simple chart is inline SVG or a few divs, which keeps a page or deck
+self-contained. If a `dataviz` skill is available in the environment, load it before writing a chart.
 
-- **Color comes from the tokens, never from a rainbow.** Define a small categorical series ramp in
-  `tokens.css` (three to six values that read apart at a glance) and, for a single series or a
-  sequential ramp, tint one brand color from light to dark. Keep the accent color for one emphasized
-  point or a "now" marker, never as a series fill.
-- **Semantic color is separate** (good / warning / critical) and never doubles as the series palette.
-- **Never encode meaning by color alone.** Label the series directly (a label at the end of a line
-  beats a legend) or add a shape or pattern; check it in grayscale.
-- **Numbers line up**: `font-variant-numeric: tabular-nums` on any column or tile of digits, text
-  left, numbers right.
-- **Tables stay light**: hairline row borders, an uppercase small-caps header row, no heavy gridded
-  box. A long table gets a sticky header; a wide one lives in its own `overflow-x: auto` container so
-  the page body never scrolls sideways.
-- **Animate on first reveal** when it helps reading: bars grow from zero, lines draw left to right,
-  numbers count up, tiles fade up staggered ~60ms. Pace it to reading speed and always guard with
-  `@media (prefers-reduced-motion: reduce)` (show the final state, no motion).
-- Prefer inline SVG or Canvas over a chart library, so a deck or app stays self-contained.
-- Flag illustrative or estimated figures as such, and keep the source line next to the chart (facts
-  come from `source/facts/` or `source/content/`, never invented).
+- Series colors come from `tokens.css`, not from a rainbow. Add the two or three you need as tokens
+  the first time a chart appears.
+- Label the series directly (a label at the end of a line beats a legend) and never let color be the
+  only thing carrying the meaning.
+- Numbers: `font-variant-numeric: tabular-nums` so digits line up, text left, numbers right.
+- Tables stay light: hairline row borders, no heavy gridded box, and a wide one scrolls inside its own
+  `overflow-x: auto` container so the page never scrolls sideways.
+- Any entrance animation stays subtle and honors `@media (prefers-reduced-motion: reduce)`.
+- Every figure traces to `source/content/` or `source/facts/`, with the source shown when it's a
+  third-party number.
 
 ## Imagery
 

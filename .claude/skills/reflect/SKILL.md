@@ -15,19 +15,8 @@ Scan the conversation for:
 - **Solved problems**: an install, git, or hosting snag that got diagnosed this session → an entry in `docs/troubleshooting.md` (what you see, what it means, what to do), so the next person finds the fix instead of asking a human.
 - **Leftovers**: unprocessed inbox files, unpushed work, a `<!-- verify -->` fact that got confirmed.
 
-## Where a rule has to land
-
-A rule only exists where it will actually be read.
-
-- **Write it where the work happens.** If the rule governs something built in another repo (a
-  separate project repo the `new-project` skill created, an app with its own folder and its own
-  notes), it has to land in *that* repo's guide too, in the same change. A session that starts inside
-  that repo reads its files and nothing else, so a rule left only here is invisible to it.
-- **Prefer a check over a paragraph** wherever the rule is machine-checkable: a script, a build step,
-  a hook. One more sentence in a guide is the weakest form of enforcement; the guide should carry the
-  *why* and the check should carry the *must*.
-- **Keep duplicated rules in sync in one change**, and name the copies in each so the next session
-  knows where they all are.
+A rule only exists where it will be read: if it governs work done in another repo (one the
+`new-project` skill created), write it in that repo's guide too, in the same change.
 
 Then:
 

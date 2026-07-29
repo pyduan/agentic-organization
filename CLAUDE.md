@@ -25,9 +25,6 @@ Find every row that matches the task at hand and read those files before produci
 | A web app or interactive tool (calculator, simulator, form flow, dashboard) | `source/formats/webapp.md`, plus voice and design above |
 | A deck or presentation | `source/formats/deck.md`, plus voice and design above |
 | A phone / chat / platform demo (inside a deck, page, or app) | `source/formats/demos.md`, plus voice and design above |
-| A finished draft about to reach an audience (a page, a post, a deck's copy, an outbound email), or a check on something already live | `.claude/skills/review/SKILL.md` — the pre-publish pass: facts, attribution, voice, links, language |
-| A page only the organization should see (an internal board, a team dashboard, a recap) | the "pages that must never be published" section of `source/formats/website.md` (same stack, stripped from the build, noindex, local delivery) |
-| A chart, a graph, or a data table anywhere | the charts and tables section of `source/brand/design.md` (plus the `dataviz` skill if available) |
 | A discussion (internal or external) that moves a hypothesis or the positioning | `source/decisions.md` — add a dated entry (the why, before → after) |
 | Files the owner dropped for you | `source/inbox/README.md` |
 | Repeated items (gallery pieces, products, projects, events) | the collections section of `source/formats/website.md` |
@@ -47,8 +44,8 @@ Find every row that matches the task at hand and read those files before produci
 
 - **Work directly on `main`.** Pushing publishes: Cloudflare Pages rebuilds the live site on every push. This solo mode is the default. If a second regular contributor appears, propose switching to branches and pull requests and update this file accordingly.
 - **You run all the git, never the owner.** Most owners aren't technical. Never ask them to open a terminal, run a command, or touch branches, commits, or deploys — and never paste a command for them to copy. You do the whole thing: stage, commit, push, publish, merge. If a git action is blocked by a permission, ask them to **approve the permission**, then do it yourself; don't hand the git back to them.
-- **Reuse before you invent.** Before building anything, reach for the existing playbook and the components already in the repo: a page per `website.md`, a deck from `deck-template.html`, an app per `webapp.md`, a chart per the charts section of `design.md`. Something bespoke is the last resort, and even then it's built from the tokens and the existing components, never a parallel system. If a recurring need has no playbook yet, propose adding one instead of improvising twice.
-- **Verify before publishing.** Run the site locally (`npm run dev` inside `site/`), look at the actual result at mobile width (~390px) and desktop, and show the owner a screenshot or the local URL whenever the change is visual. If the change is copy an audience will read, run the `review` skill on it first.
+- **Reuse before you invent.** Start from the playbook and the components already here (a page per `website.md`, a deck from `deck-template.html`, an app per `webapp.md`). Bespoke is the last resort, and even then it's built from the tokens, never as a parallel system.
+- **Verify before publishing.** Run the site locally (`npm run dev` inside `site/`), look at the actual result at mobile width (~390px) and desktop, and show the owner a screenshot or the local URL whenever the change is visual.
 - **Then publish — how much you pause depends on the mode the owner picked at setup** (recorded in `brief.md`; default is simplified). Stage the files you touched explicitly by name (never a blind `git add -A`) and commit with a clear message either way.
   - **Simplified mode (default):** push and confirm without being asked. Tell the owner in plain words: "saved and published". Pause for approval only when a change is destructive, irreversible, or you're genuinely unsure it's what they meant.
   - **Review mode (owner is comfortable with git and asked to stay in the loop):** make the change, show it, then ask for a yes **before each push or merge**. You still do the git yourself once they say go.
@@ -93,5 +90,5 @@ scripts/bootstrap-*          one-command install for a new machine/owner (mac + 
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans
-.claude/skills/              setup · new-project · publish · new-deck · research · review · projects · team · reflect · update-kit
+.claude/skills/              setup · new-project · publish · new-deck · research · projects · team · reflect · update-kit
 ```
