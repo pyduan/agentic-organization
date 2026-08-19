@@ -42,6 +42,19 @@ stays self-contained); the voice guide applies to every label and message.
 - The model that has served well: heavy simulation in a spreadsheet or data file in `source/`,
   the app as an interactive **view** of it — change the assumptions at the source, the app
   follows.
+- **A tool that touches personal data stays client-side, and that is a rule rather than a
+  default.** If the owner keeps names, emails or payment status out of the repo deliberately, then a
+  tool that needs that list takes it as a **file the person drops into the page**, computes in the
+  tab, and stores nothing — no database, no upload. Say so on screen, where they can see it.
+  Expect this to be tested: the same owner who wrote the no-personal-data rule will later ask for
+  "just a little table of who has paid", because the rule and the need are both real. Build the
+  client-side version, and if they genuinely want to change the policy, make it an explicit dated
+  entry in `source/decisions.md` rather than a quiet technical choice.
+- **If a tool sits behind an access proxy, check that the proxy actually covers the pages.** Auth in
+  front of a static site often protects the parts you wrote code for and serves the HTML
+  untouched, and a second URL for the same app (a preview or platform subdomain) is usually not
+  covered by the rule you configured for your domain. Test it the only way that counts: request the
+  app with no credentials, from a browser you are not logged into, and see what comes back.
 
 ## When an app needs a real backend (state, accounts, a database)
 

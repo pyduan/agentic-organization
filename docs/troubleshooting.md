@@ -98,3 +98,32 @@ exists exactly for that call.
 Paste the exact error message to Claude and ask it to diagnose step by step. And if your problem
 wasn't in this list, it should be: once it's solved, ask Claude to add the entry here so the next
 person finds it.
+
+## "Fix the setting on X" — check that X is actually in the path first
+
+When something doesn't work and the owner names the service they think is responsible, confirm that
+service is really handling the thing before you change any of its settings. Where mail, DNS or
+traffic actually flows is a fact you can look up in a second, and it is frequently not where anyone
+assumes.
+
+A real case: asked to fix why a domain's contact address received nothing, on the assumption its
+host was misconfigured. One `dig MX` showed mail was being delivered to an entirely different
+provider, so there was no setting on the named service to fix at all — and changing its
+configuration would have looked like action while fixing nothing. Diagnose the path, then the
+config.
+
+## A renamed repository leaves your local copy pointing at the old name
+
+Renaming a repo on GitHub is safe, and the old name keeps redirecting, which is exactly why this is
+easy to miss: your local `git remote` still holds the old URL, `git pull` and `git push` keep
+working through the redirect, and nothing ever warns you. It only surfaces later, confusingly.
+
+After any rename, fix it once:
+
+```sh
+git remote set-url origin git@github.com:<owner>/<new-name>.git
+git remote -v
+```
+
+And check that whatever else names the repo — the hosting connection, the repo description, the
+README — still says something true.

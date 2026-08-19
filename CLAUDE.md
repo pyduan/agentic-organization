@@ -37,7 +37,7 @@ Find every row that matches the task at hand and read those files before produci
 | Starting a new project, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` (decide new repo vs. sub-site/sub-app in this one, before creating anything) |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
-| Publishing, hosting, domains | `docs/deploy-cloudflare.md` |
+| Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
 ## Working rules

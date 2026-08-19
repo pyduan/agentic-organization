@@ -40,12 +40,43 @@ Add both `yourdomain.com` and `www.yourdomain.com` as custom domains so either o
 - Push a small change and watch it appear on the live URL about a minute later.
 - `https://` works and `http://` redirects to it (automatic with Cloudflare).
 - Record the final URLs in `source/brief.md`.
+- **Check that your private files are not public** (see below):
+  `curl -s -o /dev/null -w '%{http_code}' https://yourdomain.com/CLAUDE.md` must print `404`.
+
+## A host serves *everything* in the folder you point it at
+
+The **Build output directory** and **Root directory** settings above are not just plumbing, they
+decide what the world can read. A host serves every file in the folder it is given, with no notion
+of which ones you considered private.
+
+The settings in step 1 are safe on purpose: the host is pointed at the built site, so your
+`CLAUDE.md`, your `source/` folder and your notes are never served. **The risk appears the moment
+something is hosted straight from a folder you also write notes in** — a plain HTML page with no
+build step, or an app published from `apps/<slug>/` per `source/formats/webapp.md`. Then the
+folder's own README and working files are on the public internet.
+
+This is not hypothetical. A private repo of ours was hosted from its repo root, which put its
+`CLAUDE.md`, its bio notes and its style guide on the open web for weeks. Nothing warned anyone: the
+site looked perfect, and the repo was correctly marked private.
+
+Two rules, and the second matters more than the first:
+
+1. **Point the host at a folder that contains only publishable files.** A `public/` or `dist/`
+   folder, never the repo root and never a folder you also keep notes in. It is an allowlist by
+   construction, which beats remembering to exclude things.
+2. **Verify, don't assume.** After any hosting change, request a file that should be secret and
+   confirm it 404s. It is one command, it takes a second, and it is the only way you find out.
 
 ## Day-to-day
 
 There is no day-to-day. Pushing is publishing. If the live site ever looks stale, check **Workers & Pages → your project → Deployments** for a failed build; the log says why. A previous deployment can be restored from that same screen with **Rollback**, and the AI can also revert the offending commit.
 
 ## Why Cloudflare (and how to swap it)
+
+Cloudflare is moving its investment to **Workers**, and static sites run there too. Pages still
+works, is simpler to set up from the dashboard, and is what the steps above describe, so start
+there. If you ever want to move, it is one config file and the same build command, and Workers
+Builds gives back the push-to-deploy and preview URLs that Pages provides. Not urgent.
 
 Cloudflare Pages is the default here for three reasons: it's free with generous, unlimited bandwidth on static sites; one owner-controlled account holds the domain, DNS, and — if an app later needs a backend — Workers + D1/KV (the sovereign-backend tier in `source/formats/webapp.md`); and it builds straight from the repo on every push, no config to babysit.
 
