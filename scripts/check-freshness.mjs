@@ -83,7 +83,11 @@ async function probe(url, { follow = true } = {}) {
   let result;
   try {
     let status = await attempt('HEAD');
-    if (status === 405 || status === 501 || status === 403) status = await attempt('GET');
+    // Retry with GET on ANY 4xx, not just the method-related ones. Plenty of real sites
+    // answer a HEAD with 404 while serving the same URL perfectly on GET — kaggle.com
+    // does exactly that, and it made this check report two live links in a bio as dead.
+    // A HEAD is an optimisation, so never let it be the last word on a failure.
+    if (status >= 400 && status < 500) status = await attempt('GET');
     // 401/403/429 mean the server knows the path and is refusing *us*, a bot. A login
     // page or a rate limiter is not a dead link, and reporting it as one is how a check
     // earns a reputation for crying wolf and stops being read. Only a genuine
