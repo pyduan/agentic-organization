@@ -1,0 +1,24 @@
+{
+  "manifest_version": 1,
+  "slug": "TODO-your-repo-slug",
+  "name": "TODO",
+  "kind": "org",
+  "sensitivity": "open",
+  "summary": "TODO: one line, what this repo is for. The setup skill fills this file in.",
+  "repo": {
+    "path": "~/TODO",
+    "remote": null,
+    "visibility": "local-only"
+  },
+  "upstream_template": "pyduan",
+  "publish": {
+    "site": null,
+    "apps": "pages"
+  },
+  "expose": {
+    "level": "full",
+    "todos": [],
+    "note": ""
+  },
+  "updated": "TODO"
+}

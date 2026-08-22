@@ -27,8 +27,10 @@ what already exists:
 
 - A new page or collection → `source/formats/website.md`, build it in `site/`.
 - A **web app for the same project** (a calculator, a simulator, an intake form, a small tool) →
-  `apps/<slug>/` per `source/formats/webapp.md` — same repo, same brand; it publishes under the
-  site or as its own Cloudflare Pages project on this repo, but it is **not** a new repo.
+  `apps/<slug>/` per `source/formats/webapp.md` — same repo, same brand; it is **not** a new repo.
+  Where it publishes is a separate question, decided by who it is for: under the site, on its own
+  Pages project, or — if it is private, personal, financial, or client-related — on the
+  organization's protected Worker, never a public URL.
 - A **sub-site** (a seasonal microsite, an event page, a landing for a campaign) that still sounds
   and looks like this project → a section or page of `site/`, or `apps/<slug>/` if it's genuinely
   its own little thing; still this repo.
@@ -80,8 +82,12 @@ sensitivity, and a new repo is only the far end of it:
   route them to the owner rather than reconstructing the restricted fact. A restricted repo is never
   auto-published: commit locally, push only when its owner asks.
 
-Register whichever it is in [`ORGANIGRAM.md`](../../../ORGANIGRAM.md) so the area, and any access
-boundary, is written down once.
+Register whichever it is **in both places**: a row in [`ORGANIGRAM.md`](../../../ORGANIGRAM.md) so
+the area and its access boundary are written down once, and an `.agentic/manifest.json` in the new
+repo or folder so every tool in the workspace can see it exists (the fields, and what `expose.level`
+commits you to, are in [`docs/registry.md`](../../../docs/registry.md)). A repo with a row but no
+manifest is invisible to tooling; a manifest with no row is invisible to the next session. Write
+both, in the same commit, and run `node scripts/check-registry.mjs` after.
 
 **Whichever it is, initialize its structure first, never leave a bare folder.** A self-contained
 area gets its own small setup so every future session knows where things go:

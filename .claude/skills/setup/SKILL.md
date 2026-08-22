@@ -85,6 +85,7 @@ Replace every TODO in these files with what you learned, keeping each file's str
 - `source/brand/tokens.css`: the real palette and fonts. If using webfonts, self-host them per the design guide.
 - `source/facts/README.md`'s relevance section, and `source/facts/methodology.md` (the watch's themes, first sources, and cadence): in-scope/out-of-scope topics and trusted sources, from what the owner just told you.
 - `ORGANIGRAM.md`: replace the placeholder repo row(s) with the real ones, and write the three rights as they actually stand. Solo with one repo means the template is nearly right already; leave it minimal.
+- `.agentic/manifest.json`: the same answers, machine-readable — slug, kind, sensitivity, the real remote and visibility, where this repo's apps publish, and what tools may read from it. It is what makes this repo visible to the rest of the workspace (`docs/registry.md`). Run `node scripts/check-registry.mjs` once it is written; it should agree with `ORGANIGRAM.md` and with `git remote -v`.
 
 Read each personalized guide back as a whole; it must read as this project's guide, with no template smell left.
 

@@ -30,6 +30,19 @@ node scripts/check-freshness.mjs --json               # for a script or a routin
 Exit code is 1 when something failed, 0 otherwise, so it works in CI or a cron job unchanged. No
 dependencies: Node built-ins only.
 
+## Also run the registry check
+
+The same rot hits the workspace map: a repo gains a remote, an area is deleted, a site goes live,
+and `ORGANIGRAM.md` or a `.agentic/manifest.json` still describes last month's world. One command,
+same spirit, part of the same sweep:
+
+```sh
+node scripts/check-registry.mjs
+```
+
+It reads every manifest in the workspace, cross-checks them against `ORGANIGRAM.md` and against
+what `git remote -v` actually says, and reports the disagreements (`docs/registry.md`).
+
 ## The four passes
 
 | Pass | Asks |

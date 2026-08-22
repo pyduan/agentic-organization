@@ -82,15 +82,55 @@ talks to, not the place your facts, voice, or content live.
 
 ## Publishing
 
-Two options, simplest first:
+**Ask who the app is for before you ask where it goes.** A public app and a private one are two
+different publishing paths, and the mistake is putting a private one on a public URL because that
+was the shorter route. Nothing about an app's *code* tells you which it is; only what it shows and
+who it is for.
 
-- **Under the site** — for an app that belongs to the same domain: build/copy it into
-  `site/public/apps/<slug>/` so it ships with the site at `yourdomain.com/apps/<slug>/`. Zero
-  extra hosting setup.
-- **Its own Cloudflare Pages project** — for an app that wants its own URL or its own domain:
-  a second Pages project **on the same repo**, with **Root directory: `apps/<slug>`** and
-  production branch `main` (same gotchas as the site: the branch must exist, the root directory
-  is the easy-to-miss field — `docs/deploy-cloudflare.md` and `docs/troubleshooting.md` apply).
+| The app is | It goes | Because |
+|---|---|---|
+| for visitors, part of the site | `site/public/apps/<slug>/` — ships with the site at `yourdomain.com/apps/<slug>/` | zero extra hosting setup |
+| for visitors, wants its own URL or domain | its **own Cloudflare Pages project on this same repo**, **Root directory: `apps/<slug>`**, production branch `main` | same gotchas as the site: the branch must exist, the root directory is the easy-to-miss field (`docs/deploy-cloudflare.md`, `docs/troubleshooting.md`) |
+| for the owner alone, or for named people — anything showing personal, financial, client, or unreleased material | the organization's **protected Worker**, the repo marked `toolbox` in [`ORGANIGRAM.md`](../../ORGANIGRAM.md) | it is behind Cloudflare Access, so a URL leaking is not a disclosure |
+
+### Private apps: the protected Worker, never a public URL
+
+A private app does **not** get its own Pages project. "Private" and "public host with an
+unguessable URL" are not the same thing, and the second one is not a security model: the URL ends
+up in a browser history, a screenshot, a chat message, a search index. Publish it where the gate is.
+
+The protected Worker is a repo of `kind: "toolbox"` in the workspace registry
+([`docs/registry.md`](../../docs/registry.md)): one Cloudflare Worker, Access attached **at the
+Worker level** so every route, the `workers.dev` hostname, preview URLs, and any custom domain
+added later are covered without maintaining a list. Apps from other repos are **mounted** on it —
+they stay in their own repo, under `apps/<slug>/`, which remains their source of truth; the toolbox
+bundles them at deploy time and serves them behind the gate.
+
+What that asks of the app, and it is not much:
+
+- **Static files only** — `index.html` plus co-located CSS/JS, exactly the default shape at the top
+  of this playbook. No build step to run on the host.
+- **Same-origin requests only.** The app is served from the toolbox's origin, so a `fetch` to
+  `/api/...` reaches the toolbox Worker, already authenticated. There is no key to embed and no
+  CORS to configure.
+- **Declare it**: the repo's `.agentic/manifest.json` says `"publish": { "apps": "private-worker" }`.
+  That line is what makes the toolbox pick the app up, and what tells the next session where this
+  repo's apps go without having to ask.
+
+Two things the gate does not change. **It is not an excuse to relax the data rules above** — a tool
+touching personal data still computes client-side unless a dated entry in `source/decisions.md` says
+otherwise. And **the Access policy is the whole boundary**: everyone it admits sees every app
+mounted on it, so adding a person is a policy decision about all of them at once, not a per-app
+detail.
+
+### Whichever path
+
+Verify it the only way that counts, per the access-proxy rule above: request the app with no
+credentials, from a browser you are not signed into, and see what comes back. A private app that
+answers `200` to a stranger is an incident, not a bug.
+
+Record every app in `source/brief.md` under derivatives (what it is, where it lives, its URL, and
+whether it is public or behind the gate).
 
 ## Quality bar
 
@@ -98,5 +138,3 @@ Same as the site: check it at ~390px and desktop, click everything, console clea
 Plus, for a tool: try wrong and empty inputs — a calculator that NaNs on a blank field isn't done.
 If the app shows data, its charts and tables follow the charts section of `design.md`. An app the
 owner doesn't want published follows the matching section of `website.md`.
-
-Record every app in `source/brief.md` under derivatives (what it is, where it lives, its URL).

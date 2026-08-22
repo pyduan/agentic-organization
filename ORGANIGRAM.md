@@ -12,10 +12,24 @@ Everything the AI might need lives in one of these. **Clone the ones a task need
 `git pull` each at the start of a session** (a stale clone ships an out-of-date brand or a wrong
 fact). Access is per your own accounts — never anyone else's login.
 
-| Repo | What it holds | Who has access |
-|---|---|---|
-| **this one** (`<your-repo>`) | your source of truth, the site, the decks, the apps | you |
-| _(add rows as you grow)_ | e.g. a separate client/project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to |
+| Repo | What it holds | Who has access | Apps publish to |
+|---|---|---|---|
+| **this one** (`<your-repo>`) | your source of truth, the site, the decks, the apps | you | the site (public) |
+| _(add rows as you grow)_ | e.g. a separate client/project repo the `new-project` skill created; a private repo for sensitive material; a **toolbox** repo that hosts your private apps behind an access gate | who you grant it to | — |
+
+**Every row here also exists as a file a program can read.** Each repo carries a small
+`.agentic/manifest.json` — its slug, what it is, how sensitive it is, where its apps publish, and
+what a tool in another repo may read from it. This table is the prose version, for you and for the
+AI at the start of a session; the manifests are what a script walks. They drift apart silently, so
+`node scripts/check-registry.mjs` reads both and reports every disagreement. The convention is in
+[`docs/registry.md`](docs/registry.md); **a new repo or area is not registered until it has both a
+row here and a manifest.**
+
+**One row is special once you have it: the `toolbox`.** A private app — a personal dashboard, a
+financial simulator, anything with client or unreleased material in it — does not belong on a public
+host with a URL nobody knows. It belongs on one Worker with an access gate in front of it, and that
+Worker is a repo like any other, marked `kind: "toolbox"` in its manifest and named in this table.
+Every other repo then says `publish.apps: "private-worker"` and stops having to decide.
 
 Default: it's just this one repo, and the map is trivial. It matters once a task reaches **across**
 repos (a shared org repo plus a client's own repo), or when some material lives in a **restricted**
@@ -62,7 +76,14 @@ disagree, one of them is lying, and it's usually this file.
 3. **Route** the change by the rights above: the owner (or the area's named owner) may commit and
    merge; anyone else lands a pull request for the owner to review. Governance — this file and the
    rules in `CLAUDE.md` — is the owner's alone to change.
-4. **Check pending work against today's guides before merging it.** A branch can be up to date with
+4. **Register what you create, in both places.** A new repo, a new self-contained area, a repo
+   that just got a remote or a live URL: add the row here **and** write or update its
+   `.agentic/manifest.json`, in the same commit. One without the other is how the map starts
+   lying. `node scripts/check-registry.mjs` is the check.
+5. **Publish a private app to the protected Worker named in the table above**, never to a public
+   Pages project. `source/formats/webapp.md` has the rule and `docs/deploy-cloudflare.md` the
+   steps; the manifest's `publish.apps` says which one each repo uses.
+6. **Check pending work against today's guides before merging it.** A branch can be up to date with
    `main` and still miss a rule that landed after it was written, with no git conflict to warn you.
    Fix that on top of their commit, so their authorship survives, and say what you changed. If the
    gap is big enough to redo their work, let them choose. Then delete the merged local branch.

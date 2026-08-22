@@ -38,6 +38,8 @@ Find every row that matches the task at hand and read those files before produci
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
+| **Publishing an app**: where it goes, public or private | `source/formats/webapp.md` (the publishing table) — a **private** app goes on the organization's protected Worker, the `toolbox` repo named in `ORGANIGRAM.md`, **never** on a public Pages project |
+| Which repos/areas the workspace holds, and what a tool may read from each | `docs/registry.md` + each repo's `.agentic/manifest.json` → `node scripts/check-registry.mjs` (it reports where the map and reality disagree) |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
@@ -53,6 +55,7 @@ Find every row that matches the task at hand and read those files before produci
 - **Tokens only.** Every color, font, and spacing value comes from `source/brand/tokens.css`. If a design needs a value that doesn't exist, add the token first, then use it.
 - **Inbox protocol.** `source/inbox/` is the owner's drop zone and it can be messy. Process everything in it: file texts and data into `source/content/`, originals into `source/brand/assets/`, then act on what was asked and leave the inbox empty. Details in `source/inbox/README.md`. **The same holds for any external tool** the owner works in (a shared Drive, Notion, Dropbox, their Desktop): treat it as *ingestion only*, raw human material to pull from, never the source of truth and never a place you write back into. The curated truth always lives in the repo, in Git.
 - **Never commit secrets, and keep sensitive content out of the repo.** No API keys, passwords, or personal data beyond what the site itself publishes. For material that shouldn't be public but is worth keeping and versioning (financial models, runway/funding figures, private notes, a draft not ready to share), don't rely on "just don't publish it": add it to `.gitignore` so it's never committed, pushed, or deployed, and keep it in a **local-only copy** — a git-ignored folder, or its own separate local repo on the owner's machine. The public repo stays shareable; the sensitive layer never leaves the machine.
+- **Register what exists, in both places.** Create a repo or a self-contained area, give one a remote, put a site live: add the `ORGANIGRAM.md` row **and** write its `.agentic/manifest.json` in the same commit (`docs/registry.md`). The prose map is what you read; the manifests are what the tools read; either one alone starts lying within weeks.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session
@@ -69,6 +72,7 @@ This is what makes the system compound: feedback given once becomes a rule appli
 
 ```
 ORGANIGRAM.md                the org's repos + who may use/change/approve what (solo by default)
+.agentic/manifest.json       this repo, machine-readable: slug, sensitivity, where its apps publish
 source/brief.md              project brief: read every session
 source/objectives.md         the owner's north star: priorities that projects & goals align to
 source/decisions.md          how hypotheses & positioning evolved, and why (per discussion)
@@ -91,5 +95,7 @@ scripts/bootstrap-*          one-command install for a new machine/owner (mac + 
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans
+docs/registry.md             how repos declare themselves to each other (.agentic/manifest.json)
+scripts/check-registry.mjs   does the workspace map still match the workspace?
 .claude/skills/              setup · new-project · publish · new-deck · research · projects · team · reflect · update-kit
 ```

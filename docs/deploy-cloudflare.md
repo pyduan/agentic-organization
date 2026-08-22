@@ -67,6 +67,39 @@ Two rules, and the second matters more than the first:
 2. **Verify, don't assume.** After any hosting change, request a file that should be secret and
    confirm it 404s. It is one command, it takes a second, and it is the only way you find out.
 
+## Publishing a **private** app: the protected Worker
+
+Everything above puts files on the open internet. Some apps must not go there: a personal
+dashboard, a financial simulator, anything showing client or unreleased material. For those, the
+answer is not "a Pages project with a URL nobody knows" — a URL is not a lock, and it ends up in a
+history, a screenshot, or a chat message soon enough.
+
+Private apps go on the organization's **protected Worker**: the repo marked `toolbox` in
+[`../ORGANIGRAM.md`](../ORGANIGRAM.md). One Cloudflare Worker on the same account, with Cloudflare
+Access attached **at the Worker level**, which covers every route, the `workers.dev` hostname,
+preview URLs, and any custom domain added later — without maintaining a list of URLs to protect.
+
+How it goes, from the app's side:
+
+1. Build the app as a static folder in its own repo, at `apps/<slug>/` (the default shape in
+   `source/formats/webapp.md`).
+2. Set `"publish": { "apps": "private-worker" }` in that repo's `.agentic/manifest.json`.
+3. The toolbox picks it up at deploy time and serves it behind the gate. The app never gets its own
+   hosting project, its own DNS record, or its own URL to protect.
+
+Two properties worth understanding, because they decide what you can and cannot do there:
+
+- **The Access policy is the whole boundary.** Everyone it admits sees every app mounted on the
+  Worker. Adding a person is a decision about all of them at once.
+- **Access at the Worker level rules out two things**: a Static Assets binding (its internal router
+  does not forward the identity to your code, which breaks a fail-closed check) and WebSockets
+  (Worker-level policies reject the upgrade). Anything realtime needs a hostname-based Access
+  application instead — a different setup.
+
+And the same verification as everywhere else on this page, which is the only one that counts:
+request the app from a browser you are **not** signed into. A login redirect or a `403` is right;
+a `200` is an incident.
+
 ## Day-to-day
 
 There is no day-to-day. Pushing is publishing. If the live site ever looks stale, check **Workers & Pages → your project → Deployments** for a failed build; the log says why. A previous deployment can be restored from that same screen with **Rollback**, and the AI can also revert the offending commit.
