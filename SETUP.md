@@ -46,9 +46,13 @@ curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-organization/main/sc
 irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
 ```
 
-Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing;
-logs you into GitHub; asks for a project name and a folder; and creates + clones your own copy of
-the template. Both are safe to run again if something gets interrupted partway through.
+Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing; logs
+you into GitHub; offers to create an SSH key as a fallback; asks for a project name and a folder;
+creates + clones your own copy of the template; asks where the site will be published (a fresh
+Cloudflare account by default, or somewhere you already are) and logs you into Cloudflare if that is
+the answer, so the AI can publish on its own from the first session. The answers land in
+`source/inbox/setup-answers.md` for that session to pick up. Both scripts are safe to run again if
+something gets interrupted partway through.
 
 ## Option C: do it by hand
 
@@ -93,7 +97,12 @@ Claude then personalizes the guides in `source/brand/`, builds a first version o
 
 ## Put it live
 
-Follow [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md), or just ask Claude to walk you through it while you click. In short: connect the GitHub repo to Cloudflare Workers (free, via Workers Builds), keep the root directory at `/` (the repo already ships the `wrangler.jsonc` that points Workers at the built site), add the custom domain, adjust DNS. From then on every push publishes automatically.
+Follow [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md), or just ask Claude to walk you through
+it while you click. If you also said yes to the **private dashboard**, it publishes separately, as
+its own Worker behind a login: `npm run deploy:dashboard`, then one click in the Cloudflare dashboard
+to turn on Zero Trust and say who may open it. That page never goes on a public URL.
+
+For the public site, in short: connect the GitHub repo to Cloudflare Workers (free, via Workers Builds), keep the root directory at `/` (the repo already ships the `wrangler.jsonc` that points Workers at the built site), add the custom domain, adjust DNS. From then on every push publishes automatically.
 
 ## Hand over
 

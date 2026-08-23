@@ -71,6 +71,57 @@ Two rules, and the second matters more than the first:
 
 There is no day-to-day. Pushing is publishing. A push to `main` deploys to production; a push to any other branch (or a pull request) gets its own **preview URL** so a change can be checked before it goes live. If the live site ever looks stale, open **Workers & Pages → your Worker → Deployments** for a failed build; the log says why. Any previous version can be restored from that same screen, and the AI can also revert the offending commit.
 
+## Publishing something private: the dashboard Worker
+
+Everything above puts files on the open internet. Some things must not go there: the private
+dashboard (`source/formats/dashboard.md`), a financial model, a tool showing client material. For
+those the answer is **not** "a Pages project with a URL nobody knows". A URL is not a lock. It ends
+up in a browser history, a screenshot, a chat message.
+
+It goes on a **second Worker with Cloudflare Access in front of it**. Access attached at the Worker
+level covers every route it has, its `workers.dev` hostname, its preview URLs and any custom domain
+added later, so there is no list of URLs to remember to protect.
+
+1. **Build and deploy it** (the repo already ships the config):
+
+   ```sh
+   npm run deploy:dashboard
+   ```
+
+   That runs `scripts/dashboard-data.mjs` into `apps/dashboard/dist/` and deploys
+   `apps/dashboard/wrangler.jsonc`. Set its `name` to `<your-slug>-dashboard` the first time.
+
+2. **Turn Access on for the account, once.** Cloudflare Zero Trust has to be enabled and given a
+   team domain before any policy can exist; until then the API answers that Access is not enabled,
+   and `wrangler` has no Access command at all. This one step is a human clicking in the dashboard:
+   **Zero Trust → set your team domain** (free plan is enough for this).
+
+3. **Protect the Worker**: **Workers & Pages → your dashboard Worker → Access → Protect this
+   Worker**, then choose who may sign in — specific email addresses, or everyone on your email
+   domain. That list *is* the access list; adding a person there is the whole grant, and it applies
+   to everything on that Worker at once.
+
+4. **Verify from outside.** The only check that counts: request the URL from a browser you are not
+   signed into.
+
+   ```sh
+   curl -s -o /dev/null -w '%{http_code}\n' "https://<name>.<subdomain>.workers.dev/?cb=$RANDOM"
+   ```
+
+   A `302` to the login page or a `403` is right. A `200` is an incident. **Always add that
+   cache-buster**: Cloudflare caches these answers, and a plain `curl` has reported a hole still
+   open minutes after it was closed, and vice versa.
+
+Two things worth knowing before you design anything on it:
+
+- **The policy is the boundary — do not write your own identity check.** An assets-only Worker (what
+  the dashboard is) never sees the request in code, and that is the point: there is no fail-closed
+  check to get wrong. If you ever do add a fetch handler and want the signed-in identity, be aware
+  that a Static Assets binding in front of your code can leave it without one, which turns a
+  well-meaning `if (!identity) return 403` into a page that refuses everybody.
+- **No WebSockets.** Worker-level Access policies reject WebSocket upgrades with a `403`. Anything
+  realtime needs a hostname-based Access application instead, which is a different setup.
+
 ## Already on Cloudflare Pages?
 
 If you deployed this site on Cloudflare **Pages** before the kit moved to Workers, read this once.

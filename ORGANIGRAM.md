@@ -12,15 +12,57 @@ Everything the AI might need lives in one of these. **Clone the ones a task need
 `git pull` each at the start of a session** (a stale clone ships an out-of-date brand or a wrong
 fact). Access is per your own accounts — never anyone else's login.
 
-| Repo | What it holds | Who has access |
-|---|---|---|
-| **this one** (`<your-repo>`) | your source of truth, the site, the decks, the apps | you |
-| _(add rows as you grow)_ | e.g. a separate client/project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to |
+One row per repo. The first two columns are read by `node scripts/check-workspace.mjs`, so keep
+the repo slug and the local folder in backticks; the rest is prose for you and the AI.
+
+| Repo | Local folder | What it holds | Access | Publishes to |
+|---|---|---|---|---|
+| `<owner>/<repo>` **(this one, the org repo)** | `~/Projects/<repo>` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
+| _(add a row per repo as you grow)_ | `~/Projects/<other>` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
 
 Default: it's just this one repo, and the map is trivial. It matters once a task reaches **across**
 repos (a shared org repo plus a client's own repo), or when some material lives in a **restricted**
 repo only some people can open — then list them here so the AI clones and pulls the right ones and
 never assumes access it doesn't have.
+
+### One map, and pointers back to it
+
+Once you have more than one repo, the same information wants to live in several places, and that is
+exactly how a map starts lying: a repo gains a remote, a project is renamed, a folder is deleted, and
+the other copies keep describing last month. So the kit deliberately keeps **one** map:
+
+- **This table is the only list of repos.** Nothing else enumerates them. Not a second file, not a
+  per-repo manifest, not a paragraph in another guide.
+- **Every other repo carries a pointer, never a copy.** Each project repo's `CLAUDE.md` opens with a
+  short *Where this repo sits* block: which organization it belongs to, which repo holds the shared
+  guides and this map, and the one or two siblings it actually reads from or writes to. A pointer
+  cannot drift out of sync with the map, because it does not restate it.
+- **A change of shape updates the map in the same commit** as the thing that changed: a new repo, a
+  new remote, a project that went live, an area that became restricted.
+- **Then check it, rather than trust it:**
+
+  ```sh
+  node scripts/check-workspace.mjs
+  ```
+
+  It reads this table, then looks at the disk and at what `git remote -v` actually says, and reports
+  the disagreements: a repo listed but not cloned, a folder whose remote is not the one declared, a
+  kit project sitting next to the others but absent from the table, a project repo whose `CLAUDE.md`
+  has no pointer home, a published URL that no longer answers, and an `origin` still pointing at the
+  template (the one mistake that pushes your content into someone else's repo). Run it with the
+  `freshness` sweep.
+
+### Signposting: a rule lives where the work happens
+
+Two rules that only bite once the organization spans repos, both learned the hard way:
+
+- **A rule that governs work done in another repo has to be written in that repo's guide too**, in
+  the same change. The session doing that work opens *that* repo's `CLAUDE.md` and nothing else, so a
+  rule recorded only here does not exist for it.
+- **When you do mirror something, mirror the whole operational path, not its headline** — the folder
+  to write in, the command to run, the file to create if it is missing. A mirrored rule that names a
+  path which does not exist in the target repo is worse than no rule at all, because the reader
+  follows it.
 
 **Naming and layout, once there's more than one project.** Put real projects in a **GitHub
 organization, not a personal account**, and name the primary repo **`<org>/website`** (e.g.

@@ -30,6 +30,19 @@ node scripts/check-freshness.mjs --json               # for a script or a routin
 Exit code is 1 when something failed, 0 otherwise, so it works in CI or a cron job unchanged. No
 dependencies: Node built-ins only.
 
+## Also check the map
+
+Same rot, one level up: a repo gains a remote, a project is renamed, a new project appears beside
+the others and nobody adds its row. `ORGANIGRAM.md` is the one list of repos, and it is prose, so it
+drifts silently. One command, part of the same sweep:
+
+```sh
+node scripts/check-workspace.mjs
+```
+
+It reads that table, then looks at the disk and at what `git remote -v` says, and reports the
+disagreements (`ORGANIGRAM.md` ▸ *One map*).
+
 ## The four passes
 
 | Pass | Asks |

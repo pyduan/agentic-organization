@@ -37,6 +37,24 @@ Establish, in the owner's own words:
   Fill the repo table and the three-rights section of `ORGANIGRAM.md` with their answers, grant
   GitHub access to match (repo Settings → Collaborators: read / write; publishing stays with the
   owner unless delegated), and revisit when someone new joins or a second repo appears.
+- **Where it gets published, and whether the AI can do it alone.** Default: a **fresh Cloudflare
+  account** in the owner's name (free, and it holds the domain, DNS and any app in one place). The
+  alternative is somewhere they already are (Vercel, Netlify, their own server, an existing
+  Cloudflare account) — ask which, and record it in `brief.md`. If it is Cloudflare, run
+  `npx wrangler login` with them **now**, in the setup session: it is one browser click, and it is
+  what lets every later session publish without them opening a dashboard. Two things that login
+  still cannot do, so say so once rather than discovering them mid-deploy: **writing a DNS record**
+  and **creating a Cloudflare Access policy** are dashboard steps. (If `source/inbox/setup-answers.md`
+  exists, the bootstrap script already asked these — read it, act on it, delete it.)
+- **A private dashboard? One plain question, and the default is yes.** *"Do you want a private page,
+  only you can open, that shows where everything stands?"* It is the kit's default private app: a
+  themed dashboard built from the projects the `projects` skill tracks — what moved, what is open,
+  one card per subject (`source/formats/dashboard.md`). If yes: set the Worker name in
+  `apps/dashboard/wrangler.jsonc` to `<slug>-dashboard`, and ask **who else may open it** (their own
+  address plus any colleague, by email — that list becomes the Access policy, and it is the whole
+  grant). Deploying it needs Zero Trust enabled once in their dashboard, which is a human click:
+  walk them through it per `docs/deploy-cloudflare.md` ▸ *Publishing something private*, and never
+  put the dashboard on a public URL in the meantime.
 - **The optional modules, one plain question each.** The kit can also run more of the
   organization than its website: *do you want to track your actual work here* (clients, grants,
   launches: the `projects` skill, a folder per project with its charter, decisions and files)?
