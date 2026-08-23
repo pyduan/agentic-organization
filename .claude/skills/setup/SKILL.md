@@ -7,6 +7,11 @@ description: "First-time project setup: interview the owner, ingest their conten
 
 The founding session. Unlike normal sessions, here you ask questions liberally: everything you learn now becomes guides that every future session runs on. Budget the conversation; batch questions in small, natural groups rather than one long form.
 
+**The order matters more than the questions.** Interview, then structure and facts, then guides, then
+the site. An owner will often want to see something on screen in the first twenty minutes, and giving
+in to that is how a project ends up with a pretty site and no source of truth underneath. Say what
+you are doing and why: the hour buys them a system, and the site falls out of it in the last third.
+
 ## 1. Interview
 
 Establish, in the owner's own words:
@@ -65,35 +70,28 @@ Establish, in the owner's own words:
   If either is on, offer to fill `source/objectives.md` (the north star both modules prioritize
   against) from what the interview already established; it stays the owner's alone to change.
 
-## 2. Ingest
+## 2. Structure and facts, before anything is built
 
-**Existing site** (a live URL): fetch every reachable page. Save each page's copy as markdown in `source/content/` (one file per page, marked with provenance and date). Download the images worth keeping into `source/brand/assets/`. Record observed design cues (palette, type feel, layout habits) as a starting proposal for the design guide; the owner may want continuity or a clean break, so ask which.
+**Run the `fact-finding` skill** (`.claude/skills/fact-finding/SKILL.md`) now, in full. It is the
+kit's master recipe and this is its founding use: decide the folder and file structure for *this*
+organization, decide which facts matter, sweep whatever corpus they have (documents, a live site to
+replace, an old repo to mine, a mailbox they offer, or their own memory), and record the facts, the
+decisions and the history with their sources.
 
-**Existing repo** (their old site's actual source, not just its rendered pages): clone it to a scratch location *outside* this repo (e.g. `/tmp/old-site`, never inside `source/` or committed here) so its history, code, and dependencies never mix with this kit's own. Then read it like a source dump, not a scaffold: pull real content into `source/content/` (a repo's raw files are often richer than a live scrape: drafts, unpublished pieces, structured data the site never displayed), sourced third-party figures into `source/facts/`, original images and assets into `source/brand/assets/`, and design cues into a starting `design.md` proposal, exactly as with a live-site scrape. **Rebase, not clone**: the destination is always this kit's own `source/`/`site/` structure; nothing from the old repo's framework, components, or file layout gets carried over. Delete the scratch clone once ingestion is done.
+Two things not to negotiate away, however keen the owner is to see a site:
 
-**Inbox**: process per `source/inbox/README.md`. Read everything before filing anything, since documents explain each other.
+- **The structure is decided with them, not inherited from the template.** The template's layout is a
+  proposal. What accumulates here, and in what unit, is theirs to answer, and it is expensive to
+  change once material has landed in the wrong shape.
+- **Nothing is built before the fact base exists.** It is tempting to build v1 from the interview and
+  fill `source/` afterwards. Afterwards never comes: once the site looks finished, nobody opens the
+  corpus again, and every later session then reasons from a conversation it cannot read. The site is
+  a derivative; build it from files, not from memory.
 
-Facts you couldn't verify (scraped, mined from a repo, or inferred) get a `<!-- verify -->` marker in the content files.
+Come back from that skill with its three lists (what is recorded, what could not be established, what
+you propose to build). Then continue here.
 
-## 3. Gap check: clarify what you already have
-
-Between ingesting and writing any guide, take stock. For each of the four targets below, note what the material already answers (and where that came from) and what is missing or uncertain, then close the gaps with the owner in one or two batched rounds of questions. Ground every question in something specific you found; "your old site says the studio opened in 2019, is that still right?" gets a better answer than "tell me about your history". And prefer proposing over interrogating: show the three colors you extracted and ask keep or change, draft the bio from their documents and ask what's wrong with it.
-
-- **Facts and content** (`source/content/`): bio, dates, prices, claims, contact details. Everything scraped or inferred gets confirmed now or keeps its `<!-- verify -->` marker.
-- **Voice** (`voice.md`): the tone you observed in their material versus the tone they want; words they reach for; words to ban; the exact notation of the project name.
-- **Design** (`design.md` + `tokens.css`): the palette, type, and layout cues you extracted; continuity with the old look or a clean break; references they admire.
-- **Brief** (`brief.md`): audience, what a visitor should do, current priorities.
-- **Facts relevance & the watch** (`source/facts/README.md`'s "What counts as a useful fact here",
-  and `source/facts/methodology.md`): ask what outside numbers would actually strengthen this
-  project — a sector, a set of competitors, a kind of benchmark — and what's out of scope. Turn the
-  answer into the **themes, first sources, and cadence** of `methodology.md` (the brief a recurring
-  watch follows). This is what keeps the `research` skill from wandering into generic noise later; a
-  couple of concrete examples from the owner beats a vague category. If they want it running on its
-  own, offer to schedule a weekly deep-search (e.g. Friday noon) once the themes are written down.
-
-Where the interface offers structured questions (AskUserQuestion), use it with concrete options. Don't move on while a guide would still contain a guess on something the owner could settle in one sentence.
-
-## 4. Personalize the system
+## 3. Personalize the system
 
 Replace every TODO in these files with what you learned, keeping each file's structure:
 
@@ -106,11 +104,11 @@ Replace every TODO in these files with what you learned, keeping each file's str
 
 Read each personalized guide back as a whole; it must read as this project's guide, with no template smell left.
 
-## 5. Build v1
+## 4. Build v1
 
 Build the site in `site/` per `source/formats/website.md`: layout shell first (nav, footer, typography on tokens), then pages, then collections if any. Replace the placeholder home page. Run `npm install` and `npm run dev` inside `site/`, verify at mobile and desktop widths, then review it with the owner page by page (share the local URL, show screenshots). Iterate until they're happy; this loop is most of the session.
 
-## 6. Go live
+## 5. Go live
 
 Set the deploy config first: open `wrangler.jsonc` at the repo root and set `name` to this
 project's slug (it becomes the Worker's name and its `<name>.<subdomain>.workers.dev` URL, and must
@@ -123,6 +121,6 @@ before improvising; if their problem isn't in it, add the entry once solved. Onc
 URL is live, verify it yourself, record the URLs in `brief.md`, and continue to the domain if they
 own one.
 
-## 7. Close
+## 6. Close
 
 Run the reflect skill (it will have plenty to record from this session), push everything, and tell the owner what exists now: the live URL, what each folder is for in one line each, and how to work with you from now on (open the folder, run `claude`, talk, drop files in the inbox).

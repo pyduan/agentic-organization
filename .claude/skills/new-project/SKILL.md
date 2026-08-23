@@ -148,7 +148,10 @@ area gets its own small setup so every future session knows where things go:
   under `apps/`, sensitive material git-ignored or in its own repo), seed that skeleton, then work in
   it. If the area changes how the project is organized, note it in `source/brief.md` too.
 
-  **Ask, don't guess the layout.** A subfolder has no `setup` interview, so run a small one yourself:
+  **Ask, don't guess the layout** — that is phase A of the `fact-finding` skill, and a new area is
+  exactly its scoped case: decide the structure with the owner, decide which facts matter, sweep what
+  already exists about it, and only then work in it. Run that skill rather than improvising here.
+  A small interview of your own, in its words:
   batch a few plain questions and let the answers shape the skeleton. What kind of material or work
   does it hold, and what would a good name for it be? How should it be organized, by what dimension
   (by client, by date, by document type)? Is any of it sensitive or for only some people (which may

@@ -72,6 +72,18 @@ docs/                how it works, the deploy guide, the troubleshooting FAQ, ho
 
 The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.
 
+### What the first hour actually does
+
+Not "build a website". The first session decides **where this organization's material will live**,
+decides **which facts matter**, and then goes and finds them: the facts with their sources, the
+decisions with their reasons, the history in order. The site is built from those files, in the last
+third of the hour, and every later session reads them rather than re-asking you.
+
+That order is the whole design. Build the site first and the corpus never gets opened, because a
+finished-looking site removes the reason to go back — and then every conversation reasons from
+memory instead of from a file. The recipe is `.claude/skills/fact-finding/SKILL.md`, and it runs
+again, smaller, every time a new client, area or pile of documents arrives.
+
 ### Two things worth knowing before you start
 
 **A private page, not just a public site.** The kit's default private app is a **dashboard**: one
