@@ -36,6 +36,7 @@ Find every row that matches the task at hand and read those files before produci
 | Prioritization: what matters most, whether a project or goal is aligned | `source/objectives.md` (the owner's north star; owner-only to change) — if it's still empty, offer to fill it first |
 | Starting a new project, several projects at once, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` — first ask whether it's one project or several and how much they share, then decide the structure (folders in one repo vs. repos in one org vs. separate orgs; new repo vs. sub-site/sub-app) before creating anything |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
+| **Anything new** — a project, a client, an area, a pile of documents that just arrived — or the owner asks "what do we actually know about X" | `.claude/skills/fact-finding/SKILL.md` — the master recipe: decide the structure, decide which facts matter, sweep the corpus, record facts + decisions + history, *then* build |
 | A **private page only the owner (and whoever they name) may open**: a dashboard, a recap of where projects stand, anything with client or unreleased material | `source/formats/dashboard.md` — it publishes as its own Access-gated Worker, never a public URL, and `npm run dashboard` builds it |
 | About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
@@ -56,6 +57,11 @@ Find every row that matches the task at hand and read those files before produci
 - **Tokens only.** Every color, font, and spacing value comes from `source/brand/tokens.css`. If a design needs a value that doesn't exist, add the token first, then use it.
 - **Inbox protocol.** `source/inbox/` is the owner's drop zone and it can be messy. Process everything in it: file texts and data into `source/content/`, originals into `source/brand/assets/`, then act on what was asked and leave the inbox empty. Details in `source/inbox/README.md`. **The same holds for any external tool** the owner works in (a shared Drive, Notion, Dropbox, their Desktop): treat it as *ingestion only*, raw human material to pull from, never the source of truth and never a place you write back into. The curated truth always lives in the repo, in Git.
 - **Never commit secrets, and keep sensitive content out of the repo.** No API keys, passwords, or personal data beyond what the site itself publishes. For material that shouldn't be public but is worth keeping and versioning (financial models, runway/funding figures, private notes, a draft not ready to share), don't rely on "just don't publish it": add it to `.gitignore` so it's never committed, pushed, or deployed, and keep it in a **local-only copy** — a git-ignored folder, or its own separate local repo on the owner's machine. The public repo stays shareable; the sensitive layer never leaves the machine.
+- **Structure and facts come before anything you build.** Faced with something new — a project, a
+  client, an area, a folder of documents — the first move is never the deliverable. It is: where will
+  this material live (decided with the owner, not inherited), which facts matter, and what does the
+  corpus actually say. Then build, from the files. The `fact-finding` skill is that recipe, and it is
+  as true for a new area in this repo as for a new project.
 - **Search before you ask, and before you build.** The answer to most questions is already in this
   repo, the owner's files, or the project's history. When something seems missing, assume you
   searched badly rather than that it does not exist, and search by question rather than by topic.
@@ -118,5 +124,5 @@ apps/dashboard/              the private dashboard app; npm run dashboard builds
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
-.claude/skills/              setup · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
+.claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
 ```

@@ -13,6 +13,9 @@ Scan the conversation for:
 - **New facts**: about the owner, the project, priorities, decisions taken → `source/brief.md` (update the sections, append dated one-liners to history).
 - **Stale rules**: anything in the guides this session contradicted or made obsolete. Prune it; guides must stay lean and current or they rot.
 - **Solved problems**: an install, git, or hosting snag that got diagnosed this session → an entry in `docs/troubleshooting.md` (what you see, what it means, what to do), so the next person finds the fix instead of asking a human.
+- **Structure that turned out wrong**: a folder nobody used, material that kept landing in the wrong
+  place, a unit that fights how the owner thinks. Fix the layout and say so in `source/decisions.md`;
+  a structure decided once at setup is a hypothesis like any other.
 - **Leftovers**: unprocessed inbox files, unpushed work, a `<!-- verify -->` fact that got confirmed.
 
 - **Misses, not just lessons**: anything that went wrong this session and cost something (a wrong
