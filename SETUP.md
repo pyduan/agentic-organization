@@ -93,6 +93,12 @@ Say: **"set up my site"**. Claude runs a guided interview (what the site is for,
 - **You're starting from documents**: drop everything into `source/inbox/` (texts, bios, photos, brand PDFs, old decks, anything) and tell Claude. It files it all and builds from that.
 - **You're starting from nothing**: Claude interviews you a bit deeper and drafts a first version for you to react to.
 
+Whichever it is, the session does the same thing with it before building anything: agrees the folder
+and file structure with you, works out which facts matter, then sweeps what you have and records the
+facts (with sources), the decisions (with reasons) and the history (in order). Expect to be shown
+three lists at the end of it: what is now recorded, what could not be established, and what Claude
+proposes to build on top. That is the part that makes the second conversation cheaper than the first.
+
 Claude then personalizes the guides in `source/brand/`, builds a first version of the site, and shows it to you locally. Iterate by talking until the owner likes it. This is the fun part; budget most of the hour here.
 
 ## Put it live
