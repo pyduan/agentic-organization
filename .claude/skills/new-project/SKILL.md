@@ -126,7 +126,17 @@ sensitivity, and a new repo is only the far end of it:
   auto-published: commit locally, push only when its owner asks.
 
 Register whichever it is in [`ORGANIGRAM.md`](../../../ORGANIGRAM.md) so the area, and any access
-boundary, is written down once.
+boundary, is written down once. That table is the **only** list of repos, so registering means:
+add its row (repo slug and local folder in backticks, so `scripts/check-workspace.mjs` can read
+them), and — for a new repo — open its `CLAUDE.md` with a short *Where this repo sits* block naming
+the organization and the repo that holds the shared guides and the map. A pointer, never a second
+copy of the table. Then run `node scripts/check-workspace.mjs` from the org repo: it should be
+silent about the repo you just created.
+
+Two things stay at the **organization** level rather than being duplicated into the new repo: the
+private **dashboard** (one page for the person, aggregating every repo by subject — see
+`source/formats/dashboard.md`) and the **incident register**. A project repo that wants to appear on
+the dashboard without exposing its wording writes `dashboard: counts-only` in its project charters.
 
 **Whichever it is, initialize its structure first, never leave a bare folder.** A self-contained
 area gets its own small setup so every future session knows where things go:

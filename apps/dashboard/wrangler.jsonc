@@ -1,0 +1,21 @@
+{
+  // The private dashboard — a SECOND Worker, separate from the public site.
+  //
+  // Assets only, no server code: `npm run dashboard` builds apps/dashboard/dist/
+  // (index.html + data.json + your tokens) and Workers serves that folder. The
+  // gate is a Cloudflare Access policy attached to this Worker, not code in it,
+  // which is why there is no fetch handler here to get wrong.
+  //
+  // Deploy with:  npm run deploy:dashboard
+  // Then attach Access once, in the dashboard: Workers & Pages → this Worker →
+  // Access → Protect this Worker. See docs/deploy-cloudflare.md ▸ private.
+  //
+  // Set `name` during setup: <your-slug>-dashboard, unique in your account. It is
+  // also its <name>.<subdomain>.workers.dev hostname, which Access covers too.
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "my-dashboard",
+  "compatibility_date": "2026-08-23",
+  "assets": {
+    "directory": "./dist"
+  }
+}

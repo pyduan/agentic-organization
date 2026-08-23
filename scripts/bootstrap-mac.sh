@@ -76,6 +76,23 @@ else
   echo "✓ Already logged into GitHub"
 fi
 
+# --- SSH key (a fallback; HTTPS above is the default path) ---
+# gh's browser login uses HTTPS and needs no key. A key still helps on the one
+# machine in twenty whose network blocks HTTPS git traffic, and it costs nothing
+# to have. Ask, don't impose.
+if [ ! -f "$HOME/.ssh/id_ed25519.pub" ] && [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
+  echo
+  read -p "Also create an SSH key for GitHub, as a fallback if HTTPS is ever blocked? [Y/n]: " MAKE_KEY
+  if [ "${MAKE_KEY:-Y}" != "n" ] && [ "${MAKE_KEY:-Y}" != "N" ]; then
+    ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519" -C "$(git config user.email 2>/dev/null || echo "$USER@$(hostname)")"
+    gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (agentic-organization setup)" 2>/dev/null \
+      && echo "✓ SSH key created and added to your GitHub account" \
+      || echo "▲ Key created locally; adding it to GitHub needs the 'admin:public_key' scope (gh auth refresh -s admin:public_key). Not urgent."
+  fi
+else
+  echo "✓ SSH key already present"
+fi
+
 # --- Where to put the project ---
 echo
 read -p "What should we call your project? (e.g. mariana-site): " PROJECT_NAME
@@ -101,6 +118,54 @@ else
   gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "My site, run by Claude"
   cd "$PROJECT_NAME"
 fi
+
+# --- Hosting, and getting the agent able to deploy on its own ---
+echo
+echo "Where should the site be published?"
+echo "  1) A fresh Cloudflare account (default: free, and it holds domain + DNS + apps in one place)"
+echo "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
+read -p "Choose 1 or 2 [1]: " HOST_CHOICE
+HOST_CHOICE="${HOST_CHOICE:-1}"
+
+HOST_NOTE="Cloudflare (fresh account)"
+if [ "$HOST_CHOICE" = "2" ]; then
+  read -p "What are you using? (a name is enough): " HOST_EXISTING
+  HOST_NOTE="existing host: ${HOST_EXISTING:-unspecified}"
+else
+  echo
+  echo "Installing the deploy tooling and logging into Cloudflare, so Claude can publish"
+  echo "without you clicking through a dashboard every time."
+  npm install --silent >/dev/null 2>&1 || echo "▲ npm install had trouble; Claude will sort it in the first session."
+  if npx --yes wrangler whoami >/dev/null 2>&1; then
+    echo "✓ Already logged into Cloudflare"
+  else
+    echo "A browser window will open to authorize Cloudflare (Ctrl+C to skip and do it later):"
+    npx --yes wrangler login || echo "▲ Skipped — Claude can run 'npx wrangler login' with you later."
+  fi
+fi
+
+# Two things wrangler's token cannot do, so nobody hunts for a command that
+# does not exist: writing a DNS record, and creating an Access policy. Both are
+# dashboard steps (or an API call with a broader token). Written down for the
+# first session rather than discovered mid-deploy.
+mkdir -p source/inbox
+cat > source/inbox/setup-answers.md <<ANSWERS
+# Answers from the bootstrap script
+
+Written by scripts/bootstrap-mac.sh on $(date +%Y-%m-%d). The setup skill should read this,
+act on it, and delete the file (inbox protocol).
+
+- Machine: macOS, $(sw_vers -productVersion 2>/dev/null || echo "version unknown")
+- Project folder: $TARGET
+- Hosting: $HOST_NOTE
+- Cloudflare CLI logged in: $(npx --yes wrangler whoami >/dev/null 2>&1 && echo yes || echo no)
+- SSH key present: $([ -f "$HOME/.ssh/id_ed25519.pub" ] || [ -f "$HOME/.ssh/id_rsa.pub" ] && echo yes || echo no)
+
+Still needs a human in the Cloudflare dashboard (the CLI token cannot do these):
+writing DNS records, and enabling Zero Trust / creating the Access policy that
+protects the private dashboard. See docs/deploy-cloudflare.md.
+ANSWERS
+echo "✓ Wrote source/inbox/setup-answers.md for the first session"
 
 echo
 echo "== Done. Your project is at: $TARGET =="

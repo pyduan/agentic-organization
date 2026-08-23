@@ -75,6 +75,25 @@ if (-not $authed) {
   Write-Host "OK Already logged into GitHub"
 }
 
+# --- SSH key (a fallback; the HTTPS login above is the default path) ---
+$KeyPath = Join-Path $HOME ".ssh\id_ed25519"
+if (-not (Test-Path "$KeyPath.pub")) {
+  Write-Host ""
+  $MakeKey = Read-Host "Also create an SSH key for GitHub, as a fallback if HTTPS is ever blocked? [Y/n]"
+  if ($MakeKey -ne "n" -and $MakeKey -ne "N") {
+    New-Item -ItemType Directory -Force -Path (Split-Path $KeyPath) | Out-Null
+    ssh-keygen -t ed25519 -N '""' -f $KeyPath -C "$env:COMPUTERNAME (agentic-organization setup)"
+    try {
+      gh ssh-key add "$KeyPath.pub" --title "$env:COMPUTERNAME (agentic-organization setup)"
+      Write-Host "OK SSH key created and added to your GitHub account"
+    } catch {
+      Write-Host "!! Key created locally; adding it to GitHub needs a wider scope (gh auth refresh -s admin:public_key). Not urgent."
+    }
+  }
+} else {
+  Write-Host "OK SSH key already present"
+}
+
 # --- Where to put the project ---
 Write-Host ""
 $ProjectName = Read-Host "What should we call your project? (e.g. mariana-site)"
@@ -100,6 +119,54 @@ if (Test-Path $Target) {
   gh repo create $ProjectName --template $Template --private --clone --description "My site, run by Claude"
   Set-Location $ProjectName
 }
+
+# --- Hosting, and getting the agent able to deploy on its own ---
+Write-Host ""
+Write-Host "Where should the site be published?"
+Write-Host "  1) A fresh Cloudflare account (default: free, and it holds domain + DNS + apps in one place)"
+Write-Host "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
+$HostChoice = Read-Host "Choose 1 or 2 [1]"
+if ([string]::IsNullOrWhiteSpace($HostChoice)) { $HostChoice = "1" }
+
+$HostNote = "Cloudflare (fresh account)"
+$CfLoggedIn = "no"
+if ($HostChoice -eq "2") {
+  $HostExisting = Read-Host "What are you using? (a name is enough)"
+  if ([string]::IsNullOrWhiteSpace($HostExisting)) { $HostExisting = "unspecified" }
+  $HostNote = "existing host: $HostExisting"
+} else {
+  Write-Host ""
+  Write-Host "Installing the deploy tooling and logging into Cloudflare, so Claude can publish"
+  Write-Host "without you clicking through a dashboard every time."
+  try { npm install --silent | Out-Null } catch { Write-Host "!! npm install had trouble; Claude will sort it in the first session." }
+  try { npx --yes wrangler whoami | Out-Null; $CfLoggedIn = "yes"; Write-Host "OK Already logged into Cloudflare" }
+  catch {
+    Write-Host "A browser window will open to authorize Cloudflare (Ctrl+C to skip and do it later):"
+    try { npx --yes wrangler login; $CfLoggedIn = "yes" } catch { Write-Host "!! Skipped -- Claude can run 'npx wrangler login' with you later." }
+  }
+}
+
+# Two things the Cloudflare CLI token cannot do, written down now rather than
+# discovered mid-deploy: writing a DNS record, and creating an Access policy.
+$SshPresent = if (Test-Path "$KeyPath.pub") { "yes" } else { "no" }
+New-Item -ItemType Directory -Force -Path "source/inbox" | Out-Null
+@"
+# Answers from the bootstrap script
+
+Written by scripts/bootstrap-windows.ps1 on $(Get-Date -Format yyyy-MM-dd). The setup skill should
+read this, act on it, and delete the file (inbox protocol).
+
+- Machine: Windows $([System.Environment]::OSVersion.Version)
+- Project folder: $Target
+- Hosting: $HostNote
+- Cloudflare CLI logged in: $CfLoggedIn
+- SSH key present: $SshPresent
+
+Still needs a human in the Cloudflare dashboard (the CLI token cannot do these):
+writing DNS records, and enabling Zero Trust / creating the Access policy that
+protects the private dashboard. See docs/deploy-cloudflare.md.
+"@ | Set-Content -Path "source/inbox/setup-answers.md" -Encoding UTF8
+Write-Host "OK Wrote source/inbox/setup-answers.md for the first session"
 
 Write-Host ""
 Write-Host "== Done. Your project is at: $Target =="

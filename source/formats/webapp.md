@@ -82,7 +82,7 @@ talks to, not the place your facts, voice, or content live.
 
 ## Publishing
 
-Two options, simplest first:
+**Who it is for decides where it goes**, not what it does. Three paths:
 
 - **Under the site** — for an app that belongs to the same domain: build/copy it into
   `site/public/apps/<slug>/` so it ships with the site at `yourdomain.com/apps/<slug>/`. Zero
@@ -93,6 +93,14 @@ Two options, simplest first:
   e.g. `apps/<slug>/dist`). Same gotchas as the site: the branch must exist before you connect,
   and the config's `name` must be unique — `docs/deploy-cloudflare.md` and `docs/troubleshooting.md`
   apply.
+- **Its own Access-gated Worker** — for anything **private**: a personal dashboard, a financial
+  model, a tool showing client or unreleased material. Never a public project "with a URL nobody
+  knows": a URL is not a lock, and it ends up in a history, a screenshot, a chat message. The kit
+  ships this path for the private dashboard (`source/formats/dashboard.md`,
+  `apps/dashboard/wrangler.jsonc`, `npm run deploy:dashboard`); any other private app follows the
+  same shape, with the Access policy as its access list. The steps, and the two limitations worth
+  knowing before you design on it, are in `docs/deploy-cloudflare.md` ▸ *Publishing something
+  private*.
 
 ## Quality bar
 
