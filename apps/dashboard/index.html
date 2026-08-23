@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Dashboard</title>
+<!-- Themed from the project's own tokens: scripts/dashboard-data.mjs copies
+     source/brand/tokens.css next to this file at build time, so the dashboard
+     follows the brand without a second palette to keep in sync. The fallbacks
+     below only matter if you open this file on its own. -->
+<link rel="stylesheet" href="./tokens.css" />
+<style>
+  :root {
+    --dash-bg: var(--color-bg, #faf9f7);
+    --dash-surface: var(--color-surface, #fff);
+    --dash-ink: var(--color-ink, #1a1a1a);
+    --dash-muted: var(--color-muted, #6b6b6b);
+    --dash-line: var(--color-line, #e3e0da);
+    --dash-accent: var(--color-accent, #1a3a2e);
+    --dash-accent-ink: var(--color-accent-ink, #faf9f7);
+    --dash-radius: var(--radius, 4px);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--dash-bg); color: var(--dash-ink);
+    font-family: var(--font-text, system-ui, sans-serif);
+    font-size: var(--text-base, 1.0625rem); line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--max-width, 68rem); margin: 0 auto; padding: var(--space-4, 2rem) var(--space-3, 1rem) var(--space-5, 4rem); }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-3, 1rem); margin-bottom: var(--space-4, 2rem); }
+  h1 { font-family: var(--font-display, serif); font-size: var(--text-xl, 1.875rem); margin: 0; letter-spacing: -0.01em; }
+  .badge {
+    font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;
+    border: 1px solid var(--dash-line); border-radius: 999px; padding: 0.2em 0.7em; color: var(--dash-muted);
+  }
+  .stamp { margin-left: auto; color: var(--dash-muted); font-size: var(--text-sm, 0.875rem); }
+  h2 {
+    font-size: 0.8rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--dash-muted);
+    margin: var(--space-4, 2rem) 0 var(--space-2, 0.5rem); font-weight: 600;
+  }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: var(--space-2, 0.5rem); }
+  .tile { background: var(--dash-surface); border: 1px solid var(--dash-line); border-radius: var(--dash-radius); padding: var(--space-3, 1rem); }
+  .tile b { display: block; font-family: var(--font-display, serif); font-size: var(--text-xl, 1.875rem); line-height: 1.1; font-weight: 400; }
+  .tile span { color: var(--dash-muted); font-size: var(--text-sm, 0.875rem); }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr)); gap: var(--space-2, 0.5rem); }
+  .card {
+    background: var(--dash-surface); border: 1px solid var(--dash-line); border-radius: var(--dash-radius);
+    padding: var(--space-3, 1rem); display: flex; flex-direction: column; gap: var(--space-2, 0.5rem);
+  }
+  .card-top { display: flex; align-items: baseline; gap: 0.6rem; }
+  .card h3 { font-size: var(--text-base, 1.0625rem); margin: 0; font-weight: 600; }
+  .pill { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.15em 0.6em; border-radius: 999px; white-space: nowrap; }
+  .pill.active { background: var(--dash-accent); color: var(--dash-accent-ink); }
+  .pill.exploring, .pill.idea { border: 1px solid var(--dash-line); color: var(--dash-muted); }
+  .pill.done, .pill\.winding { border: 1px solid var(--dash-line); color: var(--dash-muted); opacity: 0.8; }
+  .meter { height: 4px; background: var(--dash-line); border-radius: 999px; overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--dash-accent); }
+  .card small, .feed small { color: var(--dash-muted); font-size: var(--text-sm, 0.875rem); }
+  ul.todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
+  ul.todo li { display: flex; gap: 0.55rem; align-items: flex-start; font-size: var(--text-sm, 0.875rem); }
+  ul.todo li::before { content: ""; flex: 0 0 auto; width: 0.55em; height: 0.55em; margin-top: 0.45em; border: 1px solid var(--dash-muted); border-radius: 2px; }
+  .feed { display: flex; flex-direction: column; gap: 0; }
+  .feed div {
+    display: grid; grid-template-columns: 6.5rem 1fr; gap: var(--space-3, 1rem);
+    padding: 0.7rem 0; border-top: 1px solid var(--dash-line); align-items: baseline;
+  }
+  .feed div:first-child { border-top: 0; }
+  .feed b { font-weight: 600; }
+  .empty { background: var(--dash-surface); border: 1px dashed var(--dash-line); border-radius: var(--dash-radius); padding: var(--space-4, 2rem); color: var(--dash-muted); }
+  @media (max-width: 40rem) {
+    .feed div { grid-template-columns: 1fr; gap: 0.15rem; }
+    .stamp { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="org">Dashboard</h1>
+    <span class="badge">private</span>
+    <span class="stamp" id="stamp"></span>
+  </header>
+  <div id="body"></div>
+</div>
+<script type="module">
+const el = (tag, attrs = {}, ...kids) => {
+  const n = Object.assign(document.createElement(tag), attrs);
+  for (const k of kids.flat()) if (k != null) n.append(k);
+  return n;
+};
+const day = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+const data = await fetch('./data.json', { cache: 'no-store' }).then((r) => r.json());
+document.title = `${data.org} · dashboard`;
+document.getElementById('org').textContent = data.org;
+document.getElementById('stamp').textContent =
+  `as of ${new Date(data.generated).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })}`;
+
+const body = document.getElementById('body');
+const live = data.projects.filter((p) => p.stage !== 'done');
+const open = data.projects.reduce((n, p) => n + p.counts.open, 0);
+const doneItems = data.projects.reduce((n, p) => n + p.counts.done, 0);
+
+if (!data.projects.length) {
+  body.append(el('div', { className: 'empty' },
+    'No projects tracked yet. Tell Claude "start tracking <name>" and this page fills itself in.'));
+} else {
+  // Counts are computed here, from the data, so they cannot go stale in prose.
+  body.append(
+    el('div', { className: 'tiles' },
+      el('div', { className: 'tile' }, el('b', {}, String(live.length)), el('span', {}, live.length === 1 ? 'project running' : 'projects running')),
+      el('div', { className: 'tile' }, el('b', {}, String(open)), el('span', {}, open === 1 ? 'thing to do' : 'things to do')),
+      el('div', { className: 'tile' }, el('b', {}, String(doneItems)), el('span', {}, 'done so far')),
+      el('div', { className: 'tile' }, el('b', {}, String(data.repos.length)), el('span', {}, data.repos.length === 1 ? 'repo' : 'repos, one view')),
+    ),
+    el('h2', {}, 'Where things stand'),
+    el('div', { className: 'cards' }, data.projects.map((p) => {
+      const total = p.counts.open + p.counts.done;
+      const pct = total ? Math.round((p.counts.done / total) * 100) : 0;
+      return el('div', { className: 'card' },
+        el('div', { className: 'card-top' },
+          el('h3', {}, p.title),
+          p.stage ? el('span', { className: `pill ${p.stage.replace(' ', '-')}` }, p.stage) : null),
+        total ? el('div', { className: 'meter' }, el('i', { style: `width:${pct}%` })) : null,
+        el('small', {}, total ? `${p.counts.open} open · ${p.counts.done} done` : 'nothing listed yet'),
+        p.open.length ? el('ul', { className: 'todo' }, p.open.slice(0, 4).map((t) => el('li', {}, t))) : null,
+        p.countsOnly ? el('small', {}, 'details kept in its own repo') : null,
+      );
+    })),
+  );
+
+  if (data.recap.length) {
+    body.append(
+      el('h2', {}, 'What moved'),
+      el('div', { className: 'feed' }, data.recap.map((r) =>
+        el('div', {}, el('small', {}, day(r.date)), el('span', {}, el('b', {}, r.project + ' — '), r.text)))),
+    );
+  }
+}
+</script>
+</body>
+</html>

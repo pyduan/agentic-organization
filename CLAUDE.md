@@ -36,6 +36,9 @@ Find every row that matches the task at hand and read those files before produci
 | Prioritization: what matters most, whether a project or goal is aligned | `source/objectives.md` (the owner's north star; owner-only to change) — if it's still empty, offer to fill it first |
 | Starting a new project, several projects at once, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` — first ask whether it's one project or several and how much they share, then decide the structure (folders in one repo vs. repos in one org vs. separate orgs; new repo vs. sub-site/sub-app) before creating anything |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
+| A **private page only the owner (and whoever they name) may open**: a dashboard, a recap of where projects stand, anything with client or unreleased material | `source/formats/dashboard.md` — it publishes as its own Access-gated Worker, never a public URL, and `npm run dashboard` builds it |
+| About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
+| The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks |
@@ -53,6 +56,18 @@ Find every row that matches the task at hand and read those files before produci
 - **Tokens only.** Every color, font, and spacing value comes from `source/brand/tokens.css`. If a design needs a value that doesn't exist, add the token first, then use it.
 - **Inbox protocol.** `source/inbox/` is the owner's drop zone and it can be messy. Process everything in it: file texts and data into `source/content/`, originals into `source/brand/assets/`, then act on what was asked and leave the inbox empty. Details in `source/inbox/README.md`. **The same holds for any external tool** the owner works in (a shared Drive, Notion, Dropbox, their Desktop): treat it as *ingestion only*, raw human material to pull from, never the source of truth and never a place you write back into. The curated truth always lives in the repo, in Git.
 - **Never commit secrets, and keep sensitive content out of the repo.** No API keys, passwords, or personal data beyond what the site itself publishes. For material that shouldn't be public but is worth keeping and versioning (financial models, runway/funding figures, private notes, a draft not ready to share), don't rely on "just don't publish it": add it to `.gitignore` so it's never committed, pushed, or deployed, and keep it in a **local-only copy** — a git-ignored folder, or its own separate local repo on the owner's machine. The public repo stays shareable; the sensitive layer never leaves the machine.
+- **Search before you ask, and before you build.** The answer to most questions is already in this
+  repo, the owner's files, or the project's history. When something seems missing, assume you
+  searched badly rather than that it does not exist, and search by question rather than by topic.
+  Before writing any tool that moves, deletes or transforms files, inventory what is actually there.
+- **Never trust a safety guarantee you have not tested, and never act in bulk on the strength of
+  one.** Test on one item, verify the real state independently, then scale. Any destructive option
+  needs a copy taken first. Every destination keeps a backup; an option that removes the safety net
+  is disqualified, not merely riskier. The whole list is `docs/failure-modes.md` ▸ *Actions on files*.
+- **A number the machine knows is never written in prose.** Count it where it is displayed, or
+  phrase the sentence to stay true without it. And when a fact falls, sweep every occurrence of it —
+  other files, other repos, the deployed app, and the decisions that rested on it — not only the
+  place you noticed.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session
@@ -61,7 +76,11 @@ Before you finish (a hook will remind you if you forget):
 
 1. Everything committed and pushed, live site verified.
 2. Run the reflection pass (`.claude/skills/reflect/SKILL.md`): fold any new preference, correction, or fact that surfaced this session into the right guide (`voice.md`, `design.md`, a format playbook, or `brief.md`), and prune anything those guides say that is now outdated.
-3. Tell the owner in one or two plain sentences what you published and what you saved for next time.
+3. If something went wrong this session and it cost something — a wrong conclusion, the owner's
+   time, data touched — log it as an incident (`.claude/skills/feedback/SKILL.md`). The reflection
+   above records the rule; this records the miss, which is what tells anyone whether the rules are
+   working.
+4. Tell the owner in one or two plain sentences what you published and what you saved for next time.
 
 This is what makes the system compound: feedback given once becomes a rule applied forever.
 
@@ -92,5 +111,12 @@ scripts/bootstrap-*          one-command install for a new machine/owner (mac + 
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans
-.claude/skills/              setup · new-project · publish · new-deck · research · projects · team · reflect · update-kit
+docs/failure-modes.md        the seven ways this goes wrong, and the rule each one produced
+source/formats/dashboard.md  the private dashboard: what it shows, and why one and not one per repo
+source/quality/              the incident register (the AI's own mistakes) + its schema
+apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
+scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
+scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
+scripts/error-report.mjs     the incident register → a report, full or anonymized
+.claude/skills/              setup · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
 ```

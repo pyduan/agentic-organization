@@ -57,18 +57,41 @@ source/              your source of truth
   content/           your canonical texts, facts, and data (prices, catalogs...)
   facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
-  formats/           one playbook per output: website pages, decks
+  formats/           one playbook per output: website pages, decks, apps, the dashboard
+  quality/           the register of the AI's own mistakes on your project (see below)
 site/                the website itself (Astro, deployed by Cloudflare Workers)
 site/public/decks/   your presentations, each a single shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
+apps/dashboard/      your private dashboard: where every project stands, behind a login
 projects/            (optional module) your real work, tracked: charter, log, files, next steps
 team/                (optional module) your team files — gitignored, local-only, never shared
-scripts/             one-command install scripts (mac + windows)
-docs/                how it works, the Cloudflare deploy guide, the troubleshooting FAQ
-.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, update-kit) + hooks
+scripts/             install scripts (mac + windows), the deploy/build helpers, the checks
+docs/                how it works, the deploy guide, the troubleshooting FAQ, how this goes wrong
+.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, feedback, update-kit) + hooks
 ```
 
 The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.
+
+### Two things worth knowing before you start
+
+**A private page, not just a public site.** The kit's default private app is a **dashboard**: one
+page, only you (and whoever you name) can open, showing where every project stands — what moved this
+week, what is open, one card per subject rather than per repo. It publishes as its own Cloudflare
+Worker behind a login, never as a public URL nobody has guessed yet. Setup asks whether you want it;
+`source/formats/dashboard.md` is the playbook.
+
+**It keeps a record of its own mistakes.** Every project running this kit logs what the AI got wrong
+— what it had in front of it, what it did, who caught it, and whether anything now prevents it —
+into `source/quality/incidents.json`. You can read that as a report at any time, and send an
+**anonymized** version (the transferable lesson only, nothing about you or your work) to whoever
+maintains the framework:
+
+```sh
+node scripts/error-report.mjs --anonymized --email
+```
+
+That is how the seven failure families in [docs/failure-modes.md](docs/failure-modes.md) got
+written: a real project logged its errors, and the defaults changed.
 
 ## Getting started
 

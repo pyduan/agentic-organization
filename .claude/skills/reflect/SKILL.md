@@ -15,8 +15,17 @@ Scan the conversation for:
 - **Solved problems**: an install, git, or hosting snag that got diagnosed this session → an entry in `docs/troubleshooting.md` (what you see, what it means, what to do), so the next person finds the fix instead of asking a human.
 - **Leftovers**: unprocessed inbox files, unpushed work, a `<!-- verify -->` fact that got confirmed.
 
+- **Misses, not just lessons**: anything that went wrong this session and cost something (a wrong
+  conclusion travelled, the owner lost time, data was touched, a deliverable had to be redone) gets
+  an entry in `source/quality/incidents.json` per the `feedback` skill. The rule you just wrote says
+  what to do next time; the incident says what happened, who caught it, and whether anything now
+  prevents it. Without the second, there is no way to tell whether the first is working — and it is
+  what the framework's maintainer needs to fix the default that allowed it.
+
 A rule only exists where it will be read: if it governs work done in another repo (one the
-`new-project` skill created), write it in that repo's guide too, in the same change.
+`new-project` skill created), write it in that repo's guide too, in the same change — and mirror the
+whole operational path, not its headline, verifying that the path you write actually exists over
+there.
 
 Then:
 

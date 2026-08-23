@@ -17,8 +17,9 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
   `docs/`, `scripts/`, `source/formats/*.md`, the root deploy config (`package.json`,
   `wrangler.jsonc`), and the root `CLAUDE.md` / `SETUP.md` / `README.md`.
 - **The owner's** (never overwrite): everything under `source/` *except* `source/formats/`
-  (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`), all of `site/`, `apps/`, and
-  `site/public/decks/`.
+  (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`, and `quality/incidents.json` — the
+  register of what went wrong on *their* project), all of `site/`, `apps/` **except
+  `apps/dashboard/`** (framework, minus its Worker name), and `site/public/decks/`.
 
 ## Steps
 
@@ -43,6 +44,11 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    site (a still-running Cloudflare Pages deploy keeps working — its build root is `site/`, and
    these files sit at the repo root where Pages never looks). Switching hosting to Workers is a
    separate, deliberate step in `docs/deploy-cloudflare.md` ▸ "Already on Cloudflare Pages?".
+   **Two more files follow the same rule.** `apps/dashboard/` is framework (its `index.html` and its
+   `wrangler.jsonc`), so bring it in, keeping the owner's Worker `name` exactly as for the root
+   config. And `source/quality/incidents.json` is owner data: never check it out from the template;
+   if it does not exist yet, create it empty (`{"version": 1, "incidents": []}`) next to the
+   template's `source/quality/README.md`.
 4. **Reconcile `CLAUDE.md` by reading, not overwriting.** Diff the template's `CLAUDE.md` against
    this one (`git diff --no-index CLAUDE.md <(git show template/main:CLAUDE.md)`), and fold in the
    new framework rules while **keeping any project-specific rules** the owner or you added over
