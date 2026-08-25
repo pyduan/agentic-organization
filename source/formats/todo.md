@@ -139,6 +139,40 @@ prevents most of it sits upstream of any merge UI: pull before you write, commit
 immediately. An agent that reads a file, thinks for ten minutes and writes it back is working from
 a stale copy.
 
+## One app, several projects
+
+Most workspaces are several repos, and the temptation is one app per repo. Don't: the owner opens
+this to see what they have to do, not to remember which repository holds what. The same rule the
+dashboard follows applies here — **organise by subject, never by repo.**
+
+So the app is configured with a list of **sources**, one per project:
+
+```jsonc
+"TODO_SOURCES": [
+  { "id": "brochure", "label": "Brochure", "repo": "owner/repo",       "path": "projects/brochure/next-steps.md" },
+  { "id": "site",     "label": "Site",     "repo": "owner/other-repo", "path": "projects/site/next-steps.md" }
+]
+```
+
+Four rules keep this coherent as it grows:
+
+- **One entry per project, not per repository.** A repo holding three projects contributes three
+  entries; a project split across two repos still appears once, wherever its `next-steps.md` lives.
+- **The label names the project.** "Brochure", not `owner/repo ▸ projects/brochure/next-steps.md`.
+  Which repo a project sits in is plumbing, and it belongs nowhere near the picker.
+- **The client names a source, never a path.** The browser sends `id`, the Worker resolves it
+  against this list. The allow-list therefore works by *resolution* rather than by comparison, and a
+  path the owner never configured cannot be expressed at all — no traversal, no prefix trick. The
+  repo and path travel back out so a hand-off prompt can name a real file; they are never read off
+  a request.
+- **The commit message names the project.** `todos (Brochure): 2 ticked`. It lands in the history of
+  a repo that may hold several of them, and "2 ticked" alone says nothing a month later.
+
+The order of the list is the order in the picker, so put what gets touched daily at the top.
+
+One token has to reach every repo in the list. That is the practical argument for a fine-grained
+token scoped to *all repositories* with Contents only, rather than a per-repo one — see below.
+
 ## The token the app writes with
 
 The Worker needs a GitHub token, and there are two ways to give it one. Neither is wrong; they

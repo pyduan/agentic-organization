@@ -23,9 +23,33 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
+    // The sources this app may edit. One entry per PROJECT, not per repository:
+    // a repo holding three projects gets three entries, and projects spread over
+    // several repos still appear in one app. This list IS the security boundary —
+    // the browser sends an `id` and the Worker resolves it here, so a path that is
+    // not listed cannot be named at all.
+    //
+    // `label` is what the owner sees, so name the project, never the plumbing.
+    // Omit it and one is derived from the path. Omit `id` and one is derived too;
+    // set it explicitly if you want short, stable ids in URLs.
+    "TODO_SOURCES": [
+      {
+        "id": "brochure",
+        "label": "Brochure",
+        "repo": "owner/repo",
+        "path": "projects/brochure/next-steps.md"
+      },
+      {
+        "id": "site",
+        "label": "Site",
+        "repo": "owner/other-repo",
+        "path": "projects/site/next-steps.md"
+      }
+    ],
+
+    // Short form for a single repo, if that is all you have. Ignored when
+    // TODO_SOURCES is set.
     "GITHUB_REPO": "owner/repo",
-    "GITHUB_BRANCH": "main",
-    // The allow-list IS the security boundary. Only these paths can be edited.
-    "TODO_FILES": "projects/example/next-steps.md"
+    "TODO_BRANCH": "main"
   }
 }
