@@ -70,7 +70,43 @@ Establish, in the owner's own words:
   If either is on, offer to fill `source/objectives.md` (the north star both modules prioritize
   against) from what the interview already established; it stays the owner's alone to change.
 
-## 2. Structure and facts, before anything is built
+## 2. Access and tokens, all in one pass
+
+**Do this before you build anything, and do it in a single sitting.** Every account, every
+invitation, every token the project will need for the next year gets asked for now, while the owner is
+sitting at the keyboard and in the mood to click. After this pass you should never again have to
+interrupt them to unblock yourself.
+
+This matters most for a **non-technical owner**. They will not remember what a token is next month,
+they will not want to be walked through a dashboard while waiting for a document, and each
+interruption is where a project quietly stops. One shared half-hour buys a year of autonomy.
+
+How to run it:
+
+- **Write the list first, then ask.** From the interview, list every external thing this project will
+  read or write: the code host, the hosting account, the domain registrar, the drive or folder where
+  their documents live, the mailbox, the payment or donation platform, the analytics, any CRM. Show
+  them the list before asking for anything, so they see the whole ask instead of a drip.
+- **For each one, name what you need and what you'll do with it**: an invitation, a connector to
+  authorise, an export, an API credential. Say plainly which are read-only.
+- **Automate every step you can, and pre-chew the rest.** Do the parts that can be done from here.
+  For what only they can do, hand them the direct link to the exact screen, the values to type, and
+  the order to click — one screen at a time, confirming each before the next. Never send someone
+  non-technical to "the settings".
+- **Never take a secret through the conversation.** A key pasted into the chat is a key in a
+  transcript. Have them set it where it belongs (a hosting secret, a password manager) and, if a
+  script is needed, write one that prompts for it locally and never echoes it. The same rule kills the
+  shortcut of creating tokens on their behalf: a token you create is a token you have seen.
+- **Record the outcome, not the secret.** One table in `docs/` per project: which account, whose
+  login, what it is used for, and where the credential lives. Future sessions read that table instead
+  of asking again.
+- **Note what is still missing and who owes it.** An access the owner could not grant today becomes a
+  dated line in the to-do list with their name on it, not a vague intention.
+
+The failure this prevents: a system that works only when its owner is available to authorise
+something. Judge the pass by asking whether you could now do a month of work without them.
+
+## 3. Structure and facts, before anything is built
 
 **Run the `fact-finding` skill** (`.claude/skills/fact-finding/SKILL.md`) now, in full. It is the
 kit's master recipe and this is its founding use: decide the folder and file structure for *this*
@@ -91,7 +127,7 @@ Two things not to negotiate away, however keen the owner is to see a site:
 Come back from that skill with its three lists (what is recorded, what could not be established, what
 you propose to build). Then continue here.
 
-## 3. Personalize the system
+## 4. Personalize the system
 
 Replace every TODO in these files with what you learned, keeping each file's structure:
 
@@ -104,11 +140,11 @@ Replace every TODO in these files with what you learned, keeping each file's str
 
 Read each personalized guide back as a whole; it must read as this project's guide, with no template smell left.
 
-## 4. Build v1
+## 5. Build v1
 
 Build the site in `site/` per `source/formats/website.md`: layout shell first (nav, footer, typography on tokens), then pages, then collections if any. Replace the placeholder home page. Run `npm install` and `npm run dev` inside `site/`, verify at mobile and desktop widths, then review it with the owner page by page (share the local URL, show screenshots). Iterate until they're happy; this loop is most of the session.
 
-## 5. Go live
+## 6. Go live
 
 Set the deploy config first: open `wrangler.jsonc` at the repo root and set `name` to this
 project's slug (it becomes the Worker's name and its `<name>.<subdomain>.workers.dev` URL, and must
@@ -121,6 +157,14 @@ before improvising; if their problem isn't in it, add the entry once solved. Onc
 URL is live, verify it yourself, record the URLs in `brief.md`, and continue to the domain if they
 own one.
 
-## 6. Close
+**The repo connection is the deliverable of this step, not the deploy.** A Worker you deployed by
+hand looks identical to a connected one and silently stops publishing what you push. So finish by
+pushing a trivial commit and watching a build start on its own, and do the same for every other
+Worker this project owns (a private dashboard, a second app) at the moment you create it. If the
+owner is not technical, this is one of the screens you walk them through in the access pass — a
+build configuration needs an API token that only their dashboard can mint, so it cannot be done from
+here.
+
+## 7. Close
 
 Run the reflect skill (it will have plenty to record from this session), push everything, and tell the owner what exists now: the live URL, what each folder is for in one line each, and how to work with you from now on (open the folder, run `claude`, talk, drop files in the inbox).

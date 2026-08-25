@@ -98,6 +98,14 @@ added later, so there is no list of URLs to remember to protect.
    That runs `scripts/dashboard-data.mjs` into `apps/dashboard/dist/` and deploys
    `apps/dashboard/wrangler.jsonc`. Set its `name` to `<your-slug>-dashboard` the first time.
 
+   **Then connect this Worker to the repo as well, before you go any further.** A Worker created by
+   `wrangler deploy` has no build trigger, and that is precisely where "pushing doesn't publish"
+   comes from — a second Worker is the easiest one to forget, because the first one works. Same
+   screens as step 1 above (**Settings → Build → Connect a repository**), with the root directory
+   set to the app's folder (`apps/dashboard`), build `npm run build`, deploy `npx wrangler deploy`.
+   Then push a trivial commit and watch a build start on its own. **Every Worker this project owns
+   gets this at creation, not later.**
+
 2. **Turn Access on for the account, once.** Cloudflare Zero Trust has to be enabled and given a
    team domain before any policy can exist; until then the API answers that Access is not enabled,
    and `wrangler` has no Access command at all. This one step is a human clicking in the dashboard:

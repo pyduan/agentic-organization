@@ -30,6 +30,12 @@ These start as sensible defaults; edit them to fit.
 - **Links point straight at their destination.** A URL copied out of Google Docs, Gmail, or a notes
   tool arrives wrapped as `https://www.google.com/url?q=…`: decode it to the real target and drop
   the tracking params. A reader should see the real domain, not something that looks like tracking.
+- **A drafted email is plain text, not markdown.** Whoever sends it will copy the file you wrote and
+  paste it into their mail client, so `**bold**` arrives as asterisks and `[texte](url)` hides the
+  address the reader needed to click. Observed for real, twice, with a non-technical sender. So: no
+  `**`, no `#`, no backticks; bullets are `- `; URLs are bare. Offering a styled HTML version as well
+  is fine, but it must be the upgrade, never the thing that has to be noticed for the mail to look
+  right. This applies to email only — everything else in the repo is read rendered and stays markdown.
 
 ## Languages
 
