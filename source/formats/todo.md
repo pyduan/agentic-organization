@@ -145,7 +145,18 @@ Most workspaces are several repos, and the temptation is one app per repo. Don't
 this to see what they have to do, not to remember which repository holds what. The same rule the
 dashboard follows applies here — **organise by subject, never by repo.**
 
-So the app is configured with a list of **sources**, one per project:
+**And you do not write that list by hand.** `npm run todos:sources` walks the repos on
+`ORGANIGRAM.md`, finds every `projects/<slug>/next-steps.md` plus any root one, resolves each repo's
+GitHub name from its own remote, and writes `apps/todos/sources.json`. The deploy script regenerates
+it, so adding a project means adding a project, not remembering to update an app.
+
+That is deliberate and it is the kit's rule, not a preference: **there is one map of the workspace,
+`ORGANIGRAM.md`**, and the dashboard already reads it rather than keeping a second list. Whatever
+topology you actually have — one repo holding several projects, several repos holding one each, an
+annex repo beside a common one — it is already a row on that map. A second list would describe last
+month within a fortnight.
+
+The generated shape, which you would only write by hand as a `TODO_SOURCES` override:
 
 ```jsonc
 "TODO_SOURCES": [
