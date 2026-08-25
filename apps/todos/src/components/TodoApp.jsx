@@ -88,9 +88,10 @@ function Row({ item, path, onToggle, onDue }) {
 }
 
 export default function TodoApp() {
-  const [files, setFiles] = useState([]);
-  const [path, setPath] = useState(null);
+  const [sources, setSources] = useState([]);
+  const [source, setSource] = useState(null);
   const [items, setItems] = useState([]);
+  const [location, setLocation] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
 
@@ -98,9 +99,9 @@ export default function TodoApp() {
   const queue = useRef([]);
   const timer = useRef(null);
 
-  const load = useCallback(async (p) => {
+  const load = useCallback(async (id) => {
     setStatus('loading');
-    const res = await fetch(`/api/todos?path=${encodeURIComponent(p)}`);
+    const res = await fetch(`/api/todos?source=${encodeURIComponent(id)}`);
     if (!res.ok) {
       setError((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
       setStatus('error');
@@ -108,6 +109,7 @@ export default function TodoApp() {
     }
     const body = await res.json();
     setItems(body.items);
+    setLocation({ repo: body.repo, path: body.path });
     setStatus('idle');
     setError(null);
   }, []);
@@ -116,8 +118,8 @@ export default function TodoApp() {
     fetch('/api/files')
       .then((r) => r.json())
       .then((b) => {
-        setFiles(b.files || []);
-        if (b.files?.length) setPath(b.files[0]);
+        setSources(b.sources || []);
+        if (b.sources?.length) setSource(b.sources[0].id);
         else setStatus('idle');
       })
       .catch((e) => {
@@ -127,19 +129,19 @@ export default function TodoApp() {
   }, []);
 
   useEffect(() => {
-    if (path) load(path);
-  }, [path, load]);
+    if (source) load(source);
+  }, [source, load]);
 
   const flush = useCallback(async () => {
     const intents = queue.current;
-    if (!intents.length || !path) return;
+    if (!intents.length || !source) return;
     queue.current = [];
     setStatus('saving');
     try {
       const res = await fetch('/api/todos', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ path, intents }),
+        body: JSON.stringify({ source, intents }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
@@ -152,7 +154,7 @@ export default function TodoApp() {
       setError(String(e.message));
       setStatus('error');
     }
-  }, [path]);
+  }, [source]);
 
   const push = useCallback(
     (intent) => {
@@ -202,23 +204,27 @@ export default function TodoApp() {
   };
 
   const ids = useMemo(() => items.map((i) => i.id ?? `line-${i.lineNo}`), [items]);
+  const sourceLabel = sources.find((s) => s.id === source)?.label ?? source;
   const openCount = items.filter((i) => !i.done).length;
 
   return (
     <Card>
       <CardHeader>
-        {files.length > 1 ? (
+        {sources.length > 1 ? (
           <select
-            value={path ?? ''}
-            onChange={(e) => setPath(e.target.value)}
-            className="rounded-md border border-line bg-transparent px-2 py-1 text-sm"
+            value={source ?? ''}
+            onChange={(e) => setSource(e.target.value)}
+            aria-label="Project"
+            className="rounded-md border border-line bg-transparent px-2 py-1 text-sm font-semibold"
           >
-            {files.map((f) => (
-              <option key={f} value={f}>{f}</option>
+            {sources.map((s) => (
+              <option key={s.id} value={s.id}>{s.label}</option>
             ))}
           </select>
         ) : (
-          <h2 className="text-sm font-semibold">{path ?? 'No file configured'}</h2>
+          <h2 className="text-sm font-semibold">
+            {sources[0]?.label ?? 'No source configured'}
+          </h2>
         )}
 
         <span className="ml-auto text-xs text-muted">
@@ -247,7 +253,7 @@ export default function TodoApp() {
                   <Row
                     key={item.id ?? `line-${item.lineNo}`}
                     item={item}
-                    path={path}
+                    path={location?.path ?? sourceLabel}
                     onToggle={onToggle}
                     onDue={onDue}
                   />
