@@ -22,6 +22,7 @@ Connect Cloudflare only **after** the first version of the site has been committ
    - Root directory: leave it at the repo root (`/`). The `wrangler.jsonc` there already knows the site is built into `site/dist`; you do **not** set the root to `site` the way Pages did.
 5. Set the project name. Open `wrangler.jsonc` and set `name` to your project slug (e.g. `acme-site`); it becomes your Worker's name and its `https://<name>.<your-subdomain>.workers.dev` URL, and must be unique in your account. Claude sets this during setup, so it is usually done already.
 6. Save and deploy. The first build takes a couple of minutes and gives you a URL like `https://<name>.<subdomain>.workers.dev`. That URL is live from now on; put it in `source/brief.md`.
+7. **Verify the connection exists, don't assume it.** Push a trivial commit and watch a build start on its own in **Workers & Pages → your Worker → Deployments**. If no build appears, the repo is not connected and every later push will look published while nothing goes live. This is the single most expensive thing to get wrong here, because it fails silently — see the box below.
 
 If the build fails, open the build log. The usual fix for version complaints is setting the build's Node version to a current LTS (for example `22`) in the build settings.
 
@@ -69,7 +70,13 @@ Two rules, and the second matters more than the first:
 
 ## Day-to-day
 
-There is no day-to-day. Pushing is publishing. A push to `main` deploys to production; a push to any other branch (or a pull request) gets its own **preview URL** so a change can be checked before it goes live. If the live site ever looks stale, open **Workers & Pages → your Worker → Deployments** for a failed build; the log says why. Any previous version can be restored from that same screen, and the AI can also revert the offending commit.
+There is no day-to-day **once the repo is connected**. Pushing is publishing: a push to `main` deploys to production; a push to any other branch (or a pull request) gets its own **preview URL** so a change can be checked before it goes live.
+
+> **⚠️ If you deployed by hand with `wrangler deploy` instead of connecting the repo, pushing does NOT publish** — and nothing tells you. This happened on a real project: the live site served a corrected figure's old value for six days, and a newly-pushed app returned 404, while the repo and every summary said the change was live. The docs even claimed "Cloudflare rebuilds on every push", which made it worse.
+>
+> **How to tell in ten seconds.** In **Deployments**, look at the source of the latest deployment: `wrangler` means by hand, a commit hash means Workers Builds. Or ask the AI to check the API — a Worker with no build trigger has none.
+>
+> **Until it is connected**, deploy explicitly after every push (`npm run deploy`), and verify **on the live URL**, never on the local build. `freshness.json` supports a `mustContain` claim for exactly this: name a string the live page must carry, and `scripts/check-freshness.mjs` fails when the repo is ahead of what is served. If the live site ever looks stale, open **Workers & Pages → your Worker → Deployments** for a failed build; the log says why. Any previous version can be restored from that same screen, and the AI can also revert the offending commit.
 
 ## Publishing something private: the dashboard Worker
 

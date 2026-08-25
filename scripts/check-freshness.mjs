@@ -168,6 +168,22 @@ if (wants('hosts') && (config.hosts || []).length) {
         }
       } catch { /* the status check above already passed; a body read failure is not a finding */ }
     }
+    // What the live page MUST carry. The mirror of mustNotContain, and it catches a drift
+    // nothing else sees: a fact corrected in the repo but never deployed. That happened on a
+    // real project — six days of a stale figure served while every summary said it was live,
+    // because pushing does not publish unless the repo is connected to Workers Builds.
+    if (h.mustContain) {
+      try {
+        const body = await (await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(15000) })).text();
+        for (const needle of [].concat(h.mustContain)) {
+          if (!body.includes(needle)) {
+            add('fail', 'hosts', url, `"${needle}" is missing from the live page — has the repo been deployed? (npm run deploy)`);
+          }
+        }
+      } catch (e) {
+        add('warn', 'hosts', url, `body unreadable, mustContain not checked (${e.message})`);
+      }
+    }
     // Paths that must be absent (a private file the host should never serve).
     for (const p of h.mustNotServe || []) {
       const r2 = await probe(new URL(p, url).toString() + `?fresh=${Date.now()}`);

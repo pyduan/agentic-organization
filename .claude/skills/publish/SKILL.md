@@ -5,7 +5,10 @@ description: "Save and publish the current state: verify, commit, push, confirm 
 
 # Publish
 
-Publishing is pushing; Cloudflare Workers does the rest. The job here is to do it cleanly and confirm it landed.
+Publishing is pushing **if** the repo is connected to Workers Builds. It usually is; verify it once
+rather than assume it forever, because when it isn't, every push looks published and nothing goes
+live — that cost a real project six days of a stale figure on its homepage. The job here is to do it
+cleanly and confirm it landed **on the live URL**.
 
 0. **Check what you are publishing *to*.** Pushing publishes the site. A private thing — the
    dashboard, anything with client or unreleased material — belongs on the Access-gated Worker
@@ -15,7 +18,7 @@ Publishing is pushing; Cloudflare Workers does the rest. The job here is to do i
 2. **Stage explicitly.** `git status`, then `git add` the files you touched, by name. Other sessions or machines may have left unrelated files around; a blind `git add -A` has shipped accidents before.
 3. **Commit** with a message that says what changed in plain words (`add two paintings to gallery, mark Nocturne sold`).
 4. **Push.** If the push is rejected because the remote moved, pull with rebase, re-verify, push again.
-5. **Confirm live.** After about a minute, fetch the live URL and check the change actually appears. If it doesn't, check the Cloudflare build (the owner can open Deployments in their dashboard; the usual causes are a build error, which you should fix immediately, or DNS still propagating on a fresh setup).
+5. **Confirm live.** After about a minute, fetch the live URL and check the change actually appears — the live URL, never the local build. If it doesn't appear, in order of likelihood: **the repo isn't connected** to Workers Builds, so nothing was ever going to deploy (check Deployments: a `wrangler` source means by-hand, a commit hash means connected; deploy explicitly with `npm run deploy` and then fix the connection); a build error (the log says why, fix it immediately); or DNS still propagating on a fresh setup.
 6. **The repo is not the app.** Having fixed a file proves nothing about what the live page shows.
    When you say something is up to date, you are talking about the deployed thing: fetch it and
    look, with a cache-buster on the URL (Cloudflare caches these answers, and a plain request has

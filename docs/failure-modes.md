@@ -98,6 +98,13 @@ wrong.
   no longer exists. Re-read open decisions against anything that changed today.
 - **The repo is not the app.** Having fixed a file says nothing about what the deployed page shows.
   To claim something is up to date, look at the thing itself.
+- **Verify the publishing pipeline exists before trusting it.** "Pushing publishes" is a claim about
+  infrastructure, and infrastructure claims expire or were never true. On a real project the docs
+  said Cloudflare rebuilt on every push; nothing was connected, and a corrected figure sat unpublished
+  for six days while every summary reported it live. **A one-line assertion in a guide is not
+  evidence.** Check the deployment source, or deploy explicitly and confirm on the live URL. Where a
+  pipeline can fail silently, add a machine check that fails loudly — a string the live page must
+  contain beats any amount of documentation.
 - **Re-read a long deliverable whole before handing it over.** Written over hours, its opening
   paragraph knows less than its closing one. Three signals mean re-check a passage: it asks for
   something already obtained, it claims ignorance, or it quotes a figure from elsewhere.
