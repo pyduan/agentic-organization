@@ -21,6 +21,13 @@ Establish, in the owner's own words:
   - **Simplified (the default; right for most, especially non-technical owners):** you have full code-management rights — you commit, push, publish, and merge on your own, pausing only for destructive or irreversible actions. They never touch git or a command line; you never hand them one.
   - **Review mode (for owners comfortable with git who want to stay in the loop):** you still do all the git yourself, but you pause for a yes before each push or merge.
   Ask it simply — *"Once a change looks good, should I just publish it, or check with you first each time?"* — with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `CLAUDE.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
+- **Seed `source/decisions.md` from the interview, and say that you will keep it.** The choices made
+  in this conversation — the positioning, the audience, what was deliberately left out, anything the
+  owner ruled out and why — are decisions, and they are the ones most likely to be re-opened by a
+  future session that was not in the room. Write them in as the first dated entry before the
+  interview fades. Then tell the owner, in one sentence, what the file buys them: *"Anything we
+  settle goes in here, so no future session reopens it and you never argue for the same choice
+  twice."* Maintaining it is on by default; an owner who does not want it says so.
 - What pages they imagine (offer a starting set: home, about, work/gallery, contact; fewer is fine).
 - Languages, and which is the default.
 - The starting point, one of:

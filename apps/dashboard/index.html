@@ -59,7 +59,14 @@
   .meter i { display: block; height: 100%; background: var(--dash-accent); }
   .card small, .feed small { color: var(--dash-muted); font-size: var(--text-sm, 0.875rem); }
   ul.todo { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.35rem; }
-  ul.todo li { display: flex; gap: 0.55rem; align-items: flex-start; font-size: var(--text-sm, 0.875rem); }
+  ul.todo li { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; font-size: var(--text-sm, 0.875rem); }
+  ul.todo .todo-text { flex: 1 1 12rem; }
+  .badge {
+    font-style: normal; font-size: 0.72em; letter-spacing: .02em; white-space: nowrap;
+    padding: 0.1em 0.45em; border-radius: 999px; border: 1px solid var(--dash-line);
+    opacity: .75;
+  }
+  .badge.late { border-color: currentColor; opacity: 1; font-weight: 600; }
   ul.todo li::before { content: ""; flex: 0 0 auto; width: 0.55em; height: 0.55em; margin-top: 0.45em; border: 1px solid var(--dash-muted); border-radius: 2px; }
   .feed { display: flex; flex-direction: column; gap: 0; }
   .feed div {
@@ -100,6 +107,17 @@ document.getElementById('stamp').textContent =
 
 const body = document.getElementById('body');
 const live = data.projects.filter((p) => p.stage !== 'done');
+const TODAY = new Date().toISOString().slice(0, 10);
+
+// A to-do renders as a row: the action, then its fields as quiet badges. A due
+// date in the past is the one thing allowed to shout.
+function todoLi(t) {
+  const bits = [el('span', { className: 'todo-text' }, t.text)];
+  for (const o of t.owners || []) bits.push(el('em', { className: 'badge who' }, `@${o}`));
+  if (t.due) bits.push(el('em', { className: `badge when${t.due < TODAY ? ' late' : ''}` }, t.due));
+  return el('li', {}, ...bits);
+}
+
 const open = data.projects.reduce((n, p) => n + p.counts.open, 0);
 const doneItems = data.projects.reduce((n, p) => n + p.counts.done, 0);
 
@@ -125,7 +143,7 @@ if (!data.projects.length) {
           p.stage ? el('span', { className: `pill ${p.stage.replace(' ', '-')}` }, p.stage) : null),
         total ? el('div', { className: 'meter' }, el('i', { style: `width:${pct}%` })) : null,
         el('small', {}, total ? `${p.counts.open} open · ${p.counts.done} done` : 'nothing listed yet'),
-        p.open.length ? el('ul', { className: 'todo' }, p.open.slice(0, 4).map((t) => el('li', {}, t))) : null,
+        p.open.length ? el('ul', { className: 'todo' }, p.open.slice(0, 4).map(todoLi)) : null,
         p.countsOnly ? el('small', {}, 'details kept in its own repo') : null,
       );
     })),

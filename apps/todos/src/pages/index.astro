@@ -1,0 +1,22 @@
+---
+import '../styles/app.css';
+import TodoApp from '../components/TodoApp.jsx';
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>To-dos</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="min-h-dvh">
+    <main class="mx-auto w-full max-w-2xl px-4 py-10">
+      <h1 class="mb-1 text-2xl font-semibold tracking-tight">To-dos</h1>
+      <p class="mb-6 text-sm text-muted">
+        Every change is a commit on the markdown file. Edits are held for a couple of seconds and
+        saved as one.
+      </p>
+      <TodoApp client:load />
+    </main>
+  </body>
+</html>

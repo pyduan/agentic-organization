@@ -1,0 +1,31 @@
+{
+  // The to-do app: its own Worker on this same repo, behind Cloudflare Access.
+  //
+  // Two settings are not optional, and both were learned by getting them wrong:
+  //   assets.run_worker_first — without it Cloudflare serves a matching static file
+  //     BEFORE the Worker runs, so the auth check protects /api/* and every HTML
+  //     page stays open to the internet.
+  //   workers_dev: false — an Access policy attaches to a hostname. A workers.dev
+  //     subdomain is not covered by the policy on your domain, so leaving it on
+  //     publishes the app with no authentication at all.
+  //
+  // Secrets are never written here. Set them once:
+  //   wrangler secret put GITHUB_TOKEN --config apps/todos/wrangler.jsonc
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "todos",
+  "main": "worker.js",
+  "compatibility_date": "2026-07-24",
+  "workers_dev": false,
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "single-page-application"
+  },
+  "vars": {
+    "GITHUB_REPO": "owner/repo",
+    "GITHUB_BRANCH": "main",
+    // The allow-list IS the security boundary. Only these paths can be edited.
+    "TODO_FILES": "projects/example/next-steps.md"
+  }
+}

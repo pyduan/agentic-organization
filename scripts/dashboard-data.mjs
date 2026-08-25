@@ -9,7 +9,8 @@
 //
 // What it reads, per repo on ORGANIGRAM.md's map (plus this one):
 //   projects/<slug>/charter.md     the title, the stage, an optional "dashboard:" line
-//   projects/<slug>/next-steps.md  open (- [ ]) and done (- [x]) items
+//   projects/<slug>/next-steps.md  open (- [ ]) and done (- [x]) items, in the
+//                                  canonical format of source/formats/todo.md
 //   projects/<slug>/log.md         dated entries, newest first, for the recap feed
 //
 // A project that should not expose its wording writes `dashboard: counts-only` in its
@@ -20,6 +21,7 @@
 // Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist]
 
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { parse as parseTodos } from '../lib/todo.mjs';
 import { existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -67,12 +69,24 @@ function stageOf(charter) {
 }
 
 function items(nextSteps) {
+  // Parsing lives in lib/todo.mjs so the dashboard, the to-do app and any agent
+  // read a line the same way. Metadata is stripped out of the title here: an
+  // owner and a due date are fields to render, not words to print in a sentence.
   const open = [], done = [];
-  for (const line of nextSteps.split('\n')) {
-    const m = line.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.*\S)/);
-    if (!m) continue;
-    (m[1] === ' ' ? open : done).push(m[2].replace(/\s+/g, ' ').trim());
+  for (const i of parseTodos(nextSteps)) {
+    const item = {
+      text: i.text,
+      owners: i.owners,
+      due: i.due,
+      id: i.id,
+      note: i.notes[0] || null,
+    };
+    if (i.done) done.push({ ...item, doneOn: i.doneOn });
+    else open.push(item);
   }
+  // Nearest due date first; everything undated keeps its file order behind them,
+  // which is the order the owner arranged by hand.
+  open.sort((a, b) => (a.due || '9999-99-99').localeCompare(b.due || '9999-99-99'));
   return { open, done };
 }
 

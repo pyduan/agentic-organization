@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+/* Values come from source/brand/tokens.css. Copied in so the app stays
+   self-contained, per the webapp playbook. */
+@theme {
+  --color-paper: #fbfaf8;
+  --color-ink: #1a1a1a;
+  --color-muted: #6b6b6b;
+  --color-line: #e4e1db;
+  --color-accent: #1a1a1a;
+  --color-late: #b3261e;
+}
+
+:root { color-scheme: light dark; }
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-paper: #131313;
+    --color-ink: #f2f0ec;
+    --color-muted: #9a9a9a;
+    --color-line: #2c2c2c;
+    --color-accent: #f2f0ec;
+    --color-late: #f2b8b5;
+  }
+}
+
+body { background: var(--color-paper); color: var(--color-ink); }

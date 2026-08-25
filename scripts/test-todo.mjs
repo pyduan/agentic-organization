@@ -1,0 +1,181 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { parse, parseLine, formatLine, apply, reorder, ensureIds, idFrom } from '../lib/todo.mjs';
+
+const CANON = '- [ ] Chase the printer for the brochure proof @sam due:2026-08-29 #brochure ^k3f9';
+
+test('parses every field of a canonical line', () => {
+  const i = parseLine(CANON);
+  assert.equal(i.text, 'Chase the printer for the brochure proof');
+  assert.deepEqual(i.owners, ['sam']);
+  assert.equal(i.due, '2026-08-29');
+  assert.deepEqual(i.tags, ['brochure']);
+  assert.equal(i.id, 'k3f9');
+  assert.equal(i.done, false);
+});
+
+test('a bare line stays legal', () => {
+  const i = parseLine('- [ ] Call the printer');
+  assert.equal(i.text, 'Call the printer');
+  assert.deepEqual(i.owners, []);
+  assert.equal(i.due, null);
+  assert.equal(i.id, null);
+});
+
+test('legacy lines still parse, owner stays in the text', () => {
+  const i = parseLine('- [ ] [Sam] Chase the printer (due week of Aug 17)');
+  assert.equal(i.text, '[Sam] Chase the printer (due week of Aug 17)');
+  assert.deepEqual(i.owners, []);
+});
+
+test('done items carry a date', () => {
+  const i = parseLine('- [x] Sign off the proof #59 @sam done:2026-08-14 ^m1p2');
+  assert.equal(i.done, true);
+  assert.equal(i.doneOn, '2026-08-14');
+  assert.deepEqual(i.tags, ['59']);
+});
+
+test('format round-trips a canonical line byte for byte', () => {
+  assert.equal(formatLine(parseLine(CANON)), CANON);
+});
+
+test('an email or a path is not mistaken for an owner or a tag', () => {
+  const i = parseLine('- [ ] Email hello@example.org about docs/failure-modes.md ^aa11');
+  assert.deepEqual(i.owners, []);
+  assert.deepEqual(i.tags, []);
+  assert.equal(i.text, 'Email hello@example.org about docs/failure-modes.md');
+});
+
+const FILE = `# Next steps
+
+Some prose that must survive untouched.
+
+- [ ] First task @sam due:2026-09-01 ^aaaa
+      An indented line of context.
+- [ ] Second task ^bbbb
+- [x] Third task done:2026-08-01 ^cccc
+
+## Another section
+
+- A bullet that is not a task.
+`;
+
+test('toggle changes exactly one line and nothing else', () => {
+  const { markdown, changed } = apply(FILE, { op: 'toggle', id: 'bbbb', done: true, on: '2026-08-20' });
+  assert.equal(changed, true);
+  const before = FILE.split('\n');
+  const after = markdown.split('\n');
+  assert.equal(before.length, after.length);
+  const differing = before.map((l, i) => (l === after[i] ? null : i)).filter((x) => x !== null);
+  assert.deepEqual(differing, [6]);
+  assert.equal(after[6], '- [x] Second task done:2026-08-20 ^bbbb');
+});
+
+test('setting a due date leaves the rest of the file byte-identical', () => {
+  const { markdown } = apply(FILE, { op: 'set', id: 'cccc', due: '2026-12-24' });
+  const before = FILE.split('\n'), after = markdown.split('\n');
+  const differing = before.map((l, i) => (l === after[i] ? null : i)).filter((x) => x !== null);
+  assert.deepEqual(differing, [7]);
+});
+
+test('an unknown id changes nothing', () => {
+  const { markdown, changed, reason } = apply(FILE, { op: 'toggle', id: 'zzzz' });
+  assert.equal(changed, false);
+  assert.equal(markdown, FILE);
+  assert.match(reason, /no item/);
+});
+
+test('continuation lines attach to their item and travel with it', () => {
+  const items = parse(FILE);
+  assert.equal(items.length, 3);
+  assert.deepEqual(items[0].notes, ['An indented line of context.']);
+  const { markdown } = reorder(FILE, ['bbbb', 'aaaa', 'cccc']);
+  const lines = markdown.split('\n');
+  assert.equal(lines[4], '- [ ] Second task ^bbbb');
+  assert.equal(lines[5], '- [ ] First task @sam due:2026-09-01 ^aaaa');
+  assert.equal(lines[6], '      An indented line of context.');
+  assert.ok(markdown.includes('Some prose that must survive untouched.'));
+  assert.ok(markdown.includes('- A bullet that is not a task.'));
+});
+
+test('reorder refuses a span that is not a contiguous run', () => {
+  const mixed = `- [ ] One ^aaaa\n\n## A heading in the middle\n\n- [ ] Two ^bbbb\n`;
+  const { changed, reason } = reorder(mixed, ['bbbb', 'aaaa']);
+  assert.equal(changed, false);
+  assert.match(reason, /contiguous/);
+});
+
+test('ensureIds backfills, is stable, and is idempotent', () => {
+  const src = '- [ ] No id yet\n- [ ] Another one @sam\n';
+  const first = ensureIds(src);
+  assert.equal(first.added, 2);
+  const second = ensureIds(first.markdown);
+  assert.equal(second.added, 0);
+  assert.equal(second.markdown, first.markdown);
+  assert.equal(ensureIds(src).markdown, first.markdown, 'deterministic across runs');
+});
+
+test('ensureIds never collides two identical texts', () => {
+  const { markdown } = ensureIds('- [ ] Same text\n- [ ] Same text\n');
+  const ids = parse(markdown).map((i) => i.id);
+  assert.equal(new Set(ids).size, 2);
+});
+
+test('idFrom is stable and uses an unambiguous alphabet', () => {
+  assert.equal(idFrom('hello'), idFrom('hello'));
+  assert.doesNotMatch(idFrom('hello'), /[loi01]/);
+});
+
+test('re-applying an intent to a moved line still finds it', () => {
+  const moved = reorder(FILE, ['cccc', 'aaaa', 'bbbb']).markdown;
+  const { changed, markdown } = apply(moved, { op: 'toggle', id: 'bbbb', done: true, on: '2026-08-20' });
+  assert.equal(changed, true);
+  assert.ok(markdown.includes('- [x] Second task done:2026-08-20 ^bbbb'));
+});
+
+// --- due dates carry their own precision ---
+import { dueEnd, isOverdue } from '../lib/todo.mjs';
+
+test('a due date can be a day, a week, or a month', () => {
+  assert.equal(parseLine('- [ ] A day due:2026-09-15 ^aa1x').due, '2026-09-15');
+  assert.equal(parseLine('- [ ] A month due:2026-09 ^aa2x').due, '2026-09');
+  assert.equal(parseLine('- [ ] A week due:2026-W36 ^aa3x').due, '2026-W36');
+  assert.equal(parseLine('- [ ] A year due:2026 ^aa4x').due, '2026');
+});
+
+test('an id shorter than four characters is not an id', () => {
+  // Guards the round-trip below: ^a2 is text, not an anchor.
+  assert.equal(parseLine('- [ ] Something ^a2').id, null);
+});
+
+test('a vague due date survives a round trip', () => {
+  const line = '- [ ] Look at this some time due:2026-09 ^vg3m';
+  assert.equal(formatLine(parseLine(line)), line);
+});
+
+test('dueEnd closes the period', () => {
+  assert.equal(dueEnd('2026-09-15'), '2026-09-15');
+  assert.equal(dueEnd('2026-09'), '2026-09-30');
+  assert.equal(dueEnd('2026-02'), '2026-02-28');
+  assert.equal(dueEnd('2024-02'), '2024-02-29', 'leap year');
+  assert.equal(dueEnd('2026'), '2026-12-31');
+  assert.equal(dueEnd('2026-W36'), '2026-09-06');
+  assert.equal(dueEnd(null), null);
+});
+
+test('a month is not late until the month is over', () => {
+  assert.equal(isOverdue('2026-09', '2026-09-02'), false);
+  assert.equal(isOverdue('2026-09', '2026-09-30'), false);
+  assert.equal(isOverdue('2026-09', '2026-10-01'), true);
+  assert.equal(isOverdue('2026-09-15', '2026-09-16'), true);
+  assert.equal(isOverdue(null, '2026-09-16'), false);
+});
+
+test('a priority field is no longer special: it stays part of the text', () => {
+  // The field was removed for being more ceremony than help. An old line keeps
+  // parsing; p:1 is simply words now, so nothing breaks and nothing is silently lost.
+  const i = parseLine('- [ ] An old line p:1 @sam ^oldp');
+  assert.equal(i.text, 'An old line p:1');
+  assert.equal(i.priority, undefined);
+  assert.deepEqual(i.owners, ['sam']);
+});

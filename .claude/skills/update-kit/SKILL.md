@@ -14,12 +14,21 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
 
 **The golden distinction.** Two kinds of files live here:
 - **Framework** (comes from the template, safe to update): `.claude/skills/`, `.claude/hooks/`,
-  `docs/`, `scripts/`, `source/formats/*.md`, the root deploy config (`package.json`,
+  `docs/`, `scripts/`, `lib/`, `source/formats/*.md`, the root deploy config (`package.json`,
   `wrangler.jsonc`), and the root `CLAUDE.md` / `SETUP.md` / `README.md`.
 - **The owner's** (never overwrite): everything under `source/` *except* `source/formats/`
   (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`, and `quality/incidents.json` — the
   register of what went wrong on *their* project), all of `site/`, `apps/` **except
-  `apps/dashboard/`** (framework, minus its Worker name), and `site/public/decks/`.
+  `apps/dashboard/` and `apps/todos/`** (framework, minus the owner values in their
+  `wrangler.jsonc`), and `site/public/decks/`.
+
+## The one owner file with generic content in it
+
+`source/brand/voice.md` is the owner's and is never overwritten. But the template sometimes adds a
+section to it that is generic rather than personal — the *AI tics* list is the case that exists
+today. When the template's voice guide has a section the project's does not, **offer it**: show the
+owner the heading and a line of why, and append it only if they say yes. Never merge it silently
+into a file that carries their voice.
 
 ## Steps
 
@@ -30,7 +39,11 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
    `git fetch template`.
 3. **Bring in framework files only.** Don't merge the whole template (it would fight the owner's
    content and history). Instead, check out just the framework paths from the template's main:
-   `git checkout template/main -- .claude docs scripts source/formats SETUP.md README.md package.json`
+   `git checkout template/main -- .claude docs scripts lib source/formats apps/todos SETUP.md README.md package.json`
+   `lib/` is the shared code the scripts and apps import (today: the to-do parser), and
+   `apps/todos/` is a framework app like the dashboard. Its `wrangler.jsonc` carries owner values —
+   `GITHUB_REPO` and the `TODO_FILES` allow-list — so reconcile that one file rather than
+   overwriting it, the same way you do for the dashboard's Worker name.
    Leave `CLAUDE.md` for step 4 (it may carry local rules the owner added).
    Also compare the template's `.gitignore` with this project's and merge in any rules the
    template added for local-only folders (the team module's `team/*` + `!team/README.md`,
