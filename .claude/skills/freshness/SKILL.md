@@ -66,7 +66,10 @@ about the world so they can be checked. Without it this is just a link checker.
     { "hostname": "yourdomain.com", "expectStatus": 200,
       // Paths that must NOT be public. This is the check that would have caught a private
       // playbook being served from a repo root.
-      "mustNotServe": ["/CLAUDE.md", "/README.md"] },
+      "mustNotServe": ["/CLAUDE.md", "/README.md"],
+      // A string the LIVE page must carry. Catches the repo being ahead of what is served —
+      // a corrected figure never deployed. Pick something that changes when the fact changes.
+      "mustContain": ["1 200 clients"] },
 
     { "hostname": "admin.yourdomain.com", "expectStatus": 302,
       // Needles from INSIDE the app, never the app's name (see the trap below).
@@ -86,11 +89,19 @@ about the world so they can be checked. Without it this is just a link checker.
 setup does not merely fail to help, it actively reassures you about something that is no longer
 true.
 
-## Two traps, both found by getting them wrong
+## Three traps, all found by getting them wrong
 
 **An access-gated host checked with `expectStatus: 200` passes for the wrong reason.** The gate
 answers `302` to a login page; following that redirect yields a perfectly real `200`, so the check
 goes green on a host you never verified. Use `expectStatus: 302` **and** `mustNotContain` together.
+
+**The repo being right says nothing about what is served.** On a real project a published figure was
+corrected everywhere in the repo, and the live homepage kept showing the old one for six days —
+because pushing only publishes if the repo is connected to the host's build pipeline, and it wasn't.
+No link check, no status check and no stale-marker sweep can see this: every one of them passes.
+`mustContain` is the only guard that catches it. **Declare one for every fact a page publishes and
+that you would be embarrassed to serve stale** — a headline count, a price, a date. And when it
+fires, the fix is usually to deploy, not to edit.
 
 **`mustNotContain` needles must come from inside the app, not from its name.** An access gate prints
 the application's own name on its login page, so `"My Admin Tool"` matches the login page and
