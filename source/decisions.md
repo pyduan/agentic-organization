@@ -10,6 +10,27 @@ This is different from `brief.md`: the brief is **where things stand now**; this
 got there**. And it's different from `content/` and `facts/`: those hold the current numbers and
 sourced figures; here you keep the *decision and its reason*, not the recomputation.
 
+## What "settled" obliges
+
+The point of the file is not the archive, it is the silence afterwards. An entry here is a
+**premise for every later session**, not a topic that stays open because a fresh pair of eyes would
+have chosen otherwise.
+
+So, concretely, once something is recorded here:
+
+- **Do not raise it again** as "have you considered", "one option would be", or a list of
+  alternatives that were already weighed. The owner should not have to win the same argument twice.
+- **Do not weaken a confirmed fact.** If the owner confirmed a figure, a title or a claim, state it
+  plainly. Do not re-add a hedge, a "to be confirmed", or a "per the owner" aside on a later pass,
+  and do not resurface it as an open question. Thin third-party sourcing is normal for a small
+  organization's own facts and is not grounds for doubting the owner about their own life or work.
+- **Reversal is allowed, silence is not.** New information, a changed constraint or the owner
+  changing their mind all justify re-opening — as a new dated entry that says what changed and why.
+  Never edit the old entry away.
+
+The mirror obligation is on the writing side: **a decision taken in conversation and left unwritten
+will be re-litigated.** Record it the day it is taken. That is the whole mechanism.
+
 ## How to use it
 
 - **After any discussion that moves a hypothesis or the positioning, add an entry at the top**

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "todos",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "apps/todos", "run", "dev"],
+      "port": 4321
+    },
+    {
+      "name": "todos-api",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/todos-dev.mjs"],
+      "port": 8788
+    }
+  ]
+}

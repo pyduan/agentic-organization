@@ -42,6 +42,93 @@ These start as sensible defaults; edit them to fit.
   and no markdown engine makes a list of it, so the rendered view and the raw file paste identically.
   For the same reason, the HTML half of a letter emits `<p>– …</p>` and never `<ul>`.
 
+## AI tics: the tells to strip
+
+Copy that reads as machine-written costs the one thing a reader gives you for free the first time,
+which is trust. It is also the default output of the tool writing this, so it takes deliberate
+effort rather than good intentions. Strip these on sight, in every language.
+
+**The antithesis.** The most recognisable construction there is: "it's not just a tool, it's a
+partner", "this isn't about speed. It's about trust", "not X, but Y". Once you see it you cannot
+unsee it, and it appears roughly once a paragraph if nobody stops it. Say the thing you mean. If
+the contrast is genuinely the point, earn it once in a piece, not in every third sentence.
+
+**Triads.** "Faster, simpler, and more reliable." "We design, we build, we ship." Three items with
+nothing separating them but rhythm. Real lists are two items, or five, or an awkward four. When a
+sentence arrives as a tricolon, cut it to the one item that carries meaning.
+
+**Inflated significance.** No "marks a pivotal moment", "reflects a broader shift", "evolving
+landscape", "a testament to", "underscores the importance of". State what happened and stop.
+
+**Participles glued on for depth.** No clause ending in "highlighting…", "underscoring…",
+"ensuring…", "reflecting…", "fostering…", "showcasing…". If the thought matters it gets its own
+sentence; if it does not, it goes.
+
+**Signposting and rhetorical transitions.** No "let's dive in", "here's what you need to know",
+"but here's the thing", "so what does this mean for you?". Do the thing instead of announcing it.
+A rhetorical question is almost always a paragraph that has not decided what it wants to say.
+
+**Empty openers and closers.** "In today's fast-paced world", "At its core", "Ultimately", "In
+conclusion". The first sentence should carry information; if it can be deleted without loss, it
+was never a sentence.
+
+**Copula avoidance.** "The platform is open-source", not "serves as an open-source solution". No
+"stands as", "serves as", "boasts", "leverages" where *is*, *has* or *uses* does the work.
+
+**Hedge stacks.** "may potentially help to", "can often serve to". One hedge or none. A stack of
+them means the claim is not established, and the honest move is to say so or drop it.
+
+**False precision.** "A significant portion", "numerous studies show", "up to 40% faster" with no
+source. Either the number is sourced and named, or it does not appear. See the sourcing rules.
+
+**Chatbot residue.** Nothing from a conversation with an assistant survives into copy: "here is
+a…", "I hope this helps", "let me explain", "want me to expand?", "as of my last update", "great
+question". And no speculative filler written to paper over a gap in the sources.
+
+**Words to avoid.** delve, crucial, pivotal, showcase, testament, underscore (verb), vibrant,
+tapestry, foster, seamless, robust, unlock, empower, journey, landscape (as an abstract noun),
+realm, navigate (figuratively). **This list is meant to be edited.** These words get worn out by
+overuse and the set changes every few months, so add one the day it starts showing up in drafts,
+and drop one that has become ordinary again. A frozen list stops working.
+
+### The structural tells, which matter more than the words
+
+A draft can pass every rule above and still read as machine-written, because the giveaway is more
+often the shape than the vocabulary.
+
+**Even weighting.** Machine prose is flat: every paragraph the same length, every section the same
+depth, every bullet the same weight. Human writing is lumpy. One point gets three paragraphs
+because it deserved them, the next gets a sentence, and something important arrives in an aside.
+If a piece can be folded into a neat grid, it has not been thought about, only produced.
+
+**The bolded-lead bullet list as a default shape.** `**Thing**: explanation`, twelve times. It is a
+good format for a reference table and a bad one for an argument, because it hides the fact that no
+connective tissue was written between the items. Prose has to carry the *because* and the *but*
+that a list lets you skip. Use the list when the items really are parallel and independent; write
+sentences when they are not.
+
+**Symmetry.** Two clauses of equal length balanced against each other, over and over. Vary or cut.
+
+**The closing zinger.** A neat aphorism that ties the piece with a bow, usually restating the title.
+Stop at the last real point instead.
+
+### Do not over-correct
+
+This is a real failure in the other direction, and it produces prose that is stilted rather than
+human. Clean grammar is not a tell. One *however* is not a tell. A colon, a curly quote, a single
+short emphatic sentence, a correctly used semicolon: none of these are tells. Writing badly on
+purpose does not read as authentic, it reads as badly written.
+
+And protect what actually marks a person: an oddly specific detail, a number that is not round, a
+feeling left unresolved, a genuine aside, an admission that something did not work. Those are worth
+more than the absence of any banned word.
+
+### The test
+
+Read it aloud. Then ask whether someone who actually did the work would have written that sentence,
+or whether it is what someone would write who had only read about it. The second kind is what gets
+stripped.
+
 ## Match the detail to the surface
 
 **Every claim has to be defensible. Not every surface carries the defence.** This is the rule that

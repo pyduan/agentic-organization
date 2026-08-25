@@ -8,7 +8,11 @@
     "deploy": "npm run build && wrangler deploy",
     "dashboard": "node scripts/dashboard-data.mjs",
     "deploy:dashboard": "npm run dashboard && wrangler deploy --config apps/dashboard/wrangler.jsonc",
-    "check": "node scripts/check-freshness.mjs && node scripts/check-workspace.mjs"
+    "check": "node scripts/check-freshness.mjs && node scripts/check-workspace.mjs",
+    "test": "node --test scripts/test-todo.mjs",
+    "todos:dev": "node scripts/todos-dev.mjs",
+    "todos:build": "npm --prefix apps/todos install && npm --prefix apps/todos run build",
+    "deploy:todos": "npm run todos:build && wrangler deploy --config apps/todos/wrangler.jsonc"
   },
   "devDependencies": {
     "wrangler": "^4"

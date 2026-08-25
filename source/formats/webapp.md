@@ -16,15 +16,51 @@ Before creating an app, check the ladder:
 - **It belongs to a different project or brand** → it's a **new repo**, not an app here (the
   `new-project` skill makes that call).
 
+### The test that decides how much machinery an app gets
+
+"A tool someone uses" is too soft to build on: a filter is interactive, an accordion is
+interactive, a calculator is very interactive, and none of them need a framework. The question that
+actually predicts whether you will regret a hand-rolled build is narrower:
+
+> **Does the user change data that has to outlive the tab?**
+>
+> - **No** — they change inputs to a computation and the result is thrown away when they close it.
+>   A calculator, a simulator, a configurator that ends in a summary to copy. **Shape 1** below.
+> - **Yes** — they tick, reorder, schedule, assign, edit. **Shape 2**, and go there immediately.
+
+Two corollaries, because people get this wrong in both directions:
+
+- **A read-only view is Shape 1, however rich.** A dashboard rendering numbers, cards and charts
+  from a data file, with filters, changes nothing that outlives the tab. Charts do not make an app.
+- **A single persisted write is Shape 2.** One checkbox that must still be ticked tomorrow needs an
+  id, a write path, an optimistic state and an error state. That is a component, not a script tag.
+
 ## Shape
 
-One app = one self-contained folder at `apps/<slug>/` (see `apps/README.md`). Defaults, in order
-of preference:
+One app = one self-contained folder at `apps/<slug>/` (see `apps/README.md`). Three shapes, chosen
+by the test above rather than by taste:
 
 1. **A single static folder** — `index.html` + inline or co-located CSS/JS, no build step, no
-   framework. Right for most tools; a single file someone could download and open still works.
-2. **A small Astro app** (its own `package.json` inside `apps/<slug>/`) only when the app
-   genuinely needs components, routing, or a build — don't reach for this by default.
+   framework. Right for anything that computes and forgets; a single file someone could download
+   and open still works.
+2. **An internal app** — its own `package.json` inside `apps/<slug>/`: Astro shell, Tailwind,
+   React islands, [shadcn/ui](https://ui.shadcn.com) components. For anything that persists what
+   the user did: to-dos, kanban, calendar, editable tables.
+3. **An app with a real backend** — see the escalation section below. Rare, and deliberate.
+
+**Do not pass through Shape 1 on the way to Shape 2.** The failure mode is well documented and
+always identical: a static page grows a checkbox, then a second, then a sort, then a date picker,
+then hand-rolled state management, and by the time it is obviously an app it is a thousand lines of
+vanilla DOM nobody wants to touch. The cost of starting at Shape 2 is a `package.json`. The cost of
+arriving there sideways is a rewrite.
+
+**Why shadcn/ui and not a component library.** Because it is not a dependency: the components are
+copied into the repo as source and owned there. That is the same argument this kit makes about
+everything else — own your source, stay lock-in-free. A library you import is a library you are
+stuck with; a component in `apps/<slug>/src/components/ui/` is a file you edit. Companions, by
+need: **dnd-kit** for drag and reorder, **Recharts** through shadcn's chart wrapper for graphs,
+**react-day-picker** for dates, **TanStack Table** for tables, **FullCalendar** only when month and
+week views are genuinely required.
 
 Either way: colors, fonts, and spacing come from `source/brand/tokens.css` (copy the current
 values into a token block at the top of the app's CSS, like the deck template does, so the app
@@ -77,6 +113,45 @@ fails silently.
   untouched, and a second URL for the same app (a preview or platform subdomain) is usually not
   covered by the rule you configured for your domain. Test it the only way that counts: request the
   app with no credentials, from a browser you are not logged into, and see what comes back.
+
+## State without a database: the repo is the store
+
+Shape 2 apps persist things, and the first instinct is a database. Usually the repo is enough, and
+better: the facts stay in markdown that a person and an agent can both edit, and every change
+becomes a commit, so history, attribution and undo are free.
+
+```
+Browser  ─ static shell + one hydrated island
+   │        GET  /api/todos              read
+   │        POST /api/todos/k3f9/toggle  write
+   ▼
+Worker  ─ behind Access, holds a GitHub token as a Worker secret
+   │        GET  /repos/:o/:r/contents/:path   → markdown + blob sha
+   │        PUT  /repos/:o/:r/contents/:path   → commit (sha required)
+   ▼
+GitHub  ─ the store
+```
+
+The token stays server-side, which is what keeps the "no API key in a static app" rule intact.
+Access supplies identity, and the Worker fails closed without it, exactly as `apps/dashboard` does.
+
+Four things decide whether this is pleasant or awful:
+
+1. **Never regenerate the file; patch one line.** Parse-to-objects then re-serialize reformats
+   everything and fights every hand edit. Locate the line by its `^id` and rewrite only what
+   changed. See `source/formats/todo.md` and `lib/todo.mjs`.
+2. **Send the blob sha, and treat the 409 as a feature.** It is compare-and-swap: a stale sha is
+   refused. Re-read, re-find by id, re-apply the same intent, retry once. This works because the
+   anchor is an id, not a position.
+3. **Debounce.** A commit per checkbox is 300-800 ms of latency and an unreadable history. Apply
+   optimistically, commit after a few seconds of idle, one commit per batch. On drag and drop,
+   commit on drop and never during the drag.
+4. **Do not bake the data at build time.** A commit changes nothing on screen until the next build.
+   The shell is static, the list is fetched from the Worker on mount.
+
+**Where it stops.** This is a few writes a minute by a few people. Past that — many concurrent
+editors, live collaboration, queries or aggregation over thousands of rows — it stops being clever
+and the escalation below applies.
 
 ## When an app needs a real backend (state, accounts, a database)
 
