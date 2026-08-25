@@ -30,6 +30,28 @@ Either way: colors, fonts, and spacing come from `source/brand/tokens.css` (copy
 values into a token block at the top of the app's CSS, like the deck template does, so the app
 stays self-contained); the voice guide applies to every label and message.
 
+**Every app ships a favicon, and it is not optional.** These tools live in the tabs of people who
+keep ten open; an app with no icon is an anonymous tab they lose. Two lines in the `<head>`:
+
+```html
+<link rel="icon" type="image/png" sizes="256x256" href="favicon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+```
+
+Where the image comes from, in order:
+
+1. **A variant of the project's mark**, kept in `source/brand/assets/favicons/` so the next app
+   reuses it instead of remaking it. Two are usually enough: the public one (the mark on
+   transparent, matching the site) and an **inverted internal one** (the mark in white on the brand
+   colour) for anything private — a dashboard, a deck, an internal tool. The inversion is the point:
+   it tells an internal tab from a public one at a glance.
+2. **No mark yet?** Render the project's initials in the brand colour with the brand typeface,
+   256×256 and 180×180, and say you did — a plain lettermark reads better than a blank page icon,
+   and it is replaced the day a logo exists.
+
+Never leave the browser's default. And check the tab, not the file: a favicon at the wrong path
+fails silently.
+
 ## Data and logic
 
 - **Client-side by default.** Computation in the browser, data as a co-located JSON/CSV (or drawn
