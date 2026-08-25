@@ -25,6 +25,9 @@ repos (a shared org repo plus a client's own repo), or when some material lives 
 repo only some people can open — then list them here so the AI clones and pulls the right ones and
 never assumes access it doesn't have.
 
+Deciding whether a second repo is warranted at all is a separate question, and the wrong split is
+expensive months later: see [`docs/one-repo-or-several.md`](docs/one-repo-or-several.md).
+
 ### One map, and pointers back to it
 
 Once you have more than one repo, the same information wants to live in several places, and that is

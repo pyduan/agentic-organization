@@ -21,6 +21,11 @@ Establish, in the owner's own words:
   - **Simplified (the default; right for most, especially non-technical owners):** you have full code-management rights — you commit, push, publish, and merge on your own, pausing only for destructive or irreversible actions. They never touch git or a command line; you never hand them one.
   - **Review mode (for owners comfortable with git who want to stay in the loop):** you still do all the git yourself, but you pause for a yes before each push or merge.
   Ask it simply — *"Once a change looks good, should I just publish it, or check with you first each time?"* — with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `CLAUDE.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
+- **One repo or several?** Default to one, with folders. Only reach for a second when someone
+  should see one and not the other, or when one of them serves a public surface and the other holds
+  private material. `docs/one-repo-or-several.md` has the three questions and, if a split is real,
+  the rules that keep a constellation from drifting. Do not split because the work has several
+  subjects — that is what folders are.
 - **Record the template baseline.** Add the `template` remote and write the commit this project
   starts from into `.kit-sync`, then commit it:
   `git remote add template https://github.com/pyduan/agentic-organization.git && git fetch template && git rev-parse template/main > .kit-sync`
