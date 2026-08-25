@@ -17,6 +17,9 @@
 // ^id, never by a line number.
 
 import { parse, apply, ensureIds } from '../../lib/todo.mjs';
+// Generated from ORGANIGRAM.md by scripts/todo-sources.mjs. The kit keeps one map
+// of the workspace; this file is that map answered for this app, not a second one.
+import generated from './sources.json' with { type: 'json' };
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -35,16 +38,22 @@ function identify(request, env) {
 /**
  * The configured sources, normalised.
  *
- * Preferred form, one entry per project (TODO_SOURCES, a JSON array in vars):
- *   [{ "id": "brochure", "label": "Brochure", "repo": "acme/site",
- *      "path": "projects/brochure/next-steps.md" }]
+ * Normally there is nothing to configure: `npm run todos:sources` walks the repos
+ * on ORGANIGRAM.md, finds every projects/<slug>/next-steps.md, and writes
+ * sources.json. Whatever topology the workspace has — one repo with several
+ * projects, several repos with one each, an annex repo beside a common one —
+ * it is already described on that map, and describing it twice is how a map
+ * starts lying.
  *
- * Short form for a single repo, kept because most projects start there:
- *   TODO_REPO = "acme/site", TODO_FILES = "next-steps.md,projects/x/next-steps.md"
+ * `TODO_SOURCES` in vars overrides the generated list, for the case the map
+ * cannot express. `TODO_FILES` + `GITHUB_REPO` is the older single-repo form.
  */
 function sources(env) {
   const raw = env.TODO_SOURCES;
   const list = Array.isArray(raw) ? raw : typeof raw === 'string' && raw.trim() ? JSON.parse(raw) : null;
+  if (!list && Array.isArray(generated) && generated.length) {
+    return generated.map((s) => ({ ...s, branch: s.branch || env.TODO_BRANCH || 'main' }));
+  }
 
   if (list) {
     return list
