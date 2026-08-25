@@ -129,3 +129,45 @@ git remote -v
 
 And check that whatever else names the repo — the hosting connection, the repo description, the
 README — still says something true.
+
+## The to-dos app suddenly says 401, or "GitHub read failed"
+
+**Suspect the token before you suspect the app**, especially if the app worked for weeks and then
+stopped without anyone changing it.
+
+The app writes to the repo through a GitHub token kept as a Worker secret. There are two ways that
+token gets there, and one of them expires out from under you:
+
+- **A fine-grained personal access token.** It has an expiry date, up to 366 days. When that date
+  passes, every write starts failing and nothing warns you in advance.
+- **A token piped from the `gh` CLI** (`gh auth token | wrangler secret put GITHUB_TOKEN`). This is
+  a copy, taken once. `gh auth refresh`, `gh auth logout`, a reinstall or a new machine all give
+  `gh` a new token — and the Worker keeps presenting the old one.
+
+The tell for the second case is the timing: **the agent in the terminal still works fine while the
+app on the phone does not.** The agent asks `gh` for a token every time and gets the current one;
+the Worker is holding a snapshot.
+
+The fix is one command, run from the app's folder:
+
+```bash
+gh auth token | npx wrangler secret put GITHUB_TOKEN
+```
+
+then redeploy. If it works, that was it.
+
+**If it does not, stop and ask a person rather than guessing.** A 401 that survives a fresh token
+usually means something structural: the token lost access to the repository, the fine-grained
+token's repository list no longer includes it, an organization policy now requires approval, or the
+Worker is pointing at the wrong repo. Those are not fixable by retrying, and an agent improvising
+here tends to widen a token's scope to make an error go away, which is the wrong direction. Tell
+the owner what you tried, and have them ask whoever set the project up.
+
+**Not a token problem at all**, if the symptom differs:
+
+- **403 on every page, not just writes** — that is Cloudflare Access, not GitHub. The identity
+  header is missing; see the Access section of `deploy-cloudflare.md`.
+- **"file not allowed"** — the path is not in `TODO_FILES`. That is the allow-list doing its job,
+  not a bug. Add the path deliberately.
+- **A write returns 200 but the file does not change** — the item's `^id` was not found, usually
+  because something regenerated the file and churned the ids. See `source/formats/todo.md`.

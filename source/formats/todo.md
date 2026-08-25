@@ -139,6 +139,34 @@ prevents most of it sits upstream of any merge UI: pull before you write, commit
 immediately. An agent that reads a file, thinks for ten minutes and writes it back is working from
 a stale copy.
 
+## The token the app writes with
+
+The Worker needs a GitHub token, and there are two ways to give it one. Neither is wrong; they
+trade a setup step against a failure mode.
+
+**A fine-grained personal access token** is the tidy answer. Pick the repositories it covers — *all
+repositories* is legitimate when every repo in the workspace has a `next-steps.md` — and grant only
+**Contents: read and write**. That is deliberately narrower than it sounds: a classic `repo` scope
+also carries webhooks, deploy keys, releases and `workflow`, none of which an app that edits
+markdown has any use for. It has to be created in a browser, because **GitHub has no API for
+minting a personal access token** — by design, so that a token cannot mint another one.
+
+**A token piped from the `gh` CLI** is the answer when the setup step is the obstacle:
+
+```bash
+gh auth token | npx wrangler secret put GITHUB_TOKEN
+```
+
+Nobody sees the value: it goes from one local process to another, so it never reaches a terminal, a
+shell history, or an agent's context. The cost is that the Worker holds a *snapshot* of a token
+owned by a different tool. Re-authenticating `gh` gives the CLI a new token and leaves the Worker
+with the old one, and the symptom is asymmetric — the agent in the terminal keeps working while the
+app on the phone quietly starts failing.
+
+That asymmetry is the whole reason `docs/troubleshooting.md` carries an entry for it. **If you set
+it up this way, write down that you did**, in the project's own notes, or the eventual 401 is
+undiagnosable by whoever meets it.
+
 ## Examples in this file are invented
 
 Every to-do above is fictional — a printer, a brochure, `@sam`. That is a rule, not a coincidence:
