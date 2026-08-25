@@ -4,7 +4,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { isOverdue } from '@kit/todo.mjs';
+import { isOverdue, createQueue, flushOnHide } from '@kit/todo-client.mjs';
 import { DueControl } from './DueControl.jsx';
 import { CopyPrompt } from './CopyPrompt.jsx';
 import { Checkbox } from './ui/checkbox.jsx';
@@ -13,7 +13,6 @@ import { Card, CardHeader, CardBody } from './ui/card.jsx';
 import { cn } from '../lib/utils.js';
 
 const TODAY = new Date().toISOString().slice(0, 10);
-const SAVE_AFTER_MS = 2500;
 
 function Row({ item, path, onToggle, onDue }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
@@ -92,12 +91,11 @@ export default function TodoApp() {
   const [source, setSource] = useState(null);
   const [items, setItems] = useState([]);
   const [location, setLocation] = useState(null);
+  // The queue outlives a render, so the source it posts to is read through a ref.
+  const sourceRef = useRef(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
 
-  // Intents are queued, not sent. One commit per burst of edits, not per click.
-  const queue = useRef([]);
-  const timer = useRef(null);
 
   const load = useCallback(async (id) => {
     setStatus('loading');
@@ -129,55 +127,37 @@ export default function TodoApp() {
   }, []);
 
   useEffect(() => {
+    sourceRef.current = source;
     if (source) load(source);
   }, [source, load]);
 
-  const flush = useCallback(async () => {
-    const intents = queue.current;
-    if (!intents.length || !source) return;
-    queue.current = [];
-    setStatus('saving');
-    try {
-      const res = await fetch('/api/todos', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ source, intents }),
-      });
-      const body = await res.json();
-      if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
-      // The server's version wins: it applied the intents to whatever the file
-      // says now, which may include someone else's edits.
-      setItems(body.items);
-      setStatus('saved');
-      setError(null);
-    } catch (e) {
-      setError(String(e.message));
-      setStatus('error');
-    }
-  }, [source]);
+  // Batching, retry state and the "do not lose a queued edit" wiring all live in
+  // lib/todo-client.mjs, shared with the hand-written front ends that have no build.
+  const queue = useRef(null);
+  if (!queue.current) {
+    queue.current = createQueue({
+      send: async (intents) => {
+        const res = await fetch('/api/todos', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ source: sourceRef.current, intents }),
+        });
+        const body = await res.json();
+        if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+        // The server's version wins: it applied the intents to whatever the file
+        // says now, which may include someone else's edits.
+        setItems(body.items);
+        return body;
+      },
+      onState: (state, err) => {
+        setStatus(state);
+        setError(err ? String(err.message) : null);
+      },
+    });
+  }
+  const push = useCallback((intent) => queue.current.push(intent), []);
 
-  const push = useCallback(
-    (intent) => {
-      queue.current.push(intent);
-      setStatus('dirty');
-      clearTimeout(timer.current);
-      timer.current = setTimeout(flush, SAVE_AFTER_MS);
-    },
-    [flush],
-  );
-
-  // A queued edit must not be lost to a closed tab.
-  useEffect(() => {
-    const onHide = () => {
-      if (queue.current.length) flush();
-    };
-    document.addEventListener('visibilitychange', onHide);
-    window.addEventListener('pagehide', onHide);
-    return () => {
-      document.removeEventListener('visibilitychange', onHide);
-      window.removeEventListener('pagehide', onHide);
-    };
-  }, [flush]);
+  useEffect(() => flushOnHide(queue.current, window), []);
 
   const onToggle = (item, done) => {
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done, doneOn: done ? TODAY : null } : i)));

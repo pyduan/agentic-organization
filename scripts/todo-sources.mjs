@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 // Derive the to-dos app's source list from ORGANIGRAM.md, the one map.
 //
+// Each entry also carries `dir`, the local checkout, which only the dev server
+// uses: it lets local development span the same repos as production instead of
+// being a special case with its own configuration.
+//
 // Why derive rather than configure: the kit keeps exactly one list of repos
 // (ORGANIGRAM.md ▸ One map), because the moment the same topology is written in
 // two places one of them starts describing last month. The to-dos app needs to
@@ -74,7 +78,7 @@ async function sourcesIn(repo) {
 
   // A list at the root is the person's own, not a project's.
   if (existsSync(join(repo.dir, 'next-steps.md'))) {
-    found.push({ id: repo.slug, label: titleCase(repo.slug), repo: gh, path: 'next-steps.md', branch });
+    found.push({ id: repo.slug, label: titleCase(repo.slug), repo: gh, path: 'next-steps.md', branch, dir: repo.dir });
   }
 
   let dirs = [];
@@ -85,7 +89,7 @@ async function sourcesIn(repo) {
     if (!existsSync(join(repo.dir, path))) continue;
     // The label names the project. Which repo it lives in is plumbing, and the
     // slug is only prefixed when two repos genuinely use the same project name.
-    found.push({ id: `${repo.slug}-${d.name}`, label: titleCase(d.name), repo: gh, path, branch });
+    found.push({ id: `${repo.slug}-${d.name}`, label: titleCase(d.name), repo: gh, path, branch, dir: repo.dir });
   }
   return { found };
 }

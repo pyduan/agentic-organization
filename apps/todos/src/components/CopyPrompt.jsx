@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Check, Sparkles } from 'lucide-react';
-import { promptFor } from '../lib/prompt.js';
+import { promptFor } from '@kit/todo-client.mjs';
 
 /**
  * Copies the hand-off prompt, and shows it first. Nobody should paste a string
