@@ -12,7 +12,9 @@
     "test": "node --test scripts/test-todo.mjs",
     "todos:dev": "node scripts/todos-dev.mjs",
     "todos:build": "npm --prefix apps/todos install && npm --prefix apps/todos run build",
-    "deploy:todos": "npm run todos:build && wrangler deploy --config apps/todos/wrangler.jsonc"
+    "deploy:todos": "npm run todos:build && wrangler deploy --config apps/todos/wrangler.jsonc",
+    "kit:status": "node scripts/kit-sync.mjs status",
+    "kit:apply": "node scripts/kit-sync.mjs apply"
   },
   "devDependencies": {
     "wrangler": "^4"

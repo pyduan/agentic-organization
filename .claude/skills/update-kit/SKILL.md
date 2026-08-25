@@ -32,56 +32,55 @@ into a file that carries their voice.
 
 ## Steps
 
-1. **Safety first.** `git -C <repo> status`. If there's uncommitted work, commit it (or stash with
-   `-u`) before touching anything — the owner's in-progress edits must survive.
-2. **Add the template as a remote** (once): `git remote add template
-   https://github.com/pyduan/agentic-organization.git` (skip if it already exists), then
-   `git fetch template`.
-3. **Bring in framework files only.** Don't merge the whole template (it would fight the owner's
-   content and history). Instead, check out just the framework paths from the template's main:
-   `git checkout template/main -- .claude docs scripts lib source/formats apps/todos SETUP.md README.md package.json`
-   `lib/` is the shared code the scripts and apps import (today: the to-do parser), and
-   `apps/todos/` is a framework app like the dashboard. Its `wrangler.jsonc` carries owner values —
-   `GITHUB_REPO` and the `TODO_FILES` allow-list — so reconcile that one file rather than
-   overwriting it, the same way you do for the dashboard's Worker name.
-   Leave `CLAUDE.md` for step 4 (it may carry local rules the owner added).
-   Also compare the template's `.gitignore` with this project's and merge in any rules the
-   template added for local-only folders (the team module's `team/*` + `!team/README.md`,
-   and `.wrangler/`): those rules are a privacy/hygiene guarantee, and an updated skill must never
-   run without them.
-   **`wrangler.jsonc` is framework but carries one owner value — reconcile it, don't overwrite.**
-   If the project has no `wrangler.jsonc` yet (set up before the Workers migration), bring it in
-   (`git checkout template/main -- wrangler.jsonc`) and set its `name` to the project's slug. If it
-   already has one, keep the owner's `name` and only fold in any other field the template changed.
-   Bringing in `wrangler.jsonc` + `package.json` is safe on its own: it does **not** touch a live
-   site (a still-running Cloudflare Pages deploy keeps working — its build root is `site/`, and
-   these files sit at the repo root where Pages never looks). Switching hosting to Workers is a
-   separate, deliberate step in `docs/deploy-cloudflare.md` ▸ "Already on Cloudflare Pages?".
-   **Two more files follow the same rule.** `apps/dashboard/` is framework (its `index.html` and its
-   `wrangler.jsonc`), so bring it in, keeping the owner's Worker `name` exactly as for the root
-   config. And `source/quality/incidents.json` is owner data: never check it out from the template;
-   if it does not exist yet, create it empty (`{"version": 1, "incidents": []}`) next to the
-   template's `source/quality/README.md`.
-4. **Reconcile `CLAUDE.md` by reading, not overwriting.** Diff the template's `CLAUDE.md` against
-   this one (`git diff --no-index CLAUDE.md <(git show template/main:CLAUDE.md)`), and fold in the
-   new framework rules while **keeping any project-specific rules** the owner or you added over
-   time. Same for `README.md`/`SETUP.md` if the owner personalised them.
-5. **Re-apply the owner's work on top.** The owner's `source/` (minus `formats/`), `site/`, and
-   `apps/` were never touched, so nothing to re-apply there. But if a framework change *implies*
-   follow-up (a new format playbook, a renamed skill, a changed folder), do that follow-up now:
-   re-read the refreshed guides and bring the site/content into line where it's cheap and safe
-   (e.g. a new `source/facts/` folder → offer to populate it; a new `apps/` convention → note it;
-   the update introduced the `projects` and `team` modules → mention them in one sentence each and
-   offer to activate, creating `source/objectives.md` from the template if the owner wants
-   prioritization against a north star). **If this update brought in the Workers deploy config and
-   the site is still hosted on Cloudflare Pages**, say so in one plain sentence — the site keeps
-   working untouched, and moving it to Workers is an optional one-time step (create a Worker on the
-   same repo, move the custom domain) they can do whenever they like, per
-   `docs/deploy-cloudflare.md` ▸ "Already on Cloudflare Pages?". Don't do it unprompted.
-   Show the owner what changed and what you propose to redo; don't silently rewrite their pages.
-6. **Verify + publish.** `npm run build` inside `site/` is green, run it locally, then commit
-   ("chore: update framework from template") and push, per the `publish` skill. Tell the owner in
-   plain words what improved and anything they should look at.
+**Run the script; do not hand-roll the git.** `scripts/kit-sync.mjs` does the comparison that
+matters, and getting it wrong silently reverts the owner's work.
+
+1. **Safety first.** `git status`. Commit or stash anything uncommitted before touching a file.
+
+2. **Add the template remote, once:**
+   `git remote add template https://github.com/pyduan/agentic-organization.git`
+
+3. **See what an upgrade would do:**
+
+   ```bash
+   node scripts/kit-sync.mjs status
+   ```
+
+   It prints the changelog entries added since this project's baseline — **read those to the owner
+   in plain language**, because that is the only moment they learn what they gained. Then it lists,
+   separately: what only the kit changed (safe), what only they changed (left alone), and what both
+   changed (needs a human).
+
+4. **If it says there is no `.kit-sync`, adopt first:**
+
+   ```bash
+   node scripts/kit-sync.mjs adopt
+   ```
+
+   One time only, for a project older than this mechanism. It asks the template's own history
+   whether it ever published each file exactly as it is here: if so the owner never edited it and
+   the new version is taken; if not, the file is kept as theirs and reported. On a real project this
+   turned 54 files to review into 11.
+
+5. **Apply:**
+
+   ```bash
+   node scripts/kit-sync.mjs apply
+   ```
+
+   Nothing colliding is ever written. `CLAUDE.md`, `package.json` and `wrangler.jsonc` are
+   report-only: they always carry local values, so they are listed and never replaced.
+
+6. **Resolve the collisions with the owner, one at a time.** For each file, `git diff <baseline>
+   template/main -- <file>` shows what the kit changed and `git diff <baseline> -- <file>` what they
+   changed. Three outcomes, and naming which one it is matters more than the merge itself:
+   - the local edit was **fixing something the kit got wrong** → upstream it, do not just re-apply it
+   - it is a **legitimately local rule** → move it out of the framework file into one the kit never
+     touches, so it stops colliding every upgrade
+   - it is **drift** nobody meant → take the kit's version
+
+7. **Tell the owner what changed**, from the changelog, in their language. Then commit, including
+   the updated `.kit-sync`.
 
 ## What a real update run teaches (learned 2026-07-29, refreshing a live project)
 
