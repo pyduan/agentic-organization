@@ -184,6 +184,13 @@ if (wants('hosts') && (config.hosts || []).length) {
         add('warn', 'hosts', url, `body unreadable, mustContain not checked (${e.message})`);
       }
     }
+    // Paths that must be served. A page announced in a letter, a deck, or an application
+    // has to answer: on a real project an app linked from a members' mailing 404'd for six
+    // days and nobody knew, because nothing here asserted that it existed.
+    for (const p of h.mustServe || []) {
+      const r2 = await probe(new URL(p, url).toString() + `?fresh=${Date.now()}`, { follow: true });
+      if (r2.status !== 200) add('fail', 'hosts', url.replace(/\/$/, '') + p, `expected 200, got ${r2.error || r2.status} — a page we announce is not answering`);
+    }
     // Paths that must be absent (a private file the host should never serve).
     for (const p of h.mustNotServe || []) {
       const r2 = await probe(new URL(p, url).toString() + `?fresh=${Date.now()}`);

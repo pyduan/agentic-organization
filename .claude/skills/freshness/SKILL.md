@@ -67,6 +67,12 @@ about the world so they can be checked. Without it this is just a link checker.
       // Paths that must NOT be public. This is the check that would have caught a private
       // playbook being served from a repo root.
       "mustNotServe": ["/CLAUDE.md", "/README.md"],
+      // Paths that MUST answer 200 — anything announced in a letter, a deck or an
+      // application. On a real project a members-only tool 404'd for six days and
+      // nobody knew, because nothing claimed it existed.
+      "mustServe": ["/apps/your-tool/"],
+      // A string the live page must carry: catches a repo corrected but never published.
+      "mustContain": ["the figure you just fixed"],
       // A string the LIVE page must carry. Catches the repo being ahead of what is served —
       // a corrected figure never deployed. Pick something that changes when the fact changes.
       "mustContain": ["1 200 clients"] },
