@@ -1,15 +1,17 @@
 import { useState } from 'react';
-import { PRESETS, dueLabel, isExactDay } from '../lib/due.js';
+import { DUE_PRESETS, EXACT, dueLabel, isExactDay } from '@kit/todo-client.mjs';
 import { cn } from '../lib/utils.js';
 
 export function DueControl({ due, late, onChange }) {
   const [picking, setPicking] = useState(false);
 
   const choose = (key) => {
-    if (key === 'exact') return setPicking(true);
     setPicking(false);
-    const preset = PRESETS.find((p) => p.key === key);
-    onChange(preset?.value ? preset.value() : null);
+    const preset = DUE_PRESETS.find((p) => p.key === key);
+    if (!preset) return;
+    const value = preset.value();
+    if (value === EXACT) return setPicking(true);
+    onChange(value);
   };
 
   if (picking) {
@@ -39,7 +41,7 @@ export function DueControl({ due, late, onChange }) {
       )}
     >
       {due ? <option value={isExactDay(due) ? 'exact-set' : 'set'}>{dueLabel(due)}</option> : null}
-      {PRESETS.map((p) => (
+      {DUE_PRESETS.map((p) => (
         <option key={p.key} value={p.key}>{p.label}</option>
       ))}
     </select>

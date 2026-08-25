@@ -23,33 +23,16 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
-    // The sources this app may edit. One entry per PROJECT, not per repository:
-    // a repo holding three projects gets three entries, and projects spread over
-    // several repos still appear in one app. This list IS the security boundary —
-    // the browser sends an `id` and the Worker resolves it here, so a path that is
-    // not listed cannot be named at all.
+    // Usually empty. The source list is generated from ORGANIGRAM.md into
+    // sources.json by `npm run todos:sources`, which the deploy runs for you.
     //
-    // `label` is what the owner sees, so name the project, never the plumbing.
-    // Omit it and one is derived from the path. Omit `id` and one is derived too;
-    // set it explicitly if you want short, stable ids in URLs.
-    "TODO_SOURCES": [
-      {
-        "id": "brochure",
-        "label": "Brochure",
-        "repo": "owner/repo",
-        "path": "projects/brochure/next-steps.md"
-      },
-      {
-        "id": "site",
-        "label": "Site",
-        "repo": "owner/other-repo",
-        "path": "projects/site/next-steps.md"
-      }
-    ],
-
-    // Short form for a single repo, if that is all you have. Ignored when
-    // TODO_SOURCES is set.
-    "GITHUB_REPO": "owner/repo",
+    // Set TODO_SOURCES here only to override that, for something the map cannot
+    // express. Same shape as sources.json:
+    //   [{ "id": "brochure", "label": "Brochure",
+    //      "repo": "owner/repo", "path": "projects/brochure/next-steps.md" }]
+    //
+    // GITHUB_TOKEN is a secret and never goes here:
+    //   wrangler secret put GITHUB_TOKEN --config apps/todos/wrangler.jsonc
     "TODO_BRANCH": "main"
   }
 }

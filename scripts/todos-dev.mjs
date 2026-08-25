@@ -10,6 +10,7 @@
 
 import { createServer } from 'node:http';
 import { readFile, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parse, apply, ensureIds } from '../lib/todo.mjs';
@@ -17,17 +18,32 @@ import { parse, apply, ensureIds } from '../lib/todo.mjs';
 // Resolved from this file, not from the cwd, so it can be started from anywhere.
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORT = Number(process.env.PORT || 8788);
-// Same contract as the Worker: the client names a source, never a path.
-// Locally everything is one checkout, so a source is a path plus a label.
+// Same source list as production, read from the generated sources.json, so local
+// development spans the same repos instead of being a special case. Each entry
+// carries the local checkout in `dir`; only this file uses it.
+//
+// Falls back to an explicit TODO_FILES for a quick one-off against a single file.
 const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const titleCase = (s) => s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 const labelFrom = (p) => {
   const m = p.match(/(?:^|\/)projects\/([^/]+)\//);
-  const base = m ? m[1] : p.replace(/\.md$/, '').split('/').pop();
-  return base.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  return titleCase(m ? m[1] : p.replace(/\.md$/, '').split('/').pop());
 };
-const SOURCES = (process.env.TODO_FILES || 'apps/todos/example/projects/brochure/next-steps.md,apps/todos/example/projects/site/next-steps.md')
-  .split(',').map((s) => s.trim()).filter(Boolean)
-  .map((path) => ({ id: slug(path), label: labelFrom(path), repo: 'local', path }));
+
+function loadSources() {
+  if (process.env.TODO_FILES) {
+    return process.env.TODO_FILES.split(',').map((s) => s.trim()).filter(Boolean)
+      .map((path) => ({ id: slug(path), label: labelFrom(path), repo: 'local', path, dir: ROOT }));
+  }
+  try {
+    const list = JSON.parse(readFileSync(join(ROOT, 'apps/todos/sources.json'), 'utf8'));
+    return list.map((s) => ({ ...s, dir: s.dir || ROOT }));
+  } catch {
+    return [];
+  }
+}
+
+const SOURCES = loadSources();
 
 const send = (res, status, body) => {
   res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
@@ -48,7 +64,7 @@ const server = createServer(async (req, res) => {
   const src = SOURCES.find((s) => s.id === (url.searchParams.get('source') || body.source));
   if (!src) return send(res, 400, { error: 'unknown source' });
 
-  const full = join(ROOT, src.path);
+  const full = join(src.dir || ROOT, src.path);
   try {
     const markdown = await readFile(full, 'utf8');
 
@@ -73,4 +89,12 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(PORT, () => console.log(`todos dev API on http://127.0.0.1:${PORT} → ${SOURCES.map((s) => s.label).join(', ')}`));
+server.listen(PORT, () => {
+  if (!SOURCES.length) {
+    console.log(`todos dev API on http://127.0.0.1:${PORT} — no sources.`);
+    console.log('Run `npm run todos:sources` to derive them from ORGANIGRAM.md,');
+    console.log('or set TODO_FILES=path/to/next-steps.md for a one-off.');
+    return;
+  }
+  console.log(`todos dev API on http://127.0.0.1:${PORT} → ${SOURCES.map((s) => s.label).join(', ')}`);
+});

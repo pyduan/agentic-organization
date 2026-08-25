@@ -36,45 +36,30 @@ function identify(request, env) {
 }
 
 /**
- * The configured sources, normalised.
+ * The projects this app may edit.
  *
- * Normally there is nothing to configure: `npm run todos:sources` walks the repos
+ * Normally there is nothing to configure. `npm run todos:sources` walks the repos
  * on ORGANIGRAM.md, finds every projects/<slug>/next-steps.md, and writes
- * sources.json. Whatever topology the workspace has — one repo with several
- * projects, several repos with one each, an annex repo beside a common one —
- * it is already described on that map, and describing it twice is how a map
- * starts lying.
+ * sources.json — so whatever topology the workspace has (one repo with several
+ * projects, several repos with one each, an annex repo beside a common one) is
+ * described once, on the map, and never here as well.
  *
- * `TODO_SOURCES` in vars overrides the generated list, for the case the map
- * cannot express. `TODO_FILES` + `GITHUB_REPO` is the older single-repo form.
+ * `TODO_SOURCES` in vars overrides it, for what the map cannot express.
  */
 function sources(env) {
   const raw = env.TODO_SOURCES;
-  const list = Array.isArray(raw) ? raw : typeof raw === 'string' && raw.trim() ? JSON.parse(raw) : null;
-  if (!list && Array.isArray(generated) && generated.length) {
-    return generated.map((s) => ({ ...s, branch: s.branch || env.TODO_BRANCH || 'main' }));
-  }
+  const configured = Array.isArray(raw)
+    ? raw
+    : typeof raw === 'string' && raw.trim() ? JSON.parse(raw) : generated;
 
-  if (list) {
-    return list
-      .filter((s) => s && s.repo && s.path)
-      .map((s) => ({
-        id: s.id || slug(`${s.repo}/${s.path}`),
-        label: s.label || labelFrom(s.path, s.repo),
-        repo: s.repo,
-        path: s.path,
-        branch: s.branch || env.TODO_BRANCH || 'main',
-      }));
-  }
-
-  return (env.TODO_FILES || '')
-    .split(',').map((x) => x.trim()).filter(Boolean)
-    .map((path) => ({
-      id: slug(`${env.GITHUB_REPO}/${path}`),
-      label: labelFrom(path, env.GITHUB_REPO),
-      repo: env.GITHUB_REPO,
-      path,
-      branch: env.TODO_BRANCH || 'main',
+  return (Array.isArray(configured) ? configured : [])
+    .filter((s) => s && s.repo && s.path)
+    .map((s) => ({
+      id: s.id || slug(`${s.repo}/${s.path}`),
+      label: s.label || labelFrom(s.path, s.repo),
+      repo: s.repo,
+      path: s.path,
+      branch: s.branch || env.TODO_BRANCH || 'main',
     }));
 }
 
