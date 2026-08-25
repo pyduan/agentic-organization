@@ -32,10 +32,15 @@ These start as sensible defaults; edit them to fit.
   the tracking params. A reader should see the real domain, not something that looks like tracking.
 - **A drafted email is plain text, not markdown.** Whoever sends it will copy the file you wrote and
   paste it into their mail client, so `**bold**` arrives as asterisks and `[texte](url)` hides the
-  address the reader needed to click. Observed for real, twice, with a non-technical sender. So: no
-  `**`, no `#`, no backticks; bullets are `- `; URLs are bare. Offering a styled HTML version as well
-  is fine, but it must be the upgrade, never the thing that has to be noticed for the mail to look
+  address the reader needed to click. Observed for real, more than once. So: no `**`, no `#`, no
+  backticks; bare URLs, and no `<…>` around them either. Offering a styled HTML version as well is
+  fine, but it must be the upgrade, never the thing that has to be noticed for the mail to look
   right. This applies to email only — everything else in the repo is read rendered and stays markdown.
+- **In an email, bullets are `– ` (en dash), not `- ` (hyphen).** A hyphen at the start of a line is
+  markdown, so any rendered view turns the block into a `<ul>` — and a `<ul>` pasted into a mail
+  client arrives as a **nested table**, cells and margins included. An en dash still reads as a dash
+  and no markdown engine makes a list of it, so the rendered view and the raw file paste identically.
+  For the same reason, the HTML half of a letter emits `<p>– …</p>` and never `<ul>`.
 
 ## Languages
 
