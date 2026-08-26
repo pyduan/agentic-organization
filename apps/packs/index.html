@@ -1,0 +1,51 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Packs</title>
+<style>
+  :root { --paper:#fbfaf8; --ink:#1a1a1a; --muted:#6b6b6b; --line:#e4e1db; --ok:#1a1a1a; color-scheme: light dark; }
+  @media (prefers-color-scheme: dark) { :root { --paper:#131313; --ink:#f2f0ec; --muted:#9a9a9a; --line:#2c2c2c; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.5 ui-sans-serif,-apple-system,system-ui,sans-serif; }
+  main { max-width:52rem; margin:0 auto; padding:2.5rem 1rem 4rem; }
+  h1 { font-size:1.6rem; margin:0 0 .3rem; letter-spacing:-.01em; }
+  .lede { color:var(--muted); font-size:.9rem; margin:0 0 2rem; max-width:40rem; }
+  .pack { border:1px solid var(--line); border-radius:.8rem; padding:1.1rem 1.2rem; margin-bottom:1rem; }
+  .pack header { display:flex; align-items:baseline; gap:.6rem; }
+  .pack h2 { font-size:1.05rem; margin:0; }
+  .tag { font-size:.68rem; border:1px solid var(--line); border-radius:999px; padding:.05rem .5rem; color:var(--muted); white-space:nowrap; }
+  .tag.ok { border-color:currentColor; color:var(--ink); font-weight:600; }
+  .desc { margin:.5rem 0 .3rem; font-size:.9rem; }
+  .suits { margin:.2rem 0 .7rem; font-size:.8rem; color:var(--muted); }
+  dl { display:grid; grid-template-columns:1fr; gap:.15rem; margin:0 0 .6rem; font-size:.8rem; }
+  @media (min-width:34rem) { dl { grid-template-columns:repeat(3,1fr); } }
+  dt { color:var(--muted); font-size:.7rem; text-transform:uppercase; letter-spacing:.04em; }
+  dd { margin:0; }
+  code { font-size:.85em; }
+  .path { margin:0; font-size:.75rem; color:var(--muted); }
+  .empty { color:var(--muted); font-size:.9rem; }
+  footer { margin-top:2rem; font-size:.75rem; color:var(--muted); }
+</style>
+<main>
+  <h1>Packs</h1>
+  <p class="lede">Ce que d'autres organisations qui font tourner ce kit ont construit, et qui s'installe
+  ailleurs. Un pack ajoute des fichiers et ne modifie jamais ceux du kit&nbsp;: c'est ce qui permet d'en
+  installer deux sans arbitrer entre eux. Les règles sont dans <code>source/formats/pack.md</code>.</p>
+  
+  <article class="pack">
+    <header>
+      <h2>Association loi 1901</h2>
+      <span class="tag ok">maintenu</span>
+    </header>
+    <p class="desc">Adhésions, dons et reçus fiscaux via HelloAsso, relances d'adhésion, courriers en HTML, et un format de visuel pour la communication.</p>
+    <p class="suits"><b>Pour qui</b> · Une petite association française avec des adhérents, des dons déductibles et une AG annuelle. Deux ou trois personnes qui la font tourner, pas de service administratif.</p>
+    <dl>
+      <div><dt>Ajoute</dt><dd>1 skills · 6 scripts · 2 formats</dd></div>
+      <div><dt>Demande</dt><dd>kit 2026-08-26 · HelloAsso</dd></div>
+      <div><dt>À régler</dt><dd><code>associationName</code> <code>helloassoSlug</code> <code>adminUrl</code> <code>membershipPrice</code> <code>taxDeductionRate</code></dd></div>
+    </dl>
+    <p class="path"><code>packs/association-fr/</code></p>
+  </article>
+  <footer>« Maintenu » veut dire que quelqu’un répond quand ça casse. « Expérimental » veut dire que
+  ça a marché quelque part, et que vous êtes le deuxième.</footer>
+</main>

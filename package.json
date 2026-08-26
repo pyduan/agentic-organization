@@ -16,7 +16,8 @@
     "kit:status": "node scripts/kit-sync.mjs status",
     "kit:apply": "node scripts/kit-sync.mjs apply",
     "todos:sources": "node scripts/todo-sources.mjs",
-    "check:packs": "node scripts/check-packs.mjs"
+    "check:packs": "node scripts/check-packs.mjs",
+    "packs": "node scripts/packs-page.mjs"
   },
   "devDependencies": {
     "wrangler": "^4"
