@@ -10,6 +10,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-26 · MINOR · Internal apps have a default now
+
+Anything behind your access gate — an intranet page, a dashboard, a tool for you and a couple of
+named people — is built with the same stack from the start, rather than hand-rolled and rewritten
+six weeks later. Public pages keep the old judgement call, where plain and static is very often the
+right answer.
+
 ## 2026-08-26 · MINOR · Upgrades stop hiding, and stop freezing your fixes
 
 Four things a live project ran into on the first real upgrade, all fixed.

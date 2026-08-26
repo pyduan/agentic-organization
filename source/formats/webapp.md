@@ -16,7 +16,26 @@ Before creating an app, check the ladder:
 - **It belongs to a different project or brand** → it's a **new repo**, not an app here (the
   `new-project` skill makes that call).
 
-### The test that decides how much machinery an app gets
+### First cut: which side of the gate is it on?
+
+Before the ladder, one question settles most of it.
+
+> **Is it behind the access gate, or is it a public surface?**
+
+**Behind the gate — an intranet app, a dashboard, a tool for the owner and a couple of named
+people — is Astro by default.** Not "when it needs components": by default. These are the apps that
+get opened daily, changed weekly, and always end up holding state, because that is what a tool for
+your own people is for. Hand-rolling them is a bet that they will stay simple, and that bet loses
+every time. Start with the build step and stop thinking about it.
+
+**A public surface is a judgement call.** A marketing page, a landing page, a calculator someone
+lands on from a search: static is very often exactly right, it is faster, it survives longer, and
+it has no dependency tree to maintain. The site itself already has its own playbook
+(`website.md`); for a public *tool*, the test below decides.
+
+So the rest of this section is about the public side. Internal is settled: Astro.
+
+### The test that decides how much machinery a public tool gets
 
 "A tool someone uses" is too soft to build on: a filter is interactive, an accordion is
 interactive, a calculator is very interactive, and none of them need a framework. The question that
@@ -41,11 +60,11 @@ One app = one self-contained folder at `apps/<slug>/` (see `apps/README.md`). Th
 by the test above rather than by taste:
 
 1. **A single static folder** — `index.html` + inline or co-located CSS/JS, no build step, no
-   framework. Right for anything that computes and forgets; a single file someone could download
-   and open still works.
-2. **An internal app** — its own `package.json` inside `apps/<slug>/`: Astro shell, Tailwind,
-   React islands, [shadcn/ui](https://ui.shadcn.com) components. For anything that persists what
-   the user did: to-dos, kanban, calendar, editable tables.
+   framework. Right for a **public** tool that computes and forgets; a single file someone could
+   download and open still works. Never the shape for something behind the gate.
+2. **An app** — its own `package.json` inside `apps/<slug>/`: Astro shell, Tailwind, React islands,
+   [shadcn/ui](https://ui.shadcn.com) components. The default for everything internal, and where a
+   public tool lands as soon as it persists what the user did.
 3. **An app with a real backend** — see the escalation section below. Rare, and deliberate.
 
 **Do not pass through Shape 1 on the way to Shape 2.** The failure mode is well documented and
