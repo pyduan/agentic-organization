@@ -26,6 +26,34 @@ Connect Cloudflare only **after** the first version of the site has been committ
 
 If the build fails, open the build log. The usual fix for version complaints is setting the build's Node version to a current LTS (for example `22`) in the build settings.
 
+### The build command is always `npm run build` — including when there is nothing to build
+
+Every folder this workspace deploys exposes the same three scripts, `build`, `deploy` and `check`, so
+**every** Workers Builds trigger reads `npm run build` then `npx wrangler deploy`. A static folder is
+not an exception to that: give it a `build` script anyway.
+
+The temptation is to write something else in the dashboard for a folder with nothing to compile —
+`npm install`, or nothing at all. Don't. The special case then lives in Cloudflare's configuration,
+which nobody reads and no commit explains, and the next person comparing two projects finds a
+difference with no reason attached. Worse, `npm install` is not even doing anything: Workers Builds
+installs dependencies on its own before the build command (that is what `SKIP_DEPENDENCY_INSTALL`
+opts out of), and it takes the Wrangler version from your `package.json` either way.
+
+**And a static folder's build has real work available.** It is the last moment before publishing, so
+spend it asserting the thing that must be true: the served folder is not empty, and it contains
+nothing that was never meant for the internet. A repo that holds private notes next to a served
+folder is one stray `.md` away from the accident, and a check at build time refuses to publish it
+rather than discovering it later over HTTP. Twenty lines, run on every deploy:
+
+```json
+"scripts": { "build": "node scripts/prebuild.mjs" }
+```
+
+The shape that works: walk the served folder, compare every extension against an **allowlist** of
+things the web may see, and exit non-zero on anything else. An allowlist rather than a list of banned
+extensions, because the file that leaks is the one nobody thought of — so the unknown case has to
+fail. Print the offending paths, and say where to add an extension if it really is public.
+
 ## 2. Connect your domain
 
 In the Worker: **Settings → Domains & Routes → Add → Custom domain**, enter your domain, and follow what Cloudflare proposes. Workers custom domains require the domain to be a **Cloudflare zone** (its DNS managed by Cloudflare). What that means depends on where your domain lives:
