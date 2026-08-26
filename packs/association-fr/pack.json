@@ -1,4 +1,5 @@
 {
+  "id": "pk-3d0f53",
   "name": "association-fr",
   "title": "Association loi 1901",
   "description": "Adhésions, dons et reçus fiscaux via HelloAsso, relances d'adhésion, courriers en HTML, et un format de visuel pour la communication.",
@@ -6,10 +7,14 @@
   "status": "canonical",
   "requires": {
     "kit": "2026-08-26",
-    "services": ["HelloAsso"]
+    "services": [
+      "HelloAsso"
+    ]
   },
   "adds": {
-    "skills": ["admin"],
+    "skills": [
+      "admin"
+    ],
     "scripts": [
       "sync-helloasso.mjs",
       "import-adhesions-csv.mjs",
@@ -18,14 +23,29 @@
       "setup-helloasso.sh",
       "settings.mjs"
     ],
-    "formats": ["visuel.md", "visuel-template.html"]
+    "formats": [
+      "visuel.md",
+      "visuel-template.html"
+    ]
   },
   "settings": {
-    "associationName": { "description": "Le nom exact, tel qu'il figure aux statuts. Il apparaît sur les courriers et les reçus." },
-    "helloassoSlug": { "description": "Le slug de votre organisation HelloAsso, celui qui est dans l'URL de votre page publique." },
-    "adminUrl": { "description": "L'URL de votre outil d'administration, si vous en avez un. Sert aux liens dans les relances." },
-    "membershipPrice": { "description": "Le montant de l'adhésion en euros, avant déduction fiscale.", "default": 40 },
-    "taxDeductionRate": { "description": "Le taux de déduction applicable à vos dons (0.66 pour l'intérêt général).", "default": 0.66 }
+    "associationName": {
+      "description": "Le nom exact, tel qu'il figure aux statuts. Il apparaît sur les courriers et les reçus."
+    },
+    "helloassoSlug": {
+      "description": "Le slug de votre organisation HelloAsso, celui qui est dans l'URL de votre page publique."
+    },
+    "adminUrl": {
+      "description": "L'URL de votre outil d'administration, si vous en avez un. Sert aux liens dans les relances."
+    },
+    "membershipPrice": {
+      "description": "Le montant de l'adhésion en euros, avant déduction fiscale.",
+      "default": 40
+    },
+    "taxDeductionRate": {
+      "description": "Le taux de déduction applicable à vos dons (0.66 pour l'intérêt général).",
+      "default": 0.66
+    }
   },
   "extractedFrom": "A working association that had run this for several months. What made extraction possible was small: four hardcoded values in two files."
 }

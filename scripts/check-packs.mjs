@@ -26,6 +26,8 @@ const FRAMEWORK = ['.claude/', 'docs/', 'scripts/', 'lib/', 'source/formats/', '
 
 const KNOWN = ['skills', 'scripts', 'apps', 'formats', 'files'];
 
+const seenIds = new Map();
+
 let packs = [];
 try {
   packs = (await readdir(join(ROOT, 'packs'), { withFileTypes: true }))
@@ -44,8 +46,16 @@ for (const slug of packs.sort()) {
   try { m = JSON.parse(await readFile(manifestPath, 'utf8')); }
   catch (e) { add('fail', slug, `pack.json does not parse: ${e.message}`); continue; }
 
-  for (const field of ['name', 'title', 'description', 'suits', 'requires', 'adds']) {
+  for (const field of ['id', 'name', 'title', 'description', 'suits', 'requires', 'adds']) {
     if (!m[field]) add('fail', slug, `pack.json has no "${field}"`);
+  }
+  // The id is what a bug report, a question or a version note points at. The folder
+  // can be renamed and the title rewritten; the id must not move, or yesterday's
+  // feedback silently attaches to nothing — or worse, to a different pack.
+  if (m.id) {
+    if (!/^pk-[a-z0-9]{6,}$/.test(m.id)) add('fail', slug, `id "${m.id}" is not of the form pk-<hex>`);
+    if (seenIds.has(m.id)) add('fail', slug, `id "${m.id}" is already used by "${seenIds.get(m.id)}" — two packs cannot share one`);
+    else seenIds.set(m.id, slug);
   }
   if (m.name && m.name !== slug) add('warn', slug, `pack.json says name "${m.name}" but the folder is "${slug}"`);
   if (m.requires && !m.requires.kit) add('warn', slug, 'requires.kit is unset, so nothing can tell whether a project is new enough for it');
