@@ -46,7 +46,7 @@ const card = (p) => {
       <div><dt>Demande</dt><dd>kit ${esc(p.requires?.kit || '?')}${p.requires?.services?.length ? ' · ' + esc(p.requires.services.join(', ')) : ''}</dd></div>
       <div><dt>À régler</dt><dd>${settings.length ? settings.map(([k]) => `<code>${esc(k)}</code>`).join(' ') : 'rien'}</dd></div>
     </dl>
-    <p class="path"><code>packs/${esc(p.slug)}/</code></p>
+    <p class="path"><code>packs/${esc(p.slug)}/</code> · <span title="Cite this when you report something">${esc(p.id || 'no id')}</span></p>
   </article>`;
 };
 

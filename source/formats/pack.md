@@ -56,6 +56,7 @@ before anything is copied.
 
 ```json
 {
+  "id": "pk-3f9a2c",
   "name": "association-fr",
   "title": "Association loi 1901",
   "description": "Adhésions, reçus fiscaux, argumentaire, et le suivi d'une AG.",
@@ -73,6 +74,19 @@ before anything is copied.
   }
 }
 ```
+
+## The id, and why it is not the name
+
+Every pack carries a permanent `id` of the form `pk-<hex>`, generated once and **never changed**.
+
+It exists for one reason: feedback has to reach the right pack. A folder gets renamed, a title gets
+rewritten, two organizations independently call theirs `association`. If a bug report points at a
+name, then the day the name moves, yesterday's report attaches to nothing — or, worse, to a
+different pack that now holds that name. An id does not move, so a report from a year ago still
+resolves, and two packs can never quietly become the same one.
+
+So: report against the id, version against the id, and let the folder and the title be as readable
+as they like. `check-packs.mjs` refuses a duplicate and a malformed one.
 
 ## Extracting one is the test
 
