@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-26 · MINOR · Upgrades stop hiding, and stop freezing your fixes
+
+Four things a live project ran into on the first real upgrade, all fixed.
+
+**A customisation you made no longer freezes a fix we make later.** When an upgrade sets a file
+aside because you had edited it, it now remembers. Every later check tells you when the kit has
+changed one of those files, so you decide — instead of never hearing about it again.
+
+**"0 projects found" now says why.** It used to print a bare zero, which reads as "there is nothing
+here" when it usually means "I could not read your map". It now names the rows it read and what
+each one was missing.
+
+**The upgrade instructions no longer loop.** They told you to run a script that a project older
+than the mechanism does not have yet. They now fetch it first.
+
+**A repo that publishes nothing can no longer be deployed by accident.** The placeholder deployment
+name is deliberately invalid, so a stray command fails loudly instead of quietly going somewhere.
+
 ## 2026-08-26 · MAJOR · To-dos you can tick from your phone
 
 **What it is.** Your `next-steps.md` files become a small web app: tick a box, set a due date,

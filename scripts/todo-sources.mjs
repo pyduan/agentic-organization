@@ -36,8 +36,11 @@ const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { re
 /** Rows of ORGANIGRAM.md's repo table, plus this repo. Same parse as the dashboard. */
 async function repos() {
   const out = [{ slug: basename(ROOT), dir: ROOT }];
+  const skipped = [];
   const map = await read(join(ROOT, 'ORGANIGRAM.md'));
-  let inTable = false;
+  if (!map) return { repos: out, rows: 0, skipped: [{ why: 'ORGANIGRAM.md is missing or unreadable' }] };
+
+  let inTable = false, rows = 0;
   for (const line of map.split('\n')) {
     if (/^\|\s*Repo\s*\|/i.test(line)) { inTable = true; continue; }
     if (inTable && !line.startsWith('|')) break;
@@ -45,11 +48,20 @@ async function repos() {
     const cells = line.split('|').slice(1, -1).map((c) => c.trim());
     if (cells.length < 2 || /add a row|<owner>|<repo>|<other>/i.test(cells[0] + cells[1])) continue;
     if (/this one/i.test(cells[0])) continue;
+    rows++;
+
+    // Say precisely which expectation a row failed. A map written before this
+    // convention puts the folder in the first cell, in parentheses; silently
+    // skipping it reads as "there is nothing here", which is the wrong lesson.
     const slug = ([...cells[0].matchAll(/`([^`]+)`/g)][0] || [])[1];
     const folder = ([...cells[1].matchAll(/`([^`]+)`/g)][0] || [])[1];
-    if (slug && folder && existsSync(expand(folder))) out.push({ slug, dir: expand(folder) });
+    const label = slug || cells[0].slice(0, 40);
+    if (!slug) { skipped.push({ label, why: 'no `owner/repo` in backticks in column 1' }); continue; }
+    if (!folder) { skipped.push({ label, why: 'no local folder in backticks in column 2 (older maps put it in column 1, in parentheses)' }); continue; }
+    if (!existsSync(expand(folder))) { skipped.push({ label, why: `the folder ${folder} does not exist here` }); continue; }
+    out.push({ slug, dir: expand(folder) });
   }
-  return out;
+  return { repos: out, rows, skipped };
 }
 
 /** owner/repo as GitHub knows it — the app writes through the API, not through a path. */
@@ -94,11 +106,11 @@ async function sourcesIn(repo) {
   return { found };
 }
 
-const list = await repos();
-const all = [], skipped = [];
+const { repos: list, rows, skipped: unreadable } = await repos();
+const all = [], noRemote = [];
 for (const repo of list) {
   const { found, skipped: s, reason } = await sourcesIn(repo);
-  if (s) { skipped.push(`${s} (${reason})`); continue; }
+  if (s) { noRemote.push(`${s} (${reason})`); continue; }
   all.push(...found);
 }
 
@@ -110,4 +122,25 @@ for (const s of all) if (byLabel.get(s.label) > 1) s.label = `${s.label} · ${s.
 await writeFile(OUT, `${JSON.stringify(all, null, 2)}\n`);
 console.log(`todo sources: ${all.length} project(s) across ${list.length} repo(s) → apps/todos/sources.json`);
 for (const s of all) console.log(`  ${s.label.padEnd(24)} ${s.repo}/${s.path}`);
-if (skipped.length) console.log(`skipped: ${skipped.join(', ')}`);
+if (noRemote.length) console.log(`no GitHub origin: ${noRemote.join(', ')}`);
+
+// A bare zero is the failure this script is most likely to produce and the least
+// likely to be understood: it reads as "there is nothing to find" when it usually
+// means "I could not read your map".
+if (!all.length) {
+  console.log('');
+  console.log('Nothing was found. That is almost never because there is nothing.');
+  if (unreadable.length) {
+    console.log(`ORGANIGRAM.md: ${rows} row(s) read, none usable:`);
+    for (const s of unreadable) console.log(`  - ${s.label ? s.label + ': ' : ''}${s.why}`);
+    console.log('');
+    console.log('The table wants `owner/repo` in column 1 and the local folder in column 2, both in');
+    console.log('backticks. Fix the map rather than this script: the map is what every tool reads.');
+  } else if (!rows) {
+    console.log("ORGANIGRAM.md's repo table has no rows yet beyond the template placeholders.");
+  } else {
+    console.log(`${rows} repo(s) read from the map, but none of them holds a next-steps.md`);
+    console.log('at the root or under projects/<slug>/. That is a real empty, not a parsing failure.');
+  }
+  process.exitCode = 1;
+}

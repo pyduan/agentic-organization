@@ -82,15 +82,36 @@ const readLocal = (file) => {
 
 const same = (a, b) => (a === null && b === null) || (a !== null && b !== null && a.equals(b));
 
-function baseSha() {
-  if (!existsSync(SYNC_FILE)) return null;
-  const raw = readFileSync(SYNC_FILE, 'utf8');
-  const m = raw.match(/\b[0-9a-f]{7,40}\b/);
-  if (!m) return null;
+/**
+ * The recorded baseline: the template commit last taken, and the files `adopt`
+ * set aside because they carried local work.
+ *
+ * The set-aside list exists because of a failure this script had: after `adopt`,
+ * the baseline becomes the current template, so a file the owner had customised
+ * stops looking like a collision and starts looking like "only you changed it".
+ * Every later improvement the kit makes to that file is then never offered. The
+ * case that proved it: a project whose publish skill was customised, on the very
+ * release where the kit added the guard that project most needed.
+ *
+ * Accepts a bare sha, which is what the first version wrote.
+ */
+function readSync() {
+  if (!existsSync(SYNC_FILE)) return { sha: null, setAside: [] };
+  const raw = readFileSync(SYNC_FILE, 'utf8').trim();
+  let sha = null, setAside = [];
+  if (raw.startsWith('{')) {
+    try { const j = JSON.parse(raw); sha = j.sha || null; setAside = j.setAside || []; } catch {}
+  } else {
+    sha = (raw.match(/\b[0-9a-f]{7,40}\b/) || [])[0] || null;
+  }
   // A sha we cannot resolve is worse than none: it would silently behave as a
   // first run rather than as an error the operator can see.
-  return tryGit(['cat-file', '-e', `${m[0]}^{commit}`]) === null ? { missing: m[0] } : m[0];
+  if (sha && tryGit(['cat-file', '-e', `${sha}^{commit}`]) === null) return { missing: sha, setAside };
+  return { sha, setAside };
 }
+
+const writeSync = (sha, setAside) =>
+  writeFileSync(SYNC_FILE, `${JSON.stringify({ sha, setAside: [...setAside].sort() }, null, 2)}\n`);
 
 /** Classify every framework file the template knows about. */
 function plan(base) {
@@ -144,8 +165,9 @@ function main() {
   }
   tryGit(['fetch', '--quiet', REMOTE]);
 
-  const base = baseSha();
-  if (base && base.missing) {
+  const state = readSync();
+  const base = state.sha;
+  if (state.missing) {
     console.error(`.kit-sync names ${base.missing}, which this clone does not have.\nFetch the template, or delete .kit-sync to treat this as a first upgrade.`);
     process.exit(1);
   }
@@ -172,6 +194,21 @@ function main() {
     list(p.reportOnly);
     console.log('\n  Always carries local values or rules. Never replaced, even when only the kit changed it.');
   }
+  // Files adopt set aside are reported whenever the kit has moved on them since,
+  // so a past customisation cannot quietly freeze a future fix.
+  const staleSetAside = state.setAside.filter((f) => {
+    const theirs = show(REF, f);
+    const ours = readLocal(f);
+    return theirs && !same(theirs, ours);
+  });
+  if (staleSetAside.length) {
+    head(`⚠ Set aside when you adopted, and the kit has changed them since (${staleSetAside.length})`);
+    list(staleSetAside);
+    console.log('\n  These carry your edits, so they are never overwritten. But the kit has moved,');
+    console.log('  and you are the only one who can decide what to take:');
+    console.log(`    git diff ${REF} -- <file>`);
+  }
+
   if (p.localOnly.length) { head(`Your own edits, left alone (${p.localOnly.length})`); list(p.localOnly); }
   if (p.unknown.length) {
     head(`Cannot tell (${p.unknown.length})`);
@@ -206,9 +243,13 @@ function main() {
       mkdirSync(dirname(join(ROOT, file)), { recursive: true });
       writeFileSync(join(ROOT, file), content);
     }
-    writeFileSync(SYNC_FILE, `${target}\n`);
+    writeSync(target, customised);
     console.log(`\nAdopted. Baseline is now ${target.slice(0, 8)}; from here upgrades are a three-way merge.`);
-    if (customised.length) console.log(`${customised.length} file(s) kept as yours — reconcile them when you want to.`);
+    if (customised.length) {
+      console.log(`${customised.length} file(s) kept as yours, and recorded in .kit-sync.`);
+      console.log('Every later status will tell you when the kit changes one of them, so a');
+      console.log("customisation made today cannot freeze tomorrow's fix.");
+    }
     return;
   }
 
@@ -228,8 +269,9 @@ function main() {
   }
 
   // The new baseline is recorded even when collisions remain: those files are
-  // untouched, and the owner resolving them later is a separate act.
-  writeFileSync(SYNC_FILE, `${target}\n`);
+  // untouched, and the owner resolving them later is a separate act. Collisions
+  // join the set-aside list for the same reason adopt's do.
+  writeSync(target, [...new Set([...state.setAside, ...p.collide])]);
   console.log(`\nApplied ${p.apply.length} file(s). Baseline is now ${target.slice(0, 8)}.`);
   if (p.collide.length) console.log(`${p.collide.length} file(s) left for you: they changed on both sides.`);
 }

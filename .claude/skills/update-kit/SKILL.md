@@ -37,8 +37,15 @@ matters, and getting it wrong silently reverts the owner's work.
 
 1. **Safety first.** `git status`. Commit or stash anything uncommitted before touching a file.
 
-2. **Add the template remote, once:**
-   `git remote add template https://github.com/pyduan/agentic-organization.git`
+2. **Add the template remote, and fetch the script itself.** On a project older than this
+   mechanism `scripts/kit-sync.mjs` does not exist yet, so the instruction to run it cannot be
+   followed — the procedure loops. Bring it down first; it overwrites nothing, because it is absent:
+
+   ```bash
+   git remote add template https://github.com/pyduan/agentic-organization.git   # once
+   git fetch template
+   git checkout template/main -- scripts/kit-sync.mjs
+   ```
 
 3. **See what an upgrade would do:**
 
