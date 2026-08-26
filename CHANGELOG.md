@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-26 · MINOR · What you build here can be given to someone else
+
+If you build something that would help another organization running the kit — the membership and
+donation tooling an association ends up with, say — there is now a shape for handing it over: a
+**pack**. A folder that adds skills, scripts and apps, declares what it needs, and asks for the few
+values that are yours rather than baking them in.
+
+Nothing to do today. It matters the first time someone says "could I have what you built?".
+
 ## 2026-08-26 · MAJOR · Post an update on a to-do, from your phone
 
 You can now write on a task, not just tick it. The update is dated, signed with whoever is logged
