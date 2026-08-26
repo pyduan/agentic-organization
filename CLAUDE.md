@@ -114,6 +114,8 @@ source/brand/assets/         original images, logos, scans (high-res)
 source/formats/website.md    website playbook (pages, collections, images, SEO)
 source/formats/webapp.md     web-app playbook (page vs app, the three shapes, state, publishing)
 source/formats/todo.md       the to-do line format, and the rule that files are patched not rewritten
+source/formats/pack.md       how a project's good idea becomes installable elsewhere
+packs/<slug>/                installable bundles; the kit never touches this folder
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 site/                        the Astro website (npm run dev / build inside it)
