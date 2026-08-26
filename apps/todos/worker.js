@@ -1,6 +1,6 @@
 // The to-do app's Worker: identity from Access, storage in GitHub, no database.
 //
-// Read  GET  /api/files                → the sources this app may edit
+// Read  GET  /api/todos/files          → the sources this app may edit
 //       GET  /api/todos?source=…       → { source, sha, items }
 // Write POST /api/todos  { source, intents[] }
 //
@@ -161,7 +161,7 @@ export default {
     const url = new URL(request.url);
     const configured = sources(env);
 
-    if (url.pathname === '/api/files') {
+    if (url.pathname === '/api/todos/files') {
       // Only what the client needs to render a picker. The repo travels for the
       // rare case where two projects share a name; it is never accepted back.
       return json({

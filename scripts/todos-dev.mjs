@@ -53,7 +53,7 @@ const send = (res, status, body) => {
 const server = createServer(async (req, res) => {
   const url = new URL(req.url, `http://localhost:${PORT}`);
 
-  if (url.pathname === '/api/files') {
+  if (url.pathname === '/api/todos/files') {
     return send(res, 200, { email: 'local@dev', sources: SOURCES.map(({ id, label, repo }) => ({ id, label, repo })) });
   }
   if (url.pathname !== '/api/todos') return send(res, 404, { error: 'not found' });

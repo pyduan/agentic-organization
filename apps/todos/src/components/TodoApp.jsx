@@ -125,7 +125,7 @@ export default function TodoApp() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/files')
+    fetch('/api/todos/files')
       .then((r) => r.json())
       .then((b) => {
         setSources(b.sources || []);
