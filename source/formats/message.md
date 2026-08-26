@@ -29,8 +29,13 @@ reason behind it (a `**` arriving as asterisks, a markdown list pasting into a m
 nested table) live in `source/brand/voice.md` ▸ *Rules*. Read it there rather than trusting a
 summary of it here.
 
-Chat is the exception: your chat tool has its own formatting, so use it. Bold for the owner of a
-line, backticks for a path or a command, bare URLs.
+Chat is the exception, and the reason generalises: **plainness is the email's rule, and it comes
+from the paste.** Everywhere else, use what the destination platform actually offers, deliberately.
+Bold for the owner of a line, backticks for a path or a command, bare URLs, threads, and its emoji
+where they carry a function. A standing template that prescribes an emoji marker is using the
+platform, not decorating, and a later session must not strip it to comply with the plain register.
+What the register rules out is decoration improvised into a one-off message, a different act from a
+template someone designed.
 
 ## Every ask passes two tests
 
@@ -70,9 +75,10 @@ The register, on top of `voice.md`:
   questions", "happy to discuss". The message ends when the last useful line ends.
 - **No labels that repeat their own bullet.** "Context: the review slipped a week" says "context"
   for nothing. Label a line only when the label carries something the sentence does not.
-- **No structure for the look of it.** No headings on a six-line message, no emoji bullets, no
-  numbered list where the items are not a sequence, and none of the AI tells from `voice.md` ▸ *AI
-  tics* (the antithesis and the triad show up here first).
+- **No structure for the look of it.** No headings on a six-line message, no emoji added for
+  warmth, no numbered list where the items are not a sequence, and none of the AI tells from
+  `voice.md` ▸ *AI tics* (the antithesis and the triad show up here first). A template's own markers
+  are not this: see the platform note above.
 - **One line of greeting at most, or none.** In chat, the @-mention is the greeting.
 
 ## Say that an agent drafted it (internal only)
