@@ -30,12 +30,20 @@ These start as sensible defaults; edit them to fit.
 - **Links point straight at their destination.** A URL copied out of Google Docs, Gmail, or a notes
   tool arrives wrapped as `https://www.google.com/url?q=…`: decode it to the real target and drop
   the tracking params. A reader should see the real domain, not something that looks like tracking.
-- **A drafted email is plain text, not markdown.** Whoever sends it will copy the file you wrote and
-  paste it into their mail client, so `**bold**` arrives as asterisks and `[texte](url)` hides the
-  address the reader needed to click. Observed for real, more than once. So: no `**`, no `#`, no
-  backticks; bare URLs, and no `<…>` around them either. Offering a styled HTML version as well is
-  fine, but it must be the upgrade, never the thing that has to be noticed for the mail to look
-  right. This applies to email only — everything else in the repo is read rendered and stays markdown.
+- **A drafted email has to stand on its own as pasted plain text.** Whoever sends it will copy the
+  file you wrote and paste it into their mail client, where nothing renders. That is the test: strip
+  every bit of formatting and the message must lose nothing. So no markdown syntax, because it either
+  shows up raw or renders into something the client mangles: no `**` (it arrives as asterisks), no
+  `#`, no backticks, no `[texte](url)` (it hides the address the reader needed to click), bare URLs
+  with no `<…>` around them. Observed for real, more than once. And **no meaning carried by
+  formatting**: if a bolded word is doing the work, rewrite the sentence so the words do it. The few
+  characters that break in transit go plain too — straight `"` and `'` rather than curly quotes,
+  three periods rather than `…`, ordinary spaces rather than non-breaking ones; accents and other
+  diacritics stay, they travel fine and they are not formatting. Offering a styled HTML version as
+  well is fine, but it must be the upgrade, never the thing that has to be noticed for the mail to
+  look right. This applies to a **draft a human pastes**: everything else in the repo is read
+  rendered and stays markdown, and a campaign email built and sent from a mail tool is a designed
+  piece, not this case.
 - **In an email, bullets are `– ` (en dash), not `- ` (hyphen).** A hyphen at the start of a line is
   markdown, so any rendered view turns the block into a `<ul>` — and a `<ul>` pasted into a mail
   client arrives as a **nested table**, cells and margins included. An en dash still reads as a dash
