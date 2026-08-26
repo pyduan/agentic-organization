@@ -101,6 +101,12 @@ async function probe(url, { follow = true } = {}) {
   return result;
 }
 
+// Hosts that serve private documents: unreachable to an anonymous fetch by design, so a
+// failure there says nothing about the link's health. Contributed by a project running the
+// kit, which had a permanently-failing check nobody read any more because every Drive link
+// in its files was reported as broken.
+const PRIVATE_BY_DESIGN = /^https:\/\/(drive|docs)\.google\.com\//;
+
 const IGNORE = (config.ignoreUrls || []).map((s) => new RegExp(s));
 const shouldIgnore = (u) => IGNORE.some((re) => re.test(u));
 
@@ -129,7 +135,15 @@ if (wants('links')) {
       const url = urls[i++];
       const r = await probe(url);
       const where = [...found.get(url)].slice(0, 3).join(', ');
-      if (!r.ok) add('fail', 'links', url, `${r.error || 'HTTP ' + r.status} — referenced in ${where}`);
+      if (!r.ok && PRIVATE_BY_DESIGN.test(url)) {
+        // A private document cannot be fetched by an anonymous robot, ever. Calling that
+        // a dead link is wrong twice over: the link works for the people who hold the
+        // document, and a check that is permanently red stops being read at all. Listed
+        // as info so nobody mistakes silence for verification — but note what it does NOT
+        // prove: only someone with access can say the file is still there.
+        add('info', 'links', url, `private by design, not checkable anonymously (${r.error || 'HTTP ' + r.status}) — in ${where}`);
+      }
+      else if (!r.ok) add('fail', 'links', url, `${r.error || 'HTTP ' + r.status} — referenced in ${where}`);
       else if (r.gated) add('info', 'links', url, `HTTP ${r.status} to a bot (login or rate limit); fine for a human — in ${where}`);
     }
   }));
