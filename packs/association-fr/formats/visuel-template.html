@@ -1,0 +1,87 @@
+<!doctype html>
+<!--
+  Visual template for a published image (social card, infographic panel).
+  Duplicate this file into comms/visuels/<date>-<slug>/source.html (that exact depth: the
+  paths below are relative to it), edit the marked block, render with
+  scripts/render-visuel.sh. Never hand-edit the exported PNG: this file is the source.
+  The playbook is source/formats/visuel.md.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="../../../source/brand/tokens.css">
+<style>
+  @font-face {
+    font-family: "Cormorant Garamond";
+    font-weight: 500;
+    src: url("../../../source/brand/assets/fonts/cormorant-garamond-latin-500-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Cormorant Garamond";
+    font-weight: 600;
+    src: url("../../../source/brand/assets/fonts/cormorant-garamond-latin-600-normal.woff2") format("woff2");
+  }
+  @font-face {
+    font-family: "Inter Variable";
+    font-weight: 100 900;
+    src: url("../../../source/brand/assets/fonts/inter-latin-wght-normal.woff2") format("woff2");
+  }
+
+  /* The canvas. Change --w and --h to the format you need; the renderer reads them. */
+  :root { --w: 1080px; --h: 1350px; }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    width: var(--w);
+    height: var(--h);
+    background: var(--bg-soft);
+    color: var(--ink);
+    font-family: var(--sans);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    /* Safe margin: nothing meaningful outside it. Instagram crops previews. */
+    padding: 96px;
+    box-sizing: border-box;
+  }
+
+  .display {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 96px;
+    line-height: 1.12;
+    color: var(--red);
+    margin: 0;
+    text-wrap: balance;
+  }
+  .lede {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 56px;
+    line-height: 1.25;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .footnote {
+    font-size: 26px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    margin: 0;
+    position: absolute;
+    bottom: 96px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ===== edit from here ===== -->
+  <p class="lede">Un traitement qui change une vie coûte</p>
+  <p class="display">40&nbsp;€ par an</p>
+  <p class="footnote">Les Amis de Hugues Charnallet</p>
+  <!-- ===== to here ===== -->
+
+</body>
+</html>
