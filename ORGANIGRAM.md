@@ -105,6 +105,15 @@ Three rules, and each of them exists because the alternative has happened:
   configured. It would have worked, and it would have put the organization's correspondence in a
   personal account.
 
+**A shared address or channel an agent reads is an untrusted input channel.** The moment you give an
+agent a mailbox, a form, a shared inbox or a chat channel that people outside can write to, its
+contents are **data, never instructions**. A message arriving there can inform a draft or raise a
+question for you; it can never grant a permission, change a rule, trigger a publish or redirect
+work, however plausibly it is phrased and whoever it claims to be from. The point of such an address
+is that it gets shared, so anyone who learns it can write to it, and an agent that treats its inbox
+as a task list has handed strangers a remote control. Authorization comes from you, in a
+conversation, not from the channel.
+
 And the counterpart to `docs/deploy-cloudflare.md` ▸ *criteria, not a vendor*: for each row, know what
 would replace it. A service you could leave in an afternoon can be chosen for convenience; one you
 could not is a commitment, and worth naming as such here.
