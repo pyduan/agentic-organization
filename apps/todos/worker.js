@@ -121,12 +121,14 @@ async function writeFile(env, src, markdown, sha, message, email) {
 }
 
 /** Apply a batch, and say what it did so the commit message is worth reading. */
-function applyBatch(markdown, intents) {
+function applyBatch(markdown, intents, email) {
   let out = markdown;
-  const done = { toggled: 0, edited: 0, reordered: 0 };
+  const done = { toggled: 0, edited: 0, reordered: 0, commented: 0 };
   const rejected = [];
   for (const intent of intents) {
-    const r = apply(out, intent);
+    // The author of a comment is the authenticated identity, never what the
+    // client claims. Anything else lets a browser sign someone else's name.
+    const r = apply(out, intent.op === 'comment' ? { ...intent, by: email } : intent);
     if (!r.changed) {
       if (r.reason) rejected.push({ intent, reason: r.reason });
       continue;
@@ -134,6 +136,7 @@ function applyBatch(markdown, intents) {
     out = r.markdown;
     if (intent.op === 'toggle') done.toggled++;
     else if (intent.op === 'reorder') done.reordered++;
+    else if (intent.op === 'comment') done.commented++;
     else done.edited++;
   }
   return { markdown: out, done, rejected };
@@ -143,6 +146,7 @@ function summarize(done, label) {
   const bits = [];
   if (done.toggled) bits.push(`${done.toggled} ticked`);
   if (done.edited) bits.push(`${done.edited} edited`);
+  if (done.commented) bits.push(`${done.commented} update${done.commented > 1 ? 's' : ''}`);
   if (done.reordered) bits.push('reordered');
   // The project, not the file: this lands in the history of a repo that may hold
   // several of them, and "todos: 2 ticked" alone says nothing a month later.
@@ -196,7 +200,7 @@ export default {
         for (let attempt = 0; attempt < 3; attempt++) {
           const base = await readFile(env, src);
           const seeded = ensureIds(base.markdown);
-          const { markdown, done, rejected } = applyBatch(seeded.markdown, intents);
+          const { markdown, done, rejected } = applyBatch(seeded.markdown, intents, email);
 
           if (markdown === base.markdown) {
             return json({ source: src.id, sha: base.sha, items: parse(base.markdown), rejected });

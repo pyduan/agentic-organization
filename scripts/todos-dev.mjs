@@ -75,7 +75,7 @@ const server = createServer(async (req, res) => {
       let out = seeded.markdown;
       const rejected = [];
       for (const intent of body.intents || []) {
-        const r = apply(out, intent);
+        const r = apply(out, intent.op === 'comment' ? { ...intent, by: 'local' } : intent);
         if (r.changed) out = r.markdown;
         else if (r.reason) rejected.push({ intent, reason: r.reason });
       }

@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-26 · MAJOR · Post an update on a to-do, from your phone
+
+You can now write on a task, not just tick it. The update is dated, signed with whoever is logged
+in, and lands in the markdown file next to the task — so it reaches whoever reads the repo next,
+including your agent.
+
+This is what makes the app worth opening when you are not at a computer. Ticking a box says
+something ended; it loses why, and why is usually what you needed later. "Found her on rue de
+l'Arbre Sec, poster no longer needed" is worth more in six months than a checked box.
+
 ## 2026-08-26 · MINOR · Internal apps have a default now
 
 Anything behind your access gate — an intranet page, a dashboard, a tool for you and a couple of

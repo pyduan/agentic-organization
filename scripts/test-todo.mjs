@@ -179,3 +179,61 @@ test('a priority field is no longer special: it stays part of the text', () => {
   assert.equal(i.priority, undefined);
   assert.deepEqual(i.owners, ['sam']);
 });
+
+// --- comments: getting information back INTO the repo ---
+
+const WITH_NOTES = `# Next steps
+
+- [ ] First task @sam due:2026-09-01 ^aaaa
+      An indented line of context.
+- [ ] Second task ^bbbb
+
+## Another section
+
+- A bullet that is not a task.
+`;
+
+test('a comment is appended after the item and its context', () => {
+  const { markdown, changed } = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'Printer confirmed.', on: '2026-08-26', by: 'paul' });
+  assert.equal(changed, true);
+  const lines = markdown.split('\n');
+  assert.equal(lines[3], '      An indented line of context.');
+  assert.equal(lines[4], '      2026-08-26 @paul · Printer confirmed.');
+  assert.equal(lines[5], '- [ ] Second task ^bbbb', 'must not land under the next item');
+});
+
+test('a comment on an item with no context still lands in the right place', () => {
+  const { markdown } = apply(WITH_NOTES, { op: 'comment', id: 'bbbb', text: 'Done another way.', on: '2026-08-26' });
+  const lines = markdown.split('\n');
+  assert.equal(lines[4], '- [ ] Second task ^bbbb');
+  assert.equal(lines[5], '      2026-08-26 · Done another way.');
+  assert.equal(lines[6], '', 'the blank line before the heading survives');
+  assert.ok(markdown.includes('## Another section'));
+});
+
+test('comments parse back, separately from context', () => {
+  const { markdown } = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'Shah a été retrouvée.', on: '2026-08-26', by: 'paul' });
+  const item = parse(markdown).find((i) => i.id === 'aaaa');
+  assert.deepEqual(item.notes, ['An indented line of context.']);
+  assert.deepEqual(item.comments, [{ on: '2026-08-26', by: 'paul', text: 'Shah a été retrouvée.' }]);
+});
+
+test('comments accumulate in order and never overwrite', () => {
+  let md = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'First.', on: '2026-08-26' }).markdown;
+  md = apply(md, { op: 'comment', id: 'aaaa', text: 'Second.', on: '2026-08-27' }).markdown;
+  const item = parse(md).find((i) => i.id === 'aaaa');
+  assert.deepEqual(item.comments.map((c) => c.text), ['First.', 'Second.']);
+});
+
+test('an empty comment changes nothing', () => {
+  const { changed, reason } = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: '   ' });
+  assert.equal(changed, false);
+  assert.match(reason, /empty/);
+});
+
+test('a comment travels with its item when the list is reordered', () => {
+  const md = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'Kept.', on: '2026-08-26' }).markdown;
+  const moved = reorder(md, ['bbbb', 'aaaa']).markdown;
+  const item = parse(moved).find((i) => i.id === 'aaaa');
+  assert.deepEqual(item.comments.map((c) => c.text), ['Kept.']);
+});
