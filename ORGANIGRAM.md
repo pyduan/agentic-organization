@@ -74,6 +74,41 @@ several projects share one repo (folders), one org (separate repos), or separate
 decided by how much documentation they share and which inherits from which — the `new-project` skill
 runs that decision, and `docs/how-it-works.md` ▸ "Several projects" explains it for humans.
 
+## The accounts, and what each one holds
+
+The repo map above says where the *files* live. This says where everything else does, because an
+agent that does not know will infer it from what looks technically possible, which is not the same
+question.
+
+| Function | Service | Whose account | Load-bearing? |
+|---|---|---|---|
+| Code and history | GitHub | yours | **yes** |
+| Site hosting, DNS | Cloudflare (or your host) | yours | **yes** |
+| Mail | _(fill in: Google Workspace, Fastmail, your registrar…)_ | yours | **yes**, if you receive anything that matters |
+| _(add a row per service you actually depend on)_ | | | |
+
+Three rules, and each of them exists because the alternative has happened:
+
+- **Read this before proposing a change to any of it.** "Load-bearing" means people or money depend
+  on it today. A load-bearing service is never repointed as a side effect of another task, and never
+  because a cheaper or newer option appeared mid-conversation.
+- **Never infer the setup from what is technically available.** A domain whose DNS sits at one
+  provider makes that provider's mail product look like the obvious choice, while the mail is
+  actually hosted elsewhere and switching would rewrite the MX and silently break every address.
+  Check what is running before proposing what could run.
+- **One project's data never lands in another project's accounts**, even when it is the same person,
+  the same agent and the same vendor. This is the one that catches you when a personal project and a
+  client's, or a personal project and an organization's, sit side by side in the same workspace: a
+  mechanism being free and *already set up over there* is precisely the argument that produces the
+  mistake. Real case: asked for a service address on an organization's domain, an agent proposed
+  routing it through infrastructure on the owner's personal domain, because that one was already
+  configured. It would have worked, and it would have put the organization's correspondence in a
+  personal account.
+
+And the counterpart to `docs/deploy-cloudflare.md` ▸ *criteria, not a vendor*: for each row, know what
+would replace it. A service you could leave in an afternoon can be chosen for convenience; one you
+could not is a commitment, and worth naming as such here.
+
 ## Who may do what — the three rights
 
 - **Use** — ask for something, run a workflow. **Default: you.** As people join, anyone you bring in
