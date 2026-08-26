@@ -95,20 +95,30 @@ for (const key of keys.sort()) {
         .map((m) => m[1]).filter((s) => !s.includes('.md') && !s.startsWith('/') && s.split('/').length === 2))) {
       const st = await checkRepo(slug);
       if (st.unknown || st.missing) continue;
-      // La proximité compte : chercher « public » n'importe où dans le fichier
-      // produit du bruit dès qu'une mémoire parle de plusieurs dépôts à la fois.
-      // On ne regarde donc que les lignes qui nomment CE dépôt.
-      const lines = text.split('\n').filter((l) => l.includes(slug));
-      const near = lines.join(' ').toLowerCase();
+      // La proximité compte, mais **une ligne n'est pas une unité de sens** : le
+      // markdown replie, donc « contributes to the public kit » et le nom du dépôt
+      // finissent sur deux lignes différentes et le contexte est perdu. On prend
+      // donc le BLOC — la puce ou le paragraphe — qui contient le dépôt.
+      const blocks = text.split(/\n(?=\s*[-*]\s|\n)/);
+      const own = blocks.filter((b) => b.includes(slug));
+      const near = own.join(' ').toLowerCase();
       const whole = text.toLowerCase();
+
+      // Si le bloc nomme PLUSIEURS dépôts, un mot comme « public » ne peut plus être
+      // attribué à l'un d'eux par la seule lexique. Le contrôle refuse alors de
+      // deviner : une alerte fausse coûte plus cher qu'un manque, parce qu'elle
+      // apprend au lecteur à ignorer le rapport.
+      const others = new Set(own.join(' ').match(/\b[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\b/g) || []);
+      others.delete(slug);
+      const ambiguous = [...others].some((o) => !o.includes('.md') && o.split('/').length === 2);
 
       if (st.archived && !/archiv/i.test(whole)) {
         add('warn', where, slug, `est ARCHIVÉ sur GitHub et la mémoire ne le dit nulle part — une session peut le croire vivant`);
       }
-      if (st.visibility === 'private' && /\bpublic\b/.test(near) && !/priv/i.test(near)) {
+      if (!ambiguous && st.visibility === 'private' && /\bpublic\b/.test(near) && !/priv/i.test(near)) {
         add('warn', where, slug, `est PRIVÉ, et la ligne qui le nomme parle de « public »`);
       }
-      if (st.visibility === 'public' && /\bprivate\b|\bprivé\b/i.test(near) && !/public/i.test(near)) {
+      if (!ambiguous && st.visibility === 'public' && /\bprivate\b|\bprivé\b/i.test(near) && !/public/i.test(near)) {
         add('warn', where, slug, `est PUBLIC, et la ligne qui le nomme parle de « privé » — vérifier qu'aucune donnée sensible n'y est décrite`);
       }
     }
@@ -117,13 +127,37 @@ for (const key of keys.sort()) {
       // Le markdown colle sa ponctuation aux URLs : **gras**, (parenthèses), fins de phrase.
       const clean = url.replace(/[*_`)\]}>.,;:!?]+$/, '');
       const st = await checkUrl(clean);
+
+      // Un dépôt privé renvoie 404 à un robot anonyme sur toutes ses PRs et issues,
+      // qu'elles existent ou non. Le déclarer mort est faux deux fois : le lien
+      // marche pour qui a l'accès, et un rapport en permanence rouge cesse d'être
+      // lu — ce qui coûte plus cher que la chose qu'il signalait mal.
+      const ghRepo = clean.match(/^https:\/\/github\.com\/([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//);
+      if (ghRepo && (st.status === 404 || st.status === 410)) {
+        const r = await checkRepo(ghRepo[1]);
+        if (r.visibility === 'private') {
+          add('info', where, clean, `dépôt privé : invérifiable anonymement, le lien peut être parfaitement valide`);
+          continue;
+        }
+      }
+
       if (st.status === 404 || st.status === 410) add('fail', where, clean, `répond ${st.status} — la mémoire pointe vers une page morte`);
       else if (st.error) add('info', where, clean, `injoignable (${st.error}) — peut être normal derrière un accès restreint`);
     }
 
     for (const p of new Set([...text.matchAll(/(?:~|\/Users\/[a-z]+)\/projects\/[A-Za-z0-9._\/-]+/g)].map((m) => m[0]))) {
       const abs = p.replace(/^~/, homedir()).replace(/[.,;:`)]+$/, '');
-      if (!existsSync(abs)) add('warn', where, p, `n'existe pas sur ce disque — chemin périmé, ou une autre machine`);
+      if (existsSync(abs)) continue;
+
+      // Une mémoire qui DOCUMENTE un chemin mort ne doit pas être signalée pour
+      // le contenir : c'est le contraire d'une dérive, c'est la dérive déjà notée.
+      // Même principe que pour les liens privés — reconnaître que l'auteur sait.
+      const ctx = text.split(/\n(?=\s*[-*]\s|\n)/).filter((b) => b.includes(p)).join(' ');
+      if (/quarantaine|quarantine|retir[ée]|removed|doublon|archiv|n'existe plus|pas de clone/i.test(ctx)) {
+        add('info', where, p, `absent du disque, et la mémoire le dit — rien à corriger`);
+        continue;
+      }
+      add('warn', where, p, `n'existe pas sur ce disque — chemin périmé, ou une autre machine`);
     }
 
     // Une mémoire sans date est une mémoire qu'on ne peut pas suspecter.
