@@ -102,7 +102,10 @@ export default function TodoApp() {
   const [sources, setSources] = useState([]);
   const [source, setSource] = useState(null);
   const [items, setItems] = useState([]);
-  const [location, setLocation] = useState(null);
+  // Où vit le fichier ouvert, pour que le prompt puisse nommer un vrai chemin.
+  // Ne PAS nommer ceci `location` : ça masque le global du même nom, et
+  // `location.search` lit alors un état nul. Coûté un déploiement.
+  const [fileAt, setFileAt] = useState(null);
   // The queue outlives a render, so the source it posts to is read through a ref.
   const sourceRef = useRef(null);
   const [status, setStatus] = useState('loading');
@@ -119,7 +122,7 @@ export default function TodoApp() {
     }
     const body = await res.json();
     setItems(body.items);
-    setLocation({ repo: body.repo, path: body.path });
+    setFileAt({ repo: body.repo, path: body.path });
     setStatus('idle');
     setError(null);
   }, []);
@@ -132,7 +135,7 @@ export default function TodoApp() {
         if (!b.sources?.length) return setStatus('idle');
         // A ?source= in the URL is how a dashboard sends someone straight to one
         // subject. One door per subject only works if the door can be aimed.
-        const asked = new URLSearchParams(location.search).get('source');
+        const asked = new URLSearchParams(window.location.search).get('source');
         setSource(b.sources.some((s) => s.id === asked) ? asked : b.sources[0].id);
       })
       .catch((e) => {
@@ -255,7 +258,7 @@ export default function TodoApp() {
                   <Row
                     key={item.id ?? `line-${item.lineNo}`}
                     item={item}
-                    path={location?.path ?? sourceLabel}
+                    path={fileAt?.path ?? sourceLabel}
                     onToggle={onToggle}
                     onDue={onDue}
                     onComment={onComment}
