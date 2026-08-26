@@ -8,7 +8,12 @@
   // `<name>.<your-subdomain>.workers.dev` preview URL, so make it your project
   // slug (e.g. "acme-site"). It must be unique within your Cloudflare account.
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "my-site",
+  // Deliberately invalid until setup replaces it. A plausible placeholder like
+  // "my-site" is a deployment primed under a generic name: one stray `npm run
+  // deploy` in a repo that publishes nothing, and it goes somewhere real. An
+  // invalid name fails loudly instead, which is the correct outcome for a command
+  // nobody meant to run.
+  "name": "SET-ME-AT-SETUP",
   "compatibility_date": "2026-07-24",
   "assets": {
     "directory": "./site/dist",
