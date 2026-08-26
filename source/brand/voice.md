@@ -41,6 +41,9 @@ These start as sensible defaults; edit them to fit.
   client arrives as a **nested table**, cells and margins included. An en dash still reads as a dash
   and no markdown engine makes a list of it, so the rendered view and the raw file paste identically.
   For the same reason, the HTML half of a letter emits `<p>– …</p>` and never `<ul>`.
+- **The shape of a message is a different file.** These two rules are about the characters; what an
+  email or a chat message should actually contain, and how completely that changes between a
+  colleague and a client, is `source/formats/message.md`. Read it before drafting either.
 
 ## AI tics: the tells to strip
 

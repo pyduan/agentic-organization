@@ -25,6 +25,7 @@ Find every row that matches the task at hand and read those files before produci
 | A web app or interactive tool (calculator, simulator, form flow, dashboard) | `source/formats/webapp.md`, plus voice and design above |
 | Anything touching a to-do — writing one, ticking one, building over `next-steps.md` | `source/formats/todo.md` (the line format and the patch rule), and use `lib/todo.mjs` rather than a new regex |
 | A deck or presentation | `source/formats/deck.md`, plus voice and design above |
+| A message someone will **send**: an email out, an email to the team, a chat message | `source/formats/message.md` (the shape per format, plus the per-person block), and `source/brand/voice.md` for the plain-text email rules |
 | A phone / chat / platform demo (inside a deck, page, or app) | `source/formats/demos.md`, plus voice and design above |
 | A discussion (internal or external) that moves a hypothesis or the positioning | `source/decisions.md` — add a dated entry (the why, before → after) |
 | Files the owner dropped for you | `source/inbox/README.md` |
@@ -118,6 +119,7 @@ source/formats/pack.md       how a project's good idea becomes installable elsew
 packs/<slug>/                installable bundles; the kit never touches this folder
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
+source/formats/message.md    message playbook: emails and chat, inside and outside, per person
 site/                        the Astro website (npm run dev / build inside it)
 site/public/decks/<slug>/    published decks, one self-contained HTML each
 wrangler.jsonc + package.json  repo-root deploy layer: builds site/ and serves site/dist on Cloudflare Workers (docs/deploy-cloudflare.md)

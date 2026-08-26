@@ -57,7 +57,7 @@ source/              your source of truth
   content/           your canonical texts, facts, and data (prices, catalogs...)
   facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
-  formats/           one playbook per output: website pages, decks, apps, the dashboard
+  formats/           one playbook per output: website pages, decks, apps, messages, the dashboard
   quality/           the register of the AI's own mistakes on your project (see below)
 site/                the website itself (Astro, deployed by Cloudflare Workers)
 site/public/decks/   your presentations, each a single shareable HTML file
