@@ -24,6 +24,7 @@ Fixed field order, everything optional except the checkbox and the text:
 | done | `done:YYYY-MM-DD` | On completed items |
 | tag | `#slug` | Repeatable, optional |
 | id | `^k3f9` | Generated once, **never written or changed by hand** |
+| update | `      YYYY-MM-DD @who · text` | An indented, dated line. Append-only, see below |
 
 Context that is not the action goes on indented continuation lines. They travel with the item and
 never become its title:
@@ -49,6 +50,31 @@ for no reason. So the field holds whatever precision was actually chosen:
 It is still one field, it still sorts lexically, and `dueEnd()` in `lib/todo.mjs` closes the period
 so `isOverdue()` only fires once the whole period has passed. **No date is the normal state.** An
 item without one is not incomplete; a date is a commitment and most items have not earned one.
+
+### Updates: how information gets back in
+
+A continuation line that opens with an ISO date is an **update**, not context:
+
+```markdown
+- [ ] Imprimer l'affiche et la poser dans les commerces @paul due:2026-08-30 #shah ^foy3
+      Les commerces valent mieux que les poteaux : l'affiche y reste des semaines.
+      2026-08-26 @paul · Shah a été retrouvée rue de l'Arbre Sec. Affiche inutile.
+```
+
+The distinction is the point. **Context describes the task and is rewritten freely. An update is
+something that happened, and is append-only** — a new one goes after the last line of the item's own
+block, never displacing what was there, never landing under the next item.
+
+**Why the app needs this at all.** Ticking a box records that something ended and loses *why*, which
+is usually the part worth keeping. "Found her on rue de l'Arbre Sec, poster no longer needed" is
+worth more six months later than a checked box, and it is the only way information travels back into
+the repo from a phone. Without it, the app is a remote control; with it, it is a capture surface.
+
+**The author is the authenticated identity, never what the client sends.** The Worker overwrites the
+`by` field with the Access email before applying, because anything else lets a browser sign someone
+else's name.
+
+Lines without a leading date stay context, so every file written before this parses unchanged.
 
 ### Handing an item to an agent
 

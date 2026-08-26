@@ -7,6 +7,7 @@ import { GripVertical } from 'lucide-react';
 import { isOverdue, createQueue, flushOnHide } from '@kit/todo-client.mjs';
 import { DueControl } from './DueControl.jsx';
 import { CopyPrompt } from './CopyPrompt.jsx';
+import { AddComment } from './AddComment.jsx';
 import { Checkbox } from './ui/checkbox.jsx';
 import { Badge } from './ui/badge.jsx';
 import { Card, CardHeader, CardBody } from './ui/card.jsx';
@@ -14,7 +15,7 @@ import { cn } from '../lib/utils.js';
 
 const TODAY = new Date().toISOString().slice(0, 10);
 
-function Row({ item, path, onToggle, onDue }) {
+function Row({ item, path, onToggle, onDue, onComment }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id ?? `line-${item.lineNo}`,
     disabled: !item.id,
@@ -56,6 +57,16 @@ function Row({ item, path, onToggle, onDue }) {
         {item.notes?.length ? (
           <p className="mt-0.5 text-xs leading-5 text-muted">{item.notes.join(' ')}</p>
         ) : null}
+        {item.comments?.length ? (
+          <ul className="mt-1 space-y-0.5 border-l border-line pl-2.5">
+            {item.comments.map((c, i) => (
+              <li key={i} className="text-xs leading-5 text-muted">
+                <span className="tabular-nums">{c.on}</span>
+                {c.by ? <span> {c.by.split('@')[0]}</span> : null} · {c.text}
+              </li>
+            ))}
+          </ul>
+        ) : null}
         {item.tags.length ? (
           <div className="mt-1 flex flex-wrap gap-1.5">
             {item.tags.map((t) => (
@@ -79,8 +90,9 @@ function Row({ item, path, onToggle, onDue }) {
         />
       </div>
 
-      <div className="col-start-3 flex items-center sm:col-start-6">
+      <div className="col-start-3 flex flex-col items-stretch gap-1 sm:col-start-6">
         <CopyPrompt item={item} path={path} />
+        <AddComment item={item} onPost={(text) => onComment(item, text)} />
       </div>
     </li>
   );
@@ -163,6 +175,13 @@ export default function TodoApp() {
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done, doneOn: done ? TODAY : null } : i)));
     push({ op: 'toggle', id: item.id, done, on: TODAY });
   };
+  const onComment = (item, text) => {
+    // Optimistic, like the rest: the server stamps the real date and the author.
+    const on = TODAY;
+    setItems((prev) => prev.map((i) => (i.id === item.id
+      ? { ...i, comments: [...(i.comments || []), { on, by: null, text }] } : i)));
+    push({ op: 'comment', id: item.id, text, on });
+  };
   const onDue = (item, due) => {
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, due: due || null } : i)));
     push({ op: 'set', id: item.id, due: due || null });
@@ -236,6 +255,7 @@ export default function TodoApp() {
                     path={location?.path ?? sourceLabel}
                     onToggle={onToggle}
                     onDue={onDue}
+                    onComment={onComment}
                   />
                 ))}
               </ul>
