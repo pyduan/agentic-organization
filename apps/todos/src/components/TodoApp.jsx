@@ -129,8 +129,11 @@ export default function TodoApp() {
       .then((r) => r.json())
       .then((b) => {
         setSources(b.sources || []);
-        if (b.sources?.length) setSource(b.sources[0].id);
-        else setStatus('idle');
+        if (!b.sources?.length) return setStatus('idle');
+        // A ?source= in the URL is how a dashboard sends someone straight to one
+        // subject. One door per subject only works if the door can be aimed.
+        const asked = new URLSearchParams(location.search).get('source');
+        setSource(b.sources.some((s) => s.id === asked) ? asked : b.sources[0].id);
       })
       .catch((e) => {
         setError(String(e.message));
