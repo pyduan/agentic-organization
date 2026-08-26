@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-26 · MAJOR · Emails and messages have a house style now
+
+Ask for "an email to the printer" or "a message to Sam about the review" and you get something
+written to a rule instead of whatever the model felt like. Two registers, deliberately different:
+
+Inside your organization, the asks come first, in bullets, each with a name and a date. Then one
+short paragraph of recap that assumes the reader knows the file, because they do, and if they do not
+they can ask their own agent. No enthusiasm, no "hope this helps", no counted summaries. Every
+internal message also ends with a line saying an agent drafted it.
+
+Outside, the opposite: one human opening line, the point straight after, and a single clear ask at
+the end. Never a caveat about how it was written.
+
+**What you need to do:** open `source/formats/message.md` and fill in two TODOs. The exact wording of
+the agent-drafted line, and one short block per person who sends messages drafted here (how they
+greet, how they sign, which language to whom, what they refuse). Both take a minute and they are what
+makes a draft sound like the person rather than like the kit.
+
 ## 2026-08-26 · MINOR · What you build here can be given to someone else
 
 If you build something that would help another organization running the kit — the membership and
