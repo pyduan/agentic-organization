@@ -10,6 +10,54 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · Before you deliver, your agent now runs the mistakes it already made
+
+Your project keeps a register of what your agent got wrong (`source/quality/incidents.json`). It was
+written at the end of every session and read by nobody at the start of the next, which made it a
+diary rather than a safety net. Now there is a command that reads it back: it prints the failure
+families a task touches, and first of all everything this project has already got wrong in them,
+with whatever guards each one today. Repeating something already in the register is worse than a new
+mistake, because it means the register is not working.
+
+There is also a new recipe for analysis work, `docs/complex-tasks.md`: write down what the work is
+for and what it must respect before deciding how to do it, hold every plan against that, cut the
+task into pieces you can judge one at a time, then run the check above before handing anything over.
+
+**What you need to do:** nothing to install. If your project keeps its incident register under a
+translated or non-standard path, the command now finds it on its own, so any local bridge script you
+wrote to point it at the right file can be deleted. You can also name the path outright with
+`--register=<path>` or the `KIT_REGISTER` environment variable. And when it cannot find a register
+at all it now says so loudly instead of reporting "no incidents logged", which is not the same thing.
+
+## 2026-08-27 · MAJOR · Forty-three new rules about how this goes wrong, from a real workshop
+
+`docs/failure-modes.md` grew by more than half, from the cumulative error register of a project
+running this kit on files where every published figure was there to decide something. The one that
+opens the destructive family: a safeguard must not depend on the thing it protects against, and that
+check comes before the first line of code rather than after three days of verification. It came from
+an archive built to survive the loss of an account, verified for days, and stored in cloud storage
+whose login was that same account.
+
+Also new, each paid for once already: no search proves an absence, so calibrate an empty result
+against a case you know should appear; a summary never founds a conclusion, quote the clause; a
+correction is checked against the authority, never against a second document of the kind that
+misled; "nothing to do" and "nothing seen" return the same value and only one is good news.
+
+**What you need to do:** nothing. Your agent reads this file before acting on real data or letting a
+figure leave the repo.
+
+## 2026-08-27 · MINOR · Knowing which projects are on the current kit, and who still works in them
+
+`node scripts/check-fleet.mjs` lists every project beside this one that runs the kit: how far behind
+the template each is, whether it is wired to announce its own updates, and who last pushed to it. It
+exists because a project installed before the update notifier existed can never announce that the
+notifier exists, so it stays silent and nothing goes red. It also flags collaborators whose commits
+carry an unroutable author address, which makes real work look like no work at all.
+
+**What you need to do:** if you onboarded someone before this update, ask them to check that
+`git config user.email` matches their GitHub account. Otherwise their commits are credited to nobody
+and they will look inactive when they are not. New installs now set this during setup.
+
 ## 2026-08-27 · MAJOR · A journal: the repo now remembers what happened, not only what was decided
 
 Decisions had a file, tasks had files, facts had files — a plain event had none. "The printer
