@@ -51,6 +51,10 @@ matters, and getting it wrong silently reverts the owner's work.
    git checkout template/main -- scripts/kit-sync.mjs
    ```
 
+   **Commit that file before going further.** `git checkout` stages what it fetches, and the steps
+   below take a while: in a repo where another session is working, its next narrow commit will
+   publish this file under a message about something else.
+
 3. **See what an upgrade would do:**
 
    ```bash
@@ -67,6 +71,14 @@ matters, and getting it wrong silently reverts the owner's work.
    ```bash
    node scripts/kit-sync.mjs adopt
    ```
+
+   **It installs every framework file the project does not have**, not only the unedited ones: an
+   absent file counts as pristine, so a project that diverged from the kit's shape gets the whole
+   scaffolding at once. On a live instance that meant a root `wrangler.jsonc` in a repo whose own
+   CLAUDE.md forbids a second one, two apps it already had its own versions of, and a module its
+   confidentiality rules do not allow. Read the pristine list before believing it, and delete what
+   the project's shape does not want: `status` then reads those deletions as yours and never
+   restores them.
 
    One time only, for a project older than this mechanism. It asks the template's own history
    whether it ever published each file exactly as it is here: if so the owner never edited it and

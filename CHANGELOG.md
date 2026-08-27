@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · Two sessions at once no longer lose each other's work in the index
+
+If you ever have two Claude sessions open on the same project, this one matters. Git's staging area
+is shared between them, so a file one session prepared but had not yet saved gets swept into the
+next commit the other session makes, landing under a message about something completely different.
+It happened here today: two framework files were published inside commits about two unrelated
+people. The rule your agent now follows is to prepare and save in one step, never to leave work
+sitting half-saved.
+
+The upgrade guide also warns that a first-time adoption installs every framework file your project
+does not already have, not only the ones you never edited. On a project that has drifted from the
+kit's shape that can mean a second hosting config, or a module your own rules do not allow. Your
+agent is now told to read that list and delete what does not belong before saving, and deletions
+stick.
+
+**What you need to do:** nothing to install. If you work in more than one session at a time, expect
+your agent to save its own work sooner rather than leaving it staged.
+
 ## 2026-08-27 · MAJOR · Before you deliver, your agent now runs the mistakes it already made
 
 Your project keeps a register of what your agent got wrong (`source/quality/incidents.json`). It was

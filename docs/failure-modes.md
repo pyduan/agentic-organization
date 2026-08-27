@@ -383,6 +383,13 @@ in a single session, and they get more likely exactly when work is going well.
 
 - **Commit only the files you touched, named one by one.** A blanket `git add` has carried away
   another session's work in progress.
+- **A file left staged belongs to whoever commits next.** The index is shared state between
+  sessions, so staging without committing is a trap for a well-behaved neighbour: a narrow
+  `git add <their file>` followed by a plain `git commit` carries away everything already staged,
+  and the work lands under a message describing something else entirely. Two framework files were
+  published that way inside commits about two unrelated people, and the session that lost them had
+  staged them itself, half an hour earlier, and moved on. Stage and commit in one step. And treat
+  `git checkout <ref> -- <file>` as a staging command, because that is what it is.
 - **Ownership comes from a file's history, not its location.** Read it before editing something
   outside your own scope, and tell the session that actually owns it.
 - **Write down who owns what** when more than one session is running: a two-column note in the repo
