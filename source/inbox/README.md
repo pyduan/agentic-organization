@@ -9,6 +9,8 @@
 3. File each item where it belongs:
    - texts, the owner's own facts, data → `source/content/`
    - a third-party stat, report, or benchmark (with its source) → `source/facts/`
+   - news — something happened, no task and no fact to update → one dated line in `source/journal.md`
+   - a note that is really a task → a line in the right `next-steps.md`
    - images, logos, scans (keep originals at full resolution) → `source/brand/assets/`
    - anything expressing taste ("I like this site", a brand PDF) → fold the lesson into `source/brand/voice.md` or `design.md`, then archive or delete the file as appropriate
 4. Do whatever the drop was for (add the gallery piece, update the bio, build the deck).
