@@ -1,4 +1,23 @@
 {
   "version": 1,
-  "incidents": []
+  "incidents": [
+    {
+      "id": "2026-08-27-1",
+      "date": "2026-08-27",
+      "category": "destructive",
+      "severity": "major",
+      "inputs": "A new preflight script whose whole purpose is to read a project's incident register before delivery, and an outside workshop that had translated the kit's folder names into its own language.",
+      "error": "The register path was hardcoded to source/quality/incidents.json. On that workshop the script announced 'this project has logged no incidents yet' over a register holding 109 of them, and its checklist silently dropped every lesson that workshop had already paid for.",
+      "why": "Two defects stacked. The path was assumed rather than resolved, and — worse — a failure to READ the file was rendered with the same sentence as a file that was read and found empty. 'Nothing to do' and 'nothing seen' produce the same value, and only one of them is good news. The script reproduced, on its first outside run, the exact failure family it was built to catch.",
+      "detected_by": "owner",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/preflight.mjs (findFile + three distinct outcomes)"
+      },
+      "generic": "A tool that reads a project's data must resolve that path rather than assume it, and must never render 'could not read the input' with the same words as 'read the input, it was empty'. A check that reports all-clear when it simply failed to find its input is worse than no check at all.",
+      "sensitive": [
+        "inputs"
+      ]
+    }
+  ]
 }

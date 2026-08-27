@@ -19,8 +19,14 @@
 //   node scripts/preflight.mjs --task "check the price adjustment and publish it"
 //   node scripts/preflight.mjs --full                   # whole rule, not just its claim
 //   node scripts/preflight.mjs --list                   # the family names and their keys
+//   node scripts/preflight.mjs --register=<path>        # register kept somewhere else
+//   node scripts/preflight.mjs --families=<path>        # failure-modes guide kept somewhere else
+//
+// Both inputs are also settable with KIT_REGISTER and KIT_FAILURE_MODES, and both
+// are searched for if the canonical path is absent. A workshop that translated the
+// kit's paths does not need a bridge script.
 
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { resolve, join } from 'node:path';
 
 const ROOT = resolve(process.cwd());
@@ -101,7 +107,54 @@ const selected = named.length
 
 // ------------------------------------------------------------ the two lists
 
-const md = await readFile(join(ROOT, 'docs/failure-modes.md'), 'utf8');
+// ---------------------------------------------------------- locate the two inputs
+// A workshop may translate the kit's paths (a French install keeps its register
+// under a French name). Hardcoding them made this script announce "no incidents
+// logged" over a register holding a hundred and nine — the exact failure it exists
+// to prevent, reported by the owner of that workshop. So: the canonical path, then
+// a flag or env var, then a bounded search. And the three outcomes are never
+// conflated: found / found-and-empty / not-found-at-all.
+
+const flag = (name) => (args.find((a) => a.startsWith(`--${name}=`)) || '').slice(name.length + 3);
+
+async function findFile(canonical, matches, override) {
+  if (override) return { path: resolve(ROOT, override), how: 'given' };
+  if (await readFile(join(ROOT, canonical), 'utf8').then(() => true, () => false)) {
+    return { path: join(ROOT, canonical), how: 'canonical' };
+  }
+  // Bounded walk: deep enough to find a renamed folder, shallow enough to stay instant.
+  const hits = [];
+  const skip = new Set(['node_modules', '.git', 'dist', 'build', '.astro', '.wrangler']);
+  const walk = async (dir, depth) => {
+    if (depth > 4 || hits.length > 8) return;
+    let entries = [];
+    try { entries = await readdir(dir, { withFileTypes: true }); } catch { return; }
+    for (const e of entries) {
+      if (e.name.startsWith('.') && e.name !== '.claude') continue;
+      if (skip.has(e.name)) continue;
+      const full = join(dir, e.name);
+      if (e.isDirectory()) await walk(full, depth + 1);
+      else if (matches(e.name)) hits.push(full);
+    }
+  };
+  await walk(ROOT, 0);
+  if (hits.length === 1) return { path: hits[0], how: 'found' };
+  if (hits.length > 1) return { path: null, how: 'ambiguous', hits };
+  return { path: null, how: 'missing' };
+}
+
+const modesAt = await findFile(
+  'docs/failure-modes.md',
+  (n) => /failure[-_]?modes?.*\.md$/i.test(n) || /modes?[-_]?(de[-_]?)?d[eé]faillance.*\.md$/i.test(n),
+  flag('families') || process.env.KIT_FAILURE_MODES,
+);
+if (!modesAt.path) {
+  console.error(`preflight: could not find the failure-modes guide (docs/failure-modes.md).`);
+  if (modesAt.how === 'ambiguous') console.error(`  Several candidates: ${modesAt.hits.join(', ')}`);
+  console.error(`  Point at it with --families=<path> or KIT_FAILURE_MODES=<path>.`);
+  process.exit(2);
+}
+const md = await readFile(modesAt.path, 'utf8');
 
 // Each `## N · Title` section holds `- **claim…**` bullets, sometimes under `### ` groups.
 // Take the bold lead of each bullet as its claim: that is the assertion to check.
@@ -133,11 +186,18 @@ function rulesFor(section) {
   return out;
 }
 
-let register = { incidents: [] };
-try {
-  register = JSON.parse(await readFile(join(ROOT, 'source/quality/incidents.json'), 'utf8'));
-} catch { /* no register yet: the general list still applies */ }
-const incidents = register.incidents || [];
+const registerAt = await findFile(
+  'source/quality/incidents.json',
+  (n) => /^incidents?\.json$/i.test(n) || /^incidents?[-_].*\.json$/i.test(n),
+  flag('register') || process.env.KIT_REGISTER,
+);
+let register = null;      // null means: no register file found. Not the same as empty.
+let registerError = null; // a file that exists but will not parse is a third thing again.
+if (registerAt.path) {
+  try { register = JSON.parse(await readFile(registerAt.path, 'utf8')); }
+  catch (e) { registerError = e.message; }
+}
+const incidents = register?.incidents || [];
 
 // ------------------------------------------------------------ render
 
@@ -158,13 +218,28 @@ say();
 
 // This project's own past mistakes come first. They are the ones already paid for.
 const mine = incidents.filter((i) => selected.some((f) => f.key === i.category));
-if (!incidents.length) {
-  say('This project has logged no incidents yet, so only the general list applies below.');
+if (!registerAt.path) {
+  // NOT the same as "no incidents". Say which is which, loudly: a check that reports
+  // "all clear" when it simply could not read its input is worse than no check.
+  say('⚠ NO REGISTER FOUND — this is not the same as "no mistakes logged".');
+  say(`  Looked for source/quality/incidents.json under ${ROOT}, and for any incidents*.json`);
+  if (registerAt.how === 'ambiguous') say(`  Several candidates, so none was chosen: ${registerAt.hits.join(', ')}`);
+  say('  If this project keeps its register elsewhere (a translated path, another folder),');
+  say('  point at it: --register=<path>, or set KIT_REGISTER. Everything below is the');
+  say("  general list only, and it does NOT include what this project has already got wrong.");
+  say();
+} else if (registerError) {
+  say(`⚠ REGISTER UNREADABLE at ${registerAt.path}`);
+  say(`  ${registerError}`);
+  say('  Fix it before trusting anything below: the project\'s own mistakes are not in this run.');
+  say();
+} else if (!incidents.length) {
+  say(`Register read (${registerAt.path.replace(ROOT + '/', '')}): it is empty.`);
   say('An empty register after weeks of work usually means the reflection pass is recording');
   say('lessons but not the misses that produced them (source/quality/README.md).');
   say();
 } else if (!mine.length) {
-  say(`Register: ${incidents.length} logged, none in these families.`);
+  say(`Register (${registerAt.path.replace(ROOT + '/', '')}): ${incidents.length} logged, none in these families.`);
   say();
 } else {
   say(`── Already made on this project, in these families (${mine.length}) ────────────`);
