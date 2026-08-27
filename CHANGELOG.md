@@ -117,7 +117,7 @@ proves the gate is closed to strangers; the token check is what makes the identi
 trustworthy.
 
 **What you need to do:** if the to-do app is deployed, set two vars in `apps/todos/wrangler.jsonc`
-after pulling this update — `TEAM_DOMAIN` (https://&lt;your-team&gt;.cloudflareaccess.com) and
+after pulling this update — `TEAM_DOMAIN` (`https://<your-team>.cloudflareaccess.com`) and
 `POLICY_AUD` (the Access application's AUD tag, on the app's Overview page in Zero Trust) — then
 redeploy. Until both are set the app refuses everyone and says which values are missing.
 
