@@ -79,6 +79,12 @@ Find every row that matches the task at hand and read those files before produci
   apply plus everything this project has already got wrong in them. **Repeating something already in
   the register is worse than a new mistake**, because it says the register is not working. The
   recipe is `docs/complex-tasks.md`.
+- **A change other instances must act on gets its `CHANGELOG.md` entry in the same commit.** This
+  repo is the template: every wired project checks it at session start and its agent reads the new
+  entry titles, plus the `**What you need to do:**` line, to its owner. That line is the only channel
+  that reaches them without an email, so write it for the owner rather than the developer, and use it
+  for the things a title cannot say — a workaround they can now delete, a setting to check, a path
+  that moved. A change shipped with no entry reaches nobody: it happened today, to five commits.
 - **Structure and facts come before anything you build.** Faced with something new — a project, a
   client, an area, a folder of documents — the first move is never the deliverable. It is: where will
   this material live (decided with the owner, not inherited), which facts matter, and what does the

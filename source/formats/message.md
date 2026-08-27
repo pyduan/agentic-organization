@@ -154,12 +154,10 @@ _Drafted with help from TODO's agentic workflows._
 
 ## Per person
 
-**If the person has no block, ask before drafting. Do not infer the register.** The `tu`/`vous`
-choice, the language and the sign-off are visible on the first line, so a wrong guess is a
-correction the sender makes by hand every time. And the tempting heuristic is the wrong one:
-**how someone writes to you does not tell you how you write to them.** A correspondent who
-vouvoies the owner in every mail may well be someone the owner tutoies. Inferring `vous` from her
-own messages produced exactly that error here. Ask, then write the block so nobody asks twice.
+**If the person has no block, ask.** The `tu`/`vous` choice, the language and the sign-off all show
+on the first line, so a wrong guess is a correction the sender makes by hand. Their own register is
+a reasonable clue and not a reliable one: someone who vouvoies the owner may well be someone the
+owner tutoies. Ask, then write the block so nobody asks twice.
 
 One block per person who sends messages drafted here. Keep each one short: it is a diff against
 `voice.md` and this file, never a copy. Split a block into its own `source/brand/voice-<name>.md`

@@ -55,24 +55,6 @@
       "sensitive": [
         "inputs"
       ]
-    },
-    {
-      "id": "2026-08-27-3",
-      "date": "2026-08-27",
-      "category": "handover",
-      "severity": "minor",
-      "inputs": "A message to draft for a correspondent with no per-person block in the message playbook, and a thread of her own mails in which she addresses the owner formally.",
-      "error": "Inferred the formal register from how she writes to the owner and drafted the whole message in it, including the sign-off. The owner tutoies her, and had to correct it.",
-      "why": "The per-person block is where the register lives, and it did not exist for her. Faced with the gap, the draft inferred rather than asked, using the one heuristic that does not hold: how someone writes to you says nothing about how you write to them.",
-      "detected_by": "owner",
-      "guard": {
-        "kind": "rule",
-        "where": "source/formats/message.md ▸ Per person; personal-paul/people/"
-      },
-      "generic": "Never infer how the owner addresses someone from how that person addresses the owner. If the per-person record does not say, ask before drafting, then write the record.",
-      "sensitive": [
-        "inputs"
-      ]
     }
   ]
 }
