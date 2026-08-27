@@ -43,8 +43,8 @@ against a case you know should appear; a summary never founds a conclusion, quot
 correction is checked against the authority, never against a second document of the kind that
 misled; "nothing to do" and "nothing seen" return the same value and only one is good news.
 
-**What you need to do:** nothing. Your agent reads this file before acting on real data or letting a
-figure leave the repo.
+**What you need to do:** nothing. Your agent reads this file on its own before acting on real data
+or letting a figure leave the repo.
 
 ## 2026-08-27 · MINOR · Knowing which projects are on the current kit, and who still works in them
 
