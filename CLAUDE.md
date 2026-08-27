@@ -41,6 +41,7 @@ Find every row that matches the task at hand and read those files before produci
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | **Anything new** — a project, a client, an area, a pile of documents that just arrived — or the owner asks "what do we actually know about X" | `.claude/skills/fact-finding/SKILL.md` — the master recipe: decide the structure, decide which facts matter, sweep the corpus, record facts + decisions + history, *then* build |
 | A **private page only the owner (and whoever they name) may open**: a dashboard, a recap of where projects stand, anything with client or unreleased material | `source/formats/dashboard.md` — it publishes as its own Access-gated Worker, never a public URL, and `npm run dashboard` builds it |
+| An **analysis**, or any task with several moving parts where being wrong costs something | `docs/complex-tasks.md` — objectives and constraints first, plans checked back against them, the task cut into judgeable subtasks, and `node scripts/preflight.mjs` before delivery |
 | About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
@@ -66,6 +67,17 @@ Find every row that matches the task at hand and read those files before produci
 - **Tokens only.** Every color, font, and spacing value comes from `source/brand/tokens.css`. If a design needs a value that doesn't exist, add the token first, then use it.
 - **Inbox protocol.** `source/inbox/` is the owner's drop zone and it can be messy. Process everything in it: file texts and data into `source/content/`, originals into `source/brand/assets/`, then act on what was asked and leave the inbox empty. Details in `source/inbox/README.md`. **The same holds for any external tool** the owner works in (a shared Drive, Notion, Dropbox, their Desktop): treat it as *ingestion only*, raw human material to pull from, never the source of truth and never a place you write back into. The curated truth always lives in the repo, in Git.
 - **Never commit secrets, and keep sensitive content out of the repo.** No API keys, passwords, or personal data beyond what the site itself publishes. For material that shouldn't be public but is worth keeping and versioning (financial models, runway/funding figures, private notes, a draft not ready to share), don't rely on "just don't publish it": add it to `.gitignore` so it's never committed, pushed, or deployed, and keep it in a **local-only copy** — a git-ignored folder, or its own separate local repo on the owner's machine. The public repo stays shareable; the sensitive layer never leaves the machine.
+- **On a complex task, the objectives come before the plan, and the plan gets checked back against
+  them.** Write down what the work is for and what it must respect before deciding how to do it, and
+  ask rather than assume when two readings would produce materially different work. Then hold every
+  plan against that: a step serving no objective comes out, however satisfying it is to do. Cut the
+  task into subtasks the owner can judge one at a time, each with its own governing guide and its
+  own checks, because a task delivered whole to a non-technical owner gets accepted whole or not at
+  all. And before delivering, run the known failures as a test suite rather than trusting memory:
+  `node scripts/preflight.mjs --task "…"` prints the families from `docs/failure-modes.md` that
+  apply plus everything this project has already got wrong in them. **Repeating something already in
+  the register is worse than a new mistake**, because it says the register is not working. The
+  recipe is `docs/complex-tasks.md`.
 - **Structure and facts come before anything you build.** Faced with something new — a project, a
   client, an area, a folder of documents — the first move is never the deliverable. It is: where will
   this material live (decided with the owner, not inherited), which facts matter, and what does the
@@ -152,11 +164,13 @@ docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans
 docs/failure-modes.md        the seven ways this goes wrong, and the rule each one produced
+docs/complex-tasks.md        the recipe for an analysis: objectives, plan check, subtasks, preflight
 source/formats/dashboard.md  the private dashboard: what it shows, and why one and not one per repo
 source/quality/              the incident register (the AI's own mistakes) + its schema
 apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
+scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong
 .claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
 ```

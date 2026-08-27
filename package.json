@@ -18,7 +18,8 @@
     "todos:sources": "node scripts/todo-sources.mjs",
     "check:packs": "node scripts/check-packs.mjs",
     "packs": "node scripts/packs-page.mjs",
-    "check:memory": "node scripts/check-memory.mjs"
+    "check:memory": "node scripts/check-memory.mjs",
+    "preflight": "node scripts/preflight.mjs"
   },
   "devDependencies": {
     "wrangler": "^4"

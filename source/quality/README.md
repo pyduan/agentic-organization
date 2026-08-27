@@ -3,7 +3,7 @@
 `incidents.json` is the running record of **the AI's own mistakes on this project** — what it had
 in front of it, what it got wrong, why, who caught it, and what stops it happening again.
 
-It exists for two different readers, which is why it is data and not prose:
+It exists for three different readers, which is why it is data and not prose:
 
 - **You.** A mistake that produced a rule is a rule you can check is still there. A mistake that
   produced nothing is a hole you can decide to close.
@@ -11,9 +11,15 @@ It exists for two different readers, which is why it is data and not prose:
   written with no facts of yours in it. `node scripts/error-report.mjs --anonymized` produces a
   report from those lines alone, ready to send, so the next person who installs this kit inherits
   what went wrong here without learning anything about you.
+- **The next session, before it delivers.** `node scripts/preflight.mjs --task "…"` prints the
+  general failure families that a task touches alongside every entry logged here in those families,
+  each with what guards it. That is what turns this file from a diary into a test suite, and it is
+  why the `generic` and `guard` fields are worth writing carefully. Repeating something already in
+  here is worse than a new mistake: it says the register is not working. See `docs/complex-tasks.md`.
 
 The `reflect` skill writes entries at the end of a session; the `feedback` skill generates and sends
-the report. Nothing here is ever published: it lives in the repo, and the repo is private.
+the report; `preflight` reads them back at the start of the next piece of work. Nothing here is ever
+published: it lives in the repo, and the repo is private.
 
 ## One entry
 
