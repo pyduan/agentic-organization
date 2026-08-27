@@ -10,6 +10,28 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · The internal-app rule now states its shape, and the check that proves the door is locked
+
+Two corrections to the web-app playbook, both from a live project that applied yesterday's rule to
+an app behind Cloudflare Access.
+
+First, "Astro by default" for internal apps now says what it means: static output, no Cloudflare
+adapter, and the signed-in identity read from a request header rather than `ctx.access`. Followed
+down the standard path, the old wording produced a Worker with Static Assets — a shape where
+Cloudflare's own router never hands your code the visitor's identity. An app that refuses to serve
+strangers then refuses everyone, or quietly stops checking while the code still reads as if it
+does. Local testing shows green either way; only opening the deployed app from a browser that is
+not signed in tells the truth. The playbook now covers the whole trap, including the config block
+that build tooling can add without any file in your repo declaring it.
+
+Second, the default now states its scope: it decides what you build new, not what you replace. An
+internal app that already works and already aggregates several sources is enriched, never migrated
+just because the rule names a framework. Two to-do lists make zero to-do lists.
+
+**What you need to do:** if any app of yours sits behind Access, open its URL today from a browser
+that is not signed in. A login page or a 403 is right; seeing the app itself is an incident, and
+`docs/deploy-cloudflare.md` ▸ *Verify from outside* has the exact command.
+
 ## 2026-08-26 · MAJOR · Emails and messages have a house style now
 
 Ask for "an email to the printer" or "a message to Sam about the review" and you get something

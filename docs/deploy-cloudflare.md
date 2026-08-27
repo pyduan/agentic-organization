@@ -159,9 +159,13 @@ Two things worth knowing before you design anything on it:
 
 - **The policy is the boundary — do not write your own identity check.** An assets-only Worker (what
   the dashboard is) never sees the request in code, and that is the point: there is no fail-closed
-  check to get wrong. If you ever do add a fetch handler and want the signed-in identity, be aware
-  that a Static Assets binding in front of your code can leave it without one, which turns a
-  well-meaning `if (!identity) return 403` into a page that refuses everybody.
+  check to get wrong. If you ever do add a fetch handler and want the signed-in identity, take it
+  from the `Cf-Access-Authenticated-User-Email` header (as `apps/todos/worker.js` does), never from
+  `ctx.access`: a Worker with Static Assets runs behind an internal router that does not pass
+  `ctx.access` to your code, and local dev simulates it anyway, so a `ctx.access`-based check tests
+  green and then refuses everybody in production — or silently stops running. The full trap,
+  including the assets block that build tooling can add without any file declaring it, is in
+  `source/formats/webapp.md` ▸ *Access and identity*.
 - **No WebSockets.** Worker-level Access policies reject WebSocket upgrades with a `403`. Anything
   realtime needs a hostname-based Access application instead, which is a different setup.
 

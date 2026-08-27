@@ -28,12 +28,24 @@ get opened daily, changed weekly, and always end up holding state, because that 
 your own people is for. Hand-rolling them is a bet that they will stay simple, and that bet loses
 every time. Start with the build step and stop thinking about it.
 
+Two boundaries on that default, both learned on a live project:
+
+- **It decides what you build, not what you replace.** An internal app that already works, already
+  aggregates several sources, and is already the one place people open is enriched, never migrated
+  by default: port the missing piece into it. A rewrite is a trade-off whose cost depends entirely
+  on what exists, and two to-do lists make zero to-do lists. Read "by default" at creation time.
+- **Behind the gate, Astro means static output with no adapter.** The build step is bought for
+  components, Tailwind and shadcn, none of which needs a server. Adding the Cloudflare adapter
+  turns the app into a Worker with Static Assets, a shape that silently breaks identity checks:
+  read *Access and identity* below before deploying anything behind the gate.
+
 **A public surface is a judgement call.** A marketing page, a landing page, a calculator someone
 lands on from a search: static is very often exactly right, it is faster, it survives longer, and
 it has no dependency tree to maintain. The site itself already has its own playbook
 (`website.md`); for a public *tool*, the test below decides.
 
-So the rest of this section is about the public side. Internal is settled: Astro.
+So the rest of this section is about the public side. Internal is settled: Astro, static, no
+adapter.
 
 ### The test that decides how much machinery a public tool gets
 
@@ -152,7 +164,9 @@ GitHub  ─ the store
 ```
 
 The token stays server-side, which is what keeps the "no API key in a static app" rule intact.
-Access supplies identity, and the Worker fails closed without it, exactly as `apps/dashboard` does.
+Access supplies identity and the Worker fails closed without it — but the identity is a request
+header, never `ctx.access`; `apps/todos/worker.js` is the reference, and *Access and identity*
+below explains why the distinction is load-bearing.
 
 Four things decide whether this is pleasant or awful:
 
@@ -171,6 +185,35 @@ Four things decide whether this is pleasant or awful:
 **Where it stops.** This is a few writes a minute by a few people. Past that — many concurrent
 editors, live collaboration, queries or aggregation over thousands of rows — it stops being clever
 and the escalation below applies.
+
+## Access and identity: the trap that does not show up in dev
+
+Found on a live project, and worth its own section because every part of it is silent: the door
+looks locked while standing open, and no local test says otherwise.
+
+**A Worker with Static Assets never sees `ctx.access`.** Cloudflare runs such a Worker behind an
+internal router, and the router does not pass `ctx.access` through to your code — the
+[Workers docs](https://developers.cloudflare.com/workers/configuration/cloudflare-access/#ctxaccess-limitations)
+state it explicitly. Access still gates the application and its assets, but code that decides from
+`ctx.access` sees `undefined` on every request. For an app that merely displays, nothing happens.
+For a Worker that refuses to serve until it can prove who is asking, the result is a 403 on
+everything — or worse, an identity check that no longer runs while the code still reads as if it
+does. So identity in code comes from the request, not the context: read the
+`Cf-Access-Authenticated-User-Email` header (or validate the `Cf-Access-Jwt-Assertion` JWT),
+exactly as `apps/todos/worker.js` does. Headers ride the request and survive the router.
+
+**The assets block can appear without anyone writing it.** The Cloudflare Vite plugin adds `assets`
+to the *generated* deploy configuration when the input `wrangler.jsonc` omits it, and frameworks
+built on that plugin (the docs name TanStack Start) are affected even when no file in the repo
+declares an asset. Nobody reviews a config block that exists in no file.
+
+**Local dev proves nothing here.** `wrangler dev` with an `access.dev` block simulates `ctx.access`
+whether or not the deployed Worker will actually receive it; the local server does not reproduce
+the internal router. A green local check, a deploy, and the gate is open without a single test
+having said so. The only verification that counts is the one the proxy bullet above already
+demands, in production: **request the deployed app from a browser that is not signed in. A login
+redirect or a 403 is the right answer; a 200 is an incident.** Run it at first deploy and again
+after any change to adapters, build tooling, or wrangler config.
 
 ## When an app needs a real backend (state, accounts, a database)
 
