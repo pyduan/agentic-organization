@@ -76,6 +76,34 @@ else
   echo "✓ Already logged into GitHub"
 fi
 
+# --- Git identity ---
+# Without this, git signs commits as "Name <user@Machine.local>". They still land,
+# but GitHub can route them to nobody: the contributor graph shows zero, and a
+# maintainer checking whether someone has been working sees an empty column and
+# concludes the wrong thing. Observed on a real onboarding, a month late.
+# Take the identity from the GitHub account we just logged into, so it matches.
+if [ -z "$(git config --global user.email)" ]; then
+  GH_LOGIN="$(gh api user --jq .login 2>/dev/null || true)"
+  GH_NAME="$(gh api user --jq '.name // .login' 2>/dev/null || true)"
+  GH_EMAIL="$(gh api user/emails --jq '[.[] | select(.primary)][0].email' 2>/dev/null || true)"
+  # A user who keeps their address private has no primary email exposed; GitHub's
+  # noreply address is the routable substitute and links commits correctly.
+  if [ -z "$GH_EMAIL" ] && [ -n "$GH_LOGIN" ]; then
+    GH_ID="$(gh api user --jq .id 2>/dev/null || true)"
+    [ -n "$GH_ID" ] && GH_EMAIL="${GH_ID}+${GH_LOGIN}@users.noreply.github.com"
+  fi
+  if [ -n "$GH_EMAIL" ]; then
+    git config --global user.email "$GH_EMAIL"
+    [ -n "$GH_NAME" ] && git config --global user.name "$GH_NAME"
+    echo "✓ Git will sign your commits as ${GH_NAME:-$GH_LOGIN} <$GH_EMAIL>"
+  else
+    echo "▲ Could not read your GitHub identity, so commits may not be credited to you."
+    echo "  Tell your agent: 'my commits are not linked to my GitHub account', and it will fix it."
+  fi
+else
+  echo "✓ Git identity already set ($(git config --global user.email))"
+fi
+
 # --- SSH key (a fallback; HTTPS above is the default path) ---
 # gh's browser login uses HTTPS and needs no key. A key still helps on the one
 # machine in twenty whose network blocks HTTPS git traffic, and it costs nothing

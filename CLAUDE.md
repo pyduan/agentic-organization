@@ -46,6 +46,7 @@ Find every row that matches the task at hand and read those files before produci
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows) |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
+| Onboarding someone onto the kit, or "is everyone on the current version", "why did X not get the update" | `node scripts/check-fleet.mjs` — per instance: how far behind the template, whether it is wired to announce its own news, and who last pushed. A project onboarded before a mechanism cannot announce that mechanism exists |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
@@ -169,6 +170,7 @@ source/formats/dashboard.md  the private dashboard: what it shows, and why one a
 source/quality/              the incident register (the AI's own mistakes) + its schema
 apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
+scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong

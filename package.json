@@ -8,7 +8,7 @@
     "deploy": "npm run build && wrangler deploy",
     "dashboard": "node scripts/dashboard-data.mjs",
     "deploy:dashboard": "npm run dashboard && wrangler deploy --config apps/dashboard/wrangler.jsonc",
-    "check": "node scripts/check-freshness.mjs && node scripts/check-workspace.mjs && node scripts/check-packs.mjs",
+    "check": "node scripts/check-freshness.mjs && node scripts/check-workspace.mjs && node scripts/check-fleet.mjs && node scripts/check-packs.mjs",
     "test": "node --test scripts/test-todo.mjs scripts/test-todo-client.mjs scripts/test-access.mjs",
     "todos:dev": "node scripts/todos-dev.mjs",
     "todos:build": "npm run todos:sources && npm --prefix apps/todos install && npm --prefix apps/todos run build",
@@ -19,7 +19,8 @@
     "check:packs": "node scripts/check-packs.mjs",
     "packs": "node scripts/packs-page.mjs",
     "check:memory": "node scripts/check-memory.mjs",
-    "preflight": "node scripts/preflight.mjs"
+    "preflight": "node scripts/preflight.mjs",
+    "check:fleet": "node scripts/check-fleet.mjs"
   },
   "devDependencies": {
     "wrangler": "^4"
