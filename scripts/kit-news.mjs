@@ -96,8 +96,21 @@ const actionFor = (title) => {
   if (at === -1) return null;
   for (let i = at + 1; i < full.length; i++) {
     if (full[i].startsWith('## ')) return null;                // next entry, none found
-    const m = full[i].match(/^\*\*(?:What you need to do|À faire)[^:]*:\*\*\s*(.+)$/i);
-    if (m) return m[1].replace(/\s+/g, ' ').trim();
+    const m = full[i].match(/^\*\*(?:What you need to do|À faire)[^:]*:\*\*\s*(.*)$/i);
+    if (!m) continue;
+    // The entry is wrapped prose, so the action runs to the blank line, not to the
+    // end of its first line. Taking only the first line truncated mid-sentence.
+    const parts = [m[1]];
+    for (let j = i + 1; j < full.length && full[j].trim() && !full[j].startsWith('## '); j++) {
+      parts.push(full[j]);
+    }
+    const text = parts.join(' ').replace(/\s+/g, ' ').trim();
+    // Most entries open with "Nothing to install." and then say the thing that
+    // matters. Drop the reassurance, keep the remainder; skip only if that is all
+    // there was. Filtering on the opening word alone suppressed the one notice an
+    // outside workshop actually needed.
+    const rest = text.replace(/^nothing[^.]*\.\s*/i, '').trim();
+    return rest || null;
   }
   return null;
 };
@@ -107,9 +120,17 @@ console.log(`The kit this project is built on has ${added.length} update(s) it h
 for (const t of added) {
   console.log(`  ## ${t}`);
   const action = actionFor(t);
-  // Only worth the space when it is more than the usual "nothing to install".
-  if (action && !/^nothing\b/i.test(action)) {
-    console.log(`     → ${action.length > 220 ? `${action.slice(0, 217)}...` : action}`);
+  if (action) {
+    // Wrap rather than truncate: these are the lines that save an email.
+    const words = action.split(' ');
+    let line = '';
+    const outLines = [];
+    for (const w of words) {
+      if ((line + ' ' + w).trim().length > 84) { outLines.push(line.trim()); line = w; }
+      else line += ` ${w}`;
+    }
+    if (line.trim()) outLines.push(line.trim());
+    console.log(`     → ${outLines.join('\n       ')}`);
   }
 }
 console.log('Tell the owner what these bring, in their language and in plain words, and offer to run');
