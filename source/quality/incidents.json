@@ -18,6 +18,25 @@
       "sensitive": [
         "inputs"
       ]
+    },
+    {
+      "id": "2026-08-27-2",
+      "date": "2026-08-27",
+      "category": "numbers",
+      "severity": "major",
+      "inputs": "A comparison between metered per-token rates and a flat per-seat subscription. The per-token rates came from a skill whose own table carries a 'cached' date and which states outright that pricing questions must never be answered from memory. The seat's list price was a published figure on the vendor's public pricing page, one fetch away.",
+      "error": "Invented the base the discount applied to, asked the owner only for the discount rate, and delivered a headline ratio built on the invented base. The base was wrong, so the delivered ratio was about a third too low. The live prices were only checked when the owner asked whether the numbers were current — at which point the per-token side proved correct to the cent and the seat side did not.",
+      "why": "The percentage was treated as the unknown and its base as mere context. Asking the owner for the one figure felt like diligence and disguised the fact that the other had been guessed rather than looked up — a published price is cheaper to fetch than to ask for, and the skill in hand said so in as many words. Underneath: preflight was never run, so the family that owns this exact rule was never printed before delivery.",
+      "detected_by": "owner",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md §3 — 'An adjustment carries its base, because the base decides the sign' was already written. This is a repeat of an existing rule, not a new one; what was missing was running scripts/preflight.mjs before delivering figures."
+      },
+      "generic": "A percentage is meaningless without its base, so fix the base before applying the rate — and when the base is a published figure, fetch it rather than assume it or ask for it. Asking the owner for one input does not license guessing another, and flagging a guess as an assumption does not make the headline built on it any less wrong.",
+      "sensitive": [
+        "inputs",
+        "error"
+      ]
     }
   ]
 }
