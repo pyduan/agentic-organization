@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · Kit news reaches you on its own now
+
+Until today, an improvement to the kit only reached you if you thought to ask for it — which is
+backwards, since you cannot ask about what you do not know exists. Now every session quietly checks
+the template on startup, and when the kit has news your agent opens with it: what changed, what it
+brings you, and the offer to pull it in. You say yes or no; nothing is ever applied on its own, and
+the same news is not repeated more than once a week.
+
+**What you need to do:** nothing. The check installs itself with this update and stays silent when
+there is nothing to say.
+
 ## 2026-08-27 · MAJOR · A note bubble on the to-do app: jot anything, the agent files it
 
 The to-do app now carries a floating ✎ bubble. Type anything into it — a number heard in a call,

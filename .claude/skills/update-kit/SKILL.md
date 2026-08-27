@@ -6,7 +6,11 @@ description: "Pull the latest agentic-organization template improvements into th
 # Update the framework in this project
 
 This project was created from the `pyduan/agentic-organization` template. The template keeps
-improving (new skills, better guides, fixed scripts). This skill pulls those improvements in
+improving (new skills, better guides, fixed scripts). **The owner does not have to ask**: a
+session-start hook runs `scripts/kit-news.mjs`, which checks the template quietly and, when there
+is something new, opens the session with the list of what this project has not taken. Your job
+then is to say what those updates bring in the owner's language and offer this skill — never to
+apply them on your own. This skill is the "yes" path. It pulls the improvements in
 **without clobbering the owner's own content** — their `source/`, their `site/`, their pages are
 theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format playbooks in
 `source/formats/`, the root deploy config `wrangler.jsonc`/`package.json`, and the root
