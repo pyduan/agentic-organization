@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MINOR · The preflight check no longer calls a register it cannot read "empty"
+
+Found the first time a project hand-started its incident register from the schema example: the
+example shows one entry, so the file came out as a bare list rather than wrapped in
+`{ "version": 1, "incidents": [ … ] }`. The check parsed it, found nothing where it looked, and
+announced the register was empty — over two entries that were sitting right there. That is the same
+confusion between "read it, nothing in it" and "could not read it" that the register's own first
+entry is about, one level further down. There is now a fourth answer that names the shape problem
+and says the entries exist but are invisible to the run.
+
+**What you need to do:** nothing, unless a preflight run tells you your register's shape is
+unrecognised — in which case wrap your entries as the schema shows and they come back.
+
 ## 2026-08-27 · MAJOR · Two sessions at once no longer lose each other's work in the index
 
 If you ever have two Claude sessions open on the same project, this one matters. Git's staging area
