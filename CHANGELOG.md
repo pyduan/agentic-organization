@@ -10,6 +10,21 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · A journal: the repo now remembers what happened, not only what was decided
+
+Decisions had a file, tasks had files, facts had files — a plain event had none. "The printer
+delivered", "the grant answer arrived", "the site was down an hour" now get one dated line with a
+provenance in `source/journal.md`, newest first. The rule that keeps it healthy: the journal takes
+the line that says it happened; the detail goes to the file that owns it. A note typed into the
+to-do app's bubble that turns out to be news ends up here too, and the reread before an annual
+review stops being an archaeology dig.
+
+Came from a live project's board, who wanted one place to say that something happened without
+deciding where it belongs.
+
+**What you need to do:** nothing to install. The first time something worth remembering happens,
+your agent will put the line in `source/journal.md`; replace the TODO row when it appears.
+
 ## 2026-08-27 · MAJOR · Kit news reaches you on its own now
 
 Until today, an improvement to the kit only reached you if you thought to ask for it — which is

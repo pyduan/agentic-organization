@@ -28,6 +28,7 @@ Find every row that matches the task at hand and read those files before produci
 | A message someone will **send**: an email out, an email to the team, a chat message | `source/formats/message.md` (the shape per format, plus the per-person block), and `source/brand/voice.md` for the plain-text email rules |
 | A phone / chat / platform demo (inside a deck, page, or app) | `source/formats/demos.md`, plus voice and design above |
 | A discussion (internal or external) that moves a hypothesis or the positioning | `source/decisions.md` — add a dated entry (the why, before → after) |
+| **Something happened** — news, a delivery, an answer, an outage — worth remembering at the annual review | `source/formats/journal.md` — one dated line with its provenance in `source/journal.md`; the detail goes to the file that owns it |
 | Files the owner dropped for you | `source/inbox/README.md` |
 | Repeated items (gallery pieces, products, projects, events) | the collections section of `source/formats/website.md` |
 | Facts about the owner or project (bio, dates, prices, claims) | `source/content/` (never invent facts; ask if missing) |
@@ -124,6 +125,7 @@ ORGANIGRAM.md                the org's repos + who may use/change/approve what (
 source/brief.md              project brief: read every session
 source/objectives.md         the owner's north star: priorities that projects & goals align to
 source/decisions.md          how hypotheses & positioning evolved, and why (per discussion)
+source/journal.md            what happened, one dated line per event (source/formats/journal.md)
 source/inbox/                drop zone (processed then emptied)
 source/content/              canonical texts, facts, and data files
 source/facts/                sourced third-party facts and key figures
