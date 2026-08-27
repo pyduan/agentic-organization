@@ -3,6 +3,7 @@
 // Read  GET  /api/todos/files          → the sources this app may edit
 //       GET  /api/todos?source=…       → { source, sha, items }
 // Write POST /api/todos  { source, intents[] }
+//       POST /api/notes  { text }      → one new file in the notes target's inbox
 //
 // **The client names a source, never a path.** One app usually spans several
 // projects, often in several repositories, and letting the browser send a repo
@@ -152,6 +153,49 @@ function applyBatch(markdown, intents, email) {
   return { markdown: out, done, rejected };
 }
 
+/**
+ * Where a note lands. The note bubble is the capture surface for anything that
+ * is not a to-do edit — a number heard in a call, a piece of news, an idea —
+ * typed where the person already is. One file per note, committed into the
+ * target repo's `source/inbox/notes/`; the inbox protocol files it from there.
+ *
+ * `NOTES_TARGET` in vars ({ repo, dir?, branch? }) overrides; the default is
+ * the first configured source's repo, which is right whenever the workspace
+ * has one repo, and must be made explicit the moment it does not.
+ */
+function notesTarget(env, configured) {
+  const raw = env.NOTES_TARGET;
+  const t = typeof raw === 'string' && raw.trim() ? JSON.parse(raw) : raw && typeof raw === 'object' ? raw : null;
+  if (t && t.repo) return { repo: t.repo, dir: t.dir || 'source/inbox/notes', branch: t.branch || env.TODO_BRANCH || 'main' };
+  const first = configured[0];
+  return first ? { repo: first.repo, dir: 'source/inbox/notes', branch: first.branch } : null;
+}
+
+async function postNote(request, env, email, configured) {
+  const target = notesTarget(env, configured);
+  if (!target) return json({ error: 'no notes target: configure a source, or set NOTES_TARGET' }, 501);
+
+  const body = await request.json().catch(() => ({}));
+  const text = String(body.text ?? '').trim();
+  if (!text) return json({ error: 'empty note' }, 400);
+  if (text.length > 20000) return json({ error: 'note too long (20 000 characters at most)' }, 400);
+
+  const stamp = new Date().toISOString();
+  // The author is the authenticated identity, same rule as comments.
+  const author = email.split('@')[0].toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'someone';
+  const content = `---\ndate: ${stamp}\nauthor: ${email}\nvia: the to-do app\n---\n\n${text}\n`;
+
+  // One file per note, never rewritten: a name collision (two notes in the same
+  // minute) gets a suffix rather than a merge.
+  for (let n = 0; n < 3; n++) {
+    const name = `${stamp.slice(0, 16).replace(/:/g, 'h')}${n ? `-${n + 1}` : ''}-${author}.md`;
+    const src = { repo: target.repo, path: `${target.dir}/${name}`, branch: target.branch };
+    const res = await writeFile(env, src, content, undefined, `note from ${author}, via the to-do app`, email);
+    if (!res.conflict) return json({ ok: true, file: name });
+  }
+  return json({ error: 'could not place the note; try again in a moment' }, 409);
+}
+
 function summarize(done, label) {
   const bits = [];
   if (done.toggled) bits.push(`${done.toggled} ticked`);
@@ -184,6 +228,12 @@ export default {
         email,
         sources: configured.map(({ id, label, repo }) => ({ id, label, repo })),
       });
+    }
+
+    if (url.pathname === '/api/notes') {
+      if (request.method !== 'POST') return json({ error: 'method not allowed' }, 405);
+      try { return await postNote(request, env, email, configured); }
+      catch (err) { return json({ error: String(err.message || err) }, err.status || 500); }
     }
 
     if (url.pathname !== '/api/todos') return env.ASSETS.fetch(request);

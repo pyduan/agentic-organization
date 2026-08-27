@@ -238,6 +238,21 @@ That asymmetry is the whole reason `docs/troubleshooting.md` carries an entry fo
 it up this way, write down that you did**, in the project's own notes, or the eventual 401 is
 undiagnosable by whoever meets it.
 
+## The note bubble: capture that is not a to-do edit
+
+The app also carries a floating ✎ bubble, and it exists because of what people actually type from a
+phone. Most of it is not a to-do edit: a number heard in a call, a piece of news, an idea, a
+correction. Forcing that through a to-do line mislabels it, and asking the person to wait for a
+keyboard mostly kills it.
+
+The bubble takes anything, as it comes, and `POST /api/notes` commits it — one file per note, dated,
+signed with the verified identity — into `source/inbox/notes/` of the **notes target**: by default
+the first configured source's repo, or `NOTES_TARGET` in vars (`{ "repo": "…", "dir": "…",
+"branch": "…" }`) the moment the workspace has several repos and the default stops being obvious.
+From there the **inbox protocol** takes over, unchanged: the agent's next pass reads the note, files
+it where it belongs (a fact into the fact file, a task into the list, news into the journal), and
+leaves the inbox empty. The bubble is a capture surface, not a second place where truth lives.
+
 ## Examples in this file are invented
 
 Every to-do above is fictional — a printer, a brochure, `@sam`. That is a rule, not a coincidence:
