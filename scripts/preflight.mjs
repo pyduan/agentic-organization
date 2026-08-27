@@ -197,7 +197,13 @@ if (registerAt.path) {
   try { register = JSON.parse(await readFile(registerAt.path, 'utf8')); }
   catch (e) { registerError = e.message; }
 }
-const incidents = register?.incidents || [];
+// A file that parses but has no `incidents` array is a FOURTH outcome, and it used to
+// collapse into "it is empty" — the very conflation the register's first entry is about,
+// reproduced one level down. A bare array is the likely shape: the schema example in
+// source/quality/README.md shows one entry, so a register hand-started from it comes out
+// as [ … ] rather than { incidents: [ … ] }.
+const incidents = Array.isArray(register?.incidents) ? register.incidents : [];
+const shapeUnknown = register !== null && !Array.isArray(register?.incidents);
 
 // ------------------------------------------------------------ render
 
@@ -232,6 +238,14 @@ if (!registerAt.path) {
   say(`⚠ REGISTER UNREADABLE at ${registerAt.path}`);
   say(`  ${registerError}`);
   say('  Fix it before trusting anything below: the project\'s own mistakes are not in this run.');
+  say();
+} else if (shapeUnknown) {
+  say(`⚠ REGISTER SHAPE UNRECOGNISED at ${registerAt.path.replace(ROOT + '/', '')}`);
+  say(`  It parsed, but there is no \`incidents\` array in it${Array.isArray(register)
+    ? ': the file is a bare array, and the entries belong under { "version": 1, "incidents": [ … ] }.'
+    : '.'}`);
+  say('  Schema: source/quality/README.md. Nothing this project has already got wrong is in');
+  say('  this run — the entries are there and this script cannot see them.');
   say();
 } else if (!incidents.length) {
   say(`Register read (${registerAt.path.replace(ROOT + '/', '')}): it is empty.`);
