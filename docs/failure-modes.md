@@ -229,6 +229,13 @@ list here, so it is split by the moment each rule applies.
   two days later, by asking the common-sense question: *when the account goes, do I lose this too?*
   Ask it of every backup, every recovery path, every alert, every fallback: name what it protects
   against, then list what it needs in order to work, and check the two lists do not intersect.
+- **A mechanism that ships inside the thing it monitors cannot reach what it was built for.** The
+  kit's own update notifier runs from a `SessionStart` hook registered in a file in the repo. A
+  project onboarded before that mechanism existed has neither the hook nor the script, so it never
+  announces that an update exists, and it can only start announcing once someone has already done
+  the update by hand. One real instance sat a month behind, silently, while its collaborator
+  assumed his agent was current. When you roll something out, ask what reaches the installations
+  that predate it: usually the answer is a person, and then say so rather than calling it automatic.
 - **A guard runs on its own clock, never on the activity of the person it protects.** A watchdog
   hooked to session start and message send looks like a periodic task — both "run by themselves" —
   and covers exactly the hours the owner is at the keyboard, which are the hours that need no cover.
