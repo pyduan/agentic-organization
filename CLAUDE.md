@@ -50,7 +50,7 @@ Find every row that matches the task at hand and read those files before produci
 ## Working rules
 
 - **Work directly on `main`.** Pushing publishes: Cloudflare Workers rebuilds the live site on every push. This solo mode is the default. If a second regular contributor appears, propose switching to branches and pull requests and update this file accordingly.
-- **You run all the git, never the owner.** Most owners aren't technical. Never ask them to open a terminal, run a command, or touch branches, commits, or deploys — and never paste a command for them to copy. You do the whole thing: stage, commit, push, publish, merge. If a git action is blocked by a permission, ask them to **approve the permission**, then do it yourself; don't hand the git back to them.
+- **You run all the git, never the owner.** Most owners aren't technical. Never ask them to open a terminal, run a command, or touch branches, commits, or deploys — and never paste a command for them to copy. You do the whole thing: stage, commit, push, publish, merge. If a git action is blocked by a permission, ask them to **approve the permission**, then do it yourself; don't hand the git back to them. **The same holds for a settings screen at a provider** — a hosting dashboard, a DNS panel, an access rule. When the command line looks closed, look for the engineering path that avoids the screen before you write a single numbered step: on a live project it took three failed handovers (numbered steps, a login page opened in a panel they couldn't see, then eye-on-screen guidance) before anyone noticed that path had been available all along. Failing that, send one mail saying exactly what to click and why. Click-by-click guidance is not a fallback option.
 - **This repo is public, and every example in it is invented.** ⚠ Sessions that touch this template usually have other repos open too — the owner's own site, a client's project, an employer's internal repos. Never take an example from one of them, and never paste a line out of whatever file happens to be open: a person's name, a client, an internal project code, a supplier's situation are real information about real people, and a public template is the worst place for them. Write `@sam`, a printer, a brochure. Before committing, read the diff for names, clients and project codes that came from somewhere else. **If you are unsure which project a change belongs to, say so and ask rather than guessing** — the repos in a workspace have different audiences, and the boundary only holds if it is checked deliberately.
 - **A recorded decision is closed. Do not re-adjudicate it.** Once something is written down in `source/decisions.md` — or confirmed by the owner and recorded anywhere in the repo — it is settled, and a later session treats it as a premise rather than an open question. The failure is specific and it compounds: re-raising a closed choice as "have you considered", re-adding a hedge or a "to be confirmed" to a fact the owner already confirmed, or quietly re-opening a debate because this session would have chosen differently. That makes the owner argue for the same decision several times, which is exactly the cost the file exists to remove. Re-open one only if the owner asks, or if something genuinely new turns up — and then it is a new dated entry saying what changed, never a silent reversal. **Maintaining that file is part of the job, not an optional extra**: a decision taken in conversation and not written down will be re-litigated, so write it down the day it is taken.
 - **Strip the AI tells before anything ships.** Everything here is written by a machine, so prose that reads as machine-written is the default outcome rather than an accident, and it costs the owner their credibility. The full list is in `source/brand/voice.md` ▸ *AI tics*; the three that appear without fail are the antithesis ("not just X, it's Y"), the triad ("faster, simpler, better"), and the evenly-weighted bolded bullet list standing in for an argument. Read a draft aloud before shipping it. Do not over-correct into stilted prose either: the goal is writing a person would have written, not writing that avoids a word list.
@@ -74,14 +74,33 @@ Find every row that matches the task at hand and read those files before produci
   repo, the owner's files, or the project's history. When something seems missing, assume you
   searched badly rather than that it does not exist, and search by question rather than by topic.
   Before writing any tool that moves, deletes or transforms files, inventory what is actually there.
+- **A safeguard must not depend on the thing it protects against, and that is the first check, not
+  the last.** Name what it protects against, list what it needs in order to work, and confirm the
+  two lists do not intersect — one minute, before the first line of code. A real case: an archive
+  built to survive the loss of a work account, verified for days hash by hash, mirrored to an
+  external drive, and stored in cloud storage whose login was that same work account. It protected
+  against nothing, and the owner found it themselves. Every internal axis had been checked and no
+  external one had: checking a great deal stood in for checking what mattered, and the profusion
+  produced a confidence nothing supported. The same test applies to a watchdog (does it run on its
+  own clock, or on the owner being at the keyboard?), a recovery path, and a fallback.
 - **Never trust a safety guarantee you have not tested, and never act in bulk on the strength of
   one.** Test on one item, verify the real state independently, then scale. Any destructive option
-  needs a copy taken first. Every destination keeps a backup; an option that removes the safety net
-  is disqualified, not merely riskier. The whole list is `docs/failure-modes.md` ▸ *Actions on files*.
+  needs a copy taken first — and prefer renaming aside to deleting, since it is instant, costs no
+  space, and keeps the mistake reversible. Every destination keeps a backup; an option that removes
+  the safety net is disqualified, not merely riskier. Nothing is "in place" until you have seen it
+  produce its effect once: a check that never fires leaves no trace, so its silence proves nothing.
+  The whole list is `docs/failure-modes.md` ▸ *Actions on files*.
+- **No search proves an absence.** Not a keyword sweep, not an index, not a filtered inventory —
+  each tells you a term is present, never that a thing does not exist. Before concluding from an
+  empty result, calibrate on a case you know should appear; if your known case does not show up
+  either, the instrument is at fault and not the data. And retrieving is not reading: before writing
+  *missing* or *to request*, open what the project already holds on the subject.
 - **A number the machine knows is never written in prose.** Count it where it is displayed, or
-  phrase the sentence to stay true without it. And when a fact falls, sweep every occurrence of it —
-  other files, other repos, the deployed app, and the decisions that rested on it — not only the
-  place you noticed.
+  phrase the sentence to stay true without it. This covers anything that depends on an order too —
+  a rank, a maximum, "the main one", "the second most" — which is worse, because those read as words
+  rather than as figures and survive the regrouping that makes them false. And when a fact falls,
+  sweep every occurrence of it — other files, other repos, the deployed app, and the decisions that
+  rested on it — not only the place you noticed.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session

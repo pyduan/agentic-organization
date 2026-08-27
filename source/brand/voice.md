@@ -27,6 +27,12 @@ These start as sensible defaults; edit them to fit.
 - Cut buzzwords on sight (leverage, seamless, innovative, solutions...). Keep a running list here of words the owner has banned: TODO.
 - Titles in sentence case, no period.
 - Numbers, dates, and prices follow the conventions of the site language, consistently.
+- **An absolute number goes out with its total or its share, never alone**, and restrictive turns of
+  phrase are reserved for scarcity you can demonstrate. "Only 90 GB left" was exact, and the reader
+  concluded their disk was full and work impossible. A bare figure carries no judgement until a word
+  like *only*, *just* or *barely* lends it one — and then the word is doing the arguing, not the
+  measurement. If the real reason for a recommendation is elsewhere, say that reason instead of
+  borrowing weight from an alarm.
 - **Links point straight at their destination.** A URL copied out of Google Docs, Gmail, or a notes
   tool arrives wrapped as `https://www.google.com/url?q=…`: decode it to the real target and drop
   the tracking params. A reader should see the real domain, not something that looks like tracking.
