@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · A note bubble on the to-do app: jot anything, the agent files it
+
+The to-do app now carries a floating ✎ bubble. Type anything into it — a number heard in a call,
+news from the field, an idea, a correction — and it lands in your repo's inbox
+(`source/inbox/notes/`) as one dated file signed with your verified name, committed like every
+other edit. On the agent's next pass, the inbox protocol files it where it belongs: a fact into
+the fact file, a task into the to-do list, news into the journal. The thought no longer has to
+wait for a keyboard.
+
+Born in a live project, where the board wanted one place to say things without deciding where they
+go; folded back here the same day.
+
+**What you need to do:** nothing for a one-repo workspace — redeploy the to-do app and the bubble
+is there. If your workspace spans several repos, say where notes land with `NOTES_TARGET` in
+`apps/todos/wrangler.jsonc` vars: `{ "repo": "you/your-repo", "dir": "source/inbox/notes" }`.
+
 ## 2026-08-27 · MAJOR · The to-do app now proves who is asking, instead of trusting a header
 
 The entry below this one moved identity from `ctx.access` to a request header. A field report the

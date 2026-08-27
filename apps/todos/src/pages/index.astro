@@ -1,6 +1,7 @@
 ---
 import '../styles/app.css';
 import TodoApp from '../components/TodoApp.jsx';
+import { NoteBubble } from '../components/NoteBubble.jsx';
 ---
 <html lang="en">
   <head>
@@ -17,6 +18,7 @@ import TodoApp from '../components/TodoApp.jsx';
         saved as one.
       </p>
       <TodoApp client:load />
+      <NoteBubble client:load />
     </main>
   </body>
 </html>
