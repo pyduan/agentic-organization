@@ -37,6 +37,13 @@ platform, not decorating, and a later session must not strip it to comply with t
 What the register rules out is decoration improvised into a one-off message, a different act from a
 template someone designed.
 
+**Write the draft at its final line width, and never rewrap it afterwards.** A plain-text mail
+wants roughly 78 columns, hard-wrapped, so it survives a narrow mail window. Getting there by
+running a rewrapper over prose that is already wrapped does not work: the script sees single lines,
+not paragraphs, so it re-breaks each one and leaves orphan words, splits a hyphenated word across
+lines, and folds a two-line sign-off into one. Done twice in one session on two different drafts,
+both of which had to be rewritten by hand. Compose at the target width from the first keystroke.
+
 ## Every ask passes two tests
 
 Before an ask survives into any message:
@@ -146,6 +153,13 @@ _Drafted with help from TODO's agentic workflows._
 ```
 
 ## Per person
+
+**If the person has no block, ask before drafting. Do not infer the register.** The `tu`/`vous`
+choice, the language and the sign-off are visible on the first line, so a wrong guess is a
+correction the sender makes by hand every time. And the tempting heuristic is the wrong one:
+**how someone writes to you does not tell you how you write to them.** A correspondent who
+vouvoies the owner in every mail may well be someone the owner tutoies. Inferring `vous` from her
+own messages produced exactly that error here. Ask, then write the block so nobody asks twice.
 
 One block per person who sends messages drafted here. Keep each one short: it is a diff against
 `voice.md` and this file, never a copy. Split a block into its own `source/brand/voice-<name>.md`

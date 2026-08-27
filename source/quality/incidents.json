@@ -37,6 +37,42 @@
         "inputs",
         "error"
       ]
+    },
+    {
+      "id": "2026-08-27-2",
+      "date": "2026-08-27",
+      "category": "handover",
+      "severity": "minor",
+      "inputs": "A plain-text email draft for a real recipient, already composed and hard-wrapped, a few lines slightly over the target width.",
+      "error": "Ran a script to rewrap it to 78 columns. The script treated each already-wrapped line as a paragraph, so it re-broke every one: orphan words, a hyphenated word split across two lines, and the two-line sign-off folded into one. Done again on a second draft in the same session before the pattern was recognised.",
+      "why": "The rewrapper's input model was wrong and untested: it assumed unwrapped paragraphs and got wrapped lines. Reaching for a script felt cheaper than retyping, and the damage was only visible on reading the whole output, which the first run did not do.",
+      "detected_by": "self",
+      "guard": {
+        "kind": "rule",
+        "where": "source/formats/message.md ▸ Plain text, and why"
+      },
+      "generic": "Compose a plain-text message at its final line width from the start. Never post-process the wrapping of prose that is already wrapped: the tool cannot see paragraphs, only lines, and it will break words and collapse structure.",
+      "sensitive": [
+        "inputs"
+      ]
+    },
+    {
+      "id": "2026-08-27-3",
+      "date": "2026-08-27",
+      "category": "handover",
+      "severity": "minor",
+      "inputs": "A message to draft for a correspondent with no per-person block in the message playbook, and a thread of her own mails in which she addresses the owner formally.",
+      "error": "Inferred the formal register from how she writes to the owner and drafted the whole message in it, including the sign-off. The owner tutoies her, and had to correct it.",
+      "why": "The per-person block is where the register lives, and it did not exist for her. Faced with the gap, the draft inferred rather than asked, using the one heuristic that does not hold: how someone writes to you says nothing about how you write to them.",
+      "detected_by": "owner",
+      "guard": {
+        "kind": "rule",
+        "where": "source/formats/message.md ▸ Per person; personal-paul/people/"
+      },
+      "generic": "Never infer how the owner addresses someone from how that person addresses the owner. If the per-person record does not say, ask before drafting, then write the record.",
+      "sensitive": [
+        "inputs"
+      ]
     }
   ]
 }
