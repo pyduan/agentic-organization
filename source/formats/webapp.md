@@ -164,9 +164,10 @@ GitHub  ─ the store
 ```
 
 The token stays server-side, which is what keeps the "no API key in a static app" rule intact.
-Access supplies identity and the Worker fails closed without it — but the identity is a request
-header, never `ctx.access`; `apps/todos/worker.js` is the reference, and *Access and identity*
-below explains why the distinction is load-bearing.
+Access supplies identity and the Worker fails closed without it — identity meaning the *verified*
+Access JWT, never the bare email header and never `ctx.access` (which a Worker with assets does
+not receive); `apps/todos/worker.js` is the reference, and *Access and identity* below explains
+why each of those distinctions is load-bearing.
 
 Four things decide whether this is pleasant or awful:
 
@@ -198,9 +199,18 @@ state it explicitly. Access still gates the application and its assets, but code
 `ctx.access` sees `undefined` on every request. For an app that merely displays, nothing happens.
 For a Worker that refuses to serve until it can prove who is asking, the result is a 403 on
 everything — or worse, an identity check that no longer runs while the code still reads as if it
-does. So identity in code comes from the request, not the context: read the
-`Cf-Access-Authenticated-User-Email` header (or validate the `Cf-Access-Jwt-Assertion` JWT),
-exactly as `apps/todos/worker.js` does. Headers ride the request and survive the router.
+does. Two shapes survive this, and only two:
+
+- **Assets binding + the verified token.** Identity comes from the `Cf-Access-Jwt-Assertion` JWT,
+  verified against the team's public keys and the application's AUD — `lib/access.mjs` does it,
+  `apps/todos/worker.js` uses it, and the two values it needs (`TEAM_DOMAIN`, `POLICY_AUD`) are
+  vars documented in that app's `wrangler.jsonc`. **Never the bare
+  `Cf-Access-Authenticated-User-Email` header**: it is a plain string, a Worker cannot tell the
+  copy Access set from one a client typed, and Cloudflare's own docs say validating the header
+  alone is not sufficient. This shape keeps the normal framework path.
+- **No assets binding, and `ctx.access`.** The runtime supplies it and a caller cannot forge it —
+  the strongest form, for a Worker that serves its files from its own script and would rather
+  depend on a mechanism that cannot be imitated than on a verification that must be done right.
 
 **The assets block can appear without anyone writing it.** The Cloudflare Vite plugin adds `assets`
 to the *generated* deploy configuration when the input `wrangler.jsonc` omits it, and frameworks
