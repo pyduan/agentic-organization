@@ -10,6 +10,27 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-27 · MAJOR · The to-do app now proves who is asking, instead of trusting a header
+
+The entry below this one moved identity from `ctx.access` to a request header. A field report the
+same day showed the header is not proof either: it is a plain string, and nothing in a Worker
+distinguishes the copy Access set from one a client typed. Cloudflare's documentation says it in as
+many words — validating the header alone is not sufficient, the token and its signature must be
+confirmed.
+
+So the to-do app's Worker now verifies the signed token Access attaches to every request (its
+signature against your team's public keys, plus the application's audience tag), with `lib/access.mjs`,
+a small dependency-free verifier any app behind the gate can reuse. The playbook and the deploy
+guide now name the two acceptable shapes: assets binding with the verified token, or no assets
+binding and `ctx.access`. The logged-out production check from the entry below still stands — it
+proves the gate is closed to strangers; the token check is what makes the identity behind the gate
+trustworthy.
+
+**What you need to do:** if the to-do app is deployed, set two vars in `apps/todos/wrangler.jsonc`
+after pulling this update — `TEAM_DOMAIN` (https://&lt;your-team&gt;.cloudflareaccess.com) and
+`POLICY_AUD` (the Access application's AUD tag, on the app's Overview page in Zero Trust) — then
+redeploy. Until both are set the app refuses everyone and says which values are missing.
+
 ## 2026-08-27 · MAJOR · The internal-app rule now states its shape, and the check that proves the door is locked
 
 Two corrections to the web-app playbook, both from a live project that applied yesterday's rule to

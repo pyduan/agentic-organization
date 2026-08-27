@@ -1,13 +1,16 @@
 {
   // The to-do app: its own Worker on this same repo, behind Cloudflare Access.
   //
-  // Two settings are not optional, and both were learned by getting them wrong:
+  // Three settings are not optional, each learned by getting it wrong:
   //   assets.run_worker_first — without it Cloudflare serves a matching static file
   //     BEFORE the Worker runs, so the auth check protects /api/* and every HTML
   //     page stays open to the internet.
   //   workers_dev: false — an Access policy attaches to a hostname. A workers.dev
   //     subdomain is not covered by the policy on your domain, so leaving it on
   //     publishes the app with no authentication at all.
+  //   TEAM_DOMAIN + POLICY_AUD (in vars below) — the Worker proves who is asking
+  //     by verifying Access's signed token, and these two values are what it
+  //     verifies against. Without them the Worker refuses everything, on purpose.
   //
   // Secrets are never written here. Set them once:
   //   wrangler secret put GITHUB_TOKEN --config apps/todos/wrangler.jsonc
@@ -23,6 +26,16 @@
     "not_found_handling": "single-page-application"
   },
   "vars": {
+    // Identity is proven by verifying the JWT Access attaches to each request
+    // (never by trusting a plain header — any client can type a header). Set
+    // both after protecting this Worker with Access:
+    //   TEAM_DOMAIN — https://<your-team>.cloudflareaccess.com
+    //     (Zero Trust dashboard → Settings → Custom Pages shows the team name)
+    //   POLICY_AUD  — the Access application's Audience (AUD) tag
+    //     (Zero Trust → Access → Applications → this app → Overview)
+    "TEAM_DOMAIN": "",
+    "POLICY_AUD": "",
+
     // Usually empty. The source list is generated from ORGANIGRAM.md into
     // sources.json by `npm run todos:sources`, which the deploy runs for you.
     //

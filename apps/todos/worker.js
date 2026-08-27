@@ -17,6 +17,7 @@
 // ^id, never by a line number.
 
 import { parse, apply, ensureIds } from '../../lib/todo.mjs';
+import { verifyAccessJwt } from '../../lib/access.mjs';
 // Generated from ORGANIGRAM.md by scripts/todo-sources.mjs. The kit keeps one map
 // of the workspace; this file is that map answered for this app, not a second one.
 import generated from './sources.json' with { type: 'json' };
@@ -27,10 +28,19 @@ const json = (body, status = 200) =>
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
   });
 
-/** Access sits in front and sets this header. No header, no app: fail closed. */
-function identify(request, env) {
-  const email = request.headers.get('Cf-Access-Authenticated-User-Email');
-  if (email) return email;
+/**
+ * Access sits in front; the proof is its signed token, never a plain header.
+ * `Cf-Access-Authenticated-User-Email` is a string any client can send, and a
+ * Worker cannot tell the copy Access set from a forged one — Cloudflare's docs
+ * say in as many words that validating the header alone is not sufficient. So
+ * the JWT in `Cf-Access-Jwt-Assertion` is verified against the team's keys and
+ * this app's AUD (lib/access.mjs), and the email comes out of the verified
+ * payload. No valid token, no app: fail closed.
+ */
+async function identify(request, env) {
+  const token = request.headers.get('Cf-Access-Jwt-Assertion');
+  const payload = await verifyAccessJwt(token, { teamDomain: env.TEAM_DOMAIN, aud: env.POLICY_AUD });
+  if (payload && payload.email) return payload.email;
   if (env.ALLOW_UNAUTHENTICATED === '1') return 'local@dev';
   return null;
 }
@@ -155,7 +165,13 @@ function summarize(done, label) {
 
 export default {
   async fetch(request, env) {
-    const email = identify(request, env);
+    // A missing var is a configuration mistake, not an intruder: say which one,
+    // or the owner sees an eternal 403 with nothing to act on.
+    if ((!env.TEAM_DOMAIN || !env.POLICY_AUD) && env.ALLOW_UNAUTHENTICATED !== '1') {
+      return json({ error: 'TEAM_DOMAIN and POLICY_AUD must be set in apps/todos/wrangler.jsonc (see its comments)' }, 500);
+    }
+
+    const email = await identify(request, env);
     if (!email) return json({ error: 'not authenticated' }, 403);
 
     const url = new URL(request.url);
