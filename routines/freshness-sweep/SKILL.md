@@ -3,6 +3,10 @@ name: freshness-sweep
 description: Monthly reconciliation — is what this project published still there, and is what it says about the world still true?
 ---
 
+**Who runs it:** the owner of this project, whoever that is — this routine binds no personal
+account and reads nothing outside the repos already on the machine. If you are setting it up for
+someone else's project, it is theirs to run, not yours.
+
 Monthly freshness sweep for this project. Run it locally: several of these checks read private
 repos and the local disk, which a remote runner cannot reach.
 
