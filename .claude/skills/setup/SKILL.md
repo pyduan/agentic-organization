@@ -192,6 +192,10 @@ Start with `freshness-sweep`, monthly: it is the check nothing else performs, as
 they published is still there and whether what the repo says about the world is still true. It only
 reads.
 
+**Every routine names who runs it. If that is not the owner in front of you, ask** whether they
+want their own copy personalised to their accounts and repos, or meant to run someone else's. A yes
+means a new routine carrying their identity, not a second installation of another person's.
+
 Why offer rather than install: a routine writes a cron entry on their machine and then acts while
 nobody is watching. That is a side effect on their computer, not a file in their repo, and the kit's
 rule is that nothing is applied silently. Say what it does, say it can be removed, wait for the yes.

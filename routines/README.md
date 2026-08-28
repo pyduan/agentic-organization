@@ -27,12 +27,13 @@ same rule as an update: never applied silently.
 
 ## A routine is thin. The method lives in its recipe.
 
-**A routine carries four things and nothing else:**
+**A routine carries five things and nothing else:**
 
-1. **How often** it runs.
-2. **Which identity** it runs as — whose account, whose credentials, whose authorization.
-3. **Where** it reads and writes: the repos, the folders, the mailbox.
-4. **Which guide to follow**, named, in order.
+1. **Who runs it** — a named person, or a named service account. Whoever it is today, written down.
+2. **How often** it runs.
+3. **Which identity** it runs as — whose account, whose credentials, whose authorization.
+4. **Where** it reads and writes: the repos, the folders, the mailbox.
+5. **Which guide to follow**, named, in order.
 
 **Everything else belongs to the guide it points at**: the method, the screening criteria, the
 output format, the filters, the judgement. A routine that explains *how* to do the work has
@@ -45,6 +46,33 @@ routine with the cron, the identity, the paths and the pointer.
 
 This is what lets the method be iterated on its own, invoked manually when someone asks for it
 today rather than next month, and reused by a second routine at a different cadence.
+
+## Who runs it, and what to ask someone else
+
+**Every routine names who runs it**, as a person or a service account, as it stands today. Not a
+role, not "the team": a name. It is the first line of the file, and it is what lets anyone ask "who
+would notice if this stopped?" and get an answer.
+
+**If the person considering it is not that person, do not install it as it stands. Ask them:**
+
+> This routine is written for <name> and shaped around their accounts, their repos and their
+> working week. Do you want your own copy, personalised to yours — or did you mean to run theirs?
+
+A yes means a **new routine**, named for them, carrying their identity and their paths, pointing at
+the same guide. Not a second installation of someone else's.
+
+The reason is the second field. A routine binds an identity, and installing someone else's unchanged
+means running their assumptions with your credentials. That is precisely how a sweep scoped to one
+mailbox ends up reading another: nothing announced whose routine it was, so nobody asked whether it
+was theirs to run.
+
+Two cases where the answer is genuinely "run theirs, unchanged":
+
+- It runs as a **service account** rather than a person, and they are taking over hosting it.
+- It is a **kit routine** with no identity baked in, like the freshness sweep, where "who runs it"
+  is just whoever owns the project.
+
+Both are worth saying out loud rather than assuming.
 
 ## Not every recurring thing is a schedule
 
