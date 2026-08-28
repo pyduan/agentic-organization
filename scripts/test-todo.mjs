@@ -237,3 +237,52 @@ test('a comment travels with its item when the list is reordered', () => {
   const item = parse(moved).find((i) => i.id === 'aaaa');
   assert.deepEqual(item.comments.map((c) => c.text), ['Kept.']);
 });
+
+// ---------------------------------------------------------------------------
+// sanitizeIntents: the server's gate on a batch, before anything touches a file.
+
+import { sanitizeIntents } from '../lib/todo.mjs';
+
+test('a well-formed batch passes, carrying only known fields', () => {
+  const out = sanitizeIntents([
+    { op: 'toggle', id: 'k3f9', done: true, on: '2026-08-27' },
+    { op: 'comment', id: 'k3f9', text: '  found   her  ', by: 'forged@example.com' },
+    { op: 'set', id: 'ab12', due: '2026-09' },
+    { op: 'reorder', ids: ['k3f9', 'ab12'] },
+  ]);
+  assert.equal(out.length, 4);
+  assert.equal(out[1].text, 'found her', 'whitespace is normalised');
+  assert.equal('by' in out[1], false, 'a client-sent author never survives: the server stamps it');
+});
+
+test('an unknown op refuses the whole batch, not just its own intent', () => {
+  assert.equal(sanitizeIntents([{ op: 'toggle', id: 'a1' }, { op: 'delete', id: 'a1' }]), null);
+});
+
+test('a malformed id, due, or owner list is refused', () => {
+  assert.equal(sanitizeIntents([{ op: 'toggle', id: '../../etc/passwd' }]), null);
+  assert.equal(sanitizeIntents([{ op: 'toggle', id: 'waytoolongforanid' }]), null);
+  assert.equal(sanitizeIntents([{ op: 'set', id: 'a1', due: 'someday' }]), null);
+  assert.equal(sanitizeIntents([{ op: 'set', id: 'a1', owners: ['sam space'] }]), null);
+  assert.equal(sanitizeIntents([{ op: 'toggle', id: 'a1', on: '27/08/2026' }]), null);
+});
+
+test('an empty, oversized, or non-array batch is refused', () => {
+  assert.equal(sanitizeIntents([]), null);
+  assert.equal(sanitizeIntents('toggle everything'), null);
+  assert.equal(sanitizeIntents(null), null);
+  assert.equal(sanitizeIntents(Array.from({ length: 21 }, () => ({ op: 'toggle', id: 'a1' }))), null);
+});
+
+test('an empty comment and a set that changes nothing are refused', () => {
+  assert.equal(sanitizeIntents([{ op: 'comment', id: 'a1', text: '   ' }]), null);
+  assert.equal(sanitizeIntents([{ op: 'set', id: 'a1' }]), null);
+});
+
+test('a sanitized batch still applies through apply()', () => {
+  const md = '- [ ] Chase the printer ^k3f9';
+  const [intent] = sanitizeIntents([{ op: 'toggle', id: 'k3f9', done: true, on: '2026-08-27' }]);
+  const r = apply(md, intent);
+  assert.equal(r.changed, true);
+  assert.match(r.markdown, /- \[x\]/);
+});
