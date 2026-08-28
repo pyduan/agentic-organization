@@ -4,7 +4,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { isOverdue, createQueue, flushOnHide, localToday } from '@kit/todo-client.mjs';
+import { isOverdue, createQueue, flushOnHide, localToday, createSentLog, sameText } from '@kit/todo-client.mjs';
 import { DueControl } from './DueControl.jsx';
 import { CopyPrompt } from './CopyPrompt.jsx';
 import { AddComment } from './AddComment.jsx';
@@ -13,11 +13,16 @@ import { Badge } from './ui/badge.jsx';
 import { Card, CardHeader, CardBody } from './ui/card.jsx';
 import { cn } from '../lib/utils.js';
 
-function Row({ item, path, today, onToggle, onDue, onComment }) {
+function Row({ item, path, today, sent, onToggle, onDue, onComment }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id ?? `line-${item.lineNo}`,
     disabled: !item.id,
   });
+
+  // What this device has posted on this item: the mark stays once the list has
+  // caught up, `fromHere` only while it has not.
+  const posted = sent?.for(item.id) ?? [];
+  const fromHere = sent?.missing(item) ?? [];
 
   return (
     <li
@@ -55,21 +60,34 @@ function Row({ item, path, today, onToggle, onDue, onComment }) {
         {item.notes?.length ? (
           <p className="mt-0.5 text-xs leading-5 text-muted">{item.notes.join(' ')}</p>
         ) : null}
-        {item.comments?.length ? (
+        {item.comments?.length || fromHere.length ? (
           <ul className="mt-1 space-y-0.5 border-l border-line pl-2.5">
-            {item.comments.map((c, i) => (
+            {item.comments?.map((c, i) => (
               <li key={i} className="text-xs leading-5 text-muted">
                 <span className="tabular-nums">{c.on}</span>
                 {c.by ? <span> {c.by.split('@')[0]}</span> : null} · {c.text}
               </li>
             ))}
+            {/* Sent from here, and this view does not have it yet. Shown so the
+                person who wrote it can see it went, instead of retyping it. */}
+            {fromHere.map((e, i) => (
+              <li key={`sent-${i}`} className="text-xs leading-5 text-muted italic">
+                <span className="tabular-nums">{e.on}</span> · {e.text}{' '}
+                <span className="not-italic">(sent — this list is a step behind)</span>
+              </li>
+            ))}
           </ul>
         ) : null}
-        {item.tags.length ? (
+        {item.tags.length || posted.length ? (
           <div className="mt-1 flex flex-wrap gap-1.5">
             {item.tags.map((t) => (
               <Badge key={t}>#{t}</Badge>
             ))}
+            {posted.length ? (
+              <Badge title={`You posted ${posted.length} update${posted.length > 1 ? 's' : ''} on this from this device`}>
+                ✓ sent
+              </Badge>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -112,6 +130,12 @@ export default function TodoApp() {
   // server rejected (an id that no longer exists, an empty comment) left the screen
   // showing the change as applied, and only a reload told the truth.
   const [rejected, setRejected] = useState([]);
+  // The receipts this device keeps for what it posted, scoped to the open file:
+  // a `^id` is unique inside one file, not across two.
+  const sent = useMemo(() => createSentLog({ key: `todo.sent.v1:${source ?? ''}` }), [source]);
+  // Read through a ref for the same reason as `sourceRef`: the queue is built
+  // once and outlives the render that created it.
+  const sentRef = useRef(null);
 
 
   const load = useCallback(async (id) => {
@@ -148,8 +172,9 @@ export default function TodoApp() {
 
   useEffect(() => {
     sourceRef.current = source;
+    sentRef.current = sent;
     if (source) load(source);
-  }, [source, load]);
+  }, [source, sent, load]);
 
   // Batching, retry state and the "do not lose a queued edit" wiring all live in
   // lib/todo-client.mjs, shared with the hand-written front ends that have no build.
@@ -169,6 +194,12 @@ export default function TodoApp() {
         // optimistic change it refused, which is why `rejected` must be shown.
         setItems(body.items);
         setRejected(body.rejected || []);
+        // Confirmed by the server, so it is in the file: keep the receipt. A
+        // refused intent gets none — a trace saying the opposite of what
+        // happened is worse than no trace.
+        const refused = (i) => (body.rejected || []).some((r) => r.intent?.id === i.id
+          && r.intent?.op === i.op && sameText(r.intent?.text ?? '', i.text ?? ''));
+        for (const i of intents) if (i.op === 'comment' && !refused(i)) sentRef.current?.add(i.id, i.text, i.on);
         return body;
       },
       onState: (state, err) => {
@@ -278,6 +309,7 @@ export default function TodoApp() {
                     item={item}
                     path={fileAt?.path ?? sourceLabel}
                     today={today}
+                    sent={sent}
                     onToggle={onToggle}
                     onDue={onDue}
                     onComment={onComment}
