@@ -102,9 +102,26 @@ source. Either the number is sourced and named, or it does not appear. See the s
 a…", "I hope this helps", "let me explain", "want me to expand?", "as of my last update", "great
 question". And no speculative filler written to paper over a gap in the sources.
 
+**The trailing coda.** A sentence that has finished, then a comma and two words for punch: "and it
+works, every time", "built to scale, effortlessly", "we ship, always". Delete the coda. The sentence
+was done.
+
+**The one-word question.** "The result? A system that…", "The catch? None." A question mark standing
+in for a colon, answered by a fragment. Write one sentence instead.
+
+**Snowclones.** "X, meet Y", "X is the new Y", "think of it as X for Y", "not a bug, a feature". A
+template with the nouns swapped reads as a template, because it is one.
+
+**Announced candour.** "Let's be clear", "make no mistake", "to be honest", "here's the thing".
+Honesty that announces itself is a performance of honesty. Say the thing.
+
+**Counted summaries.** "Three things for you and one for Sam", "here are the 4 topics". The list is
+right below, the count adds nothing, and it goes false the moment the list moves.
+
 **Words to avoid.** delve, crucial, pivotal, showcase, testament, underscore (verb), vibrant,
 tapestry, foster, seamless, robust, unlock, empower, journey, landscape (as an abstract noun),
-realm, navigate (figuratively). **This list is meant to be edited.** These words get worn out by
+realm, navigate (figuratively), elevate, supercharge, streamline, transform (as praise), and
+genuinely / truly / actually used as intensifiers. **This list is meant to be edited.** These words get worn out by
 overuse and the set changes every few months, so add one the day it starts showing up in drafts,
 and drop one that has become ordinary again. A frozen list stops working.
 
@@ -128,6 +145,11 @@ sentences when they are not.
 
 **The closing zinger.** A neat aphorism that ties the piece with a bow, usually restating the title.
 Stop at the last real point instead.
+
+**Length is a tell.** Machine prose is long because nothing costs it anything: the same point made
+twice at two altitudes, a paragraph that restates its own first sentence, a closing summary of a text
+the reader has just finished. Say it once. The second pass on a draft is a cut, and the draft that
+lost a third of its words is usually the better one.
 
 ### Do not over-correct
 
