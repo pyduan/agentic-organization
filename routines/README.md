@@ -25,6 +25,43 @@ on someone's machine and then acts while they are not looking, which is a side e
 computer rather than a file in their repo. Say what it would do and how often, then wait. This is the
 same rule as an update: never applied silently.
 
+## A routine is thin. The method lives in its recipe.
+
+**A routine carries four things and nothing else:**
+
+1. **How often** it runs.
+2. **Which identity** it runs as — whose account, whose credentials, whose authorization.
+3. **Where** it reads and writes: the repos, the folders, the mailbox.
+4. **Which guide to follow**, named, in order.
+
+**Everything else belongs to the guide it points at**: the method, the screening criteria, the
+output format, the filters, the judgement. A routine that explains *how* to do the work has
+absorbed a guide, and now there are two copies of the method that will disagree by next month.
+
+**The test, and it is the whole point:** you must be able to follow the guide by hand, without the
+routine, and get the same work. And you must be able to change the method without touching a
+schedule. If either fails, the routine is too fat — move the substance into the guide and leave the
+routine with the cron, the identity, the paths and the pointer.
+
+This is what lets the method be iterated on its own, invoked manually when someone asks for it
+today rather than next month, and reused by a second routine at a different cadence.
+
+## Not every recurring thing is a schedule
+
+A guide can be triggered three ways, and only one of them is a routine:
+
+- **By the clock** — that is a routine, and it lives here.
+- **By someone asking** — no routine at all; the guide is enough.
+- **By an event**: a person joins, a client signs, a project opens. Also no routine. The trigger
+  belongs in the guide's own first lines ("run this when a new teammate joins"), because a calendar
+  cannot know when it happened.
+
+**A task that happens once per person, per client or per project is not a one-off.** It recurs; only
+its trigger is an event rather than a date. Onboarding is the type case — setting up access,
+importing someone's history, walking them through the first session — and it earns a proper guide
+for the same reason anything recurring does: the second time, nobody remembers what the first time
+involved.
+
 ## What belongs here, and what does not
 
 **Here:** work that would serve anyone running this kit, with no account, credential or personal
@@ -36,7 +73,13 @@ reads.
 - Anything tied to one person's accounts, mailboxes or standing authorizations. That belongs in
   their own repo, versioned privately.
 - Anything specific to one organization's repos and vocabulary. That belongs in *that* organization's
-  shared repo, next to the recipes it follows.
+  shared repo, next to the guides it follows.
+
+**The rule that settles where a routine lives: it goes with the work it serves, unless it is bound
+to one person's credentials or authorization — then it goes with that person.** A sweep that reads
+one human's mailbox lives in that human's repo even when everything it writes is company work,
+because the day they leave, the routine leaves with them. A routine running as a *service* account
+is not personal: nobody's departure breaks it, so it lives with the work.
 
 The test is the pack test (`source/formats/pack.md`): if you cannot hand it to a stranger running
 this kit and have it make sense, it is not a kit routine.
