@@ -181,6 +181,14 @@ TODO: list the site's languages. The first is the default.
 
 If the site has more than one language, every language is written natively. Before publishing copy in a non-default language, do a dedicated pass reading it on its own, as a native speaker would, and fix anglicisms, calques, and literal constructions. A page that reads like a translation fails this guide even if every word is technically correct.
 
+**All of the above governs what a person reads. What a *model* reads is a different artifact, and it
+is written in English** — prompts, skill files, scheduled-task instructions, the rules in `CLAUDE.md`,
+comments in scripts. Not out of preference: technical terms have canonical English forms, and
+translating them (connector, hook, fallback, register) adds ambiguity and buys nothing. The mistake
+to avoid is matching the language of the file you happen to be editing: a task written in French for
+a French project is still read by a model, and a rule added to it goes in English. The output that
+task produces for its owner follows the owner's language, as ever.
+
 ## Notation
 
 TODO: how the project's name is written, exactly, including capitalization and any punctuation that is part of the mark. Add other named things (product names, series titles) as they appear. These notations are non-negotiable; the AI applies them everywhere without exception.
