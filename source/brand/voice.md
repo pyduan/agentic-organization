@@ -193,6 +193,14 @@ task produces for its owner follows the owner's language, as ever.
 
 TODO: how the project's name is written, exactly, including capitalization and any punctuation that is part of the mark. Add other named things (product names, series titles) as they appear. These notations are non-negotiable; the AI applies them everywhere without exception.
 
+**A path is always written with the repo that holds it.** `routines/` is not an address once an
+organization spans more than one repo: `scripts/`, `source/`, `recipes/`, `CLAUDE.md` and
+`ORGANIGRAM.md` exist in several of them, so a bare path makes the reader guess, and they guess
+wrong. Write `pyduan/agentic-organization ▸ routines/` — the repo as its `owner/name` slug, then the
+path inside it. The same holds when speaking: "the routines folder in the kit", never "the routines
+folder". A location outside every repo says so outright — `~/.claude/scheduled-tasks/`, not in any
+repo — because "which repo is that in" is exactly the question the reader is about to ask.
+
 ## Examples
 
 Keep two or three short before/after pairs from real feedback, so the tone is shown as well as described.
