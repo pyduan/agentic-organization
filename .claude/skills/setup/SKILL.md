@@ -182,6 +182,20 @@ owner is not technical, this is one of the screens you walk them through in the 
 build configuration needs an API token that only their dashboard can mint, so it cannot be done from
 here.
 
-## 7. Close
+## 7. Offer the routines — do not install them
+
+Read [`routines/README.md`](../../../routines/README.md) and tell the owner, in plain words, what
+each available routine would do and how often. **Install only what they say yes to**, with the
+scheduled-task tooling.
+
+Start with `freshness-sweep`, monthly: it is the check nothing else performs, asking whether what
+they published is still there and whether what the repo says about the world is still true. It only
+reads.
+
+Why offer rather than install: a routine writes a cron entry on their machine and then acts while
+nobody is watching. That is a side effect on their computer, not a file in their repo, and the kit's
+rule is that nothing is applied silently. Say what it does, say it can be removed, wait for the yes.
+
+## 8. Close
 
 Run the reflect skill (it will have plenty to record from this session), push everything, and tell the owner what exists now: the live URL, what each folder is for in one line each, and how to work with you from now on (open the folder, run `claude`, talk, drop files in the inbox).

@@ -64,6 +64,26 @@ stick.
 **What you need to do:** nothing to install. If you work in more than one session at a time, expect
 your agent to save its own work sooner rather than leaving it staged.
 
+## 2026-08-28 · MAJOR · The scheduled work is versioned now, and offered rather than imposed
+
+Anything your agent runs on a schedule lived only in the scheduler's own folder, which is not a git
+repo. So a routine did not survive a machine being lost, could not be handed to anyone, and could
+rot invisibly: one real case sat two months past its retirement still telling an agent to open a
+browser at an account that was no longer the right one, and read the wrong mailbox when something
+invoked it.
+
+Shareable routines now live in `routines/`, versioned with everything else. The first is the monthly
+freshness sweep, which asks the question nothing else asks: is what you published still there, and
+is what your repo says about the world still true. Setup lists what is available and installs
+nothing without your yes, because a routine writes a schedule on your machine and then acts while
+nobody is watching.
+
+**What you need to do:** nothing, unless you already run scheduled tasks. If you do, two things are
+worth a look. Anything tied to one person's mailbox or accounts should stay in their own repo rather
+than move here. And when you retire a routine, deregister it **and** delete its file in the same
+change: removing the folder alone leaves the scheduler holding an entry, and deregistering alone
+leaves runnable instructions on disk. Either half on its own leaves something that still looks live.
+
 ## 2026-08-27 · MAJOR · Before you deliver, your agent now runs the mistakes it already made
 
 Your project keeps a register of what your agent got wrong (`source/quality/incidents.json`). It was
