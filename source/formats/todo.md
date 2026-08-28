@@ -76,6 +76,16 @@ else's name.
 
 Lines without a leading date stay context, so every file written before this parses unchanged.
 
+**The browser keeps a receipt for what it sent.** Every front end here re-renders from the server's
+view after a write, and the moment that view is a step behind — a compiled snapshot rebuilt at
+deploy, a refresh that failed, an offline phone — the update is in the file and nowhere on screen.
+The person who posted it cannot open the file to check, so they retype it or they give up. So the
+item carries a mark saying an update went from this device, and the text itself for as long as the
+view lacks it: `createSentLog` in `pyduan/agentic-organization ▸ lib/todo-client.mjs`, wired into
+the app's item row. Nothing is recorded before the server confirms, a refused intent gets no
+receipt, and a browser that refuses storage loses the receipts and nothing else. It is never a
+source: the file wins on content, always.
+
 ### Handing an item to an agent
 
 Each item can produce a one-line prompt to paste into an agent session:

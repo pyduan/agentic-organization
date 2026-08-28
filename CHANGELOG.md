@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-28 · MINOR · An update you posted from your phone shows that it went
+
+Post an update on an item and the list now marks that item, and keeps the mark after you close the
+tab. If the list you are looking at is a step behind what is in the file — a page rebuilt at the
+last deploy, a refresh that failed — your update is shown anyway, with a note saying so, instead of
+vanishing until the next deploy and leaving you wondering whether it left. Nothing is marked before
+the repository confirms it, so the mark never claims something that did not happen.
+
+**What you need to do:** nothing. Redeploy the to-do app when convenient.
+
 ## 2026-08-28 · MAJOR · The to-do app stops losing edits, and stops lying about them
 
 Three faults found by comparing the kit's app with an intranet built on it, all of

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DUE_PRESETS, EXACT, isoWeek, dueLabel, isExactDay, promptFor, createQueue, localToday } from '../lib/todo-client.mjs';
+import { DUE_PRESETS, EXACT, isoWeek, dueLabel, isExactDay, promptFor, createQueue, localToday, createSentLog } from '../lib/todo-client.mjs';
 
 const preset = (key) => DUE_PRESETS.find((p) => p.key === key);
 const at = (s) => new Date(`${s}T12:00:00`);
@@ -123,4 +123,52 @@ test('localToday is the local calendar day, not the UTC one', () => {
   assert.equal(localToday(justAfterMidnight), '2026-08-27');
   assert.equal(localToday(new Date(2026, 0, 5, 23, 59, 0)), '2026-01-05');
   assert.match(localToday(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+// ── createSentLog: the receipt the browser keeps for what it sent ──────────────
+
+/** A localStorage stand-in. `fail` makes it behave like a browser that refuses. */
+const fakeStore = (fail = false) => {
+  let value = null;
+  return {
+    getItem: () => { if (fail) throw new Error('storage disabled'); return value; },
+    setItem: (_k, v) => { if (fail) throw new Error('storage disabled'); value = v; },
+    get raw() { return value; },
+  };
+};
+
+test('a send is recorded once and found again on the item', () => {
+  const log = createSentLog({ store: fakeStore() });
+  log.add('k3f9', 'Found her on rue de l’Arbre Sec.');
+  log.add('k3f9', 'Found her   on rue de l’Arbre Sec.'); // same text, looser spacing
+  assert.equal(log.for('k3f9').length, 1, 'the same update twice is one receipt');
+  assert.equal(log.for('other').length, 0);
+});
+
+test('a receipt stops being shown once the item carries the comment', () => {
+  const log = createSentLog({ store: fakeStore() });
+  log.add('k3f9', 'Poster no longer needed');
+  const behind = { id: 'k3f9', comments: [] };
+  const caughtUp = { id: 'k3f9', comments: [{ on: '2026-08-28', by: 'sam', text: 'Poster no longer needed' }] };
+  assert.equal(log.missing(behind).length, 1, 'the view is behind: show what we sent');
+  assert.equal(log.missing(caughtUp).length, 0, 'the view has it: the file speaks for itself');
+  assert.equal(log.for('k3f9').length, 1, 'the mark on the item stays either way');
+});
+
+test('receipts age out, and a corrupt store reads as empty', () => {
+  const store = fakeStore();
+  const log = createSentLog({ store, keepDays: 30 });
+  log.add('k3f9', 'old one', localToday(new Date(Date.now() - 90 * 864e5)));
+  log.add('k3f9', 'recent one');
+  assert.deepEqual(log.read().map((e) => e.text), ['recent one']);
+
+  store.setItem('todo.sent.v1', '{not json');
+  assert.deepEqual(log.read(), [], 'unreadable storage is no receipts, not a crash');
+});
+
+test('a browser that refuses storage loses the receipts and nothing else', () => {
+  const log = createSentLog({ store: fakeStore(true) });
+  assert.doesNotThrow(() => log.add('k3f9', 'anything'));
+  assert.deepEqual(log.read(), []);
+  assert.deepEqual(log.missing({ id: 'k3f9', comments: [] }), []);
 });
