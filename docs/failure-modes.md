@@ -205,6 +205,12 @@ wrong.
 - **When a fact falls, sweep every occurrence of it** — every repo, every app, every summary, every
   decision that rested on it — not only the file where you noticed. Correcting the analysis in front
   of you and stopping there leaves the stale version reading like current information elsewhere.
+- **Retiring a routine means deleting or capping its instruction file, in the same change as the
+  decision.** A superseded guide is a stale sentence; a superseded *automation* left on disk is a
+  stale sentence something can still execute, and it carries the facts that were true when it was
+  written. One decommissioned sweep kept asserting "there is no connector for this" and driving a
+  browser at a hardcoded default account, months after the connector existed, and read the wrong
+  person's mailbox when something invoked it.
 - **Screen the decisions too, not just the numbers.** A decision cites its consequence, not the fact
   behind it, so no keyword search finds it. The owner keeps being asked to arbitrate something that
   no longer exists. Re-read open decisions against anything that changed today.

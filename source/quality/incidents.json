@@ -43,14 +43,14 @@
       "category": "status-of-information",
       "severity": "major",
       "inputs": "A daily scheduled sweep whose own instructions name the Gmail connector as the only path to the work mailbox, and a machine with two Chrome profiles connected, one signed into the work account and one into the owner's personal account.",
-      "error": "The funding sweep ran against the personal Chrome profile instead of the work mailbox it is scoped to, reading a mailbox that has nothing to do with that routine.",
-      "why": "Two things. A connector-backed task reached for the logged-in browser rather than stopping when the connector path was not taken, which silently changes whose data is read. And the browser was identified by the handle the tooling prints: the connected-browser list assigns display names per connection, so the same deviceId was 'Browser 1' in the morning and 'Browser 2' the same evening. Nothing in the flow ever asked the browser which account it was signed into.",
+      "error": "A funding sweep read the owner's personal mailbox instead of the work one it is scoped to.",
+      "why": "A routine decommissioned on 2026-08-26 kept its instruction file on disk, unregistered but runnable. That file asserts 'There is no Gmail MCP connector' (false since the connector was added) and tells the agent to drive the owner's logged-in Chrome at /mail/u/0/, which resolves to whichever account is default in whichever profile it reaches. The playbook that supersedes it was updated correctly; the executable copy of the old instructions was not removed. FIRST DIAGNOSIS WAS WRONG: this was initially attributed to a silent browser fallback inside the daily drain, on the strength of that task's description mentioning funding, without checking whether a task by the literal name existed. It did.",
       "detected_by": "owner",
       "guard": {
         "kind": "rule",
-        "where": "docs/failure-modes.md §2; the task's own Règles dures; memory two-gmail-accounts"
+        "where": "the decommissioned file now opens with a hard stop; docs/failure-modes.md §4; memory two-gmail-accounts"
       },
-      "generic": "A task backed by an API stops and reports when the API fails; it never falls back to the user's logged-in browser to finish, because that changes whose data is being read. And when a browser is the right tool, identify the session by what it is signed into rather than by the label the tooling gives it: those labels are assigned per connection and swap between runs.",
+      "generic": "When a routine is retired, delete or cap its instruction file in the same change as the decision. A superseded playbook is a stale sentence; a superseded automation left on disk is a stale sentence something can still execute, and it will assert facts that were true when written. Also: a task's description is not its identity — check whether a routine by the literal name exists before attributing behaviour to a different one.",
       "sensitive": [
         "inputs",
         "error"
