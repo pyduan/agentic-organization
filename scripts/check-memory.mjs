@@ -10,8 +10,9 @@
 // au réel : dépôts, URLs, chemins locaux. Le reste reste au jugement d'un humain,
 // et le script le dit plutôt que de faire semblant.
 //
-//   node scripts/check-memory.mjs                     toutes les mémoires
-//   node scripts/check-memory.mjs --side=personnel     un seul côté
+//   node scripts/check-memory.mjs                     le côté d'où on lance
+//   node scripts/check-memory.mjs --side=personnel     un autre côté
+//   node scripts/check-memory.mjs --all                tous les côtés de la machine
 //   node scripts/check-memory.mjs --json
 //
 // Zéro dépendance. `gh` est utilisé s'il est là, sinon les dépôts sont ignorés
@@ -21,13 +22,20 @@ import { readdir, readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
-import { join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
 const BASE = join(homedir(), '.claude', 'projects');
 const args = process.argv.slice(2);
-const SIDE = (args.find((a) => a.startsWith('--side=')) || '').slice(7);
+// Par défaut on ne balaie QUE le côté d'où le script est lancé : le dossier de
+// frères qui contient ce dépôt. ~/.claude/projects tient les mémoires de tous les
+// projets de la machine, Bayes compris, et un balayage lancé depuis le côté
+// personnel n'a rien à aller lire chez le voisin (Paul, 2026-08-28). `--all`
+// élargit délibérément, `--side=<nom>` cible un autre côté.
+const WORKSPACE_SIDE = basename(dirname(resolve(process.cwd())));
+const ALL = args.includes('--all');
+const SIDE = ALL ? '' : ((args.find((a) => a.startsWith('--side=')) || `--side=${WORKSPACE_SIDE}`).slice(7));
 const AS_JSON = args.includes('--json');
 
 const findings = [];
@@ -76,7 +84,14 @@ try {
     .map((e) => e.name);
 } catch { console.error(`Pas de ${BASE}`); process.exit(1); }
 
-if (SIDE) keys = keys.filter((k) => k.includes(`-projects-${SIDE}-`));
+// Le filtre accepte plusieurs côtés : `--side=personal,personnel`. C'est utile
+// parce qu'un dossier de travail renommé laisse derrière lui les clés de
+// ~/.claude/projects sous l'ancien nom, et un balayage qui les écarte en silence
+// dirait « rien à corriger » sur des mémoires qu'il n'a pas ouvertes.
+const sides = SIDE ? SIDE.split(',').map((x) => x.trim()).filter(Boolean) : [];
+const total = keys.length;
+if (sides.length) keys = keys.filter((k) => sides.some((sd) => k.includes(`-projects-${sd}-`)));
+const skipped = total - keys.length;
 
 let scanned = 0;
 for (const key of keys.sort()) {
@@ -180,7 +195,7 @@ if (AS_JSON) {
     if (f.where !== last) { console.log(`\n${f.where}`); last = f.where; }
     console.log(`  ${f.severity === 'fail' ? '✗' : f.severity === 'warn' ? '▲' : '·'} ${f.what}\n      ${f.detail}`);
   }
-  console.log(`\n${fails.length ? '✗' : '✓'} ${scanned} mémoire(s) balayée(s) — ${fails.length} morte(s), ${warns.length} à corriger`);
+  console.log(`\n${fails.length ? '✗' : '✓'} ${scanned} mémoire(s) balayée(s) — ${fails.length} morte(s), ${warns.length} à corriger${skipped ? `, ${skipped} projet(s) d'un autre côté non balayé(s) (--all, ou --side=a,b)` : ''}`);
   if (!hasGh) console.log('  (gh absent : les dépôts n\'ont pas été vérifiés, pas « trouvés bons »)');
 }
 process.exitCode = fails.length ? 1 : 0;

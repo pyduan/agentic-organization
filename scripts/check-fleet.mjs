@@ -21,10 +21,12 @@
 //   node scripts/check-fleet.mjs            # scan the workspace
 //   node scripts/check-fleet.mjs --offline  # skip every fetch
 //   node scripts/check-fleet.mjs --json
+//   node scripts/check-fleet.mjs --workspace=~/projects/other   # another folder of siblings
 
 import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
+import { homedir } from 'node:os';
 import { dirname, join, resolve, basename } from 'node:path';
 import { promisify } from 'node:util';
 
@@ -35,20 +37,33 @@ const OFFLINE = args.includes('--offline');
 const ROOT = resolve(process.cwd());
 const TEMPLATE_SLUG = 'pyduan/agentic-organization';
 
+// The folder whose direct children are the fleet. Never its parent: see below.
+const WORKSPACE = (() => {
+  const flag = process.argv.find((a) => a.startsWith('--workspace='));
+  return flag ? resolve(flag.slice('--workspace='.length).replace(/^~/, homedir())) : dirname(ROOT);
+})();
+
 const git = async (cwd, a, timeout = 15_000) => {
   try { return (await run('git', a, { cwd, timeout })).stdout.trim(); }
   catch { return null; }
 };
 
 // ------------------------------------------------------- find the instances
-// The workspace is this repo's parent, and often its grandparent too (repos
-// grouped by owner: ~/projects/personal/…, ~/projects/bayesimpact/…). Scan both
-// rather than assume one layout.
+// The workspace is this repo's parent folder, and ONLY that. It used to scan the
+// grandparent too, to catch repos grouped by owner (~/projects/personal/…,
+// ~/projects/bayesimpact/…) — and that reached into a neighbouring organization:
+// on this machine it reported a Bayes repo as a kit instance "never upgraded",
+// on the strength of its CLAUDE.md merely naming the kit. A survey of your own
+// fleet must not walk into someone else's (Paul, 2026-08-28).
+//
+// One folder of siblings is the layout the kit documents, so it is the default.
+// `--workspace=<path>` widens it deliberately, which is the only way it should
+// ever widen.
 
 async function candidateDirs() {
   const seen = new Set();
   const out = [];
-  for (const base of [dirname(ROOT), dirname(dirname(ROOT))]) {
+  for (const base of [WORKSPACE]) {
     let entries = [];
     try { entries = await readdir(base, { withFileTypes: true }); } catch { continue; }
     for (const e of entries) {
@@ -186,7 +201,8 @@ const noSync = rows.filter((r) => !r.sha);
 // This scan sees clones on this machine and nothing else. An instance nobody has
 // cloned here does not appear, and its absence from this list is not evidence it
 // does not exist (docs/failure-modes.md ▸ no search proves an absence).
-console.log('Scanned: clones on this machine only. An instance not cloned here does not appear,');
+console.log(`Scanned: ${WORKSPACE} only, the folder this repo sits in, so a neighbouring`);
+console.log('organization is never surveyed. An instance not cloned here does not appear,');
 console.log('and this list is silent about it rather than clearing it. The repo map is ORGANIGRAM.md.');
 console.log();
 

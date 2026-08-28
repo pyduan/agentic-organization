@@ -43,6 +43,28 @@ will be re-litigated.** Record it the day it is taken. That is the whole mechani
 - When a later decision reverses an earlier one, say so in the new entry (don't silently delete the
   old one) — the reversal and its reason are part of the history.
 
+## 2026-08-28 · internal — ORGANIGRAM.md is a chart of people, not a map of repos
+
+**Paul's call.** The file was written as "your organization's repos, and who may do what", and its
+load-bearing content became the repo table that three scripts parse. That is not what it was for:
+it should be an **organigram of people**, so that teammates can collaborate on Git with the rights
+written down. The second organization running this kit already does it that way, and that is the
+convention to follow: rights and roster in `ORGANIGRAM.md`, the repo map in the routing table of
+`CLAUDE.md`.
+
+Two properties it has to keep, because they are what makes it usable rather than ceremonial:
+
+- **Instantiated by default at first setup**, so nobody has to decide to create it.
+- **Correct from day one with a single maintainer**, and rights added progressively as people
+  arrive. The reference case is `huguescharnallet`, which started as one maintainer and is three
+  people today.
+
+**What this obliges, and is not done yet.** The repo map has to move to `CLAUDE.md`, and the three
+independent parsers of the old table follow it: `scripts/check-workspace.mjs`,
+`scripts/todo-sources.mjs`, `scripts/dashboard-data.mjs`. Eighteen files mention `ORGANIGRAM` today.
+Deliberately not swept in the same change as the check-scoping commit: this template is inherited by
+other people's repos, and a hasty rename across eighteen files is how one of them breaks silently.
+
 ## 2026-08-26 · internal — building the to-dos app
 
 - **[Hypothesis] One implementation of the client logic, two front ends.** Before → after: each
