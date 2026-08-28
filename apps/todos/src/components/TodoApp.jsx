@@ -4,7 +4,7 @@ import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical } from 'lucide-react';
-import { isOverdue, createQueue, flushOnHide } from '@kit/todo-client.mjs';
+import { isOverdue, createQueue, flushOnHide, localToday } from '@kit/todo-client.mjs';
 import { DueControl } from './DueControl.jsx';
 import { CopyPrompt } from './CopyPrompt.jsx';
 import { AddComment } from './AddComment.jsx';
@@ -13,9 +13,7 @@ import { Badge } from './ui/badge.jsx';
 import { Card, CardHeader, CardBody } from './ui/card.jsx';
 import { cn } from '../lib/utils.js';
 
-const TODAY = new Date().toISOString().slice(0, 10);
-
-function Row({ item, path, onToggle, onDue, onComment }) {
+function Row({ item, path, today, onToggle, onDue, onComment }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: item.id ?? `line-${item.lineNo}`,
     disabled: !item.id,
@@ -85,7 +83,7 @@ function Row({ item, path, onToggle, onDue, onComment }) {
       <div className="col-start-3 flex items-center sm:col-start-5">
         <DueControl
           due={item.due}
-          late={!item.done && isOverdue(item.due, TODAY)}
+          late={!item.done && isOverdue(item.due, today)}
           onChange={(due) => onDue(item, due)}
         />
       </div>
@@ -110,6 +108,10 @@ export default function TodoApp() {
   const sourceRef = useRef(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
+  // What the server refused to apply. Silence here was a real bug: an intent the
+  // server rejected (an id that no longer exists, an empty comment) left the screen
+  // showing the change as applied, and only a reload told the truth.
+  const [rejected, setRejected] = useState([]);
 
 
   const load = useCallback(async (id) => {
@@ -163,8 +165,10 @@ export default function TodoApp() {
         const body = await res.json();
         if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
         // The server's version wins: it applied the intents to whatever the file
-        // says now, which may include someone else's edits.
+        // says now, which may include someone else's edits — including undoing an
+        // optimistic change it refused, which is why `rejected` must be shown.
         setItems(body.items);
+        setRejected(body.rejected || []);
         return body;
       },
       onState: (state, err) => {
@@ -178,12 +182,15 @@ export default function TodoApp() {
   useEffect(() => flushOnHide(queue.current, window), []);
 
   const onToggle = (item, done) => {
-    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done, doneOn: done ? TODAY : null } : i)));
-    push({ op: 'toggle', id: item.id, done, on: TODAY });
+    // The date of the tick is the person's date at the moment of the tick —
+    // never a constant from page load, never the UTC day. See localToday.
+    const on = localToday();
+    setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done, doneOn: done ? on : null } : i)));
+    push({ op: 'toggle', id: item.id, done, on });
   };
   const onComment = (item, text) => {
     // Optimistic, like the rest: the server stamps the real date and the author.
-    const on = TODAY;
+    const on = localToday();
     setItems((prev) => prev.map((i) => (i.id === item.id
       ? { ...i, comments: [...(i.comments || []), { on, by: null, text }] } : i)));
     push({ op: 'comment', id: item.id, text, on });
@@ -209,6 +216,9 @@ export default function TodoApp() {
   };
 
   const ids = useMemo(() => items.map((i) => i.id ?? `line-${i.lineNo}`), [items]);
+  // Recomputed on every render rather than frozen at module load, so a tab left
+  // open overnight stops calling today's items overdue.
+  const today = localToday();
   const sourceLabel = sources.find((s) => s.id === source)?.label ?? source;
   const openCount = items.filter((i) => !i.done).length;
 
@@ -243,6 +253,14 @@ export default function TodoApp() {
       </CardHeader>
 
       <CardBody>
+        {rejected.length ? (
+          <ul className="mx-3 mt-3 space-y-1 rounded-lg border border-late/40 px-3 py-2 text-xs text-late">
+            {rejected.map((r, i) => (
+              <li key={i}>Not applied: {r.reason ?? 'refused'}</li>
+            ))}
+          </ul>
+        ) : null}
+
         {items.length === 0 && status !== 'loading' ? (
           <p className="px-3 py-6 text-sm text-muted">Nothing in this file yet.</p>
         ) : (
@@ -259,6 +277,7 @@ export default function TodoApp() {
                     key={item.id ?? `line-${item.lineNo}`}
                     item={item}
                     path={fileAt?.path ?? sourceLabel}
+                    today={today}
                     onToggle={onToggle}
                     onDue={onDue}
                     onComment={onComment}

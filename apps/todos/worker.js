@@ -17,7 +17,7 @@
 // and try once more. Re-applying is safe because an intent names an item by its
 // ^id, never by a line number.
 
-import { parse, apply, ensureIds } from '../../lib/todo.mjs';
+import { parse, apply, ensureIds, sanitizeIntents } from '../../lib/todo.mjs';
 import { verifyAccessJwt } from '../../lib/access.mjs';
 // Generated from ORGANIGRAM.md by scripts/todo-sources.mjs. The kit keeps one map
 // of the workspace; this file is that map answered for this app, not a second one.
@@ -256,8 +256,10 @@ export default {
       }
 
       if (request.method === 'POST') {
-        const { intents } = body;
-        if (!Array.isArray(intents) || !intents.length) return json({ error: 'no intents' }, 400);
+        // The whole batch or nothing: the UI only sends well-formed intents, so a
+        // malformed one is not the UI, and half-applying its batch helps nobody.
+        const intents = sanitizeIntents(body.intents);
+        if (!intents) return json({ error: 'malformed intents' }, 400);
 
         // The client's sha is deliberately not used as a precondition. Intents are
         // semantic ("tick ^k3f9"), so they apply correctly to whatever the file says

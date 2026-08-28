@@ -10,6 +10,29 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-28 · MAJOR · The to-do app stops losing edits, and stops lying about them
+
+Three faults found by comparing the kit's app with an intranet built on it, all of
+them silent, all of them fixed.
+
+**An edit that failed to save is no longer thrown away.** When the network dropped or
+GitHub refused, the queue discarded the batch: the screen kept showing the tick you
+made, the file never got it, and only a reload revealed the gap. The edits now stay
+queued, retry on their own, and the app keeps saying "unsaved" until they land.
+
+**A change the server refused now says so on screen.** Ticking an item someone else
+had already deleted looked like it worked. Refusals appear under the header instead.
+
+**A tick made at half past midnight, or in a tab left open overnight, gets today's
+date.** It used to take the UTC day, computed when the page loaded — so an evening in
+Paris was dated yesterday, and a tab open since Monday dated everything Monday.
+
+The Worker also checks a batch before applying any of it (a cap on size, the shape of
+each id and date), and refuses the whole batch rather than half-applying something
+that did not come from the app.
+
+**What you need to do:** nothing. Redeploy the to-do app when convenient.
+
 ## 2026-08-27 · MINOR · The preflight check no longer calls a register it cannot read "empty"
 
 Found the first time a project hand-started its incident register from the schema example: the

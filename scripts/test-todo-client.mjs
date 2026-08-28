@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { DUE_PRESETS, EXACT, isoWeek, dueLabel, isExactDay, promptFor, createQueue } from '../lib/todo-client.mjs';
+import { DUE_PRESETS, EXACT, isoWeek, dueLabel, isExactDay, promptFor, createQueue, localToday } from '../lib/todo-client.mjs';
 
 const preset = (key) => DUE_PRESETS.find((p) => p.key === key);
 const at = (s) => new Date(`${s}T12:00:00`);
@@ -81,7 +81,7 @@ test('busy is true from the first edit until the send resolves', async () => {
   assert.equal(q.busy, false);
 });
 
-test('a failing send reports the error and does not swallow it', async () => {
+test('a failing send reports the error and keeps the edits', async () => {
   const states = [];
   const q = createQueue({
     delay: 5,
@@ -89,7 +89,38 @@ test('a failing send reports the error and does not swallow it', async () => {
     onState: (s) => states.push(s),
   });
   q.push({ op: 'toggle', id: 'a' });
-  await assert.rejects(() => q.flush(), /409/);
+  await q.flush();
   assert.deepEqual(states, ['dirty', 'saving', 'error']);
-  assert.equal(q.busy, false, 'a failed batch must not leave the queue stuck busy');
+  // The old contract dropped the batch, so the screen kept showing a change the
+  // file never received. Edits stay queued, and `busy` says so.
+  assert.equal(q.busy, true, 'a failed batch must stay queued, not vanish');
+});
+
+test('a batch that failed is retried, with everything queued since', async () => {
+  const seen = [];
+  let fail = true;
+  const q = createQueue({
+    delay: 5,
+    send: async (batch) => {
+      seen.push(batch.map((i) => i.id));
+      if (fail) throw new Error('HTTP 500');
+      return { ok: true };
+    },
+  });
+  q.push({ op: 'toggle', id: 'a' });
+  await q.flush();
+  q.push({ op: 'toggle', id: 'b' });
+  fail = false;
+  await q.flush();
+  assert.deepEqual(seen, [['a'], ['a', 'b']], 'the failed edit goes back in front of what came after');
+  assert.equal(q.busy, false, 'a successful send clears the queue');
+});
+
+test('localToday is the local calendar day, not the UTC one', () => {
+  // 00:30 in Paris on the 27th is still the 26th in UTC. A tick at that hour was
+  // being dated yesterday, which is the bug this function exists to prevent.
+  const justAfterMidnight = new Date(2026, 7, 27, 0, 30, 0);
+  assert.equal(localToday(justAfterMidnight), '2026-08-27');
+  assert.equal(localToday(new Date(2026, 0, 5, 23, 59, 0)), '2026-01-05');
+  assert.match(localToday(), /^\d{4}-\d{2}-\d{2}$/);
 });
