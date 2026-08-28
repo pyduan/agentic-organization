@@ -108,6 +108,17 @@ and the second copies only the number.
   this* and was read as answering *will it survive*. The two are independent, and neither had been
   put to the system. Write the identifier the system displays, and ask the system which account
   holds the service.
+- **Check the account, not the window, before driving someone's browser — and never fall back to a
+  browser for something a connector owns.** A daily sweep whose own instructions said to read the
+  work mailbox through its Gmail connector ran against the owner's *personal* Chrome profile
+  instead. Two rules come out of it. A task backed by an API stops and reports when the API fails;
+  it never reaches for the logged-in browser to finish the job, because that silently changes whose
+  data is being read. And when a browser genuinely is the right tool, **identify the session by
+  what it is signed into**, not by the handle the tooling gives it: the connected-browser list here
+  hands out display names assigned per connection, so the same machine was "Browser 1" one morning
+  and "Browser 2" that evening. Anything that recorded "use Browser 2" was pointing at a different
+  profile by the afternoon. Open a page that names the signed-in account, compare it to the one the
+  task needs, and stop if they differ.
 - **A category is not an identity.** Metered interface, carrier prefix and signal strength together
   established *a phone hotspot*; they were written up as *this owner's phone*. Where the deciding
   value is unreadable, test membership without displaying it — compare, count, check against a list
