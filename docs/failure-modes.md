@@ -129,6 +129,16 @@ and the second copies only the number.
   entry for an evening someone attends is not a date that binds. Same trap between a threshold and
   its effects: a deadline whose label says *from*, *threshold* or *beyond* carries the date of
   crossing, and the consequences go in the text of the action.
+- **A term of art is a classification, and the owner's is unverified until you check it.** People
+  name a thing with the word they have. In law, tax, contracts, medicine and engineering the
+  neighbouring word is a different thing — a *replica* is not a *backup*, a founder's *loan* is not
+  *capital* — and nobody announces the substitution, so the word arrives carrying the rank of an
+  established classification it never earned. Everything downstream is then internally consistent
+  and about an arrangement that does not exist, which is why re-reading the work never catches it.
+  Verify the term against its definition before building on it, and when it is the wrong one, give
+  the right term with the distinction and what it changes rather than a silent fix: the owner is the
+  one who will use the word where you are not. Reported by an owner running this kit, who had built
+  a file on the wrong one of two neighbouring legal terms.
 - **A test suite's verdict is its exit code**, read with no pipe in between, never the presence or
   absence of a pattern in its output. A filter that assumes it knows every failure format needs only
   one new format to turn a failure into silence — and a confirmation written beside the command

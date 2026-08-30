@@ -126,6 +126,19 @@ Find every row that matches the task at hand and read those files before produci
   rather than as figures and survive the regrouping that makes them false. And when a fact falls,
   sweep every occurrence of it — other files, other repos, the deployed app, and the decisions that
   rested on it — not only the place you noticed.
+- **A term of art the owner uses is an input to check, not a given, and the correction has to
+  teach.** People name a thing with the word they have, and in law, tax, contracts, medicine or
+  engineering the neighbouring word is a different thing: a *replica* is not a *backup*, money a
+  founder puts in as a *loan* is not *capital*, a *deposit* is not a *down payment*. Nobody
+  announces the substitution, so the term arrives with the rank of an established fact and
+  everything built on it — a file, a plan, an application, a piece of advice — then describes an
+  arrangement that does not exist. So when a term carries a definition, verify it before building
+  on it — look the definition up against a source rather than recalling it, since a confident near
+  miss is the whole failure, and bank it in `source/facts/` if the distinction will come up again.
+  When it is the wrong one, say which is right, why the distinction exists and what changes because
+  of it, so the owner learns the distinction instead of receiving a silent fix. They are the one who
+  will use the word in a meeting where you are not there. Asked for by an owner running this kit who
+  had built a whole file on the wrong one of two neighbouring legal terms.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session

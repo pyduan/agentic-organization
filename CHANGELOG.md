@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-28 · MAJOR · Your agent checks the words you use, and teaches you the ones it corrects
+
+When you use a term that has a definition behind it — legal, tax, contractual, medical, technical —
+your agent now checks it is the right one before building anything on it, instead of adopting your
+wording and carrying on. When it is the wrong one, it tells you which term is right, why the two
+differ, and what changes because of it, so you come away knowing the distinction rather than having
+been quietly corrected. You are the one who will use the word in a meeting where it is not there.
+
+The neighbouring word is the dangerous one: two terms that sound interchangeable can describe
+completely different arrangements, and once the wrong one is in a file, everything written from it
+is consistent and wrong, which is why re-reading never catches it. This came from someone running
+this kit who found a whole file built on the wrong one of two legal terms.
+
+**What you need to do:** nothing. Expect your agent to query a word now and then. If there is a
+subject where you already know the vocabulary better than it does, say so and it will stop.
+
 ## 2026-08-28 · MINOR · An update you posted from your phone shows that it went
 
 Post an update on an item and the list now marks that item, and keeps the mark after you close the
