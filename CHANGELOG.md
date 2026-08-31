@@ -10,6 +10,28 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-31 · MAJOR · Your agent now offers to build the tool instead of answering the question again
+
+If you keep coming back to the same subject — where you stand on a tax position, what the retirement
+picture looks like, whether the runway holds — and the answer is a figure assembled from several
+places, your agent will now stop answering and offer to build you a small tool for it. It should say
+what the tool would hold, what it would check, and what it would cost to make.
+
+The reason is that a good answer feels like the end of the conversation, so a subject that deserved
+its own tool stays a conversation forever: the same arithmetic redone by hand each time, from
+whatever that session happened to remember, with no two answers computed the same way. Each one
+looks right. You would not know an app was an option, so nobody was ever going to ask for it, and
+waiting to be asked was the same as deciding there would not be one.
+
+What those tools must now do is the part that matters. Every figure traces back to a sourced entry,
+totals are recomputed as they are displayed rather than stored, and when a projection stops
+reconciling with what it was built from, it refuses to show you the chart and shows you the two
+numbers and the gap instead. A rule written down is re-read by someone who already believes it; a
+rule inside the recomputation gets to say no.
+
+**What you need to do:** nothing. If your agent offers to build something and you would rather it
+just answered, say so — but ask it what the tool would have checked before you decide.
+
 ## 2026-08-31 · MAJOR · The fleet check was giving wrong numbers, and said "wired" without knowing
 
 If you have ever run `check-fleet` from your own project rather than from the kit, every "N template
