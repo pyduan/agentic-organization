@@ -23,6 +23,7 @@ Find every row that matches the task at hand and read those files before produci
 | Any visual decision (layout, color, type, spacing, imagery, components) | `source/brand/design.md` + `source/brand/tokens.css` |
 | Website pages, navigation, or structure | `source/formats/website.md` |
 | A web app or interactive tool (calculator, simulator, form flow, dashboard) | `source/formats/webapp.md`, plus voice and design above |
+| A subject the owner keeps asking about where the answer is a **figure built from several sources** and being wrong costs something — money, tax, a deadline, a legal position | `source/formats/webapp.md` ▸ *Who decides there should be a tool*. Offer to build it rather than answering again, and give it invariants that refuse |
 | Anything touching a to-do — writing one, ticking one, building over `next-steps.md` | `source/formats/todo.md` (the line format and the patch rule), and use `lib/todo.mjs` rather than a new regex |
 | A deck or presentation | `source/formats/deck.md`, plus voice and design above |
 | A message someone will **send**: an email out, an email to the team, a chat message | `source/formats/message.md` (the shape per format, plus the per-person block), and `source/brand/voice.md` for the plain-text email rules |
@@ -139,6 +140,18 @@ Find every row that matches the task at hand and read those files before produci
   of it, so the owner learns the distinction instead of receiving a silent fix. They are the one who
   will use the word in a meeting where you are not there. Asked for by an owner running this kit who
   had built a whole file on the wrong one of two neighbouring legal terms.
+- **When a subject needs a tool, propose the tool. Do not wait to be asked.** The owner does not
+  know an app is on the menu, so a subject that should have become one stays a rolling conversation:
+  the same arithmetic redone by hand every session, from whatever the transcript kept, no two
+  answers computed the same way, and each one looking right on its own. The signal is a conjunction
+  — the question returns with different inputs, the answer is assembled from several sources, being
+  wrong costs money or a deadline or a legal position, and the inputs move on their own. When all
+  four hold, stop answering and offer to build it, saying what it would hold and what it would
+  check. And a tool that computes carries its invariants in code, run on every change: figures trace
+  to sourced entries, totals are recomputed rather than stored, and a result that no longer
+  reconciles refuses to render and shows the gap. That is the point of building it — a rule in prose
+  is re-read by someone who already believes it, a rule in the recomputation can say no. Recipe:
+  `source/formats/webapp.md` ▸ *Who decides there should be a tool*.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session

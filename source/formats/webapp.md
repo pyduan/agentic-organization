@@ -5,6 +5,51 @@ simulator, a small internal tool, a dashboard over a data file. Same brand, same
 publish loop as the site — read `source/brand/voice.md`, `design.md` and `tokens.css` first, like
 for any output.
 
+## Who decides there should be a tool
+
+The common failure is not building the wrong app. It is never building one.
+
+An owner who does not write software asks their agent questions and gets answers, and a good answer
+feels like the end of the exchange. So a subject that deserved a tool gets handled as a rolling
+conversation instead: the same arithmetic redone by hand each session, from whatever the transcript
+happened to keep, with no two answers computed the same way. Nobody notices, because every
+individual answer looked right. **Waiting to be asked for an app is the same as deciding there will
+not be one**, since the person who would ask does not know it is on the menu.
+
+So proposing it is your job, not theirs. Four conditions, and it is the conjunction that matters:
+
+1. the same question comes back with different inputs — a simulation, not a one-off;
+2. the answer is a figure assembled from several sources;
+3. being wrong costs something real: money, a deadline, a legal position;
+4. the inputs move under you — a rate, a balance, a valuation, a rule.
+
+When all four hold, stop answering the question and say so plainly: what the tool would hold, what
+it would check, roughly what it costs to build, and what stays manual. Then build it if they agree.
+One tool per body of facts that moves together, not one per question asked — the unit is the domain
+(the retirement position, the cash runway, the grant pipeline), because that is what has to stay
+consistent with itself.
+
+### A computing tool carries its own checks, or it is only a nicer way to be wrong
+
+The interface is not the point. The point is that a machine finally has something it can refuse.
+
+A projection with a slider is prettier than the same projection in prose and no more trustworthy. The
+version that earns its existence is the one where **every figure traces to a sourced entry, the
+totals are recomputed at display time rather than stored, and a projection that no longer reconciles
+with its inputs refuses to render** — showing the two numbers and the gap instead of the chart. Same
+for anything that must sum: an allocation that no longer totals 100%, a schedule whose instalments
+no longer add to the principal, a budget whose lines drifted from the header figure.
+
+Write those as real assertions in the code, run on every change, not as a note in the README. This is
+the whole reason to prefer a tool over a well-written answer: a rule that lives in prose is re-read
+by someone who already believes it, while a rule that lives in the recomputation gets the chance to
+say no. Where an invariant genuinely cannot be expressed, say so in the interface rather than
+implying the check exists.
+
+Figures that will inform a real decision also carry their provenance where the reader is looking, not
+in a footnote: the source and the date the value was last confirmed, next to the value. `source/facts/`
+holds the sourced entries; the app reads them, never its own copy.
+
 ## Page or app?
 
 Before creating an app, check the ladder:
