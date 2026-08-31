@@ -44,6 +44,20 @@ const git = (args, opts = {}) => {
 const origin = git(['remote', 'get-url', 'origin']) || '';
 if (origin.includes('pyduan/agentic-organization')) process.exit(0);
 
+// A receipt, written on every run, before any of the exits below. check-fleet
+// reads it to answer "is this instance wired" with evidence instead of with the
+// presence of a line in settings.json. The hook's command ends in
+// `2>/dev/null || true`, so a machine with no node fails silently and exits zero:
+// without this file, never having run and having run with nothing to say are the
+// same observation from outside. Machine-local, in .git/, never committed.
+const gitDirEarly = (git(['rev-parse', '--absolute-git-dir']) || '').trim();
+if (gitDirEarly) {
+  try {
+    writeFileSync(join(gitDirEarly, 'kit-news-ran'),
+      JSON.stringify({ at: Date.now(), day: new Date().toISOString().slice(0, 10) }));
+  } catch { /* unwritable .git, and a news check never breaks a session */ }
+}
+
 // An instance created before this mechanism has no `template` remote yet.
 // Adding it is the one write this script allows itself: additive git config,
 // the kit's canonical URL, exactly what update-kit's first step would do.

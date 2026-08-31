@@ -10,6 +10,28 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-08-31 · MAJOR · The fleet check was giving wrong numbers, and said "wired" without knowing
+
+If you have ever run `check-fleet` from your own project rather than from the kit, every "N template
+commits behind" it showed you was wrong. It read the template's position from whichever repo it was
+started in, so the figure was really your own commits since you last took an update: plausible,
+moving the right way, and growing the harder you worked. On this machine the same scan said one
+project was 12 commits behind from the kit and 189 from inside the project. A project already up to
+date came out as "cannot compare" rather than fine. It is fixed: the template is now found by its
+address wherever it sits, and when there is no copy of it on the machine the scan says so instead of
+printing a number.
+
+Two other things it was telling you without knowing. "news: wired" only meant the line was present
+in your settings; it never meant the update notice had run. Someone ran a month of sessions being
+told he was wired, on a machine with no Node, where that notice fails silently by design. It now
+leaves a trace each time it runs, and the scan reports what it finds rather than what was intended —
+so expect "no receipt yet" on your projects until each has pulled this and opened one session. And
+the scan now tells you when the copy on your disk is behind its own origin, before any verdict it
+draws from it: a clone four weeks old made a perfectly healthy project look broken.
+
+**What you need to do:** nothing, beyond re-running the check if a number from it worried you. If
+you were told a project was not wired, look again after it has pulled this.
+
 ## 2026-08-28 · MAJOR · Your agent checks the words you use, and teaches you the ones it corrects
 
 When you use a term that has a definition behind it — legal, tax, contractual, medical, technical —
