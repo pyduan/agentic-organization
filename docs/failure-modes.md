@@ -21,6 +21,20 @@ Three findings about the *shape* of these errors, before the list:
   and a genuine document mistaken for a precise one (§3). For those, the parade is a rule about how
   you write, not a test you can run. Do not dress a rule up as a safeguard: the register's most
   honest column is the one that says *nothing guards this yet*.
+- **A rule does not transmit by being written. It transmits by being executable.** The clearest
+  result from that register's second hundred cases, and it is unwelcome: the families that receded
+  are the ones whose fix took the form of a tool or a control that refuses, and the ones that resist
+  are the ones whose fix took the form of a sentence — however good the sentence, however well
+  placed. Measured on composition rather than volume, the documentary families fell from 40% of
+  incidents to 11% once the fix became a tool that queries the source live; actions on files rose
+  from 24% to 33%, not because they got worse but because they are what is left. The proof of the
+  point is dated: on the very day the frame gained the rule that a safeguard depending on what it
+  guards against protects nothing, that owner's workshop built a monitor hooked to the activity of
+  the person it was meant to watch — silent during exactly the periods it existed to cover, and the
+  outage happened in one of them. So when you correct something here, ask what would refuse, and
+  only fall back to prose when nothing can. Where prose is genuinely the only parade (the three
+  mechanisms above), say so in the register's own words: *nothing guards this yet*.
+
 - **Thoroughness is not coverage, and it disguises the gap.** The starkest incident in that register
   was an archive verified for days — hash by hash, restart, throughput, disk — and parked in cloud
   storage whose login was the very account the archive existed to survive. Every internal axis was
