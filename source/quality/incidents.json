@@ -65,8 +65,8 @@
       "error": "Run from anywhere but the template, every 'N template commit(s) behind' is wrong, and the closing alert fires on it. `const templateHead = await git(ROOT, ['rev-parse','HEAD'])` with ROOT = process.cwd() takes the CALLING repo's head as the template's, so `sha..templateHead` counts the project's own commits since it last synced. Reproduced here: run from the template, huguescharnallet is 12 behind and personal-paul up to date; run from huguescharnallet, the same scan says 189 behind and 'no template HEAD to compare' for the up-to-date one — the second symptom the report had not seen, since an instance whose sha is not in the caller's history cannot be ranged at all.",
       "detected_by": "outside user",
       "guard": {
-        "kind": "none",
-        "where": "not yet fixed — the script needs to locate the template repo rather than assume it is the cwd, and to refuse to report rather than report a number it cannot ground"
+        "kind": "test",
+        "where": "scripts/test-check-fleet.mjs — the behind count must be identical run from the template and from a project; verified failing on the pre-fix script. The template is located by its origin, and an ungrounded figure is refused rather than printed."
       },
       "generic": "A script that compares against a reference must locate that reference, never assume it is where it was started. The failure is silent in the worst way: the number is plausible, it moves in the right direction as work accumulates, and it grows with the project's own activity — so the more an instance is worked, the more urgently it claims to be out of date."
     },
@@ -79,8 +79,8 @@
       "error": "An instance can report 'news: wired' while the mechanism has never once run. The hook's command is `node \"$CLAUDE_PROJECT_DIR/scripts/kit-news.mjs\" 2>/dev/null || true`, so on a machine with no node it fails silently and succeeds loudly. check-fleet reads the hook's presence in settings.json and calls that wired. An outside user ran a month of sessions this way and found it only when a diagnostic prompt made him install node.",
       "detected_by": "outside user",
       "guard": {
-        "kind": "none",
-        "where": "not yet fixed — 'wired' should mean the mechanism was observed to run, not that its configuration line exists"
+        "kind": "tool",
+        "where": "kit-news writes .git/kit-news-ran on every run before any early exit; check-fleet reports 'configured' and 'ran' as different answers, and says outright that the receipt only exists from 2026-08-31 so an absence proves nothing yet."
       },
       "generic": "This is the kit's own rule about safeguards, applied to the kit: a check that never fires leaves no trace, so its silence proves nothing. `2>/dev/null || true` on a notifier converts every failure into a positive claim. A tool that reports on a mechanism must test the mechanism, not read its configuration — the configuration is what someone intended, not what happens."
     },
@@ -93,8 +93,8 @@
       "error": "An outside user's scan reported that a project had neither the hook nor .kit-sync, and he wrote to say so. Both were on origin/main and had been for days; his local clone was 118 commits old. He caught it himself before acting, but the report he nearly acted on said a healthy repo needed repair.",
       "detected_by": "outside user",
       "guard": {
-        "kind": "none",
-        "where": "not yet fixed — the scan should say how far each working copy is behind its own origin before diagnosing it"
+        "kind": "tool",
+        "where": "check-fleet prints each clone's lag against its own origin above every verdict drawn from it, and the template clone's own lag above the whole report; covered by a test."
       },
       "generic": "A tool that inspects a working copy is answering a question about a checkout, not about a project, and it must say which. Reporting 'NOT WIRED' from a stale clone is the silent-expiry family aimed at the maintainer: the sentence was true of what was on disk and false of the thing the reader cares about. State the age of the evidence next to the verdict drawn from it."
     }
