@@ -71,17 +71,34 @@ test('the behind count is the same wherever the scan is started from', () => {
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
 
-test('with no template clone in reach, it refuses to print a figure', () => {
+test('with no template clone, it falls back to the instance’s own template ref', () => {
+  // The common case, and the one that matters: a machine running an instance
+  // almost never has a clone of the template beside it. The instance's own
+  // `template/main` — what kit-sync and kit-news already keep fetched — answers
+  // the same question, so the owner who most needs the figure still gets it.
   const { ws, proj } = fleet();
   try {
-    // A workspace holding the project and no template at all.
     const lonely = mkdtempSync(join(tmpdir(), 'lonely-'));
-    repo(join(lonely, 'only'), { origin: 'https://github.com/someone/only.git', commits: 2, kitSync: true });
-    const out = scan(proj, lonely);
+    // The project, alone, with no template repo anywhere in the scanned folder.
+    execFileSync('cp', ['-R', proj, join(lonely, 'proj')]);
+    const out = scan(join(lonely, 'proj'), lonely);
     assert.match(out, /No clone of the template on this machine/);
-    assert.doesNotMatch(out, /commit\(s\) behind/, 'no number is better than a number nothing grounds');
+    assert.match(out, /2 template commit\(s\) behind/, 'the template remote still answers it');
     rmSync(lonely, { recursive: true, force: true });
   } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
+test('with neither a clone nor a template remote, it prints no figure at all', () => {
+  const lonely = mkdtempSync(join(tmpdir(), 'lonely-'));
+  try {
+    const only = join(lonely, 'only');
+    repo(only, { origin: 'https://github.com/someone/only.git', commits: 2, kitSync: true });
+    writeFileSync(join(only, '.kit-sync'), JSON.stringify({ sha: '0'.repeat(40) }));
+    const out = scan(only, lonely);
+    assert.match(out, /nothing to compare against/);
+    assert.doesNotMatch(out, /\d+ template commit\(s\) behind/,
+      'no number is better than a number nothing grounds');
+  } finally { rmSync(lonely, { recursive: true, force: true }); }
 });
 
 test('a stale checkout is flagged before any verdict drawn from it', () => {

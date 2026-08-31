@@ -119,6 +119,25 @@ let templateBehind = null;
 const isTemplate = async (d) =>
   ((await git(d, ['remote', 'get-url', 'origin'])) || '').includes(TEMPLATE_SLUG);
 
+// Where an instance's yardstick comes from, in order of preference:
+//   1. a clone of the template on this machine, fetched just now;
+//   2. failing that, the instance's own `template/<branch>` ref — the very thing
+//      it syncs against, and which kit-sync and kit-news already keep fetched.
+// (2) is not a consolation prize, it is the common case: a machine that runs an
+// instance usually has no clone of the template at all. Without it this scan
+// would answer "cannot compare" to the one owner who most needs the number,
+// which is a quieter way of being useless than the wrong figure it used to give.
+const TEMPLATE_REMOTE = process.env.KIT_REMOTE || 'template';
+const TEMPLATE_BRANCH = process.env.KIT_BRANCH || 'main';
+
+async function yardstickFor(dir) {
+  if (templateHead) return { sha: templateHead, repo: templateDir, from: 'clone' };
+  if (!(await git(dir, ['remote', 'get-url', TEMPLATE_REMOTE]))) return { sha: null, from: 'none' };
+  if (!OFFLINE) await git(dir, ['fetch', '--quiet', TEMPLATE_REMOTE]);
+  const sha = await git(dir, ['rev-parse', `${TEMPLATE_REMOTE}/${TEMPLATE_BRANCH}`]);
+  return sha ? { sha, repo: dir, from: 'remote-ref' } : { sha: null, from: 'none' };
+}
+
 // ------------------------------------------------------- inspect one instance
 
 async function inspect(dir) {
@@ -147,12 +166,17 @@ async function inspect(dir) {
   try { sha = JSON.parse(await readFile(join(dir, '.kit-sync'), 'utf8')).sha || null; } catch { /* none */ }
   let behind = null;
   let behindWhy = null;
+  let yardstick = 'none';
   if (!sha) behindWhy = 'no-sync';
-  else if (!templateDir) behindWhy = 'no-template-clone';
   else {
-    const n = await git(templateDir, ['rev-list', '--count', `${sha}..${templateHead}`]);
-    if (n === null) behindWhy = 'sync-point-unknown';
-    else behind = Number(n);
+    const y = await yardstickFor(dir);
+    yardstick = y.from;
+    if (!y.sha) behindWhy = 'no-yardstick';
+    else {
+      const n = await git(y.repo, ['rev-list', '--count', `${sha}..${y.sha}`]);
+      if (n === null) behindWhy = 'sync-point-unknown';
+      else behind = Number(n);
+    }
   }
 
   // 2 · wired to announce its own news? Two different questions, and this used to
@@ -187,7 +211,7 @@ async function inspect(dir) {
   }
 
   return {
-    name, origin, marker, sha, behind, behindWhy, wired, configured, lastRan, copyBehind,
+    name, origin, marker, sha, behind, behindWhy, yardstick, wired, configured, lastRan, copyBehind,
     lastCommit: [...people.values()].map((p) => p.last).sort().pop() || null,
     people: [...people.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
   };
@@ -230,8 +254,9 @@ const unroutable = (email) => !email || !email.includes('@') || /\.local$/.test(
 console.log();
 console.log(`KIT FLEET — ${rows.length} instance(s), template at ${(templateHead || '?').slice(0, 7)}`);
 if (!templateDir) {
-  console.log('No clone of the template on this machine, so no "behind" figure can be computed.');
-  console.log(`Clone ${TEMPLATE_SLUG} beside these projects, or run this from it.`);
+  console.log('No clone of the template on this machine. Each instance is therefore measured against');
+  console.log(`its own \`${TEMPLATE_REMOTE}/${TEMPLATE_BRANCH}\` ref, which is what it syncs against anyway — so the ages below`);
+  console.log('are as fresh as that instance\u2019s last fetch, and two of them can disagree.');
 } else if (templateBehind) {
   console.log(`⚠ That template clone (${templateDir}) is itself ${templateBehind} commit(s) behind its`);
   console.log('  origin, so every age below is measured against a yardstick that is short. git pull it.');
@@ -247,7 +272,7 @@ if (!rows.length) {
 
 const WHY = {
   'no-sync': 'NO .kit-sync — never upgraded through kit-sync',
-  'no-template-clone': 'no template clone here, nothing to compare against',
+  'no-yardstick': 'no template clone here and no `template` remote in it — nothing to compare against',
   'sync-point-unknown': 'its sync point is not in the template\u2019s history — fetch the template',
 };
 

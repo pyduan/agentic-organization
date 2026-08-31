@@ -51,6 +51,11 @@ so expect "no receipt yet" on your projects until each has pulled this and opene
 the scan now tells you when the copy on your disk is behind its own origin, before any verdict it
 draws from it: a clone four weeks old made a perfectly healthy project look broken.
 
+It also stopped needing a copy of the kit sitting beside your projects, which most machines running
+one do not have. Each project is now measured against the `template` remote it already syncs
+against, so the figure exists for the person who actually needs it rather than only for whoever
+keeps the kit checked out.
+
 **What you need to do:** nothing, beyond re-running the check if a number from it worried you. If
 you were told a project was not wired, look again after it has pulled this.
 
