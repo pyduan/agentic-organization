@@ -98,10 +98,26 @@ async function kitMarker(dir) {
   return null;
 }
 
-// ------------------------------------------------------- the template's own HEAD
+// ------------------------------------------------------- find the template itself
 
-const templateHead = await git(ROOT, ['rev-parse', 'HEAD']);
-if (!OFFLINE) await git(ROOT, ['fetch', '--quiet', 'origin']);
+// Never assume the template is the repo this was started from. The update-kit
+// skill tells an owner to run this from THEIR project, and taking the caller's
+// HEAD as the template's turned every "behind" count into a count of the
+// project's own commits since it last synced — a number that is plausible, that
+// moves the right way, and that grows the harder the project is worked. It also
+// made an up-to-date instance unrangeable, so it read as uncomparable rather
+// than fine. Reported by an owner whose project claimed 189 commits behind
+// while kit-sync said there was nothing to apply (2026-08-31).
+//
+// The template is identified by its origin, wherever it sits: the caller, or a
+// sibling in the workspace. If there is no clone of it on this machine there is
+// nothing to compare against, and the scan says so instead of printing a number.
+let templateDir = null;
+let templateHead = null;
+let templateBehind = null;
+
+const isTemplate = async (d) =>
+  ((await git(d, ['remote', 'get-url', 'origin'])) || '').includes(TEMPLATE_SLUG);
 
 // ------------------------------------------------------- inspect one instance
 
@@ -113,24 +129,54 @@ async function inspect(dir) {
   const marker = await kitMarker(dir);
   if (!marker) return null;
 
-  // 1 · kit age
+  // 0 · how fresh is this checkout? Everything below is read off the working copy,
+  // so it describes a clone and not a repo. An owner was told a healthy project
+  // had no hook and no .kit-sync, on the strength of a clone 118 commits old.
+  if (!OFFLINE) await git(dir, ['fetch', '--quiet', 'origin']);
+  const upstream = (await git(dir, ['rev-parse', '--verify', '--quiet', '@{u}'])) ? '@{u}'
+    : (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : null;
+  let copyBehind = null;
+  if (upstream) {
+    const n = await git(dir, ['rev-list', '--count', `HEAD..${upstream}`]);
+    copyBehind = n === null ? null : Number(n);
+  }
+
+  // 1 · kit age, measured inside the template's repo — the only one that holds
+  // both the sync point and the template's history.
   let sha = null;
   try { sha = JSON.parse(await readFile(join(dir, '.kit-sync'), 'utf8')).sha || null; } catch { /* none */ }
   let behind = null;
-  if (sha && templateHead) {
-    const n = await git(ROOT, ['rev-list', '--count', `${sha}..${templateHead}`]);
-    behind = n === null ? null : Number(n);
+  let behindWhy = null;
+  if (!sha) behindWhy = 'no-sync';
+  else if (!templateDir) behindWhy = 'no-template-clone';
+  else {
+    const n = await git(templateDir, ['rev-list', '--count', `${sha}..${templateHead}`]);
+    if (n === null) behindWhy = 'sync-point-unknown';
+    else behind = Number(n);
   }
 
-  // 2 · wired to announce its own news?
-  let wired = false;
+  // 2 · wired to announce its own news? Two different questions, and this used to
+  // answer only the first. The hook line being present in settings.json says what
+  // someone intended; it does not say the mechanism has ever run. Its command ends
+  // in `2>/dev/null || true`, so on a machine without node it fails silently and
+  // exits zero — an owner ran a month of sessions being told he was wired while
+  // kit-news had never once executed. So the hook now leaves a receipt in .git/
+  // when it runs, and this reads it: configured is intent, ran is evidence.
+  let configured = false;
   try {
     const s = JSON.parse(await readFile(join(dir, '.claude/settings.json'), 'utf8'));
-    wired = JSON.stringify(s.hooks?.SessionStart || []).includes('kit-news');
-  } catch { /* no settings, so not wired */ }
+    configured = JSON.stringify(s.hooks?.SessionStart || []).includes('kit-news');
+  } catch { /* no settings, so not configured */ }
+
+  let lastRan = null;
+  const gitDir = await git(dir, ['rev-parse', '--absolute-git-dir']);
+  if (gitDir) {
+    try { lastRan = JSON.parse(await readFile(join(gitDir, 'kit-news-ran'), 'utf8')).at || null; }
+    catch { /* never ran here, or ran before the receipt existed */ }
+  }
+  const wired = configured && Boolean(lastRan);
 
   // 3 · who is still working in it
-  if (!OFFLINE) await git(dir, ['fetch', '--quiet', 'origin']);
   const ref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
   const log = (await git(dir, ['log', ref, '--format=%an\t%ae\t%ad', '--date=short', '-500'])) || '';
   const people = new Map();
@@ -141,13 +187,30 @@ async function inspect(dir) {
   }
 
   return {
-    name, origin, marker, sha, behind, wired,
+    name, origin, marker, sha, behind, behindWhy, wired, configured, lastRan, copyBehind,
     lastCommit: [...people.values()].map((p) => p.last).sort().pop() || null,
     people: [...people.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
   };
 }
 
 const dirs = await candidateDirs();
+
+if (await isTemplate(ROOT)) templateDir = ROOT;
+else for (const d of dirs) if (await isTemplate(d)) { templateDir = d; break; }
+
+if (templateDir) {
+  if (!OFFLINE) await git(templateDir, ['fetch', '--quiet', 'origin']);
+  templateHead = await git(templateDir, ['rev-parse', 'HEAD']);
+  // The template clone is a working copy too, and it is the yardstick every other
+  // number here is measured against. Say how fresh it is before using it.
+  const up = (await git(templateDir, ['rev-parse', '--verify', '--quiet', '@{u}'])) ? '@{u}'
+    : (await git(templateDir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : null;
+  if (up) {
+    const n = await git(templateDir, ['rev-list', '--count', `HEAD..${up}`]);
+    templateBehind = n === null ? null : Number(n);
+  }
+}
+
 const rows = (await Promise.all(dirs.map(inspect))).filter(Boolean)
   .sort((a, b) => (a.name > b.name ? 1 : -1));
 
@@ -166,6 +229,13 @@ const unroutable = (email) => !email || !email.includes('@') || /\.local$/.test(
 
 console.log();
 console.log(`KIT FLEET — ${rows.length} instance(s), template at ${(templateHead || '?').slice(0, 7)}`);
+if (!templateDir) {
+  console.log('No clone of the template on this machine, so no "behind" figure can be computed.');
+  console.log(`Clone ${TEMPLATE_SLUG} beside these projects, or run this from it.`);
+} else if (templateBehind) {
+  console.log(`⚠ That template clone (${templateDir}) is itself ${templateBehind} commit(s) behind its`);
+  console.log('  origin, so every age below is measured against a yardstick that is short. git pull it.');
+}
 console.log();
 
 if (!rows.length) {
@@ -175,17 +245,36 @@ if (!rows.length) {
   process.exit(0);
 }
 
+const WHY = {
+  'no-sync': 'NO .kit-sync — never upgraded through kit-sync',
+  'no-template-clone': 'no template clone here, nothing to compare against',
+  'sync-point-unknown': 'its sync point is not in the template\u2019s history — fetch the template',
+};
+
 for (const r of rows) {
-  const age = r.behind === null
-    ? (r.marker === 'kit-sync' ? 'no template HEAD to compare' : 'NO .kit-sync — never upgraded through kit-sync')
+  const age = r.behind === null ? (WHY[r.behindWhy] ?? 'not comparable')
     : r.behind === 0 ? 'up to date' : `${r.behind} template commit(s) behind`;
   const quiet = daysSince(r.lastCommit);
 
   console.log(`── ${r.name}`);
+  // Said before the verdicts, because they are all read off this checkout. A stale
+  // clone makes a healthy project look broken, and the report never said so.
+  if (r.copyBehind) {
+    console.log(`   ⚠ this clone is ${r.copyBehind} commit(s) behind its own origin — everything below`);
+    console.log('     describes the copy on this disk, not what the repo actually holds. git pull it.');
+  }
   console.log(`   kit:    ${age}${r.sha ? ` (at ${r.sha.slice(0, 7)})` : ''}`);
   console.log(`   news:   ${r.wired
-    ? 'wired — a session here announces kit news'
-    : 'NOT WIRED — no SessionStart kit-news hook, so it will never announce an update'}`);
+    ? `wired — kit-news last ran ${new Date(r.lastRan).toISOString().slice(0, 10)}`
+    : r.configured
+      ? 'configured, no receipt yet — cannot tell whether it has ever run'
+      : 'NOT WIRED — no SessionStart kit-news hook, so it will never announce an update'}`);
+  if (r.configured && !r.wired) {
+    console.log('           kit-news only started leaving a receipt on 2026-08-31, so an instance that');
+    console.log('           has not pulled the kit since then cannot have left one: this says nothing');
+    console.log('           yet. Once it has, an empty receipt means node is probably missing — the');
+    console.log('           hook ends in `2>/dev/null || true` and fails silently. Check `node --version`.');
+  }
   console.log(`   last push: ${r.lastCommit || 'unknown'}${quiet !== null ? ` (${quiet}d ago)` : ''}`);
   for (const p of r.people.slice(0, 6)) {
     const flag = unroutable(p.email) ? '  ⚠ unroutable author, GitHub credits nobody' : '';
@@ -194,7 +283,9 @@ for (const r of rows) {
   console.log();
 }
 
-const unwired = rows.filter((r) => !r.wired);
+const unwired = rows.filter((r) => !r.configured);
+const silent = rows.filter((r) => r.configured && !r.wired);
+const stalecopy = rows.filter((r) => r.copyBehind);
 const stale = rows.filter((r) => r.behind !== null && r.behind > 0);
 const noSync = rows.filter((r) => !r.sha);
 
@@ -218,7 +309,19 @@ if (noSync.length) {
   console.log(`  and can silently revert the owner's own work: ${noSync.map((r) => r.name).join(', ')}`);
   console.log();
 }
+if (silent.length) {
+  console.log(`${silent.length} instance(s) have the news hook and no receipt: ${silent.map((r) => r.name).join(', ')}`);
+  console.log('  Configured is what someone intended; ran is what happened, and until 2026-08-31');
+  console.log('  nothing recorded the difference. Expect these to clear as each pulls the kit and');
+  console.log('  opens one session. Any that stay here after that are silently not running.');
+  console.log();
+}
 if (stale.length) {
   console.log(`${stale.length} instance(s) behind the template: ${stale.map((r) => `${r.name} (${r.behind})`).join(', ')}`);
+  console.log();
+}
+if (stalecopy.length) {
+  console.log(`${stalecopy.length} clone(s) on this disk are behind their own origin, so their lines above`);
+  console.log(`  may describe an old copy: ${stalecopy.map((r) => `${r.name} (${r.copyBehind})`).join(', ')}`);
   console.log();
 }
