@@ -43,6 +43,15 @@ every auto-notes tool puts in its header: two people is a one-to-one whatever th
 On the dossier that produced this, six syncs with one report had been invisible for six months, under
 names like "Weekly catch-up" and "<project> prep".
 
+There is also a new file per person, `feedback.md`, and it is the one to look at first. It records the
+feedback each person was given: by whom, when, in what setting, how it landed, and whether it was
+actually said to them at all. On the team that produced this, that last column was the finding: half
+the appreciations had been formed in the person's absence, one criticism had been given to a colleague
+rather than to the person, a relayed compliment turned out to be false and was denied, and two solid
+pieces of praise had never reached anyone. If more than one person gives feedback on your team, your
+agent will also propose sharing that part of the files between you while keeping the raw 1:1 notes
+private, since feedback one of you gives is worth nothing if the next one does not know it was given.
+
 **What you need to do:** nothing, and nothing you have is renamed. The new files appear the next time
 you sync your team. If you sit in a leadership or partners' meeting where people are discussed, tell
 your agent which one it is: that is the one thing it cannot find on its own.

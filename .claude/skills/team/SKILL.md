@@ -31,6 +31,21 @@ repo will ever touch. So the `team/` folder is **local-only by construction**:
   file the owner chooses), only when the owner explicitly asks, and never containing 1:1
   material.
 
+**If more than one person manages or gives feedback here, part of this layer wants to be shared.**
+Then the split is not "people data versus the rest", it is **what was said in confidence versus what
+was decided**: the per-person files (role, objectives, feedback given, directives, open subjects) can
+be committed so they synchronise, while the **raw 1:1 notes stay local**, because someone speaks to
+one manager in a one-to-one and not to the whole group. What comes out of a note and needs to be known
+rises into the shared files **with its provenance**; the note itself does not move. Decide this
+deliberately with the owner, per folder, and write the decision down where the `.gitignore` lives —
+and remember that a Git history is permanent, so what is shared is shared retroactively.
+
+**And the moment several people write here, provenance becomes load-bearing.** Every line says who
+said what, when, and in what setting. An appreciation without provenance becomes an internal rumour
+the day someone quotes it, and nobody can check it or take it back. A reading voiced by a third party
+is written as a reading, with its author and date, never as a fact about the person. A feedback
+relayed by an intermediary is marked as relayed: relayed feedback is sometimes wrong, and gets denied.
+
 One consequence to tell the owner once: local-only means no git backup. The distilled files are
 re-derivable from their notes, but their own additions live only on this machine; include
 `team/` in the machine's backup if they care.
@@ -70,6 +85,7 @@ team/
 └── <first-name>/
     ├── profile.md        role, responsibilities, current focus, working style, growth areas
     ├── goals.md          their goals or OKRs, with status and a dated history
+    ├── feedback.md       feedback given: by whom, when, in what setting, said to them?
     ├── needs.md          what they asked for or need: dated, who owes it, state
     ├── directives.md     what they were told: dated, said to them?, does it hold?
     ├── tracks.md         job description / goals / performance tracks, with their state
@@ -83,6 +99,15 @@ these are organised by obligation, which is what the owner is actually asked abo
 Add them when the team is more than one or two people, or as soon as a subject starts spanning
 several 1:1s.
 
+- **`feedback.md`** — the feedback given to them, with **who** gave it, **when**, in **what setting**,
+  how it landed, and the column that does the real work: **was it actually said to them?** Half the
+  appreciations in a management file are formed in the person's absence, and not marking that is the
+  same as writing that they were told. It also carries what is **owed** — a feedback promised and not
+  delivered is an open item on the manager's side, not the report's. This file earns its place the
+  moment more than one person gives feedback to the same team: feedback one manager gives is worth
+  nothing if the next one to speak to that person does not know it was given, and the failure is
+  concrete (the same criticism arriving twice from two people, or a promised one never arriving
+  because each assumed the other had done it).
 - **`needs.md`** — what the person asked for or needs to do their job, with **who owes it** and
   **since when**. A need closes on evidence (the meeting happened, the decision was made, the access
   works), never because it came up again. The ageing column is the point: a request for regular
