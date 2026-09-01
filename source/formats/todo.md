@@ -153,6 +153,32 @@ So:
 - Use `lib/todo.mjs` when you are writing code. Its `apply()` takes an intent (`toggle ^k3f9`) and
   rewrites exactly one line.
 
+## A review closes what events made obsolete
+
+A list is read far more often than it is written, and a review that only reads leaves the list
+lying. An item the world has made pointless stays open, inflates the late count, and buries the ones
+that still matter. Nobody closes it by hand either, because ticking something you never did feels
+like a small lie, so it sits there forever.
+
+So a review ticks those items, and says why. Three shapes come up:
+
+- **Done, but recorded elsewhere.** The same work was tracked on a second list and closed there. The
+  list that did the work keeps it; the duplicate closes pointing at it.
+- **Decided and shipped.** The item asked for a decision that has since been made and acted on.
+- **Overtaken by events.** What the item existed to handle no longer applies.
+
+Two guardrails, and they are what stop this from becoming a tidy-up that loses work:
+
+- **The evidence is read, never assumed.** Close an item because a file, a commit, or an item closed
+  on another list says so, and name that evidence in the update line. "This is probably handled" is
+  not evidence, and an agent that closes on a hunch will eventually close something live.
+- **Late is not obsolete.** An overdue item is the loudest thing on the list precisely because it
+  still matters. Say it is late; never tick it to make the count look better.
+
+Every closure gets a dated update line carrying the reason, so a later reader can tell a considered
+closure from a sweep. That is also what makes the open count worth trusting: a number that includes
+dead items is not a workload, it is noise.
+
 ## Concurrency
 
 Writes are compare-and-swap, not merges. An editor sends the version it read; if the file moved
