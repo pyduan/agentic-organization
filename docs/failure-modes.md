@@ -434,6 +434,17 @@ useless — or it spends the owner's time on something that was yours to do.
   copied everything to the cloud and freed not one byte. Nobody said so, the owner found out three
   days later in passing, and apologised for a misunderstanding that was not hers. When an everyday
   word has a technical sense that changes the outcome, announce which one you are applying.
+- **An alert never prescribes an irreversible action without the condition under which it does not
+  apply.** A finding is read by whoever runs the tool next, and that may be a parallel session that
+  holds none of the reasoning for ignoring it. "12 instances will never announce an update. Run the
+  update-kit skill in each" is an instruction, not an observation: at one in the morning a session
+  obeyed it literally and installed the framework into ten repos designed to carry none of it, giving
+  an organization eleven copies of something that existed once. The owner had reasoned the opposite
+  and was right; her reasoning was in an email the session could not read. So: state the exception in
+  the same breath as the finding, tell the reader to ask the owner where the map is silent, and never
+  prescribe one action across N repos in a single pass. The corollary is the owner's, and it is the
+  more important half — **a reason to not follow the tool has to live in the repo.** In an exchange it
+  protects one session; in the map it protects every session.
 - **A chain verified through the middle covers neither end.** A feature was checked through the
   compiled module and the remote repo state, both fine — while a layout change had squeezed the
   control the whole feature depends on down to a few pixels wide. Still functional, impossible to
