@@ -68,7 +68,10 @@ block, never displacing what was there, never landing under the next item.
 **Why the app needs this at all.** Ticking a box records that something ended and loses *why*, which
 is usually the part worth keeping. "Found her on rue de l'Arbre Sec, poster no longer needed" is
 worth more six months later than a checked box, and it is the only way information travels back into
-the repo from a phone. Without it, the app is a remote control; with it, it is a capture surface.
+the repo **without an agent session**, which is the distinction that matters rather than the device.
+The app and the agent are both driven from a phone and from a desk; what separates them is that one
+is a form and the other is a conversation. Without this, the app is a remote control; with it, it is
+a capture surface.
 
 **The author is the authenticated identity, never what the client sends.** The Worker overwrites the
 `by` field with the Access email before applying, because anything else lets a browser sign someone
