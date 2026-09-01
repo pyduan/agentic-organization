@@ -24,7 +24,7 @@ Find every row that matches the task at hand and read those files before produci
 | Website pages, navigation, or structure | `source/formats/website.md` |
 | A web app or interactive tool (calculator, simulator, form flow, dashboard) | `source/formats/webapp.md`, plus voice and design above |
 | A subject the owner keeps asking about where the answer is a **figure built from several sources** and being wrong costs something — money, tax, a deadline, a legal position | `source/formats/webapp.md` ▸ *Who decides there should be a tool*. Offer to build it rather than answering again, and give it invariants that refuse |
-| A tool built on a **document the owner maintains by hand** (a spreadsheet, a workbook, an export) | `source/formats/webapp.md` ▸ *The tool is the source of truth* — the tool wins, the document is an input, and the import is where it goes wrong: identity recorded, export age compared, severity capped by the weakest input, no authority word without its clause |
+| A tool built on a **document the owner maintains by hand** (a spreadsheet, a workbook, an export) | `source/formats/webapp.md` ▸ *The tool is the source of truth*, and use `lib/provenance.mjs` rather than re-deriving it — the tool wins, the document is an input, and the import is where it goes wrong: identity verified before every run and refusing, export age compared, each figure carrying its status, severity capped by the weakest input, no authority word without its clause |
 | Anything touching a to-do — writing one, ticking one, building over `next-steps.md` | `source/formats/todo.md` (the line format and the patch rule), and use `lib/todo.mjs` rather than a new regex |
 | A deck or presentation | `source/formats/deck.md`, plus voice and design above |
 | A message someone will **send**: an email out, an email to the team, a chat message | `source/formats/message.md` (the shape per format, plus the per-person block), and `source/brand/voice.md` for the plain-text email rules |
@@ -191,6 +191,7 @@ source/formats/pack.md       how a project's good idea becomes installable elsew
 packs/<slug>/                installable bundles; the kit never touches this folder
 routines/<slug>/             the scheduled work, versioned; offered at setup, never auto-installed
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
+lib/provenance.mjs           what a tool read, which version, and what each figure rests on
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 source/formats/message.md    message playbook: emails and chat, inside and outside, per person
 site/                        the Astro website (npm run dev / build inside it)
