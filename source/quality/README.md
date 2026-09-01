@@ -47,7 +47,14 @@ published: it lives in the repo, and the repo is private.
 | `error` | what it did or said. Plainly, no softening. |
 | `why` | the mechanism. "Extrapolating is cheaper than looking, and the result looks like a calculation" is a why; "I was not careful enough" is not. |
 | `detected_by` | `owner` · `self` · `another-session` · `check`. The most useful column in the file: the share caught by the owner is the number that has to come down. |
-| `guard` | `check` with the command or file that now catches it, `rule` with the guide it was written into, or `none` — and `none` is worth leaving honest rather than dressing up a rule as a safeguard. |
+| `guard` | `kind` is one of exactly five values, and `where` names the thing. Something that runs and can refuse: `check` (an assertion inside the code that does the work), `test` (a case in a test file), `tool` (a script that has to be run). Something that does not: `rule`, with the guide it was written into. Or `none`. Nothing else is a legal value: `error-report.mjs` counts these and refuses to print a figure that does not add up, because a kind it cannot classify used to vanish from every total. |
+
+**`none` and `rule` are worth leaving honest.** The temptation is to record the sentence you wrote as
+though it were a safeguard, and the report exists to resist exactly that: it prints the three
+populations separately so the count of incidents guarded only by an attentive reader is visible
+rather than folded into the good news. An owner running this kit found the same flattery in her own
+register, six unguarded against an honest eighty-nine of a hundred and thirteen, and it was the
+document meant to stop her reassuring herself.
 | `generic` | the lesson, transferable to any project, with nothing of yours in it. |
 | `sensitive` | the fields to drop when anonymizing. Default to listing `inputs` and `error` whenever they carry a name, an amount, or a document title. |
 

@@ -98,6 +98,65 @@ async function kitMarker(dir) {
   return null;
 }
 
+// ------------------------------------------------------- router or satellite
+
+// The kit documents two shapes and this scan only knew one of them.
+// `docs/one-repo-or-several.md` ▸ *the star* tells an owner whose organization has
+// outgrown a single repo to build a router plus thin repos: the router holds the
+// method (guides, formats, scripts, the map) and each thin repo holds only its own
+// material and points back. Rule 3 there is explicit that a thin repo never copies
+// code from the router.
+//
+// This scan then walked the workspace, counted every folder whose CLAUDE.md merely
+// named the kit as an instance, and demanded each one carry a `.kit-sync` and the
+// news hook. On an organization built the way the kit prescribes, obeying that
+// means installing eleven copies of a framework that exists once, so the report
+// showed ten satellites as broken forever. Reported by an owner who refused the
+// instruction and was right to: she had followed the doctrine and the tool
+// contradicted it. An alarm nobody can clear without breaking the architecture is
+// an alarm that stops being read (2026-08-31).
+//
+// So a router is an instance and is held to every requirement; a satellite is
+// listed and never alarmed. The map decides where it speaks, because only the
+// owner knows their own topology. Otherwise the shape is derived, and the report
+// says it was derived, so a wrong reading is visible and correctable instead of
+// silently dropping a real instance out of the alarm.
+
+const KINDS = new Set(['router', 'satellite']);
+
+// Read the kind out of ORGANIGRAM.md's repo table, which is this organization's
+// one list of repos. Derive, never re-declare: no second manifest and no per-repo
+// config file, parsed the way check-workspace.mjs parses the same table.
+async function declaredKinds(dir) {
+  const out = new Map();
+  if (!dir) return out;
+  let lines;
+  try { lines = (await readFile(join(dir, 'ORGANIGRAM.md'), 'utf8')).split('\n'); }
+  catch { return out; }
+  const ticked = (c) => [...(c || '').matchAll(/`([^`]+)`/g)].map((m) => m[1]);
+  let header = null;
+  for (const line of lines) {
+    if (/^\|\s*Repo\s*\|/i.test(line)) {
+      header = line.split('|').slice(1, -1).map((c) => c.trim().toLowerCase());
+      continue;
+    }
+    if (header && !line.startsWith('|')) { if (out.size) break; else continue; }
+    if (!header || /^\|\s*-+/.test(line)) continue;
+    const col = header.indexOf('kind');
+    if (col < 0) return out; // a table written before the column existed: derive it all
+    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
+    const kind = (ticked(cells[col])[0] || cells[col] || '').toLowerCase();
+    if (!KINDS.has(kind)) continue;
+    for (const key of [...ticked(cells[0]), ...ticked(cells[1])]) out.set(basename(key), kind);
+  }
+  return out;
+}
+
+// `.kit-sync`, or the framework's own folders, means this repo carries the method.
+// A CLAUDE.md that only names the kit is the signature of a thin repo: it points at
+// the router instead of holding it.
+const deriveKind = (marker) => (marker === 'claude-md' ? 'satellite' : 'router');
+
 // ------------------------------------------------------- find the template itself
 
 // Never assume the template is the repo this was started from. The update-kit
@@ -147,6 +206,33 @@ async function inspect(dir) {
 
   const marker = await kitMarker(dir);
   if (!marker) return null;
+
+  const declaredKind = KIND_MAP.get(name) || null;
+  const kind = declaredKind || deriveKind(marker);
+
+  // Rule 3 of the star: a thin repo never copies code from the router. When one
+  // does, the copy drifts and nothing notices, which is the single failure the
+  // shape exists to prevent. Invisible from the map, so it is checked here.
+  const copiesMethod = kind === 'satellite'
+    && (existsSync(join(dir, 'source/formats')) || existsSync(join(dir, 'scripts/kit-sync.mjs')));
+
+  // A satellite holds no framework, so it has no sync point, no news hook and no
+  // business having any. Report who works in it and stop there.
+  if (kind === 'satellite') {
+    const sref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
+    const slog = (await git(dir, ['log', sref, '--format=%an\t%ae\t%ad', '--date=short', '-500'])) || '';
+    const speople = new Map();
+    for (const line of slog.split('\n').filter(Boolean)) {
+      const [an, ae, ad] = line.split('\t');
+      if (!speople.has(an)) speople.set(an, { name: an, email: ae, last: ad, n: 0 });
+      speople.get(an).n++;
+    }
+    return {
+      name, origin, marker, kind, declaredKind, copiesMethod,
+      lastCommit: [...speople.values()].map((p) => p.last).sort().pop() || null,
+      people: [...speople.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
+    };
+  }
 
   // 0 · how fresh is this checkout? Everything below is read off the working copy,
   // so it describes a clone and not a repo. An owner was told a healthy project
@@ -211,11 +297,16 @@ async function inspect(dir) {
   }
 
   return {
-    name, origin, marker, sha, behind, behindWhy, yardstick, wired, configured, lastRan, copyBehind,
+    name, origin, marker, kind, declaredKind, copiesMethod,
+    sha, behind, behindWhy, yardstick, wired, configured, lastRan, copyBehind,
     lastCommit: [...people.values()].map((p) => p.last).sort().pop() || null,
     people: [...people.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
   };
 }
+
+// The map sits in the repo this was run from, which for an organization of several
+// repos is the router by definition: it is the repo that holds the map.
+const KIND_MAP = await declaredKinds(ROOT);
 
 const dirs = await candidateDirs();
 
@@ -235,13 +326,19 @@ if (templateDir) {
   }
 }
 
-const rows = (await Promise.all(dirs.map(inspect))).filter(Boolean)
+const found = (await Promise.all(dirs.map(inspect))).filter(Boolean)
   .sort((a, b) => (a.name > b.name ? 1 : -1));
+
+// Only routers carry the framework, so only routers can be behind it or wired to
+// announce it. Everything below reads `rows`; satellites are reported separately
+// and are never counted in a verdict about the fleet.
+const rows = found.filter((r) => r.kind === 'router');
+const satellites = found.filter((r) => r.kind === 'satellite');
 
 // ------------------------------------------------------- render
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ templateHead, instances: rows }, null, 2));
+  console.log(JSON.stringify({ templateHead, instances: rows, satellites }, null, 2));
   process.exit(0);
 }
 
@@ -252,7 +349,8 @@ const daysSince = (d) => (d ? Math.round((Date.parse(today) - Date.parse(d)) / 8
 const unroutable = (email) => !email || !email.includes('@') || /\.local$/.test(email) || email.endsWith('@localhost');
 
 console.log();
-console.log(`KIT FLEET — ${rows.length} instance(s), template at ${(templateHead || '?').slice(0, 7)}`);
+console.log(`KIT FLEET — ${rows.length} instance(s)${satellites.length
+  ? ` and ${satellites.length} satellite(s)` : ''}, template at ${(templateHead || '?').slice(0, 7)}`);
 if (!templateDir) {
   console.log('No clone of the template on this machine. Each instance is therefore measured against');
   console.log(`its own \`${TEMPLATE_REMOTE}/${TEMPLATE_BRANCH}\` ref, which is what it syncs against anyway — so the ages below`);
@@ -263,7 +361,7 @@ if (!templateDir) {
 }
 console.log();
 
-if (!rows.length) {
+if (!rows.length && !satellites.length) {
   console.log('No instances found beside this repo. If projects live elsewhere, run this from');
   console.log('a workspace that contains them, or clone them side by side (ORGANIGRAM.md).');
   console.log();
@@ -306,6 +404,36 @@ for (const r of rows) {
     console.log(`     ${p.last}  ${String(p.n).padStart(4)}  ${p.name} <${p.email}>${flag}`);
   }
   console.log();
+}
+
+if (satellites.length) {
+  console.log('SATELLITES — repos that consume the framework instead of carrying it, so there is');
+  console.log('nothing here to be behind and nothing to wire. Not a finding, and not a to-do.');
+  for (const s of satellites) {
+    console.log(`── ${s.name}   ${s.declaredKind
+      ? 'declared satellite in ORGANIGRAM.md'
+      : 'no kind column in the map, so read as a satellite: it names the kit but carries none of it'}`);
+    if (s.copiesMethod) {
+      console.log('   ⚠ it carries a copy of the router\'s method (source/formats, or kit-sync.mjs).');
+      console.log('     A thin repo that copies the router drifts from it and nothing notices, which is');
+      console.log('     the one failure the shape prevents. Either delete the copy and point at the');
+      console.log('     router, or declare this repo a `router` in the map and let it be held to the');
+      console.log('     same requirements as the others. docs/one-repo-or-several.md ▸ the star, rule 3.');
+    }
+    const q = daysSince(s.lastCommit);
+    console.log(`   last push: ${s.lastCommit || 'unknown'}${q !== null ? ` (${q}d ago)` : ''}`);
+    for (const p of s.people.slice(0, 3)) {
+      const flag = unroutable(p.email) ? '  ⚠ unroutable author, GitHub credits nobody' : '';
+      console.log(`     ${p.last}  ${String(p.n).padStart(4)}  ${p.name} <${p.email}>${flag}`);
+    }
+  }
+  console.log();
+  if (!KIND_MAP.size) {
+    console.log('Those readings are derived, not declared. If one of them is actually a full');
+    console.log('instance, this scan has just stopped asking anything of it — add a `Kind` column to');
+    console.log('the repo table in ORGANIGRAM.md (`router` or `satellite`) and it will be believed.');
+    console.log();
+  }
 }
 
 const unwired = rows.filter((r) => !r.configured);
