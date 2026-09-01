@@ -177,6 +177,40 @@
       },
       "generic": "A new check is not in place until it has been seen to fire once. Its silence and a clean result are the same output, so calibrate on a known positive first; and be suspicious of gating a check on a helper written for another purpose, since what that helper excludes is invisible at the call site.",
       "sensitive": []
+    },
+    {
+      "id": "2026-09-01-6",
+      "date": "2026-09-01",
+      "category": "status-of-information",
+      "severity": "major",
+      "inputs": "An outside user's emailed report that ten of her repos were satellites of a router and that the fleet scan was wrong to demand the framework of them.",
+      "error": "The assessment written for the owner, and the reply drafted to her, both stated flatly that she was right and the tool was wrong. Two halves of that were verified by reading the repo: the scan did classify on a CLAUDE.md substring, and the guide does prescribe router plus thin repos. The third was not: that her ten repos actually are thin repos. That came from her description and no one opened them. The owner challenged the claim before the reply was sent, which is the only reason it did not go out asserted.",
+      "why": "An outside report arrives already argued, with its own evidence, and reads as a finding rather than as a claim to check. Verifying two of three premises produced the confidence of having verified the conclusion. The fix in code was also written as though her diagnosis had been confirmed end to end, so the guard now exempts a satellite from every requirement on the strength of a classification nobody validated.",
+      "detected_by": "owner",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/check-fleet.mjs prints when a kind is derived rather than read from the map, and scripts/test-check-fleet.mjs asserts a declared router is still held to every requirement — so a wrong classification is visible instead of silent"
+      },
+      "generic": "An outside report is an input to verify, not a finding to adopt. Separate, in writing and before acting, what you confirmed yourself from what you took from the reporter, and say which is which when you answer them. Verifying most of the premises does not verify the conclusion. And when a fix relaxes a check on the strength of a classification, make the classification itself visible in the output: the dangerous direction is a real case quietly exempted, because an exemption produces no signal.",
+      "sensitive": [
+        "inputs"
+      ]
+    },
+    {
+      "id": "2026-09-01-7",
+      "date": "2026-09-01",
+      "category": "destructive",
+      "severity": "minor",
+      "inputs": "Sending two long plain-text emails through a browser-driven mail client, by focusing the compose body and issuing a synthetic type action.",
+      "error": "The first mail typed correctly. The second dropped every ASCII character and kept only the accented ones, producing 425 characters of vowel salad in place of a 10 000-character letter. A synthetic paste had already failed silently before that, because a synthetic key event cannot read the clipboard. Nothing errored in either case: both reported success. Caught by reading back the field rather than trusting the action's own report.",
+      "why": "Synthetic keystrokes are an unreliable transport for text of any length, and their failure mode is partial rather than absent, which is the mode that gets sent. The owner's instruction afterwards was categorical: never keystrokes.",
+      "detected_by": "self",
+      "guard": {
+        "kind": "rule",
+        "where": "memory: browser text entry uses document.execCommand('insertText'), never synthetic typing or paste; and read the field back before any irreversible click"
+      },
+      "generic": "Do not enter text into a web form with synthetic keystrokes or a synthetic paste. Use a DOM insertion command, and read the field back and compare its length and its ends before clicking anything irreversible. A URL parameter is not a fallback for long content either: the endpoint may simply answer Bad Request. Every one of these failures reported success.",
+      "sensitive": []
     }
   ]
 }

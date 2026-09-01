@@ -116,6 +116,17 @@ and the second copies only the number.
   suspect.
 - **An assumption inherited from earlier work arrives without its status.** When you build on
   something you did not establish, say so in the same sentence, with what it changes if it is wrong.
+- **A report from outside is an input to verify, not a finding to adopt.** It arrives already argued,
+  with its own evidence and its own conclusion, so it reads as a result rather than as a claim. A
+  real case: an outside user reported that a tool was wrong to demand the framework of ten of her
+  repos. Two of the three premises were checked in the code and held; the third, that those ten repos
+  really were the thin kind, came only from her description and nobody opened them. Verifying most of
+  the premises produced the confidence of having verified the conclusion, and the answer went out
+  saying flatly that she was right. Separate, in writing, what you confirmed yourself from what you
+  took from the reporter, and tell *them* which is which — they are the only one who can close the
+  gap. And where a fix relaxes a check on the strength of such a classification, print the
+  classification in the output: the dangerous direction is a real case quietly exempted, because an
+  exemption produces no signal at all.
 - **Information about yourself, received from someone else, is verified like anything else.**
 - **When something rests on an account, name the account, not an adjective.** "Personal" was written
   into a project's founding rules and recopied from file to file for days. It answered *who owns
