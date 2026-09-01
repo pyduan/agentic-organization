@@ -36,6 +36,13 @@ against your own jurisdiction before drafting: in several of them a performance 
 explicitly not misconduct, and writing a goals plan and a disciplinary step into one document damages
 both.
 
+One more fix, and it is the one that would have bitten you silently. Your agent used to look for your
+one-to-ones by their title, so a sync called anything else was invisible, and it would then tell you a
+person had no one-to-ones at all. It now identifies meetings by **who was in them**, which is the line
+every auto-notes tool puts in its header: two people is a one-to-one whatever the meeting was called.
+On the dossier that produced this, six syncs with one report had been invisible for six months, under
+names like "Weekly catch-up" and "<project> prep".
+
 **What you need to do:** nothing, and nothing you have is renamed. The new files appear the next time
 you sync your team. If you sit in a leadership or partners' meeting where people are discussed, tell
 your agent which one it is: that is the one thing it cannot find on its own.

@@ -21,6 +21,11 @@ repo will ever touch. So the `team/` folder is **local-only by construction**:
 - Nothing under `team/` is ever committed, pushed, published, or pasted into another file, page,
   deck, or tool. Before any commit, check `git status`: nothing from `team/` may be staged.
 - Never relay what one person said in a 1:1 to anyone else, in any output.
+- **Third-party content is kept, never relayed.** Meetings discuss people who are not in the room,
+  including other senior people. It stays local, and a reading voiced by someone else is written **as
+  a reading, with its author and its date**, never as a fact about the person: "X confirms it, citing
+  a specific remark" is not "she is thin-skinned". What files under a person is what concerns them,
+  with its provenance.
 - What *can* be shared (a finalized set of goals, a role description, who-owns-what) gets a
   cleaned version written to the shared layer (`source/objectives.md`, `ORGANIGRAM.md`, or a
   file the owner chooses), only when the owner explicitly asks, and never containing 1:1
@@ -103,6 +108,20 @@ Wherever the notes come from, the pipeline is the same: distill, file, update, p
   the connector): scan for meeting-notes docs with the owner's 1:1 naming pattern (often "1:1"
   in the title), confirm the person-to-doc mapping once, and remember which docs were already
   processed (`team/.sync-state.json`) so a weekly "sync my team" only handles the new ones.
+
+**Find the meetings by who was in them, not by what they are called.** This is where a sync goes
+wrong most often. If the notes come from an auto-notes tool, each one carries an attendee or invitee
+line in its header, and that line is the only reliable classifier: two people is a one-to-one whatever
+the title, a small recurring group is a leadership meeting whatever the title, a long list is a ritual.
+A title pattern ("look for '1:1'") cannot see a meeting that does not follow the pattern, and it will
+then report an absence that is not one. The real case that produced this rule: six syncs between a
+manager and one report, titled things like "Weekly catch-up", "Demo prep" and "<project> prep" — the
+dossier had recorded "no one-to-one ever recorded" about that person, for six months. Where the tool
+allows a full-text search, searching for the person's email address returns those notes and usually
+shows the header line in the result snippet, so attendees can be counted without opening each document.
+Two limits worth stating rather than papering over: notes for a meeting joined outside its calendar
+event often have no attendee line at all (list those separately, with their sizes, and read them on
+demand), and a two-person meeting with an outside guest may list only the internal attendees.
 
 **And 1:1s are not the only place decisions about someone are taken.** If the owner sits in a
 leadership or partners' meeting, that meeting regularly decides something about a person who is not
