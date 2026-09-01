@@ -97,6 +97,86 @@
         "where": "check-fleet prints each clone's lag against its own origin above every verdict drawn from it, and the template clone's own lag above the whole report; covered by a test."
       },
       "generic": "A tool that inspects a working copy is answering a question about a checkout, not about a project, and it must say which. Reporting 'NOT WIRED' from a stale clone is the silent-expiry family aimed at the maintainer: the sentence was true of what was on disk and false of the thing the reader cares about. State the age of the evidence next to the verdict drawn from it."
+    },
+    {
+      "id": "2026-09-01-1",
+      "date": "2026-09-01",
+      "category": "numbers",
+      "severity": "major",
+      "inputs": "error-report.mjs turns source/quality/incidents.json into the report a project sends its maintainer. Its headline figure is how many incidents produced an executable guard rather than a written rule.",
+      "error": "The count of unguarded incidents matched only guard.kind 'none', while the sentence printing it read 'produced nothing but a written rule', so every 'rule' entry landed in neither population. The register had also grown two kinds the schema never listed, 'test' and 'tool', and nothing rejected them, so those vanished from every total too. On this repo's own register the output was '1 produced an executable check; 0 produced nothing but a written rule' over six incidents: five uncounted, and the one figure that says whether the framework is improving read as perfect coverage. The detector map had the same hole: 'outside user' was not in it, so three incidents caught by a person were scored as if the framework had caught them, 2 of 6 instead of 5 of 6.",
+      "why": "The buckets were written as independent filters rather than as a partition, so nothing forced them to add up to the total, and an unrecognised value could only ever fall out silently. Both fields are small closed enums that nothing validated.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/error-report.mjs — the four guard populations are a partition and the script exits non-zero rather than print a figure that does not add up; an unclassified kind is named in the report instead of dropped"
+      },
+      "generic": "A metric built as several independent filters must be checked as a partition: assert the populations sum to the total and refuse to print if they do not. Any figure read off a closed enum needs that enum validated, because an unlisted value can only fail in the flattering direction. And the failure is worst in a document whose purpose is to stop someone reassuring themselves, so a self-assessment tool is where this assertion is least optional.",
+      "sensitive": []
+    },
+    {
+      "id": "2026-09-01-2",
+      "date": "2026-09-01",
+      "category": "status-of-information",
+      "severity": "major",
+      "inputs": "check-fleet.mjs walks the workspace and reports which repos run the framework, how far behind each is, and whether each is wired to announce a kit update.",
+      "error": "It counted every repo whose CLAUDE.md merely named the framework as a full instance, and reported ten repos as permanently unwired. Those repos were satellites of a router, which is the architecture the framework's own guide prescribes for an organization of several repos, and in which a satellite deliberately carries none of the method. Obeying the report meant installing eleven copies of a framework that exists once. The owner refused it and wrote to explain why she had.",
+      "why": "The tool encoded one of the two shapes the documentation describes, and asserted a verdict about repos it had no way to classify. Nobody had connected the guide to the script, and the map already held the information the script needed.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "test",
+        "where": "scripts/check-fleet.mjs reads the Kind column of the ORGANIGRAM repo table, derives it only when the column is absent and says so; three cases in scripts/test-check-fleet.mjs, including that a repo declared a router is still held to every requirement"
+      },
+      "generic": "When a guide describes more than one legal architecture, every tool that judges repos has to know which one it is looking at, and the map is where it reads that rather than guessing. An alarm that cannot be cleared without breaking the prescribed architecture stops being read, and takes the real alarms with it. Where a classification is derived rather than declared, say so in the output: the dangerous direction is a real instance quietly excused from every requirement.",
+      "sensitive": []
+    },
+    {
+      "id": "2026-09-01-3",
+      "date": "2026-09-01",
+      "category": "destructive",
+      "severity": "major",
+      "inputs": "A repo whose .gitignore forbids a file pattern, and files matching that pattern that were committed before the rule was added.",
+      "error": "Four files of a financial model were tracked under a rule that forbade exactly them. An ignore rule applies only to files git is not already tracking, so the rule changed nothing, kept committing them on every change, and read as a guarantee. Reported by an outside user; nothing in the framework asked the question.",
+      "why": "Adding the rule feels like the act of protection, so nobody checks the state it was supposed to create. The framework told owners to add ignore rules for sensitive material and never told them the rule is retroactive about nothing.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/check-freshness.mjs ▸ pass `ignored` — git check-ignore --no-index over every tracked file, naming the rule and the files that contradict it"
+      },
+      "generic": "A safeguard added after the situation it was meant to prevent has to be verified against the current state, not assumed from the act of adding it. For an ignore rule specifically: untracking keeps the file on disk but does not remove it from history already pushed, so a credential that was in there must be changed rather than hidden.",
+      "sensitive": []
+    },
+    {
+      "id": "2026-09-01-4",
+      "date": "2026-09-01",
+      "category": "destructive",
+      "severity": "minor",
+      "inputs": "Two owners asked to have a week of uncommitted work put somewhere safe before upgrading the framework.",
+      "error": "The ordinary stash-and-branch path saves changes to files already tracked and silently ignores files never added, which on both machines were most of the week's output. One capture had to be redone; five documents would otherwise have gone, and the operation would have reported success either way.",
+      "why": "The tool's definition of 'everything' is not the owner's, and the success message is written against the tool's definition.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 5 · Before you destroy — enumerate untracked files, save them explicitly, then re-read the tree and confirm it is clean for the reason you think"
+      },
+      "generic": "Before a rescue, enumerate what exists rather than trusting the tool's notion of what counts, and confirm afterwards that the tree is clean for the reason you believe. Where several sessions may be writing at once, take the capture without touching any working tree, since the tidy-up half of a stash is itself a write.",
+      "sensitive": []
+    },
+    {
+      "id": "2026-09-01-5",
+      "date": "2026-09-01",
+      "category": "destructive",
+      "severity": "minor",
+      "inputs": "A new check written the same day to answer whether a repo's ignore rules are true, gated on finding a .gitignore in the directory walk the script already had.",
+      "error": "That walk skips dotfiles, so the check reported 'no ignore rules to check' on a repo holding a forty-line .gitignore, and could never have fired anywhere. Caught by calibrating it on a repo built to fail, before it was committed.",
+      "why": "The gate reused a helper written for a different purpose without checking what that helper excludes. A check that cannot fire produces exactly the output of a clean repo.",
+      "detected_by": "self",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 7 — calibrate a new check on a case known to be positive before trusting a silence; the comment in check-freshness.mjs records why the gate is gone"
+      },
+      "generic": "A new check is not in place until it has been seen to fire once. Its silence and a clean result are the same output, so calibrate on a known positive first; and be suspicious of gating a check on a helper written for another purpose, since what that helper excludes is invisible at the call site.",
+      "sensitive": []
     }
   ]
 }

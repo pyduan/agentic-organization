@@ -14,19 +14,21 @@
 // Zero dependencies, Node built-ins only, so it runs on any machine with no install.
 // Config is optional: without freshness.json it still does links and stale.
 //
-// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale] [--offline] [--json]
+// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale,ignored] [--offline] [--json]
 
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve, join, extname, relative } from 'node:path';
 import { resolveMx, resolveTxt } from 'node:dns/promises';
+import { execFileSync } from 'node:child_process';
 
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
 const OFFLINE = args.includes('--offline');
 const AS_JSON = args.includes('--json');
-const wants = (pass) => (only.length === 0 || only.includes(pass)) && !(OFFLINE && pass !== 'stale');
+const LOCAL_PASSES = new Set(['stale', 'ignored']); // need no network, so --offline keeps them
+const wants = (pass) => (only.length === 0 || only.includes(pass)) && !(OFFLINE && !LOCAL_PASSES.has(pass));
 
 const findings = [];      // { severity: 'fail'|'warn'|'info', pass, what, detail }
 const add = (severity, pass, what, detail) => findings.push({ severity, pass, what, detail });
@@ -296,6 +298,79 @@ if (wants('stale')) {
   add('info', 'stale', `${placeholders} placeholder(s), ${tofill} to-fill marker(s)`, `across ${mdFiles.length} markdown file(s)`);
 }
 
+// ---------------------------------------------------------------- pass: ignored
+
+// Does .gitignore tell the truth?
+//
+// A .gitignore rule only ever applies to files git is not already tracking. Add
+// `*.xlsx` to a repo that has been committing spreadsheets for months and nothing
+// happens: the four already in git stay in git, keep being committed on every
+// change, and the rule sits there reading like a guarantee. Nobody is warned,
+// because from git's point of view nothing is wrong.
+//
+// That is a safeguard that protects against nothing, which is the family this
+// framework is most careful about — and the owner is usually the last person able
+// to notice, because the reassurance is exactly what they were relying on. Reported
+// by an owner running the kit who found four financial-model files tracked under a
+// rule that forbade them (2026-08-31).
+//
+// Local pass: git only, no network, so it runs under --offline too.
+
+if (wants('ignored')) {
+  // Ask git for the tracked files, and let `check-ignore` decide which rules exist:
+  // an earlier version of this gated on finding a `.gitignore` in the file walk
+  // above, which skips dotfiles, so the pass reported "nothing to check" on a repo
+  // holding a 40-line .gitignore and never fired once. A check that cannot fire
+  // leaves no trace, so its silence proves nothing (docs/failure-modes.md ▸ §7).
+  let tracked = [];
+  try {
+    tracked = execFileSync('git', ['ls-files', '-z'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })
+      .split('\0').filter(Boolean);
+  } catch { /* not a git repo, or no git: nothing to say */ }
+
+  if (!tracked.length) {
+    add('info', 'ignored', 'nothing tracked here', 'no files in git, so no ignore rule can be contradicted');
+  } else {
+    // --no-index is the whole trick: without it check-ignore stays silent about
+    // tracked files, which are precisely the ones in question.
+    let out = '';
+    try {
+      out = execFileSync('git', ['check-ignore', '--no-index', '-v', '--stdin'],
+        { cwd: ROOT, encoding: 'utf8', input: tracked.join('\n'), stdio: ['pipe', 'pipe', 'ignore'] });
+    } catch (e) {
+      out = (e.stdout || ''); // exit 1 simply means no path matched
+    }
+
+    const byRule = new Map();
+    for (const line of out.split('\n').filter(Boolean)) {
+      const [where, path] = line.split('\t');
+      if (!path) continue;
+      const parts = where.split(':');
+      const rule = parts.slice(2).join(':') || where;
+      const src = `${parts[0]}:${parts[1]}`;
+      const key = `${src}  ${rule}`;
+      if (!byRule.has(key)) byRule.set(key, []);
+      byRule.get(key).push(path);
+    }
+
+    if (!byRule.size) {
+      add('info', 'ignored', `${tracked.length} tracked file(s) checked`, 'no file in git is forbidden by an ignore rule, so the rules here are true');
+    } else {
+      for (const [key, paths] of byRule) {
+        add('fail', 'ignored', key,
+          `${paths.length} file(s) already in git despite this rule, so the rule is not true: ` +
+          `${paths.slice(0, 6).join(', ')}${paths.length > 6 ? `, and ${paths.length - 6} more` : ''}`);
+      }
+      add('warn', 'ignored', 'what to do about it',
+        'Untracking them keeps them on your disk and takes them out of future commits ' +
+        '(`git rm --cached <file>`), and your agent does that for you. Two things it cannot do: ' +
+        'the file stays in the history that is already pushed, so if any of these held a password ' +
+        'or a key, that credential has to be changed rather than hidden; and if this repo is public, ' +
+        'treat them as having been published.');
+    }
+  }
+}
+
 // ---------------------------------------------------------------- report
 
 const fails = findings.filter((f) => f.severity === 'fail');
@@ -305,7 +380,7 @@ if (AS_JSON) {
   console.log(JSON.stringify({ ok: fails.length === 0, fails: fails.length, warns: warns.length, findings }, null, 2));
 } else {
   const icon = { fail: '✘', warn: '▲', info: '·' };
-  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale']) {
+  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale', 'ignored']) {
     const rows = findings.filter((f) => f.pass === pass);
     if (!rows.length) continue;
     console.log(`\n${pass}`);

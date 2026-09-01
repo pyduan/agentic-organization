@@ -79,6 +79,15 @@ Five rules, each of which exists because breaking it caused a real problem:
    is a copy, and the only way an upgrade can tell "the template changed this" from "the owner
    changed this" is a recorded baseline. See `.kit-sync` and `scripts/kit-sync.mjs`.
 
+**Tell the tools which repo is which, in `ORGANIGRAM.md`'s `Kind` column: `router` or `satellite`.**
+Otherwise they infer it, and one of them used to infer it badly. `check-fleet` counted every repo
+whose `CLAUDE.md` named the kit as a full instance and told the owner each one was missing the
+framework's furniture. On an organization built as a star that is a demand to install eleven copies
+of a framework that exists once, and it produced a permanent red list nobody could clear without
+breaking rule 3 above. An owner refused it, and she was right: she had followed this page, and the
+tool was arguing with it. It now asks of a satellite only what a satellite can have, and it says out
+loud when it is guessing rather than reading the column (2026-08-31).
+
 ## Three questions, in order
 
 1. **Is there a reader who should see one and not the other?** Yes → separate repos.

@@ -10,6 +10,61 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-01 · MAJOR · Tools that were quietly flattering you, and a rule about spreadsheets
+
+Four things this release stops your agent from getting wrong, all four found by people running this
+kit on real files rather than by any test here.
+
+**The error report was making your project look better than it is.** It prints how many of the
+mistakes it has logged now have a real guard rather than a written rule, and that number is the whole
+point of keeping the register. It was counted wrong: entries guarded only by a rule fell into neither
+column, and two kinds of guard the register had grown were not recognised at all and simply vanished
+from every total. On this repo's own register the report claimed one guarded and none unguarded, over
+six. It now refuses to print any of those figures unless they add up to the total, and the same fix
+went to the count of mistakes a person had to catch, which was reading 2 of 6 where the truth was 5.
+
+**The fleet check was arguing with the kit's own architecture guide.** If your organization has grown
+past one repo, `docs/one-repo-or-several.md` tells you to build a router holding the method plus thin
+repos holding their own material. The fleet check then treated every one of those thin repos as a
+broken instance and told the owner to install the framework in each. On one organization that was ten
+repos flagged forever, unresolvable without wrecking the structure. It now reads a `Kind` column in
+your `ORGANIGRAM.md` repo table (`router` or `satellite`), asks of a satellite only what a satellite
+can have, and says out loud when it is guessing because the column is missing.
+
+**A new check asks whether your `.gitignore` is telling the truth.** An ignore rule only ever applies
+to files git is not already tracking, so adding one for `*.xlsx` to a repo that has been committing
+spreadsheets for months changes nothing whatsoever, and the rule then sits there looking like a
+promise. An owner had four files of a financial model tracked under a rule forbidding exactly them.
+`node scripts/check-freshness.mjs` now names the rule and the files that contradict it, and says the
+two things that are easy to get wrong when fixing it: taking a file out of git keeps it on your disk,
+and it does not remove it from history that is already pushed, so a password that was in there has to
+be changed rather than hidden.
+
+**And a new rule about any tool built on a spreadsheet you maintain by hand.** Two failures on the
+same evening, on a model carrying decisions nobody wants to get wrong. The agent re-implemented a contractual
+formula instead of reading the owner's workbook, froze the terms it could not establish, called the
+result "the contractual envelope" and then flagged two of her own scenarios as contractually
+impossible, at blocking severity. Separately, it read a stale duplicate of her spreadsheet, reported
+six errors that existed in neither of her files, and when she opened the right one and the checks went
+green, congratulated her for having fixed them. She had fixed nothing.
+
+The position the kit now takes is that **the tool is the source of truth and the spreadsheet is an
+input**, because a spreadsheet can be copied and a copy is indistinguishable from the original. That
+makes the import the dangerous part, so: every document read is recorded by path, hash and date, and
+a mismatch stops the tool rather than warning it; an export is never a source and its age is compared
+to the original's; nothing may conclude that a problem was fixed without comparing before and after
+on the same file; a check's severity can never exceed the weakest status of its inputs, so a check fed
+by an untraceable figure cannot be blocking; and no message may say "the contract", "the law" or
+"guaranteed" without printing the clause. Your own hypotheses are not errors, and a low scenario is
+meant to be low.
+
+**What you need to do:** two minutes. Open `ORGANIGRAM.md` and add a `Kind` column to the repo table,
+with `router` for anything holding the framework and `satellite` for a repo that only holds its own
+material. If you have one repo, write `router` and forget it. Then ask your agent to run the freshness
+check once, because the `.gitignore` question has never been asked before and the answer is per-repo.
+If you have a calculator or model built on a spreadsheet you still edit by hand, say so: that tool
+predates every rule in the last paragraph and wants a pass to add the provenance and the refusals.
+
 ## 2026-09-01 · MAJOR · Your team files now track what you owe people, not just what was said
 
 If you use the `team` skill, it kept two kinds of file: who someone is, and what was said in each

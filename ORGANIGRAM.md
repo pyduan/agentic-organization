@@ -12,13 +12,28 @@ Everything the AI might need lives in one of these. **Clone the ones a task need
 `git pull` each at the start of a session** (a stale clone ships an out-of-date brand or a wrong
 fact). Access is per your own accounts — never anyone else's login.
 
-One row per repo. The first two columns are read by `node scripts/check-workspace.mjs`, so keep
-the repo slug and the local folder in backticks; the rest is prose for you and the AI.
+One row per repo. The first two columns are read by `node scripts/check-workspace.mjs` and the
+`Kind` column by `node scripts/check-fleet.mjs`, so keep the repo slug, the local folder and the
+kind in backticks; the rest is prose for you and the AI.
 
-| Repo | Local folder | What it holds | Access | Publishes to |
-|---|---|---|---|---|
-| `<owner>/<repo>` **(this one, the org repo)** | `~/Projects/<repo>` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
-| _(add a row per repo as you grow)_ | `~/Projects/<other>` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
+| Repo | Local folder | Kind | What it holds | Access | Publishes to |
+|---|---|---|---|---|---|
+| `<owner>/<repo>` **(this one, the org repo)** | `~/Projects/<repo>` | `router` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
+| _(add a row per repo as you grow)_ | `~/Projects/<other>` | `router` or `satellite` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
+
+**`Kind` is only two values, and it decides what the tools ask of a repo.** A `router` carries the
+framework itself — the guides, the format playbooks, the scripts, this map — so it can be behind the
+kit and it can be wired to announce a kit update, and `check-fleet` holds it to both. A `satellite`
+carries only its own material and points back at the router, so there is nothing in it to be behind
+and nothing to wire: it is listed and never alarmed. Most organizations have exactly one router and
+no satellites, and can leave the column at `router` forever. The shape and when it is worth having
+is [`docs/one-repo-or-several.md`](docs/one-repo-or-several.md) ▸ *the star*.
+
+Fill it in even when it feels obvious, because the alternative is the tool guessing. Without the
+column `check-fleet` derives the kind from what each repo carries, which is right often enough to be
+dangerous: a genuine instance that happens to look thin gets quietly excused from every requirement,
+and being excused is silent. The scan says when it is deriving. That notice is the invitation to
+write the column.
 
 Default: it's just this one repo, and the map is trivial. It matters once a task reaches **across**
 repos (a shared org repo plus a client's own repo), or when some material lives in a **restricted**

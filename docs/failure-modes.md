@@ -331,6 +331,16 @@ list here, so it is split by the moment each rule applies.
   mangled file against a mirror synced after the mangling and you are comparing the damage to
   itself. Check the reference's timestamp before you rely on it. Session transcripts keep the full
   text of every write, and are the last resort when nothing else kept a trace.
+- **A rescue that only saves what the tool already knows about is not a rescue.** Asked to put a
+  week of unsaved work somewhere safe before an upgrade, the ordinary stash-and-branch path saves
+  modifications to files already tracked and walks straight past files that were never added — the
+  brand-new documents, which are usually the week's actual output. Five would have been lost, and
+  nothing anywhere would have said so: the operation reports success, because by its own definition
+  it succeeded. Enumerate what exists before saving it (`git status --porcelain` including untracked,
+  counted and shown), save the untracked files explicitly, then re-read the tree and confirm it is
+  clean for the reason you think. Two owners hit this on the same day; one of them caught it only by
+  redoing the capture. And where several sessions may be writing at once, take the capture without
+  touching any working tree, since the tidy-up half of a stash is itself a write.
 
 ### While it runs
 
@@ -364,6 +374,15 @@ list here, so it is split by the moment each rule applies.
   untracked file costs nothing and says nothing right up to the day a blanket `git add` carries it
   into history. Match by pattern, not by exact name, and list untracked files with their weight
   before any wide staging.
+- **An ignore rule added after the fact protects nothing, and reads as though it does.** A rule only
+  ever applies to files not already tracked, so adding `*.xlsx` to a repo that has been committing
+  spreadsheets for months changes nothing at all: the ones already in leave nothing red, keep being
+  committed, and the rule sits above them looking like a guarantee. Found by an owner who had four
+  files of a financial model tracked under a rule forbidding exactly that. `check-freshness.mjs`
+  ▸ pass `ignored` now asks the question on every sweep. Two honesties when fixing one: untracking
+  keeps the file on disk but does not remove it from the history already pushed, so a credential that
+  was in there has to be **changed**, not hidden; and adding the rule is not the moment to congratulate
+  yourself, since the rule is the part that was never in doubt.
 - **A single name or keyword is never a matching criterion.** Recognising collaborators by surname
   swept in a press subscription and people from unrelated organisations. Require context, and
   measure the false-positive rate on the real corpus — it was measurable immediately.

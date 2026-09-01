@@ -122,3 +122,72 @@ test('a stale checkout is flagged before any verdict drawn from it', () => {
     assert.match(out, /describes the copy on this disk/);
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
+
+// ---------------------------------------------------------------- router vs satellite
+//
+// The second bug worth a permanent guard. The kit tells an owner whose organization
+// outgrew one repo to build a router plus thin repos, then this scan counted every
+// thin repo as a broken instance and told her to install the framework eleven times.
+// She refused, correctly. What must not come back is the scan demanding of a
+// satellite what only a router can have — and, symmetrically, the scan going quiet
+// about a repo the owner has declared a router.
+
+/** A thin repo: its CLAUDE.md points at the router, and it carries none of the method. */
+function satellite(dir, { origin, method = false }) {
+  mkdirSync(dir, { recursive: true });
+  git(dir, 'init', '-q');
+  git(dir, 'remote', 'add', 'origin', origin);
+  writeFileSync(join(dir, 'CLAUDE.md'),
+    'This repo belongs to an organization whose router holds the agentic-organization framework.');
+  if (method) mkdirSync(join(dir, 'source/formats'), { recursive: true });
+  git(dir, 'add', '-A');
+  git(dir, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'thin');
+  return dir;
+}
+
+const mapWithKinds = (dir, table) =>
+  writeFileSync(join(dir, 'ORGANIGRAM.md'),
+    ['# Organigram', '', '| Repo | Local folder | Kind | What it holds |', '|---|---|---|---|', ...table, ''].join('\n'));
+
+test('a satellite is listed, never counted as an instance and never alarmed', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    satellite(join(ws, 'members'), { origin: 'https://github.com/someone/members.git' });
+    const out = scan(tplDir, ws);
+    assert.match(out, /1 instance\(s\) and 1 satellite\(s\)/,
+      'the satellite is reported, and reported apart from the instances');
+    assert.match(out, /SATELLITES/);
+    assert.doesNotMatch(out, /members[\s\S]*?NOT WIRED/,
+      'a repo carrying no framework cannot be wired to announce one');
+    // The summary alarm, not the per-instance line, which uses the same words.
+    const alarm = out.slice(out.indexOf('will never announce an update to their own owner'));
+    assert.ok(!alarm.includes('members'),
+      'an alarm nobody can clear without breaking the architecture is one that stops being read');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
+test('the map is believed over the derivation', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    satellite(join(ws, 'members'), { origin: 'https://github.com/someone/members.git' });
+    // The owner says this one really is a full instance. Deriving would have let it
+    // off every requirement, which is the dangerous direction of this change.
+    mapWithKinds(tplDir, ['| `someone/members` | `members` | `router` | a real instance |']);
+    const out = scan(tplDir, ws);
+    assert.match(out, /2 instance\(s\)/);
+    assert.doesNotMatch(out, /SATELLITES/);
+    assert.match(out, /members[\s\S]*?NOT WIRED/,
+      'declared a router, so held to what a router must have');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
+test('a satellite that copies the router is a finding', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    satellite(join(ws, 'members'), { origin: 'https://github.com/someone/members.git', method: true });
+    mapWithKinds(tplDir, ['| `someone/members` | `members` | `satellite` | thin, but carrying a copy |']);
+    const out = scan(tplDir, ws);
+    assert.match(out, /carries a copy of the router/);
+    assert.match(out, /rule 3/);
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});

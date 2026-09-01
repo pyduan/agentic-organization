@@ -42,7 +42,16 @@ const CATEGORIES = {
   'parallel-sessions': 'Parallel sessions',
 };
 const SEVERITIES = ['critical', 'major', 'minor'];
-const DETECTORS = { owner: 'the owner', self: 'the AI, rereading itself', 'another-session': 'another session', check: 'an automated check' };
+const DETECTORS = {
+  owner: 'the owner', self: 'the AI, rereading itself', 'another-session': 'another session',
+  check: 'an automated check', 'outside-user': 'someone else running this framework',
+  'outside user': 'someone else running this framework',
+};
+// Whoever caught it, the question is whether a person had to. The register grew an
+// `outside user` value the map never listed, and the headline figure counted only
+// `owner`, so three incidents found by a person reading her own files were scored
+// as if the framework had caught them itself.
+const HUMAN = new Set(['owner', 'outside-user', 'outside user', 'another-session']);
 
 const raw = JSON.parse(await readFile(join(ROOT, 'source/quality/incidents.json'), 'utf8'));
 const all = (raw.incidents || []).slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
@@ -53,11 +62,47 @@ const project = (() => {
 
 // ---------------------------------------------------------------- counts
 
+// A guard is either something that runs and can refuse, or a sentence someone has
+// to remember. That distinction is the whole point of the register, so the three
+// buckets below must account for every entry and must add up to the total.
+//
+// They did not. `unguarded` matched only `kind: "none"` while the sentence printing
+// it said "produced nothing but a written rule", so every `rule` entry fell into
+// neither bucket and the report read as full coverage. Worse, the register had
+// grown two kinds the schema never listed, `test` and `tool`, and nothing rejected
+// them: they were silently absent from every count. On this repo's own six
+// incidents the output was "1 produced an executable check; 0 produced nothing but
+// a written rule" — five entries uncounted, and the one number an owner would look
+// at to decide whether the framework is improving read as perfect.
+//
+// Reported by an owner who found the same shape in her own register: the count of
+// incidents left unguarded was six, and the honest count was eighty-nine of a
+// hundred and thirteen, because anything phrased as a rule was scored as a guard.
+// Her words, and they are the reason this is not a cosmetic fix: a measure that
+// flatters, in the document whose whole purpose is to stop you reassuring yourself
+// (2026-08-31).
+const EXECUTABLE = new Set(['check', 'test', 'tool']); // it runs, and it can say no
+const WRITTEN = new Set(['rule']);                     // it depends on an attentive reader
+const NOTHING = new Set(['none']);
+const kindOf = (i) => (i.guard && i.guard.kind) || 'none';
+
 const n = all.length;
 const heavy = all.filter((i) => i.severity === 'critical' || i.severity === 'major');
-const byOwner = all.filter((i) => i.detected_by === 'owner');
-const unguarded = all.filter((i) => !i.guard || i.guard.kind === 'none');
-const checked = all.filter((i) => i.guard && i.guard.kind === 'check');
+const byHuman = all.filter((i) => HUMAN.has(i.detected_by));
+const checked = all.filter((i) => EXECUTABLE.has(kindOf(i)));
+const ruleOnly = all.filter((i) => WRITTEN.has(kindOf(i)));
+const unguarded = all.filter((i) => NOTHING.has(kindOf(i)));
+// Anything the schema does not define. Never folded into a bucket: a kind nobody
+// declared is a hole in the register, and guessing which way it counts is how the
+// last version of this got it wrong.
+const unclassified = all.filter((i) => {
+  const k = kindOf(i);
+  return !EXECUTABLE.has(k) && !WRITTEN.has(k) && !NOTHING.has(k);
+});
+if (checked.length + ruleOnly.length + unguarded.length + unclassified.length !== n) {
+  console.error('error-report: the guard buckets do not account for every incident. Refusing to print a figure that does not add up.');
+  process.exit(1);
+}
 const byCat = Object.keys(CATEGORIES)
   .map((key) => ({ key, label: CATEGORIES[key], rows: all.filter((i) => i.category === key) }))
   .filter((c) => c.rows.length)
@@ -95,20 +140,29 @@ if (!n) {
   say();
   say(`- **Dominant family: ${byCat[0].label.toLowerCase()}** (${byCat[0].rows.length} of ${n}). ` +
       'The largest family is where a default is missing, not where the AI happened to be careless.');
-  say(`- **${byOwner.length} of ${n} (${pct(byOwner.length)}%) were caught by the owner.** ` +
-      'That is the number that has to come down: those were visible from their screen, and there is ' +
+  say(`- **${byHuman.length} of ${n} (${pct(byHuman.length)}%) were caught by a person, not by the framework.** ` +
+      'That is the number that has to come down: those were visible from someone\u2019s screen, and there is ' +
       'no reason they should have seen them first.');
-  say(`- **${checked.length} produced an executable check; ${unguarded.length} produced nothing but a written rule.** ` +
-      'A rule that depends on an attentive reader is exactly what failed in most of these.');
+  say(`- **${checked.length} of ${n} (${pct(checked.length)}%) produced something that runs and can refuse.** ` +
+      `${ruleOnly.length} produced a written rule instead, and ${unguarded.length} produced nothing at all. ` +
+      'A rule that depends on an attentive reader is exactly what failed in most of these, so the ' +
+      'second and third figures belong together: neither will stop the next one on its own.');
+  if (unclassified.length) {
+    say(`- **⚠ ${unclassified.length} entr${unclassified.length > 1 ? 'ies' : 'y'} record a guard of a kind the schema does not define** ` +
+        `(${[...new Set(unclassified.map((i) => kindOf(i)))].map((k) => `\`${k}\``).join(', ')}), ` +
+        'so they are counted in none of the three figures above. Fix them in ' +
+        '`source/quality/incidents.json` rather than reading round them: an entry nobody can classify ' +
+        'is the register quietly shrinking.');
+  }
   say();
 
   say('## By family');
   say();
-  say('| Family | Incidents | Major or critical | Guarded by a check |');
+  say('| Family | Incidents | Major or critical | Guarded by something that runs |');
   say('|---|---:|---:|---:|');
   for (const c of byCat) {
     say(`| ${c.label} | ${c.rows.length} | ${c.rows.filter((i) => i.severity !== 'minor').length} | ` +
-        `${c.rows.filter((i) => i.guard && i.guard.kind === 'check').length} |`);
+        `${c.rows.filter((i) => EXECUTABLE.has(kindOf(i))).length} |`);
   }
   say(`| **Total** | **${n}** | **${heavy.length}** | **${checked.length}** |`);
   say();
@@ -129,8 +183,8 @@ if (!n) {
         if (show('error')) { say(`**What it did.** ${i.error}`); say(); }
         if (i.why) { say(`**Why.** ${i.why}`); say(); }
         say(`**Caught by** ${DETECTORS[i.detected_by] || i.detected_by || 'unknown'}. ` +
-            (i.guard && i.guard.kind === 'check' ? `Now checked by \`${i.guard.where}\`.`
-              : i.guard && i.guard.kind === 'rule' ? `Written as a rule in \`${i.guard.where}\`.`
+            (EXECUTABLE.has(kindOf(i)) ? `Now checked by \`${i.guard.where}\`.`
+              : WRITTEN.has(kindOf(i)) ? `Written as a rule in \`${i.guard.where}\`.`
               : '**Nothing guards it yet.**'));
         say();
       }

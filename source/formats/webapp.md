@@ -50,6 +50,85 @@ Figures that will inform a real decision also carry their provenance where the r
 in a footnote: the source and the date the value was last confirmed, next to the value. `source/facts/`
 holds the sourced entries; the app reads them, never its own copy.
 
+### The tool is the source of truth. The spreadsheet is an input, and the import is the risky part
+
+The tool replaces a spreadsheet the owner has kept by hand for years, and the question of which one
+is now authoritative has to be answered out loud, once, rather than left to whichever one is open.
+
+**The tool wins, and deliberately.** A spreadsheet cannot be the source of truth for anything that
+matters, because it can be copied, and a copy is indistinguishable from the original: two files with
+neighbouring names on one machine is an ordinary Tuesday. The tool is versioned, its history is
+readable, its calculation is inspectable, and it can refuse. That is the whole argument for building
+it in the first place.
+
+**Which makes the import, not the calculation, the thing that goes wrong.** The failure that produced
+this section: a model read an export of the owner's spreadsheet, and there were two documents with
+almost the same name, one of them a fork frozen days earlier. It read the fork, in silence. It then
+reported anomalies "in your workbook" — a debt missing from five scenarios out of six, another
+counted the wrong way — figure by figure, sheet by sheet. None of them existed in her document. Her
+workbook had been right the whole time. When she opened the real file mid-conversation and the checks
+went green, the model told her she had just fixed six errors. She had fixed nothing. It had started
+reading the right file, and it read that as her repair (2026-08-31).
+
+So, four rules, and the first three are code:
+
+- **Record the identity of every document you read, and refuse to run when you cannot confirm it.**
+  The path, a hash, the modification date, stored beside the result. Not "an Excel file was loaded":
+  *this* file, this version. When the recorded identity and the file on disk disagree, that is a
+  stop, shown in the interface, not a warning in a log nobody opens.
+- **An export is never a source.** Regenerate it from the original before each analysis and compare
+  the two ages. The export in this case was more than a day behind the document, and nothing in the
+  system was capable of noticing. An age gap is a refusal, not a footnote.
+- **Never conclude that something was repaired without comparing before and after on the same
+  source.** "The check failed, the check passes, therefore someone fixed it" is false the moment the
+  input could have changed between the two measurements, and it is seductive because it converts a
+  tool's error into the user's success. Nobody enjoys checking a compliment.
+- **When the owner edits the spreadsheet by hand, say so loudly and import it as an event.** A
+  manual edit upstream is normal and legitimate; swallowing it silently is what is not. The import
+  is logged with its date, what changed, and what it changed downstream, so an assumption can always
+  be traced back to the day and the file it came from. That log is the reason to prefer a tool over a
+  conversation, and it is what stops a figure acquiring confidence it never earned.
+
+### Never re-implement a calculation whose source you can read
+
+Same evening, same owner, a different fault and a worse one, because what it produced looked
+rigorous. Asked to make a financial model verifiable, the agent did not read her spreadsheet and
+reconcile against it. It re-implemented a contractual formula from scratch. The formula has around
+ten terms; six are established by a document and four are not, one of them described in the agent's
+own notes as untraceable. It froze one unknown at a value taken from a dated simulation, varied a
+single other term between the bounds the contract sets for *that term*, called the result "the
+contractual price envelope", and then wrote checks that classified two of the owner's six scenarios
+as out of bounds, at BLOCKING severity, with a code comment asserting that the contract guaranteed a
+floor. No contract guaranteed that price. The contract bounds one parameter; it says nothing about
+the result. And the value frozen for the unknown matched no column of her workbook, which computes
+that same aggregate from nine lines including a large adjustments entry.
+
+She caught it by asking where the figure came from, because she knows her file. Not technical, never
+read the code. Nothing in the framework would have caught it, and the scenarios it declared
+impossible differed by amounts that decide the operation.
+
+Three rules follow, and two of them are mechanical:
+
+- **Read the source and reconcile; do not rebuild it alongside.** When the document is available, the
+  tool's job is to read it, recompute, and *report the gap*. A tool that quietly recomputes what
+  someone else maintains will eventually contradict them, and then it will be believed over them.
+  Where a formula genuinely must be re-implemented (no readable source exists), say so in the
+  interface and name every term you had to supply.
+- **A check's severity can never exceed the weakest status of its inputs.** Carry a status on each
+  input — established, conditional, envisaged, to be confirmed, untraceable are the five that keep
+  coming up — and derive the severity, never hand-set it. A check fed by an untraceable term cannot
+  be blocking. It can be a question. This is one comparison in code and it disqualifies the entire
+  class of failure above.
+- **No word of authority in a message a check produces, unless it cites the document and the
+  clause.** "The contract", "the law", "guaranteed", "required": each of those turns an assertion
+  into evidence in the reader's mind. If the citation cannot be printed next to the word, the word
+  does not go in the message.
+
+And the owner's own hypotheses are not results. Six scenarios exploring what might happen from what
+is known today are her work, and a low scenario is *meant* to be low. Declaring them wrong for
+falling outside a range the tool invented inverts the whole relationship, and the fix an owner would
+then make is to break their own assumptions until the tool stops complaining.
+
 ## Page or app?
 
 Before creating an app, check the ladder:
