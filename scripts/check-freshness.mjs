@@ -14,7 +14,7 @@
 // Zero dependencies, Node built-ins only, so it runs on any machine with no install.
 // Config is optional: without freshness.json it still does links and stale.
 //
-// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale,ignored] [--offline] [--json]
+// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale,ignored,sources] [--offline] [--json]
 
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -27,7 +27,7 @@ const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
 const OFFLINE = args.includes('--offline');
 const AS_JSON = args.includes('--json');
-const LOCAL_PASSES = new Set(['stale', 'ignored']); // need no network, so --offline keeps them
+const LOCAL_PASSES = new Set(['stale', 'ignored', 'sources']); // need no network, so --offline keeps them
 const wants = (pass) => (only.length === 0 || only.includes(pass)) && !(OFFLINE && !LOCAL_PASSES.has(pass));
 
 const findings = [];      // { severity: 'fail'|'warn'|'info', pass, what, detail }
@@ -371,6 +371,59 @@ if (wants('ignored')) {
   }
 }
 
+// ---------------------------------------------------------------- pass: sources
+
+// Is every tool in this repo still reading the document it thinks it is reading?
+//
+// A tool built over a spreadsheet the owner maintains by hand declares what it
+// reads in a `sources.json` beside it (lib/provenance.mjs). That file records the
+// path, hash and date of each document, and which figures come from which. This
+// pass re-reads them all and reports the drift: a document edited since it was
+// recorded, one that has been swapped for a neighbour of almost the same name, an
+// export older than the original it derives from.
+//
+// It belongs in the freshness sweep rather than only in the app, because the app
+// only asks the question when someone opens it. A model nobody has run for three
+// weeks is exactly the one whose inputs have moved, and it is also the one whose
+// figures get pasted into a deck.
+//
+// The full story is source/formats/webapp.md ▸ The tool is the source of truth.
+
+if (wants('sources')) {
+  const { verify, findManifests, provenanceOf, MANIFEST_NAME } = await import('../lib/provenance.mjs');
+  const manifests = await findManifests(ROOT);
+  if (!manifests.length) {
+    add('info', 'sources', `no ${MANIFEST_NAME} in this repo`, 'nothing here declares the documents it computes from');
+  }
+  for (const file of manifests) {
+    const rel = relative(ROOT, file);
+    const base = join(file, '..');
+    let manifest;
+    try { manifest = JSON.parse(await readFile(file, 'utf8')); }
+    catch (e) { add('fail', 'sources', rel, `not valid JSON: ${e.message}`); continue; }
+
+    const out = await verify(base, manifest);
+    for (const f of out.findings) {
+      add(f.severity === 'stop' ? 'fail' : 'warn', 'sources', `${rel} ▸ ${f.id}`, f.what);
+    }
+    if (out.ok) {
+      const figures = (manifest.figures || []);
+      const weak = figures.filter((f) => f.status !== 'established');
+      add('info', 'sources', rel,
+        `${manifest.sources.length} document(s) unchanged since ${manifest.recorded || 'they were recorded'}` +
+        (figures.length
+          ? `; ${figures.length} declared figure(s), of which ${weak.length} rest on something other than a document`
+          : '; no figures declared, so nothing here says which values are hypotheses'));
+      // Named rather than counted: an untraceable input is the one that must never
+      // end up behind a blocking verdict, and a total does not say which it is.
+      for (const f of figures.filter((x) => x.status === 'untraceable' || x.status === 'to-establish')) {
+        const p = provenanceOf(manifest, f.id);
+        add('warn', 'sources', `${rel} ▸ ${f.id}`, `${p.statusText}; any check using it caps at "${p.maxSeverity}"`);
+      }
+    }
+  }
+}
+
 // ---------------------------------------------------------------- report
 
 const fails = findings.filter((f) => f.severity === 'fail');
@@ -380,7 +433,7 @@ if (AS_JSON) {
   console.log(JSON.stringify({ ok: fails.length === 0, fails: fails.length, warns: warns.length, findings }, null, 2));
 } else {
   const icon = { fail: '✘', warn: '▲', info: '·' };
-  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale', 'ignored']) {
+  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale', 'ignored', 'sources']) {
     const rows = findings.filter((f) => f.pass === pass);
     if (!rows.length) continue;
     console.log(`\n${pass}`);

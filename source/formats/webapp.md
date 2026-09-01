@@ -89,6 +89,31 @@ So, four rules, and the first three are code:
   be traced back to the day and the file it came from. That log is the reason to prefer a tool over a
   conversation, and it is what stops a figure acquiring confidence it never earned.
 
+**All four are in `lib/provenance.mjs`, so none of them is your judgement to exercise twice.** The
+tool declares what it reads in a `provenance.json` beside it: one entry per document, with its path,
+hash and modification date, and one entry per figure that will inform a decision, carrying its status
+and the documents it comes from. `verify()` re-reads them and returns `ok: false` on a document that
+has changed, one that has been swapped for a neighbour of almost the same name, or an export older
+than the original it derives from. Call it **before computing, on every run**, and refuse rather than
+warn: a warning at the top of a page that renders the numbers anyway is the same as no check.
+`capSeverity()` derives the ceiling from the statuses, and `provenanceOf()` returns the line to show
+next to the value. `comparable()` answers whether two runs even sat on the same versions, which is
+the question that has to be asked before anyone says a problem was fixed.
+
+Declaring the figures is the half that gets skipped, and it is the half that pays off later. A model
+whose values are all just numbers is unreadable six months on: nothing distinguishes a figure fixed
+by a signed document from a working hypothesis from something that will move next quarter, so the
+whole model inherits the confidence of its firmest number. Five statuses, weakest last:
+`established`, `conditional`, `envisaged`, `to-establish`, `untraceable`. They are the owner's
+vocabulary rather than a technical one, because they describe what the paperwork supports, and that
+is the only thing that can bound what a check is allowed to assert.
+
+And the sweep asks the same question when nobody has opened the app: `node
+scripts/check-freshness.mjs` ▸ pass `sources` re-verifies every manifest in the repo and names the
+figures resting on something other than a document. A model nobody has run for three weeks is
+precisely the one whose inputs have moved, and it is also the one whose figures get pasted into a
+deck.
+
 ### Never re-implement a calculation whose source you can read
 
 Same evening, same owner, a different fault and a worse one, because what it produced looked

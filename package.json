@@ -9,7 +9,7 @@
     "dashboard": "node scripts/dashboard-data.mjs",
     "deploy:dashboard": "npm run dashboard && wrangler deploy --config apps/dashboard/wrangler.jsonc",
     "check": "node scripts/check-freshness.mjs && node scripts/check-workspace.mjs && node scripts/check-fleet.mjs && node scripts/check-packs.mjs",
-    "test": "node --test scripts/test-todo.mjs scripts/test-todo-client.mjs scripts/test-access.mjs scripts/test-check-fleet.mjs",
+    "test": "node --test scripts/test-todo.mjs scripts/test-todo-client.mjs scripts/test-access.mjs scripts/test-check-fleet.mjs scripts/test-provenance.mjs",
     "todos:dev": "node scripts/todos-dev.mjs",
     "todos:build": "npm run todos:sources && npm --prefix apps/todos install && npm --prefix apps/todos run build",
     "deploy:todos": "npm run todos:build && wrangler deploy --config apps/todos/wrangler.jsonc",
