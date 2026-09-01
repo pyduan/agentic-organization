@@ -10,6 +10,36 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-01 · MAJOR · Your team files now track what you owe people, not just what was said
+
+If you use the `team` skill, it kept two kinds of file: who someone is, and what was said in each
+1:1. Neither answers the questions you actually get asked six months later. What did they ask me for,
+and did I ever deliver it? What did I tell them, and did it land? What is open on their job, their
+goals, their performance? Each of those now has its own register per person, dated, so that ageing is
+visible: a request for regular feedback, asked for by name and still unserved after two conversations,
+reads as five weeks rather than as a line in an old note.
+
+Two other things changed, and both came from real damage. **A meeting your reports are not in decides
+things about them** — a scope, a job description, a performance plan, the end of a trial period — and
+none of it shows up in their 1:1, so a picture built only from 1:1s is missing the half where the
+decision was made. Your agent will now ask which of your recurring meetings has that character and
+read it too, keeping only the part about people. And **a directive decided in a room the person was
+not in does not exist yet**: it is now recorded as undelivered, because the alternative is that four
+of them arrive at once, in writing, and land as an indictment.
+
+There is also a harder line on what may be written at all. A gitignored folder is backed up, synced
+and re-read by later sessions, so local is not private: nothing about a person's health goes in a file,
+and neither do pay figures. The work fact is what a manager needs (an accommodation exists and what it
+requires; a pay conversation is open and who owns it), and the medical fact belongs to the doctor.
+Finally, if you ask for something like a "PIP" or a "warning", your agent will look the term up
+against your own jurisdiction before drafting: in several of them a performance shortfall is
+explicitly not misconduct, and writing a goals plan and a disciplinary step into one document damages
+both.
+
+**What you need to do:** nothing, and nothing you have is renamed. The new files appear the next time
+you sync your team. If you sit in a leadership or partners' meeting where people are discussed, tell
+your agent which one it is: that is the one thing it cannot find on its own.
+
 ## 2026-08-31 · MAJOR · Your agent now offers to build the tool instead of answering the question again
 
 If you keep coming back to the same subject — where you stand on a tax position, what the retirement
