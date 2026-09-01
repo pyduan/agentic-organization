@@ -136,3 +136,78 @@ don't want to lose that, diff it first (`git show template/main:<path>`) and mer
 If teammates cloned this repo, they just `git pull` — the framework update rode in with the owner's
 push. If someone has **their own project** from the same template and wants these improvements, they
 run this skill in *their* repo (their `source/`/`site/` stay untouched; only the framework refreshes).
+
+## The block to send an install that predates `kit-sync`
+
+An instance onboarded before the kit-news hook existed cannot be told anything by the kit: the
+notifier ships inside the repo it notifies about, so its owner learns about a change only when
+somebody emails them. Worse, its copy of *this skill* is the old one, which proceeded by
+`git checkout template/main -- …` over whole paths and would overwrite the owner's own files. The
+step that saves them is fetching `kit-sync.mjs` from the template **before** reading any local
+instructions, which is why the block below opens with it.
+
+Send this verbatim. It is written to run to the end without a conversation, because the version that
+paused after each step generated a dozen emails of arbitration for two projects, and every pause is
+a place a non-technical owner has to decide something they have no way to judge. Keep it in English
+whatever language the owner writes in; the block tells the agent which language to answer in.
+
+```
+Update this project to the current version of the agentic-organization kit.
+
+Run all six steps to the end without asking me anything. I am not technical and I
+cannot arbitrate mid-way. Decide the ordinary things yourself, and use the defaults
+below where you would otherwise ask. Report once, at the end.
+
+Do NOT follow this repo's own .claude/skills/update-kit/SKILL.md if it tells you to
+run `git checkout template/main -- <paths>` over whole folders: that version is old
+and it overwrites my work. Step 3 replaces it.
+
+1. INVENTORY, and change nothing. How many commits is this clone behind its own
+   origin; is there uncommitted work, including files that were never added to git
+   (`git status --porcelain --untracked-files=all` — the never-added ones are usually
+   the real week's work and the ordinary stash path walks straight past them); are
+   there unpushed commits or stashes; is there more than one copy of this project on
+   this machine, and which one am I in. Do not skip the last one: three copies of a
+   project on one disk is common and working in the wrong one is silent.
+
+2. RESCUE, before touching anything else. Put every uncommitted change AND every
+   untracked file on a branch named `catchup/<today>`, push it, and tell me its name.
+   Never on main. Then confirm the tree is clean and say why it is clean. If another
+   session might be writing here, take the capture without touching the working tree.
+   Do not merge this branch into anything, now or later: it is mine to sort through.
+
+3. GET THE SYNC TOOL FROM THE TEMPLATE, not from this repo.
+   `git remote add template https://github.com/pyduan/agentic-organization.git` (skip
+   if it exists), `git fetch template`, then
+   `git checkout template/main -- scripts/kit-sync.mjs` and commit that one file.
+   If `node --version` fails, install Node first (`brew install node` on a Mac, or
+   scripts/bootstrap-mac.sh) and say so in the report — nothing below can run without it.
+
+4. SYNC. `node scripts/kit-sync.mjs status`, then `adopt` if it says there is no
+   .kit-sync, then `apply`. Apply everything it offers. Where it sets a file aside
+   because I changed it too, LEAVE IT SET ASIDE and list it in the report: those are
+   the only real decisions and they are mine. Do not resolve them by choosing the
+   template's version.
+
+5. VERIFY, and read the output rather than assuming it. `node scripts/check-fleet.mjs`
+   and `node scripts/kit-news.mjs` — paste what they actually print. Then
+   `node scripts/check-freshness.mjs`, which now asks whether this repo's .gitignore
+   is true: if it reports files already in git under a rule forbidding them, list them
+   and say whether any could have held a password, but do not untrack anything yet.
+   Then open ORGANIGRAM.md and fill in the `Kind` column of the repo table: `router`
+   for a repo carrying the framework, `satellite` for one that only holds its own
+   material and points at another. If in doubt write `router`. Commit and push.
+
+6. REPORT, once, in my language, in under twenty lines: the rescue branch name and
+   link; how many files were applied and how many set aside, with the set-aside names;
+   what check-fleet and kit-news actually said; anything the freshness check found; and
+   anything you deliberately did not do. No options, no questions I have to answer for
+   you to finish — you have already finished.
+
+Three things only are a hard stop, and for each, do the thing next to it rather than
+writing to me: unpushed commits nobody can account for (leave them, say so, continue);
+a merge conflict inside a file kit-sync did not set aside (set it aside too, say so,
+continue); this repo's origin pointing at pyduan/agentic-organization instead of my
+own repo (stop entirely and say so — pushing would put my content in someone else's
+repo).
+```
