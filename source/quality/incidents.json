@@ -211,6 +211,24 @@
       },
       "generic": "Do not enter text into a web form with synthetic keystrokes or a synthetic paste. Use a DOM insertion command, and read the field back and compare its length and its ends before clicking anything irreversible. A URL parameter is not a fallback for long content either: the endpoint may simply answer Bad Request. Every one of these failures reported success.",
       "sensitive": []
+    },
+    {
+      "id": "2026-09-02-1",
+      "date": "2026-09-02",
+      "category": "handover",
+      "severity": "critical",
+      "inputs": "A fleet scan whose alert read: 'N instance(s) will never announce an update to their own owner. Run the update-kit skill in each.' An organization built as one router carrying the framework plus ten thin repos consuming it.",
+      "error": "Between 01:07 and 01:13, a parallel session in that workshop obeyed the alert literally and wired all ten thin repos to the template. Each gained ten format playbooks, twenty-odd scripts and a .kit-sync: eleven copies of a framework that existed once, in the architecture the framework's own guide prescribes. The owner had reasoned the opposite the previous day and was right, but her reasoning was in an email to the maintainer, which no session reads.",
+      "why": "The alert prescribed its own remedy, and a remedy in an alert gets carried out. It stated no condition under which it did not apply, and it invited one action across twelve repos in a single pass. Meanwhile the correction shipped hours earlier — exempting a declared satellite from every requirement — now silently exempts ten repos that really do carry the framework, which is the failure mode that correction was warned about in writing.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "test",
+        "where": "scripts/check-fleet.mjs states the exception beside the finding, tells the reader to ask the owner where the map is silent, and prescribes no bulk action; scripts/test-check-fleet.mjs asserts the prescribing sentence never returns"
+      },
+      "generic": "An alert is read by sessions that hold none of the reasoning for ignoring it, so it must carry its own exception and must never prescribe an irreversible action across many targets at once. And a reason to not follow a tool has to live in the repo rather than in a conversation: in an exchange it protects one session, in the map it protects every session. Corollary for any relaxation of a check: it inherits the accuracy of the classification it rests on, so re-verify that classification against the disk before relying on it, not against the description that prompted it.",
+      "sensitive": [
+        "inputs"
+      ]
     }
   ]
 }

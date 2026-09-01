@@ -450,11 +450,27 @@ console.log('organization is never surveyed. An instance not cloned here does no
 console.log('and this list is silent about it rather than clearing it. The repo map is ORGANIGRAM.md.');
 console.log();
 
+// An alert that prescribes its own remedy gets that remedy, including when the
+// remedy is wrong. This block used to end "Run the update-kit skill in each",
+// which is an instruction and not an observation. On an organization built as a
+// router plus thin repos, a session read those six words at one in the morning,
+// obeyed them literally, and installed the framework into ten repos designed to
+// carry none of it — eleven copies of something that existed once. The owner had
+// reasoned the opposite and was right, but her reasoning lived in an email that
+// the session could not read (reported 2026-09-01).
+//
+// So the alert states the condition under which it does not apply, in the same
+// breath as the finding, and it stops short of telling anyone to act on twelve
+// repos at once. Never write a remedy for N repos without the exception beside it.
 if (unwired.length) {
-  console.log(`${unwired.length} instance(s) will never announce an update to their own owner:`);
+  console.log(`${unwired.length} instance(s) carry the framework and will never announce an update to their owner:`);
   console.log(`  ${unwired.map((r) => r.name).join(', ')}`);
-  console.log('  Run the update-kit skill in each. Until then, the only way its owner learns');
-  console.log('  about a kit change is you telling them.');
+  console.log('  This applies ONLY to a repo that is meant to carry the framework. A thin repo that');
+  console.log('  consumes it from a router is supposed to have no .kit-sync and no news hook: wiring');
+  console.log('  it installs a second copy of the framework, which is the one thing');
+  console.log('  docs/one-repo-or-several.md forbids. Before running update-kit anywhere, check the');
+  console.log('  Kind column in ORGANIGRAM.md, and if it is missing, ask the owner rather than');
+  console.log('  deciding for them. Never run it across several repos in one pass.');
   console.log();
 }
 if (noSync.length) {

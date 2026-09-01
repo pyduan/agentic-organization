@@ -191,3 +191,19 @@ test('a satellite that copies the router is a finding', () => {
     assert.match(out, /rule 3/);
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
+
+test('the unwired alert states its own exception and prescribes no bulk action', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    const out = scan(tplDir, ws);
+    const i = out.indexOf('will never announce an update to their owner');
+    assert.ok(i > -1, 'the finding is still reported');
+    const block = out.slice(i);
+    // The six words a session obeyed at 01:07, on ten repos that must not carry the kit.
+    assert.doesNotMatch(block, /Run the update-kit skill in each/,
+      'an alert that prescribes its own remedy gets that remedy, including when it is wrong');
+    assert.match(block, /applies ONLY to a repo that is meant to carry the framework/);
+    assert.match(block, /ask the owner rather than/);
+    assert.match(block, /Never run it across several repos in one pass/);
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
