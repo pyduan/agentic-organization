@@ -48,6 +48,7 @@ That third one updates your voice guide, so every future page and deck inherits 
 ```
 CLAUDE.md            the AI's operating manual: rules + a map of every guide
 ORGANIGRAM.md        your org's repos + who may use/change/approve what (solo by default)
+QUICKSTART.md        the one-pager to hand someone before the setup hour
 SETUP.md             the one-hour setup checklist, three ways to install
 source/              your source of truth
   brief.md           who you are, what the site is for, current priorities
@@ -107,7 +108,9 @@ written: a real project logged its errors, and the defaults changed.
 
 ## Getting started
 
-About an hour, three ways to do it — pick whichever fits, they all end the same place. Full detail in [SETUP.md](SETUP.md):
+About an hour, three ways to do it — pick whichever fits, they all end the same place. The single
+page to hand someone who is about to sit down for it is [QUICKSTART.md](QUICKSTART.md) (the accounts,
+the paste, the connectors, the first use case); full detail in [SETUP.md](SETUP.md):
 
 - **Let Claude install itself.** Open [Claude Code](https://claude.com/claude-code) (the desktop app is the easiest on-ramp if you're not a terminal person) and paste the prompt below; it checks your machine, installs whatever's missing, and creates your own copy of this repo.
 - **Run a script.** One command, Mac or Windows, does the same thing deterministically — good for a technical helper setting this up for someone else.
