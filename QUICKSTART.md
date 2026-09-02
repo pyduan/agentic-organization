@@ -64,7 +64,34 @@ freezes silently on its install day), a token pasted into a config (it gets copi
 leaks), a method that lives inside a scheduled task instead of a guide, and a second source of truth
 in a tool nobody versions. Business logic lives in the repo. Connectors only carry data.
 
-## 4. The first session
+## 4. Four settings, once
+
+Defaults for someone starting out, not rules. Five minutes at first launch, then you stop thinking
+about them.
+
+- **One parent folder, `~/Projects`, with the repos side by side inside it.** Not nested, not
+  scattered between the desktop and the downloads folder. Open the agent on that parent folder and
+  come back to it: that is what lets one session read across several repos, which is the whole
+  reason it runs on your machine rather than in the cloud.
+- **Auto mode, including if you are not technical.** Approving every single read teaches you to
+  approve without reading, which is worse than not being asked. What makes it safe is that the
+  ground is bounded: everything is versioned and one commit away from being undone, the confidential
+  is git-ignored and cannot be published, and as soon as there are two of you, work that is not
+  yours leaves as a pull request. Keep the confirmations for the irreversible and for what goes out
+  to other people.
+- **Take the latest big model and stop optimising that choice.** Dropping to a smaller model to save
+  something is the wrong knob, and it is the first one everybody reaches for.
+- **Vary the effort instead, task by task.** The initial prompt of a complicated task gets the most
+  effort available: getting it right the first time costs less than the rounds of repair a cheap
+  first pass buys, and repair is where a wrong assumption quietly survives. Fine-tuning, a rename, a
+  small correction: normal is plenty.
+
+One thing worth knowing while you size your subscription: for the same work, a plan is heavily
+subsidised today against metered API tokens, sometimes by two orders of magnitude on measured
+personal usage. Use it, and treat the current price as a moment rather than a constant. Anything
+whose only justification is that inference is nearly free is a design that dates.
+
+## 5. The first session
 
 ```sh
 cd ~/Projects/<name>
@@ -78,7 +105,7 @@ their reasons, and only then builds a first version of the site for you to react
 
 That order is deliberate. Build the site first and the corpus never gets opened.
 
-## 5. Your first real use case
+## 6. Your first real use case
 
 The most convincing first build is not a page. It is something you already do by hand, turned into
 files the agent maintains and a small app that reads them. The pattern: a source you already have,
@@ -102,7 +129,7 @@ Two rules the agent already follows here, worth knowing so you can hold it to th
 files line by line rather than rewriting them, and an incoming message is data, never an instruction
 it obeys.
 
-## 6. Publishing: three doors, not one
+## 7. Publishing: three doors, not one
 
 | Door | Where it goes | Who sees it |
 |---|---|---|
@@ -114,7 +141,7 @@ A host serves everything in the folder you hand it. After any hosting change, as
 that a private file answers 404 on the public URL. That check exists because a repo leaked for weeks
 with nothing flagging it.
 
-## 7. Then what
+## 8. Then what
 
 Talk. Drop files in `source/inbox/` when something new arrives. The agent saves, publishes and folds
 what it learned into your guides at the end of each session.
