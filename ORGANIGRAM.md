@@ -19,15 +19,26 @@ kind in backticks; the rest is prose for you and the AI.
 | Repo | Local folder | Kind | What it holds | Access | Publishes to |
 |---|---|---|---|---|---|
 | `<owner>/<repo>` **(this one, the org repo)** | `~/Projects/<repo>` | `router` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
-| _(add a row per repo as you grow)_ | `~/Projects/<other>` | `router` or `satellite` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
+| _(add a row per repo as you grow)_ | `~/Projects/<other>` | `standalone`, `router` or `satellite` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
 
-**`Kind` is only two values, and it decides what the tools ask of a repo.** A `router` carries the
-framework itself — the guides, the format playbooks, the scripts, this map — so it can be behind the
-kit and it can be wired to announce a kit update, and `check-fleet` holds it to both. A `satellite`
-carries only its own material and points back at the router, so there is nothing in it to be behind
-and nothing to wire: it is listed and never alarmed. Most organizations have exactly one router and
-no satellites, and can leave the column at `router` forever. The shape and when it is worth having
-is [`docs/one-repo-or-several.md`](docs/one-repo-or-several.md) ▸ *the star*.
+**`Kind` is one of three values, and it decides what the tools ask of a repo.**
+
+- **`standalone`** — carries the framework and syncs straight from the template, on its own. This is
+  the ordinary case, including a repo shared with people outside this organization. Held to every
+  requirement (it can be behind the kit, it should be wired to announce an update), and labelled so
+  no session mistakes it for the router or strips it like a satellite.
+- **`router`** — the same, plus it is *this* organization's core: it holds the recipes, the routing,
+  this map, and everything the satellites point at.
+- **`satellite`** — carries only its own material (recipes specific to its project, data, sources of
+  truth) and points back at the router. There is nothing in it to be behind and nothing to wire, so
+  `check-fleet` lists it and never alarms it. A satellite that has acquired a copy of the framework
+  is a finding: see rule 3 of the star.
+
+One repo and no satellites is the normal shape, and `standalone` covers it forever. The star, and
+when it is worth having, is [`docs/one-repo-or-several.md`](docs/one-repo-or-several.md) ▸ *the star*.
+A third value was added on 2026-09-02 because an owner's map had to describe an instance shared with
+other people and the two-value column had no word for it: it read as the router or as a satellite,
+and both were wrong in a way that changed what a session would do to it.
 
 Fill it in even when it feels obvious, because the alternative is the tool guessing. Without the
 column `check-fleet` derives the kind from what each repo carries, which is right often enough to be

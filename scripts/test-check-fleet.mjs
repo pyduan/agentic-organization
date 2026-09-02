@@ -207,3 +207,36 @@ test('the unwired alert states its own exception and prescribes no bulk action',
     assert.match(block, /Never run it across several repos in one pass/);
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
+
+test('a linked worktree is not a second instance', () => {
+  const { ws, proj, tplDir } = fleet();
+  try {
+    // A worktree's `.git` is a FILE holding a gitdir: pointer. An owner's scan
+    // counted three of them as satellites, inflating the fleet with rows that can
+    // never have a line in the map.
+    git(proj, 'worktree', 'add', '-q', '-b', 'side', join(ws, 'proj-side'));
+    const out = scan(tplDir, ws);
+    assert.doesNotMatch(out, /── proj-side/, 'a worktree of a listed repo is not its own instance');
+    assert.match(out, /── proj\b/, 'the repo itself is still there');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
+test('standalone is a kind: it carries the framework but is not this org’s router', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    // The shape the kit ships for, and the one the two-kind version could not say:
+    // an instance shared with people outside this organization, which must be
+    // neither treated as the router nor stripped like a satellite.
+    const shared = join(ws, 'shared');
+    repo(shared, { origin: 'https://github.com/someone/shared.git', commits: 2, kitSync: true });
+    mapWithKinds(tplDir, [
+      '| `someone/proj` | `proj` | `router` | the org repo |',
+      '| `someone/shared` | `shared` | `standalone` | follows the kit on its own, shared with others |',
+    ]);
+    const out = scan(tplDir, ws);
+    assert.match(out, /2 instance\(s\)/, 'held to the same requirements as a router');
+    assert.doesNotMatch(out, /SATELLITES[\s\S]*shared/, 'never stripped like a satellite');
+    assert.match(out, /shared\s+standalone instance, not this organization/,
+      'and labelled, so no session mistakes it for the router');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});

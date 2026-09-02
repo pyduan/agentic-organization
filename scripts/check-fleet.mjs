@@ -24,7 +24,7 @@
 //   node scripts/check-fleet.mjs --workspace=~/projects/other   # another folder of siblings
 
 import { readFile, readdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, statSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
 import { dirname, join, resolve, basename } from 'node:path';
@@ -60,6 +60,16 @@ const git = async (cwd, a, timeout = 15_000) => {
 // `--workspace=<path>` widens it deliberately, which is the only way it should
 // ever widen.
 
+// A repo has `.git` as a DIRECTORY. A linked worktree and a submodule both have
+// `.git` as a *file* holding a `gitdir:` pointer, and neither is a separate
+// instance: counting them inflates the fleet and puts rows in the report that can
+// never have a line in the map. An owner's scan read "13 satellite(s)" where three
+// of them were worktrees of repos already listed (reported 2026-09-02).
+const isRepoRoot = (dir) => {
+  const g = join(dir, '.git');
+  try { return statSync(g).isDirectory(); } catch { return false; }
+};
+
 async function candidateDirs() {
   const seen = new Set();
   const out = [];
@@ -69,14 +79,14 @@ async function candidateDirs() {
     for (const e of entries) {
       if (!e.isDirectory() || e.name.startsWith('.')) continue;
       const p = join(base, e.name);
-      if (existsSync(join(p, '.git')) && !seen.has(p)) { seen.add(p); out.push(p); }
+      if (isRepoRoot(p) && !seen.has(p)) { seen.add(p); out.push(p); }
       else {
         let subs = [];
         try { subs = await readdir(p, { withFileTypes: true }); } catch { continue; }
         for (const s of subs) {
           if (!s.isDirectory() || s.name.startsWith('.')) continue;
           const q = join(p, s.name);
-          if (existsSync(join(q, '.git')) && !seen.has(q)) { seen.add(q); out.push(q); }
+          if (isRepoRoot(q) && !seen.has(q)) { seen.add(q); out.push(q); }
         }
       }
     }
@@ -122,7 +132,17 @@ async function kitMarker(dir) {
 // says it was derived, so a wrong reading is visible and correctable instead of
 // silently dropping a real instance out of the alarm.
 
-const KINDS = new Set(['router', 'satellite']);
+// Three kinds, not two. `router` and `satellite` describe an organization built as
+// a star. `standalone` is the ordinary case the kit ships for and the one the first
+// version of this could not express: a repo that carries the framework and syncs
+// straight from the template, on its own, often shared with people outside this
+// organization. It is held to exactly the requirements a router is — it carries the
+// framework, so it can be behind and it should be wired — but it is not this
+// organization's router, and saying so in the map is what stops a session treating
+// it as one, or as a satellite to be stripped. Asked for by an owner whose map had
+// to describe a shared instance and had no word for it (2026-09-02).
+const KINDS = new Set(['router', 'satellite', 'standalone']);
+const CARRIES_FRAMEWORK = new Set(['router', 'standalone']);
 
 // Read the kind out of ORGANIGRAM.md's repo table, which is this organization's
 // one list of repos. Derive, never re-declare: no second manifest and no per-repo
@@ -332,7 +352,7 @@ const found = (await Promise.all(dirs.map(inspect))).filter(Boolean)
 // Only routers carry the framework, so only routers can be behind it or wired to
 // announce it. Everything below reads `rows`; satellites are reported separately
 // and are never counted in a verdict about the fleet.
-const rows = found.filter((r) => r.kind === 'router');
+const rows = found.filter((r) => CARRIES_FRAMEWORK.has(r.kind));
 const satellites = found.filter((r) => r.kind === 'satellite');
 
 // ------------------------------------------------------- render
@@ -379,7 +399,7 @@ for (const r of rows) {
     : r.behind === 0 ? 'up to date' : `${r.behind} template commit(s) behind`;
   const quiet = daysSince(r.lastCommit);
 
-  console.log(`── ${r.name}`);
+  console.log(`── ${r.name}${r.kind === 'standalone' ? '   standalone instance, not this organization\u2019s router' : ''}`);
   // Said before the verdicts, because they are all read off this checkout. A stale
   // clone makes a healthy project look broken, and the report never said so.
   if (r.copyBehind) {
