@@ -27,7 +27,9 @@ just as well if you already have a terminal you like. Then paste this:
 > worked before moving to the next, and ask before anything that needs my
 > password. If a step fails, look up the fix in the template's
 > docs/troubleshooting.md on GitHub and walk me through it. Log me into
-> GitHub (the browser-based login, not an SSH key). Then ask me for my
+> GitHub with the GitHub CLI and set up an SSH key for me (`gh auth login
+> --git-protocol ssh`, which creates and uploads it), on Mac or Windows alike,
+> so you talk to GitHub on my behalf from now on. Then ask me for my
 > project's name and where I'd like it on my computer, and create my own
 > private copy of the template repo there.
 
@@ -51,7 +53,7 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 ```
 
 Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing; logs
-you into GitHub; offers to create an SSH key as a fallback; asks for a project name and a folder;
+you into GitHub over an SSH key it creates and uploads for you; asks for a project name and a folder;
 creates + clones your own copy of the template; asks where the site will be published (a fresh
 Cloudflare account by default, or somewhere you already are) and logs you into Cloudflare if that is
 the answer, so the AI can publish on its own from the first session. The answers land in
@@ -64,11 +66,11 @@ something gets interrupted partway through.
   theirs, since the whole point is owning your own source of truth.
 - **git** (macOS: `xcode-select --install`; Windows: [git-scm.com](https://git-scm.com))
 - **Node.js** LTS ([nodejs.org](https://nodejs.org), or `brew install node` / `winget install OpenJS.NodeJS.LTS`)
-- **GitHub CLI**: `brew install gh` / `winget install GitHub.cli`, then `gh auth login` — choose
-  **HTTPS**, log in via browser. This is deliberately the easiest path: no SSH key to generate,
-  upload, or lose. (If pushes fail later because your network blocks HTTPS git traffic — rare,
-  mostly locked-down corporate machines — that's the one case you'd need an SSH key instead; see
-  GitHub's own guide for that, or ask a technical friend.)
+- **GitHub CLI**: `brew install gh` / `winget install GitHub.cli`, then `gh auth login` and choose
+  **SSH**: `gh` creates the key and uploads it to your account in the same step, on Mac and Windows
+  alike (OpenSSH ships with Windows 10+). This is the default on purpose: from then on your agent is
+  your go-between with GitHub and nothing ever asks you to log in again. The browser login (HTTPS)
+  still works and is the fallback if a network blocks SSH.
 - **Claude Code**: [claude.com/claude-code](https://claude.com/claude-code) — the desktop app needs
   no separate terminal setup; the CLI (`npm install -g @anthropic-ai/claude-code`, or the installer
   on the same page) is just as good if you're already comfortable in one. The owner needs a Claude

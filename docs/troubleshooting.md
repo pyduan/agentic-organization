@@ -62,10 +62,13 @@ Three ways to run Claude Code, and the setup differs:
 
 ## GitHub login: do I need an SSH key?
 
-No. `gh auth login` with **HTTPS** and the browser login is the intended path; no key to
-generate, upload, or lose. If git ever answers `Permission denied (publickey)`, your repo is
-configured for SSH remotes — ask Claude to "switch my remote to HTTPS" (one command), or
-re-run `gh auth login` and pick HTTPS.
+Yes, and `gh` makes it for you: `gh auth login --git-protocol ssh` creates the key and uploads it
+to your account in the same step, on Mac and Windows alike (OpenSSH ships with Windows 10+). It is
+the default since 2026-09-03 because your agent is your go-between with GitHub, and a key is what
+lets it pull, push and clone for you without ever asking you to log in again. If git answers
+`Permission denied (publickey)`, the key is missing on this machine or on the account: ask your
+agent to "add my SSH key to GitHub" (it runs `gh ssh-key add`). The browser login over HTTPS still
+works as a fallback if a network blocks SSH.
 
 ## Cloudflare's branch dropdown is empty (or won't take "main")
 

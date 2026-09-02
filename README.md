@@ -123,8 +123,9 @@ The prompt to paste, if you go the first route:
 > Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
 > Windows if you can't tell from my system. Install whatever's missing,
 > explaining each step in plain language and asking before anything that
-> needs my password. Log me into GitHub (the browser-based login, not an
-> SSH key). Then ask me for my project's name and where I'd like it on my
+> needs my password. Log me into GitHub with the GitHub CLI and set up an SSH
+> key for me (`gh auth login --git-protocol ssh`), on Mac or Windows alike, so
+> you talk to GitHub on my behalf. Then ask me for my project's name and where I'd like it on my
 > computer, and create my own private copy of the template repo there.
 
 Either way you end up with your own copy, cloned locally, and a first session that interviews you and builds v1. After that it's yours: open the folder, run `claude` (or the desktop app), talk.
