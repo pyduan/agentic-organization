@@ -31,3 +31,21 @@ Start every new deck from `source/formats/deck-template.html`, which provides th
 - **Export rule — the print box is fixed and full-bleed, whatever the screen or fullscreen state.** In `@media print`: pin `@page{size:1280px 720px;margin:0}` and the slide to `1280×720`; **reset any inherited scale transform** (`.slide, body.pres .slide, body.rot .slide { transform: none }`) or slides print as shrunken, overlapping vignettes; and **force backgrounds on** (`-webkit-print-color-adjust: exact; print-color-adjust: exact` on `html, body, *`) or the browser strips dark backgrounds and coloured cards. One slide per page: `.wrap/.slide { page-break-after: always; break-inside: avoid }`. This lives in `deck-template.html`, so every deck inherits it. For a clean machine-side export, headless Chrome honours this CSS: `chrome --headless=new --no-pdf-header-footer --print-to-pdf=out.pdf "file://…/index.html"`.
 - For phone / chat / platform demos inside a deck, see `demos.md` (real-phone look, actions as a platform card, never brand-colour the bubbles).
 - A deck that must stay private doesn't get pushed: keep it out of the repo entirely and present it locally, since the repo publishes on push.
+
+## Lessons from a dry run (2026-09-02)
+
+Learned by rebuilding an onboarding deck from the transcript of a rehearsal in front of one person.
+They hold for any deck this kit produces.
+
+- **Never two dark slides in a row.** A dark slide opens a section. The cover's framing and the first
+  section's title merge into one dark slide. A recap is not a section start, so it is not dark.
+- **The title names the audience's job, not the concept.** "Onboarding on our practices" beats the
+  name of the framework; the concept goes in the subtitle.
+- **Symptoms first, then the law that names them, then the answer in one slide.** Recognition earns
+  the reader's attention before any claim.
+- **Real examples are toggles, not slides.** Several cases of the same idea on one slide, a chip each,
+  beats a slide per case the presenter has to skip. Break long abstract runs with them.
+- **Show the mechanism, not the prompt.** Three columns: the ask in plain words, what the agent reads
+  and routes, what comes out. Nobody should leave believing the trick is in the phrasing.
+- **A breadcrumb over a long part.** The part's chapters as chips on every slide, the current one lit.
+- **A staged message says it is staged; a figure without a source in the repo says so on the slide.**
