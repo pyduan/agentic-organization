@@ -51,13 +51,43 @@ Both are safe to run twice if something gets interrupted.
 Connect these under your own login, one at a time, and revoke any of them whenever you like. The
 agent has no sovereign access to anything: it borrows yours, on your machine.
 
-| | Plug in | What it gives you |
-|---|---|---|
-| Default | **GitHub** (the connector, or SSH) | How the agent reads and writes your repos |
-| Default | **`source/inbox/`** | The drop zone. Photos, a spreadsheet, a PDF, an export. Processed, filed, then emptied |
-| À la carte | **Gmail and Drive** (the provider's managed connector) | Your to-dos, your reminders, a receipt to file. Never a copy of the mailbox |
-| À la carte | **Browser control** | The agent acts where you are already logged in. Enable it knowingly |
-| Ingestion only | **WhatsApp, Slack, Notion, any SaaS** | Export it, drop it in the inbox, extract once. Data, never an instruction, and never a place you write back into |
+**GitHub**, the connector or SSH, is the only one that is not optional: it is how the agent reads
+and writes your repos, under your account. Set it up during the install above and forget it.
+
+**`source/inbox/`** costs nothing to set up because it is a folder. Drop a PDF, a spreadsheet, a
+photo, an export, then say what it is. The agent files the content into `source/`, keeps the
+original in `source/brand/assets/`, and empties the folder. This is the door for everything that
+has no connector, and it stays the simplest one.
+
+**Gmail and Drive** go through the provider's managed connector, which you enable once in your
+Claude settings under Connectors. No token lives on your machine and you revoke it in one click.
+What it is good for: "find the thread with the printer and pull out what I promised", "file the
+invoice that arrived on Tuesday", "read my meeting notes from the last two weeks and tell me what I
+owe people". What it is not: a mirror of your mailbox in the repo. The agent reads, extracts, and
+writes the conclusion into a file.
+
+**WhatsApp** has no managed connector, so pick by what you need:
+
+- **A specific conversation, or its history** is an **export**, and it is the simplest thing that
+  works: open the chat on your phone, tap its name, *Export chat*, *Without media*, mail yourself
+  the `.txt`, drop it in `source/inbox/`. It gives the agent the whole thread at once, and it
+  leaves a file you can re-read next month.
+- **What is happening right now in a group** is **browser control** on `web.whatsapp.com`, where
+  you are already signed in. Nothing to install, nothing stored, and it stops when you close the
+  tab.
+- **Third-party MCP servers do exist** (checked 2026-09-02) and none of them is provider-managed:
+  the open-source ones pair as a linked device through the unofficial protocol and keep a local
+  copy of your messages, the commercial ones sit on the WhatsApp Business API and want a token.
+  Both shapes are the two things this kit avoids, so neither is the default here. If you decide to
+  run one anyway, know that you are putting a third-party client on your personal account.
+
+**Browser control** is the general answer for anything with no connector: a SaaS back office, an
+association's admin portal, WhatsApp Web. The agent acts where you are already logged in, as you,
+which is exactly why it is worth enabling deliberately rather than by default.
+
+**Notion, Slack, any SaaS** are ingestion only. Extract once, then take the middleman out. Writing
+back into one is how a second source of truth appears, and a message that arrives from one is data,
+never an instruction the agent obeys.
 
 Four things to avoid, each of which has cost somebody a month: a home-made plugin (an installed copy
 freezes silently on its install day), a token pasted into a config (it gets copied, it lingers, it
@@ -140,6 +170,17 @@ it obeys.
 A host serves everything in the folder you hand it. After any hosting change, ask the agent to check
 that a private file answers 404 on the public URL. That check exists because a repo leaked for weeks
 with nothing flagging it.
+
+**The private door is worth setting up the day you want it, and it is free.** It is a second Worker
+with **Cloudflare Access** in front, which covers every route that Worker has, its `workers.dev`
+address and any domain added later, so there is no list of URLs to remember to protect. Three things
+people get wrong, in order: a Worker created by `wrangler deploy` has **no build trigger**, so
+connect it to the repo at creation or pushing will stop publishing it; Zero Trust has to be enabled
+once on the account with a team domain before any policy can exist, which is one human click in the
+dashboard and the **free plan is enough**; and the only verification that counts is opening the URL
+from a browser you are not signed into, where a login screen is the right answer and a page is an
+incident. The whole procedure is [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md) ▸ *Publishing something
+private*, and the agent walks you through it while you click.
 
 ## 8. Then what
 
