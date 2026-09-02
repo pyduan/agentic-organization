@@ -229,6 +229,24 @@
       "sensitive": [
         "inputs"
       ]
+    },
+    {
+      "id": "2026-09-02-2",
+      "date": "2026-09-02",
+      "category": "handover",
+      "severity": "minor",
+      "inputs": "A short follow-up instruction written for another owner's agent: pull a shared repo that was reported as 35 commits behind, and do nothing else in it.",
+      "error": "Unexecutable as written. The clone had also diverged — two local commits the origin did not have, from an automated wiring run the night before — so a pull required a merge, and merging a shared repo is not 'nothing else'. The agent stopped and returned the question instead of escalating, which was the right call and not one the instruction had provided for.",
+      "why": "Naming an operation assumes a state. The staleness figure came from the recipient's earlier report and was true; divergence was simply never asked about, so the verb was chosen against half the picture.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 6 — an instruction that names an operation says what to do when the operation is not possible"
+      },
+      "generic": "An instruction that names an operation has assumed a state, so it must say what to do when that state does not hold — and for anything touching a repo other people push to, the fallback is to stop and report rather than to reconcile. Prefer describing the target and letting the agent choose the operation, which is also what makes a prompt survive a starting state nobody has inventoried.",
+      "sensitive": [
+        "inputs"
+      ]
     }
   ]
 }
