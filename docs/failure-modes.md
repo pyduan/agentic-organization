@@ -317,6 +317,16 @@ list here, so it is split by the moment each rule applies.
 - **A safety guarantee from someone else's API is a claim.** Test it on one item, then in a small
   batch, before acting in bulk, and verify the real state independently afterwards — never trust the
   tool's own report of success.
+- **A repo that has never had a remote has never been audited, and the first push cannot be taken
+  back.** Local-only is a real decision with a real cost — one copy, on one machine — so giving those
+  repos a remote is usually right. But nothing has ever forced a look at what is in them: an ignore
+  rule added after the fact protects none of the files already tracked, and history keeps a
+  credential that a later `git rm --cached` only hides. So the first push is the moment to look, in
+  this order: run the `ignored` pass, read the tracked files and the history for secrets, decide, and
+  only then create the remote — **private, and verified private by an unauthenticated fetch**, not by
+  the flag you passed. Then prove the remote is worth something by cloning it somewhere else and
+  checking the clone actually works: a folder that has only ever existed on one machine tends to
+  depend on files nobody ever added.
 - **Never document an untested assumption as if it were verified.** A reassuring comment in a script
   makes the assumption invisible to review, which is worse than not writing it.
 - **A destructive option renames aside; it does not delete.** "Start over" used for what was really a
