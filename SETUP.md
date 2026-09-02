@@ -1,5 +1,9 @@
 # Setup
 
+**Handing this to someone rather than reading it yourself? [QUICKSTART.md](QUICKSTART.md) is the
+one-pager**: the accounts to create, the paste, what plugs in, a first real use case, the three
+publishing doors. This file is the detail behind it.
+
 One-time setup, about an hour. Everything after this hour happens by talking to Claude. There are
 three ways to get installed — pick whichever fits; they all end the same place: your own private
 repo, cloned locally, ready to talk to.

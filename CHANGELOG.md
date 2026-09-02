@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-02 · MINOR · A one-page quick start to hand someone
+
+`QUICKSTART.md`, at the root: the four accounts to create, the paste that installs everything, the
+table of what plugs in and what deliberately stays out, the four settings worth making once (where
+the repos live, auto mode, the model, and spending effort per task rather than switching model), a
+first use case that is real work rather than a demo page, and the three publishing doors. It
+exists because `SETUP.md` is written for the person doing the setup, and what people actually needed was one page to send ahead of it.
+
+**What you need to do:** nothing, unless you onboard someone. Then send them that page rather than
+writing your own summary, since yours cannot be corrected once it is sent.
+
 ## 2026-09-01 · MAJOR · Tools that were quietly flattering you, and a rule about spreadsheets
 
 Four things this release stops your agent from getting wrong, all four found by people running this
