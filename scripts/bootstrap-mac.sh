@@ -67,11 +67,13 @@ else
   echo "✓ Claude Code found"
 fi
 
-# --- GitHub auth (HTTPS + browser login, no SSH key needed) ---
+# --- GitHub auth: SSH key, created and uploaded by gh (Paul, 2026-09-03) ---
+# The agent is the owner's go-between with GitHub, so nothing may ever ask the owner to log in
+# again: an SSH key on the account does that, on Mac as on Windows. Browser login is the fallback.
 echo
 if ! gh auth status >/dev/null 2>&1; then
   echo "Log into GitHub (a browser window will open):"
-  gh auth login --hostname github.com --git-protocol https --web
+  gh auth login --hostname github.com --git-protocol ssh --web
 else
   echo "✓ Already logged into GitHub"
 fi
@@ -104,18 +106,16 @@ else
   echo "✓ Git identity already set ($(git config --global user.email))"
 fi
 
-# --- SSH key (a fallback; HTTPS above is the default path) ---
-# gh's browser login uses HTTPS and needs no key. A key still helps on the one
-# machine in twenty whose network blocks HTTPS git traffic, and it costs nothing
-# to have. Ask, don't impose.
+# --- SSH key: make sure one exists and is on the account (gh offers to create one during
+# login; this covers the case where the owner declined or was already logged in) ---
 if [ ! -f "$HOME/.ssh/id_ed25519.pub" ] && [ ! -f "$HOME/.ssh/id_rsa.pub" ]; then
   echo
-  read -p "Also create an SSH key for GitHub, as a fallback if HTTPS is ever blocked? [Y/n]: " MAKE_KEY
-  if [ "${MAKE_KEY:-Y}" != "n" ] && [ "${MAKE_KEY:-Y}" != "N" ]; then
+  echo "Creating the SSH key your agent will use to talk to GitHub for you (no passphrase, on purpose):"
+  if true; then
     ssh-keygen -t ed25519 -N "" -f "$HOME/.ssh/id_ed25519" -C "$(git config user.email 2>/dev/null || echo "$USER@$(hostname)")"
     gh ssh-key add "$HOME/.ssh/id_ed25519.pub" --title "$(hostname) (agentic-organization setup)" 2>/dev/null \
       && echo "✓ SSH key created and added to your GitHub account" \
-      || echo "▲ Key created locally; adding it to GitHub needs the 'admin:public_key' scope (gh auth refresh -s admin:public_key). Not urgent."
+      || echo "▲ Key created locally; adding it to GitHub needs the 'admin:public_key' scope (gh auth refresh -s admin:public_key). Tell your agent: 'add my SSH key to GitHub'."
   fi
 else
   echo "✓ SSH key already present"

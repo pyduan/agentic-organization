@@ -64,23 +64,25 @@ if (-not (Test-Command "claude")) {
   Write-Host "OK Claude Code found"
 }
 
-# --- GitHub auth (HTTPS + browser login, no SSH key needed) ---
+# --- GitHub auth: SSH key, created and uploaded by gh (Paul, 2026-09-03) ---
+# The agent is the owner's go-between with GitHub, so nothing may ever ask the owner to log in
+# again: an SSH key on the account does that, on Windows as on Mac (OpenSSH ships with Windows 10+).
 Write-Host ""
 $authed = $false
 try { gh auth status | Out-Null; $authed = $true } catch { $authed = $false }
 if (-not $authed) {
   Write-Host "Log into GitHub (a browser window will open):"
-  gh auth login --hostname github.com --git-protocol https --web
+  gh auth login --hostname github.com --git-protocol ssh --web
 } else {
   Write-Host "OK Already logged into GitHub"
 }
 
-# --- SSH key (a fallback; the HTTPS login above is the default path) ---
+# --- SSH key: make sure one exists and is on the account ---
 $KeyPath = Join-Path $HOME ".ssh\id_ed25519"
 if (-not (Test-Path "$KeyPath.pub")) {
   Write-Host ""
-  $MakeKey = Read-Host "Also create an SSH key for GitHub, as a fallback if HTTPS is ever blocked? [Y/n]"
-  if ($MakeKey -ne "n" -and $MakeKey -ne "N") {
+  Write-Host "Creating the SSH key your agent will use to talk to GitHub for you (no passphrase, on purpose):"
+  if ($true) {
     New-Item -ItemType Directory -Force -Path (Split-Path $KeyPath) | Out-Null
     ssh-keygen -t ed25519 -N '""' -f $KeyPath -C "$env:COMPUTERNAME (agentic-organization setup)"
     try {
