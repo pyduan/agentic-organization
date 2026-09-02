@@ -444,7 +444,12 @@ useless — or it spends the owner's time on something that was yours to do.
   the same breath as the finding, tell the reader to ask the owner where the map is silent, and never
   prescribe one action across N repos in a single pass. The corollary is the owner's, and it is the
   more important half — **a reason to not follow the tool has to live in the repo.** In an exchange it
-  protects one session; in the map it protects every session.
+  protects one session; in the map it protects every session. The same holds for an instruction you
+  write to someone else's agent: **name an operation and you have assumed a state**, so say what to do
+  when that state does not hold. "Pull this repo and do nothing else in it" was unexecutable on a
+  clone that had diverged — the pull needed a merge, and merging a shared repo is not "nothing else".
+  The agent stopped and said so, which was right, but only because it read the intent behind the verb
+  rather than the verb.
 - **A chain verified through the middle covers neither end.** A feature was checked through the
   compiled module and the remote repo state, both fine — while a layout change had squeezed the
   control the whole feature depends on down to a few pixels wide. Still functional, impossible to
