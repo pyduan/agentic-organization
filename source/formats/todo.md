@@ -21,6 +21,38 @@ Fixed field order, everything optional except the checkbox and the text:
 | text | plain prose | The **action**, not its status. Short enough to read as a row |
 | owner | `@slug` | Repeatable. Never `[Nom]`: brackets collide with the checkbox |
 | due | `due:2026-09-15`, `due:2026-W36`, `due:2026-09` | ISO only, at the precision that was actually decided. Never `08-22`, never "next week" as words |
+
+### Two tags that get re-raised, and only two
+
+Every other line in this file is passive: it stops a point being lost and does nothing to get it
+settled. Two tags are different, because two kinds of item are invisible exactly when they matter.
+
+| Tag | What it means | When it is raised |
+|---|---|---|
+| `#decide` | an open decision that waits only on a gesture from a person, not on work | **every session**, until the line is ticked |
+| `#revisit` | a hypothesis, or a choice forced by a constraint, to look at again | once its `due:` date has passed |
+
+`node scripts/open-decisions.mjs` prints them, and the SessionStart hook runs it, so they arrive
+before the session starts working rather than in a summary at the end. It prints **nothing** when
+there is nothing, and it ignores every untagged item however overdue — a session-start notice that
+lists everything is one nobody reads by the third day, and then the decision is invisible again for
+a new reason.
+
+**Why `#decide` exists.** A decision turning on access to an entire archive and a password keyring
+was written up correctly, with its options, its cost and its deadline, in a "decisions to take"
+section. For eight days several sessions worked that dossier, produced reports, answered questions
+and closed exchanges without reopening it once. The owner had to ask for it herself: *you forgot to
+remind me, you have to make me settle this.* Recording had been taken for acting. The failure is
+stable because it is invisible: nothing errors, no check fires, and every later session finds the
+point already written and reads that as handled. So put a **date** on it — a `#decide` with no date
+is reported as the one nobody has to face, which is precisely the shape that lasted eight days.
+
+**Why `#revisit` exists.** A lock was chosen under a constraint: the owner had ruled out any
+provider screen, and the tooling of the day could not set the reference protection programmatically
+because the API right did not exist yet. Days later that right arrived. Nothing said that a choice
+made under duress was waiting to be replayed, so it stayed, and later work built on top of it. **A
+constraint that has lifted should replay the choices it dictated**, and nothing else in the repo will
+say so. Write the constraint in the line, not just the choice, and give it a date.
 | done | `done:YYYY-MM-DD` | On completed items |
 | tag | `#slug` | Repeatable, optional |
 | id | `^k3f9` | Generated once, **never written or changed by hand** |

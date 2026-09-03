@@ -216,5 +216,6 @@ scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong
+scripts/open-decisions.mjs   at session start: decisions waiting on a person, and hypotheses due a second look
 .claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
 ```
