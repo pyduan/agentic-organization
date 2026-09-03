@@ -11,6 +11,12 @@
 
 set -e
 
+# Run the documented way (`curl … | bash`), stdin is the script itself, so every
+# `read` below would consume the next lines of the script rather than wait for an
+# answer: the run appears to answer its own questions and races to the end. Point
+# the interactive reads at the terminal instead.
+if [ ! -t 0 ] && [ -e /dev/tty ]; then exec < /dev/tty; fi
+
 TEMPLATE="pyduan/agentic-organization"
 
 echo "== agentic-organization setup =="
@@ -135,8 +141,25 @@ PARENT_DIR="${PARENT_DIR:-$DEFAULT_DIR}"
 mkdir -p "$PARENT_DIR"
 TARGET="$PARENT_DIR/$PROJECT_NAME"
 
-if [ -d "$TARGET" ]; then
-  echo "$TARGET already exists — using it as-is (skipping repo creation)."
+if [ -d "$TARGET" ] && [ -n "$(ls -A "$TARGET" 2>/dev/null)" ]; then
+  # Reusing a folder that is already there is how a half-finished earlier attempt
+  # becomes the project: its stale files look like yours and nothing says otherwise.
+  # Offer a clean start, and rename the old one aside rather than deleting it.
+  echo
+  echo "$TARGET already exists and is not empty."
+  read -p "Start clean and move the existing folder aside? [Y/n]: " CLEAN_START
+  if [ "${CLEAN_START:-Y}" != "n" ] && [ "${CLEAN_START:-Y}" != "N" ]; then
+    ASIDE="$TARGET.before-$(date +%Y-%m-%d-%H%M)"
+    mv "$TARGET" "$ASIDE"
+    echo "✓ moved aside to $ASIDE (nothing deleted)"
+    cd "$PARENT_DIR"
+    gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "My site, run by Claude"
+    cd "$PROJECT_NAME"
+  else
+    echo "Using it as-is (skipping repo creation)."
+    cd "$TARGET"
+  fi
+elif [ -d "$TARGET" ]; then
   cd "$TARGET"
 else
   echo
@@ -172,6 +195,25 @@ else
   fi
 fi
 
+# --- Anything else instructing this agent ---
+# The kit's whole premise is one source of truth. A user-level CLAUDE.md, plugins
+# and skills installed for an earlier experiment, globally declared MCP servers and
+# forgotten scheduled tasks all load on every session and contradict quietly, and the
+# owner cannot see any of it. Found on a real first onboarding, where the newcomer's
+# session behaved unlike everyone else's for exactly this reason. Look now, while
+# there is a person here to decide; nothing is ever deleted, only moved aside.
+echo
+CONFLICTS="$(node scripts/check-conflicts.mjs 2>&1 || true)"
+echo "$CONFLICTS"
+if printf '%s' "$CONFLICTS" | grep -q '▸'; then
+  echo
+  read -p "Move the ▸ ones aside (reversible, nothing deleted)? [Y/n]: " PARK
+  if [ "${PARK:-Y}" != "n" ] && [ "${PARK:-Y}" != "N" ]; then
+    node scripts/check-conflicts.mjs --park | tail -1
+    CONFLICTS="$(node scripts/check-conflicts.mjs 2>&1 || true)"   # what the first session inherits
+  fi
+fi
+
 # Two things wrangler's token cannot do, so nobody hunts for a command that
 # does not exist: writing a DNS record, and creating an Access policy. Both are
 # dashboard steps (or an API call with a broader token). Written down for the
@@ -188,6 +230,10 @@ act on it, and delete the file (inbox protocol).
 - Hosting: $HOST_NOTE
 - Cloudflare CLI logged in: $(npx --yes wrangler whoami >/dev/null 2>&1 && echo yes || echo no)
 - SSH key present: $([ -f "$HOME/.ssh/id_ed25519.pub" ] || [ -f "$HOME/.ssh/id_rsa.pub" ] && echo yes || echo no)
+
+## Still instructing this agent from outside the repo
+
+$CONFLICTS
 
 Still needs a human in the Cloudflare dashboard (the CLI token cannot do these):
 writing DNS records, and enabling Zero Trust / creating the Access policy that

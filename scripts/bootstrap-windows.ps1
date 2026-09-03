@@ -110,8 +110,25 @@ if ([string]::IsNullOrWhiteSpace($ParentDir)) { $ParentDir = $DefaultDir }
 New-Item -ItemType Directory -Force -Path $ParentDir | Out-Null
 $Target = Join-Path $ParentDir $ProjectName
 
-if (Test-Path $Target) {
-  Write-Host "$Target already exists -- using it as-is (skipping repo creation)."
+if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -First 1)) {
+  # Reusing a folder that is already there is how a half-finished earlier attempt
+  # becomes the project: its stale files look like yours and nothing says otherwise.
+  # Offer a clean start, and rename the old one aside rather than deleting it.
+  Write-Host ""
+  Write-Host "$Target already exists and is not empty."
+  $CleanStart = Read-Host "Start clean and move the existing folder aside? [Y/n]"
+  if ($CleanStart -ne "n" -and $CleanStart -ne "N") {
+    $Aside = "$Target.before-$(Get-Date -Format yyyy-MM-dd-HHmm)"
+    Move-Item $Target $Aside
+    Write-Host "OK moved aside to $Aside (nothing deleted)"
+    Set-Location $ParentDir
+    gh repo create $ProjectName --template $Template --private --clone --description "My site, run by Claude"
+    Set-Location $ProjectName
+  } else {
+    Write-Host "Using it as-is (skipping repo creation)."
+    Set-Location $Target
+  }
+} elseif (Test-Path $Target) {
   Set-Location $Target
 } else {
   Write-Host ""
@@ -148,6 +165,23 @@ if ($HostChoice -eq "2") {
   }
 }
 
+# --- Anything else instructing this agent ---
+# The kit's whole premise is one source of truth. A user-level CLAUDE.md, plugins and
+# skills installed for an earlier experiment, globally declared MCP servers and
+# forgotten scheduled tasks all load on every session and contradict quietly, and the
+# owner cannot see any of it. Look now, while there is a person here to decide;
+# nothing is ever deleted, only moved aside.
+Write-Host ""
+$Conflicts = (node "scripts/check-conflicts.mjs" 2>&1 | Out-String)
+Write-Host $Conflicts
+if ($Conflicts -match [char]0x25B8) {
+  $Park = Read-Host "Move the marked ones aside (reversible, nothing deleted)? [Y/n]"
+  if ($Park -ne "n" -and $Park -ne "N") {
+    node "scripts/check-conflicts.mjs" --park | Select-Object -Last 1
+    $Conflicts = (node "scripts/check-conflicts.mjs" 2>&1 | Out-String)
+  }
+}
+
 # Two things the Cloudflare CLI token cannot do, written down now rather than
 # discovered mid-deploy: writing a DNS record, and creating an Access policy.
 $SshPresent = if (Test-Path "$KeyPath.pub") { "yes" } else { "no" }
@@ -163,6 +197,10 @@ read this, act on it, and delete the file (inbox protocol).
 - Hosting: $HostNote
 - Cloudflare CLI logged in: $CfLoggedIn
 - SSH key present: $SshPresent
+
+## Still instructing this agent from outside the repo
+
+$Conflicts
 
 Still needs a human in the Cloudflare dashboard (the CLI token cannot do these):
 writing DNS records, and enabling Zero Trust / creating the Access policy that

@@ -30,7 +30,10 @@ clones it, asking before anything that touches your password.
 > worked before moving on. If a step fails, look up the fix in the template's
 > docs/troubleshooting.md and walk me through it. Log me into GitHub with the browser login, not an
 > SSH key. Then ask me for a project name and where to put it, create my own private copy of the
-> template there, and clone it.
+> template there, and clone it. If a folder already exists at that path, do not reuse it: move it
+> aside with a dated name and start clean. Then run `node scripts/check-conflicts.mjs` and tell me
+> in plain words what else on this machine is instructing you from outside the repo, and park what
+> is safe to park.
 
 Prefer a deterministic command, or setting someone else up remotely? The same thing as a script:
 
@@ -45,6 +48,27 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 ```
 
 Both are safe to run twice if something gets interrupted.
+
+### If this machine has been used with Claude before
+
+The kit works because one repo holds the instructions. Anything installed outside it and still
+loaded on every session competes with that, silently: a `CLAUDE.md` in your home folder written for
+something else, plugins and skills installed for an earlier experiment and frozen at that day's
+version, MCP servers declared globally, a scheduled task nobody remembers registering. You cannot
+see any of it, and what you get is an agent that ignores an instruction it plainly reads. The first
+person we onboarded hit exactly this.
+
+The install scripts now look, and ask. At any later point, say **"what else is instructing you"**,
+or run it yourself:
+
+```sh
+node scripts/check-conflicts.mjs          # look and report
+node scripts/check-conflicts.mjs --park   # move the safe ones aside
+```
+
+It never deletes. `--park` moves things into a dated folder with a `RESTORE.md` saying how to put
+each one back, and it leaves alone anything it cannot judge for you: a scheduled task may be doing
+real work, and a settings file holds your preferences alongside the parts that instruct.
 
 ## 3. What plugs in, and what stays out
 
