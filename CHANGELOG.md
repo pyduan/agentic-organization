@@ -10,6 +10,31 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-03 · MAJOR · What else is instructing your agent, and a clean start
+
+The kit assumes one source of truth: this repo. Everything installed outside it and still loaded on
+every session breaks that assumption quietly, and you cannot see any of it. A user-level `CLAUDE.md`
+written for something else, plugins and skills installed months ago and frozen at that day's version,
+MCP servers declared globally, scheduled tasks nobody remembers registering. Nothing announces itself
+and nothing conflicts loudly: you just get an agent that ignores an instruction it plainly reads.
+Found on a real first onboarding, where a newcomer's very first session behaved unlike everyone
+else's, for exactly this reason.
+
+`node scripts/check-conflicts.mjs` looks and says what it found. `--park` moves the safe ones aside
+into a dated folder with a `RESTORE.md` saying how to put them back. It never deletes, and it never
+touches a scheduled task or a settings file that also holds your preferences: those are reported with
+enough detail to decide, and left alone.
+
+The install scripts now run it while you are still sitting there, and hand whatever is left to your
+first session. They also stop silently reusing a folder that already exists at the path you chose,
+which is how a half-finished earlier attempt becomes the project: they offer a clean start and rename
+the old folder aside. And the macOS script no longer eats its own questions when run the documented
+`curl … | bash` way, which made it race to the end answering itself.
+
+**What you need to do:** run `node scripts/check-conflicts.mjs` once, or just ask your agent "what
+else is instructing you". If it lists a plugin or a global skill from an earlier experiment, let it
+park them; if it lists a scheduled task you do not recognise, read the line before deciding.
+
 ## 2026-09-03 · MINOR · Your history is imported once; a connected mailbox is optional
 
 `SETUP.md` now says how the past gets in: the first session sweeps what predates the kit (the

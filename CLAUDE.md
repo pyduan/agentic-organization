@@ -51,6 +51,7 @@ Find every row that matches the task at hand and read those files before produci
 | A **scheduled task**: writing one, retiring one, or "what runs on its own around here" | `routines/README.md` — versioned because the scheduler's own folder is not, offered at setup rather than installed, and retiring one means deregistering it **and** deleting its file in the same change |
 | Onboarding someone onto the kit, or "is everyone on the current version", "why did X not get the update" | `node scripts/check-fleet.mjs` — per instance: how far behind the template, whether it is wired to announce its own news, and who last pushed. A project onboarded before a mechanism cannot announce that mechanism exists |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks — including whether the `.gitignore` rules are true, since one added after the files were committed protects nothing |
+| The agent seems to ignore what this repo says, or someone is setting the kit up on a machine that has been used with Claude before | `node scripts/check-conflicts.mjs` — what is instructing the agent from OUTSIDE this repo: a user-level `CLAUDE.md`, installed plugins and global skills, globally declared MCP servers, scheduled tasks, a second clone. `--park` moves the safe ones aside, reversibly; it never deletes |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
 ## Working rules
@@ -211,6 +212,7 @@ source/quality/              the incident register (the AI's own mistakes) + its
 apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
+scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong
