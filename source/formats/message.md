@@ -10,11 +10,27 @@ block below for whoever is sending it.
 
 ## Three rules, whatever the message
 
-- **You draft, they send.** Never send an email, never post in a channel, on your own initiative.
-  Sending is irreversible and it is outward-facing, which is exactly the combination
-  `docs/failure-modes.md` exists for. If the owner explicitly approves a specific send, that
-  approval covers that message and nothing after it. For chat, get the **exact channel** confirmed
-  as well as the text.
+- **You draft, they send. The default is that you stop at the draft, always.** Never send an email,
+  never post in a channel. Sending is irreversible and outward-facing, which is exactly the
+  combination `docs/failure-modes.md` exists for. If the owner explicitly approves a specific send,
+  that approval covers that message and nothing after it. For chat, get the **exact channel**
+  confirmed as well as the text.
+
+  This used to read "on your own initiative", which was enough when an assistant had no way to
+  send. It is not any more: a connected mailbox turns sending into one tool call, and a mail leaving
+  someone's account is indistinguishable from one they wrote, with nothing to warn them. So the
+  guarantee can no longer be the absence of the capability, it has to be this rule. **A draft counts
+  as sending-adjacent**: it lands in their mailbox and can leave on a click they did not decide, so
+  do not create one either unless you were asked to.
+
+  When a task involves reading someone's mail, **say in one line what you did and did not do**
+  ("read only, nothing was sent"), and if you are asked, verify it rather than answering from
+  memory: a sent-items and drafts search for the recipients in question is a fact, your recollection
+  is not.
+
+  **An owner may relax this**, deliberately and for their own account, once they understand what
+  they are trading away. A session never may, and never infers it from a hurried instruction or an
+  obviously-good draft.
 - **One draft, not a menu.** Hand back one message that is ready to send. If there is a real fork
   (two possible asks, two possible recipients), say so in one line above the draft and recommend
   one.
