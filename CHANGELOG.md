@@ -10,6 +10,53 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-04 · MAJOR · Your agent now re-raises the decisions it is waiting on you for
+
+Three things, and the first one is the reason for the other two.
+
+**A decision written down is not a decision made.** On one workshop, a decision that turned on
+access to an entire archive and a password keyring was written up properly — options, cost,
+deadline — in a "decisions to take" section. For eight days several sessions worked that same
+dossier, produced reports, answered questions, and never reopened it. The owner had to raise it
+herself: *you forgot to remind me, you have to make me settle this.* Recording had been taken for
+acting, and the failure is invisible by construction: nothing breaks, and each new session finds the
+point already written and reads that as handled.
+
+So two tags in your to-do files now get put back in front of you instead of sitting there. `#decide`
+marks something that waits only on a decision from you, and it is raised **every session** until you
+tick it. `#revisit` marks a hypothesis, or a choice you were forced into by circumstances, and it is
+raised once its date passes — because when the thing that forced your hand goes away, nothing else in
+the repo will tell you to look again. It prints nothing when there is nothing, and it deliberately
+ignores every other overdue item, however late: a reminder that lists everything is one you stop
+reading, and then the decision is invisible again for a new reason. A `#decide` with no date is
+reported as "the one nobody has to face", which is exactly the shape that lasted eight days.
+
+**Your error report was leading with the figure that misleads.** It opened on the biggest family of
+mistakes. An owner asked whether her register was worth resending; she was told the count had risen
+but the families were the same, concluded that nothing had been fixed, and was wrong — the share she
+was catching herself had fallen and the biggest family was nearly gone. A family is a wide bucket: it
+cannot disappear, so its size says nothing about whether corrections work. The report now opens on
+the two figures that answer that question — how much you are still catching yourself, with the trend
+across the register's two halves, and how many mistakes landed in a family that **already** had a
+real guard, which is the only figure that says a fix failed rather than that a category is popular.
+
+**And the fleet check stopped telling you to do the wrong thing.** Its notice used to end "run the
+update-kit skill in each", which is an instruction, not an observation: at one in the morning a
+session obeyed it literally and installed the framework into ten repos designed to carry none of it.
+It now states the exception in the same breath and never prescribes an action across several repos.
+`Kind` in your `ORGANIGRAM.md` also gained a third value, `standalone`, for a repo that carries the
+framework and syncs from the template on its own — typically one you share with other people, which
+is neither your core repo nor a thin one to be stripped. Linked git worktrees are no longer counted
+as separate instances either.
+
+**What you need to do:** nothing is renamed and nothing breaks. Two minutes if you want the new
+behaviour: put `#decide` on the lines in your to-do files that are actually waiting on *you*, with a
+date, and `#revisit` plus a date on any figure or choice you know rests on an assumption. Then check
+the `Kind` column in `ORGANIGRAM.md` — if you share a repo with other people, `standalone` is
+probably the word you want. If you have a calculator or model built on a spreadsheet you still edit
+by hand, say so: `lib/provenance.mjs` now records which file and which version each figure came from
+and refuses to compute when the document underneath has moved, and that tool predates it.
+
 ## 2026-09-03 · MAJOR · What else is instructing your agent, and a clean start
 
 The kit assumes one source of truth: this repo. Everything installed outside it and still loaded on

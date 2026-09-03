@@ -23,6 +23,10 @@
           {
             "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/kit-news.mjs\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/open-decisions.mjs\" 2>/dev/null || true"
           }
         ]
       }
