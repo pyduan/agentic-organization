@@ -247,6 +247,42 @@
       "sensitive": [
         "inputs"
       ]
+    },
+    {
+      "id": "2026-09-03-1",
+      "date": "2026-09-03",
+      "category": "numbers",
+      "severity": "major",
+      "inputs": "An error register in seven families, fed by around fifteen sessions, and the owner asking whether an updated version was worth sending to the framework's maintainer.",
+      "error": "She was told the case count had risen but that the families were the same, and that was used to justify not resending. The statement was exact and the conclusion it invited was false: she inferred nothing had been corrected, while the fixes delivered meanwhile had cut the share of errors she catches herself and nearly extinguished the largest family. The figure that would have contradicted it was available from the same command.",
+      "why": "A family is a wide bucket, so it cannot disappear and its persistence carries no information about the effect of a correction. The indicator quoted was the one that computed without effort rather than the one that answered the question asked.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/error-report.mjs now leads on who detects the incident and on its trend across the register's two halves, plus the count of incidents in a family that already had an executable guard; the family count comes last carrying its own caveat"
+      },
+      "generic": "Before citing an indicator, name the conclusion it will invite and verify that conclusion is true. To measure whether a correction worked, measure what would change if it had — who detects the error, how fast, whether the same mechanism recurs — never the count of categories, which is the figure that computes without effort. And when a figure one command away would contradict yours, fetch it before answering.",
+      "sensitive": [
+        "inputs"
+      ]
+    },
+    {
+      "id": "2026-09-03-2",
+      "date": "2026-09-03",
+      "category": "handover",
+      "severity": "critical",
+      "inputs": "A decision turning on access to an entire archive and to a password keyring, written up correctly with its options, cost and deadline in the 'decisions to take' section of the dossier file.",
+      "error": "For eight days several sessions worked that dossier, produced reports, answered questions and closed exchanges without reopening the point once. The owner raised it herself: 'you forgot to remind me, you have to make me settle this.'",
+      "why": "Recording was taken for acting. A file is a passive device: it stops a point being lost and does nothing to get it settled, and it assumes somebody goes and reads it — which is exactly what the owner had said she would not do. The failure is stable because it is invisible: nothing errors, no check fires, and each later session finds the point already written and reads that as handled.",
+      "detected_by": "owner",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 6 — an open decision waiting only on a gesture from the owner is re-raised with its age at session start until closed, not merely recorded; a reminder at the end of an answer dies with the session"
+      },
+      "generic": "Writing a decision down is not the same as getting it decided, and a passive register hands the load back to the owner while appearing to lift it. An open decision that waits only on their gesture needs a device that re-raises it, with its age, at the start of a session, keeps doing so until it is closed, and goes quiet on its own once it is. Beware the invisible failure mode generally: nothing fails, no check fires, and every later session mistakes 'already written' for 'already handled'.",
+      "sensitive": [
+        "inputs"
+      ]
     }
   ]
 }

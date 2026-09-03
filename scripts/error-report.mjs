@@ -103,6 +103,33 @@ if (checked.length + ruleOnly.length + unguarded.length + unclassified.length !=
   console.error('error-report: the guard buckets do not account for every incident. Refusing to print a figure that does not add up.');
   process.exit(1);
 }
+// Did a guard hold? An incident landing in a family that already had an executable
+// guard is the one signal that distinguishes "a correction failed" from "this
+// category is simply large". Chronological, because a guard only counts as prior.
+const byDate = all.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+const afterGuard = (() => {
+  const guarded = new Set();
+  const out = [];
+  for (const i of byDate) {
+    if (guarded.has(i.category)) out.push(i);
+    if (EXECUTABLE.has(kindOf(i))) guarded.add(i.category);
+  }
+  return out;
+})();
+
+// And is the share a person has to catch going down? Compare the older half of the
+// register with the newer half. This is what the owner's question was actually
+// about, and it is one line.
+const trend = (() => {
+  if (byDate.length < 6) return null;
+  const cut = Math.floor(byDate.length / 2);
+  const share = (rows) => (rows.length ? Math.round((rows.filter((i) => HUMAN.has(i.detected_by)).length / rows.length) * 100) : 0);
+  const before = share(byDate.slice(0, cut));
+  const after = share(byDate.slice(cut));
+  const word = after < before ? 'down from' : after > before ? 'UP from' : 'unchanged from';
+  return { before, after, text: `Newer half ${after}%, ${word} ${before}% in the older half.` };
+})();
+
 const byCat = Object.keys(CATEGORIES)
   .map((key) => ({ key, label: CATEGORIES[key], rows: all.filter((i) => i.category === key) }))
   .filter((c) => c.rows.length)
@@ -138,11 +165,25 @@ if (!n) {
 
   say('## What this says about the framework, not just this project');
   say();
-  say(`- **Dominant family: ${byCat[0].label.toLowerCase()}** (${byCat[0].rows.length} of ${n}). ` +
-      'The largest family is where a default is missing, not where the AI happened to be careless.');
+  // Order matters, and it was wrong. This block used to open on the dominant
+  // family, which is the indicator that computes without effort and the one that
+  // invites a false conclusion: a family is a wide bucket, so it cannot disappear,
+  // and its persistence says nothing about whether a correction worked. An owner
+  // asked whether to send an updated register to this framework's maintainer, was
+  // told the case count had risen but "the families are the same", and reasonably
+  // concluded nothing had been fixed — while the share she was catching herself had
+  // in fact fallen. The figure was exact and the conclusion it produced was false.
+  // So the two indicators that actually answer "is this improving" come first, and
+  // the family count comes last carrying its own caveat (2026-09-03).
   say(`- **${byHuman.length} of ${n} (${pct(byHuman.length)}%) were caught by a person, not by the framework.** ` +
+      `${trend ? `${trend.text} ` : ''}` +
       'That is the number that has to come down: those were visible from someone\u2019s screen, and there is ' +
       'no reason they should have seen them first.');
+  say(`- **${afterGuard.length} happened in a family that already had an executable guard.** ` +
+      (afterGuard.length
+        ? 'A guard existed and did not hold, which is the only figure here that says a correction failed ' +
+          'rather than that a category is popular. Read those entries before writing another rule.'
+        : 'Nothing has yet recurred in a family that was already guarded.'));
   say(`- **${checked.length} of ${n} (${pct(checked.length)}%) produced something that runs and can refuse.** ` +
       `${ruleOnly.length} produced a written rule instead, and ${unguarded.length} produced nothing at all. ` +
       'A rule that depends on an attentive reader is exactly what failed in most of these, so the ' +
@@ -154,6 +195,10 @@ if (!n) {
         '`source/quality/incidents.json` rather than reading round them: an entry nobody can classify ' +
         'is the register quietly shrinking.');
   }
+  say(`- **Largest family: ${byCat[0].label.toLowerCase()}** (${byCat[0].rows.length} of ${n}), ` +
+      'which says where a default is missing and nothing else. Seven wide buckets over a growing ' +
+      'register: the biggest one cannot vanish, so do not read its persistence as evidence that ' +
+      'corrections are not working, and never answer a question about the effect of a fix with it.');
   say();
 
   say('## By family');
