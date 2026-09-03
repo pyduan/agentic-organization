@@ -283,6 +283,60 @@
       "sensitive": [
         "inputs"
       ]
+    },
+    {
+      "id": "2026-09-04-1",
+      "date": "2026-09-04",
+      "category": "destructive",
+      "severity": "critical",
+      "inputs": "A backup script written by the agent, copying to a mounted 2 TB external volume on a machine where that volume had already self-unmounted once.",
+      "error": "The volume unmounted mid-write. The script never checked that the mount point still existed, wrote 7,201 files into a path that had gone, and the interrupted write corrupted the filesystem: 245 GB unreadable, disk reformatted. Then three wrong conclusions in a row, each contradicted by the agent's own notes from days earlier, ending in a proposal to erase the disk to recover it. The owner accepted; after reformatting it still would not open, and the erasure destroyed a partial backup that deferred filesystem repair would probably have recovered.",
+      "why": "A removable destination was treated as a stable path, and each diagnosis was asserted from the first plausible cause rather than checked against findings already recorded in the same dossier. The agent's own summary: it concluded faster than its own findings.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 5 While it runs (destination checked before every write) and ▸ 2 (your own earlier notes are the first place to look for the refutation)"
+      },
+      "generic": "Verify a destination that can vanish before every write, not once at the start: a backup that continues without its destination destroys what it had already done. And before asserting a cause, search your own prior notes for what contradicts it — a self-authored observation from days earlier is the cheapest refutation available and the easiest to walk past. Never propose an irreversible repair on a premise you have not tested: an unreadable volume undergoing deferred repair is not a lost volume.",
+      "sensitive": [
+        "inputs"
+      ]
+    },
+    {
+      "id": "2026-09-04-2",
+      "date": "2026-09-04",
+      "category": "handover",
+      "severity": "major",
+      "inputs": "The same incident: the owner was about to email her IT support about a device-access block.",
+      "error": "The agent's analysis persuaded her not to send it. The analysis was wrong and the message was justified: the block returned after the reboot, which a freshly reformatted disk then demonstrated.",
+      "why": "Advising against an action was treated as the cautious direction and held to a lower standard of evidence than an action would have been.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "rule",
+        "where": "docs/failure-modes.md ▸ 6 — talking the owner out of an action is an action"
+      },
+      "generic": "An argument that stops the owner doing something is an action taken on their behalf and needs the evidence an action would need. Advising against is not the safe default direction, and when the advice rests on a diagnosis, say what the diagnosis is resting on so they can weigh it.",
+      "sensitive": [
+        "inputs"
+      ]
+    },
+    {
+      "id": "2026-09-04-3",
+      "date": "2026-09-04",
+      "category": "expiry",
+      "severity": "major",
+      "inputs": "A shared read-write page for a third party. The owner had ruled out touching any provider screen, and the tooling of the day could not set the provider's reference access protection programmatically because the API right did not exist yet.",
+      "error": "A secret personal link was used instead — a transferable, copyable URL whose revocation needs a redeploy. The choice was correct under the constraint and was recorded nowhere as provisional. Days later the missing API right arrived. Nothing signalled that a lock chosen under duress was waiting to be replayed; it stayed, and later work built on top of it.",
+      "why": "A choice forced by a constraint was recorded as a choice, without its constraint, so no later session could know it was contingent. Nothing re-reads such choices when the tooling changes.",
+      "detected_by": "outside user",
+      "guard": {
+        "kind": "check",
+        "where": "scripts/open-decisions.mjs ▸ #revisit — a constrained choice carries a date and is re-raised once it passes; source/formats/todo.md documents writing the constraint in the line, not just the choice"
+      },
+      "generic": "Write the constraint that forced a choice, not only the choice, and give it a date to be looked at again. A constraint that lifts should replay the choices it dictated, and nothing else in a repo will say so — which makes this the silent-expiry family applied to decisions rather than to facts.",
+      "sensitive": [
+        "inputs"
+      ]
     }
   ]
 }
