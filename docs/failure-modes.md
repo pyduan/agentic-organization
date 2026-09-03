@@ -111,6 +111,13 @@ and the second copies only the number.
   figure that leaves this repo carries `established` / `conditional` / `assumed`, in the data
   structure and in the sentence that displays it.
 - **A next step that depends on something uncertain starts with "if".**
+- **Before asserting a cause, look for what your own earlier notes say against it.** Three wrong
+  conclusions in one incident, and for each the contradicting observation was already written in the
+  dossier, by the agent, days earlier: an antivirus extension blamed for a block it had been
+  recorded as coexisting with; and "writing to a disk" argued as proof that mounting was permitted,
+  five days after the same file noted a format succeeding while a mount failed. The root cause the
+  agent named itself is worth keeping in its words: *I concluded faster than my own findings.* Your
+  own notes are the first place to look for the refutation, not the last.
 - **Never explain a discrepancy with a plausible guess.** Trace it to its cause, or write that you
   do not know. A guess left in the file becomes the reason, and it makes a sound calculation look
   suspect.
@@ -406,6 +413,13 @@ list here, so it is split by the moment each rule applies.
   announced; its cost was not. The same applies to the fix: measure it on the quantity it was meant
   to preserve, and cadence periodic housekeeping on a counter rather than only on a threshold, or it
   reruns every pass and costs more than the work it protects.
+- **A destination that can disappear is checked before every write, not once at the start.** A
+  backup script held a mounted external volume as a stable path. The volume unmounted itself
+  mid-write, on a machine where it had already done so once before; the script did not notice, wrote
+  seven thousand files into a path that no longer existed, and the interrupted write corrupted the
+  filesystem. The 245 GB already copied became unreadable and the disk had to be reformatted. **A
+  backup that continues without its destination does not back anything up: it destroys what it had
+  already done.** Check the mount point before each file, stop hard, and exit with a distinct code.
 - **Measure a shared resource before consuming it, and give it back.** Disk, quota, bandwidth: other
   work, and other sessions, are using the same machine.
 - **Calendar dates are local.** Converting to UTC is the ordinary way to get a short date and is
@@ -450,6 +464,13 @@ useless — or it spends the owner's time on something that was yours to do.
   itself once it is. A reminder at the end of an answer is not that: it dies with the session.
 - **Only ask the owner to do what only they can do.** The cost of a bad instruction is not
   symmetric: you lose a turn, they lose an afternoon. Probe first, then act yourself where you can.
+- **Talking the owner out of an action is an action, and it needs the same standard.** In the same
+  incident the owner stood down a message she was about to send her IT support, on the strength of
+  the agent's analysis. The analysis was wrong and her message was justified — the block did come
+  back after the reboot, as a freshly reformatted disk then demonstrated. The disk was the visible
+  cost; the real one was a decision she took on a false premise. Advising against something is not
+  the safe direction by default: an argument that stops someone acting needs the evidence an action
+  would have needed.
 - **Never hand back a judgement they delegated.** "Tell me when the upload is finished" for
   something they cannot observe is a refusal dressed as a question. Put the criterion in code, and
   trigger the next step yourself.
