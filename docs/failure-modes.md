@@ -116,6 +116,15 @@ and the second copies only the number.
   suspect.
 - **An assumption inherited from earlier work arrives without its status.** When you build on
   something you did not establish, say so in the same sentence, with what it changes if it is wrong.
+- **The form of the work fabricates authority the content has not earned.** This is the umbrella over
+  most of this section, and it took an owner five cases in one document to name it. An exact count
+  invites a false conclusion; a blocking check carries a guarantee word no document supports;
+  anomalies from the wrong file are imputed to the owner's document; a repair story is invented to
+  explain an alert that merely stopped firing; a well-kept file passes for a decision that was
+  handled. In all five the work *looked* quantified, checked and recorded, and that appearance did
+  the persuading. The reader cannot separate what a document establishes from what the tool supposed,
+  **so the tool has to separate it for them** — which is the whole reason a status is a field and not
+  a remark, and why a severity is derived rather than chosen.
 - **A report from outside is an input to verify, not a finding to adopt.** It arrives already argued,
   with its own evidence and its own conclusion, so it reads as a result rather than as a claim. A
   real case: an outside user reported that a tool was wrong to demand the framework of ten of her
@@ -228,6 +237,19 @@ and the second copies only the number.
   reinvesting, contributing to a company, switching vehicles: these are neutral by construction, so
   their effect lives in tax or income, never in the net. Two striking amounts pointing opposite ways
   are not an alternative.
+
+- **Before citing an indicator, name the conclusion it will invite, and check that conclusion is
+  true.** An owner asked whether her error register was worth resending to this framework's
+  maintainer. The answer given was that the case count had risen but "the families are the same" —
+  exact, and it produced the opposite of the truth: she concluded nothing had been fixed, while the
+  share of errors she was catching herself had in fact fallen and the largest family was nearly
+  extinguished. A category is a wide bucket, so it cannot disappear, and its persistence says nothing
+  about whether a correction worked. The indicator cited was the one that computed without effort,
+  not the one that answered the question — and the figure that would have contradicted it was one
+  command away. **To measure the effect of a fix, measure what would change if it had worked**: who
+  detects the error now, how fast, and whether the same *mechanism* recurs. Never the count of
+  categories. Third time this register has met this shape in another form: an exact figure lies
+  through what it lets you believe.
 
 ## 4 · Silent expiry *(no check can catch most of this)*
 
@@ -415,6 +437,17 @@ useless — or it spends the owner's time on something that was yours to do.
 
 - **The deliverable is the app, not a document.** A standalone note ages the moment a number moves,
   and gets lost. If the information is not reachable in its place in the app, the work is not done.
+- **Recording a decision is not acting on it, and a file does not chase anybody.** A decision that
+  turned on access to an entire archive and a password keyring was written up correctly — options,
+  cost, deadline — in the "decisions to take" section of the dossier. For eight days several sessions
+  worked that dossier, produced reports, answered questions and closed exchanges without reopening
+  it once. The owner had to ask for it herself: *you forgot to remind me, you have to make me settle
+  this.* Writing the point down and treating the work as done hands the load back to her while
+  appearing to lift it, and the failure is stable precisely because it is invisible: nothing errors,
+  no check fires, and every later session finds the point already written and reads that as handled.
+  So **an open decision that waits only on a gesture from the owner is re-raised, not merely
+  recorded** — surfaced at the start of a session with its age, until it is closed, and silent by
+  itself once it is. A reminder at the end of an answer is not that: it dies with the session.
 - **Only ask the owner to do what only they can do.** The cost of a bad instruction is not
   symmetric: you lose a turn, they lose an afternoon. Probe first, then act yourself where you can.
 - **Never hand back a judgement they delegated.** "Tell me when the upload is finished" for
