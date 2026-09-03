@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-03 · MINOR · Your history is imported once; a connected mailbox is optional
+
+`SETUP.md` now says how the past gets in: the first session sweeps what predates the kit (the
+`fact-finding` recipe: agree the structure, decide which facts matter, sweep, record), and after that
+each session ingests what its task needs through the connectors and the inbox. Keeping Gmail
+permanently connected to the agent is therefore a personal comfort, not a piece of the system.
+
+**What you need to do:** nothing. If you had connected your mailbox only because you thought the kit
+needed it, you may disconnect it; nothing stops working.
+
 ## 2026-09-02 · MINOR · A one-page quick start to hand someone
 
 `QUICKSTART.md`, at the root: the four accounts to create, the paste that installs everything, the

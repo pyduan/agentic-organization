@@ -121,6 +121,12 @@ facts (with sources), the decisions (with reasons) and the history (in order). E
 three lists at the end of it: what is now recorded, what could not be established, and what Claude
 proposes to build on top. That is the part that makes the second conversation cheaper than the first.
 
+**Your history comes in once, then the day-to-day takes over.** Everything that predates the kit
+(years of mail, notes, files) is swept in that first pass, scoped and reviewed, and recorded in the
+repo; after that, each session ingests what its task needs through the connectors you plugged in and
+the inbox. That split is why keeping your mailbox permanently connected is optional: a personal
+comfort for asks like "search my event invitations", never something the system depends on.
+
 Claude then personalizes the guides in `source/brand/`, builds a first version of the site, and shows it to you locally. Iterate by talking until the owner likes it. This is the fun part; budget most of the hour here.
 
 ## Put it live
