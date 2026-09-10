@@ -61,8 +61,22 @@ async function todoFiles(dir, out = []) {
   return out;
 }
 
+// Le parseur de to-do a déménagé de `scripts/lib/` vers `lib/`. Les projets
+// intégrés avant ce déplacement gardent l'ancienne disposition, et un chemin en
+// dur y rendait ce rappel inerte : l'import échouait, le catch en bas mangeait
+// l'erreur, et le script sortait 0 sans une ligne. Vu pour de vrai sur
+// huguescharnallet. On essaie donc les deux emplacements.
+async function todoLib() {
+  const essais = ['../lib/todo.mjs', '../scripts/lib/todo.mjs'];
+  let derniere;
+  for (const rel of essais) {
+    try { return await import(rel); } catch (e) { derniere = e; }
+  }
+  throw new Error(`todo.mjs introuvable (essayé ${essais.join(', ')}) : ${derniere?.message}`);
+}
+
 async function collect() {
-  const { parse, dueEnd, isOverdue } = await import('../lib/todo.mjs');
+  const { parse, dueEnd, isOverdue } = await todoLib();
   const decisions = [];
   const revisits = [];
   for (const file of await todoFiles(ROOT)) {
@@ -95,7 +109,11 @@ async function collect() {
 }
 
 let out = { decisions: [], revisits: [] };
-try { out = await collect(); } catch { /* a reminder never breaks a session */ }
+// Un rappel ne casse jamais une session, mais il ne doit pas non plus mourir
+// sans un mot : c'est précisément le silence que ce script existe pour empêcher.
+try { out = await collect(); } catch (e) {
+  console.error(`(open-decisions n'a pas pu lire les listes : ${e.message})`);
+}
 
 if (AS_JSON) {
   console.log(JSON.stringify({ today, ...out }, null, 2));

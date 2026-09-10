@@ -22,6 +22,13 @@ and exits 1, listing the side names it can actually see.
 it was pointing at a name that does not exist, the greens you have been getting were empty, and the
 memories underneath have never been swept.
 
+Same day, same shape: the `#decide` reminder added on 2026-09-04 was **inert** on any project
+onboarded before the to-do parser moved from `scripts/lib/` to `lib/`. It imported the new path, the
+import failed, and a catch meant to keep a reminder from breaking your session ate the error. The
+script exited 0 and printed nothing, which looks exactly like having no decisions waiting. Found on
+a live project. It now tries both locations, and if it still cannot read your lists it says so on
+stderr instead of going quiet.
+
 Two false alarms are gone as well, both of which taught you to stop reading the output. A memory
 dated in prose ("mesuré le 25 août 2026") was reported as having no date, because only ISO dates
 counted; five of six flags here were memories that did carry a date. And a memory that deliberately
