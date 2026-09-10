@@ -11,7 +11,7 @@
 // et le script le dit plutôt que de faire semblant.
 //
 //   node scripts/check-memory.mjs                     le côté d'où on lance
-//   node scripts/check-memory.mjs --side=personnel     un autre côté
+//   node scripts/check-memory.mjs --side=personal      un autre côté
 //   node scripts/check-memory.mjs --all                tous les côtés de la machine
 //   node scripts/check-memory.mjs --json
 //
@@ -37,6 +37,18 @@ const WORKSPACE_SIDE = basename(dirname(resolve(process.cwd())));
 const ALL = args.includes('--all');
 const SIDE = ALL ? '' : ((args.find((a) => a.startsWith('--side=')) || `--side=${WORKSPACE_SIDE}`).slice(7));
 const AS_JSON = args.includes('--json');
+
+// Ce qui compte comme date : ISO, jj/mm/aaaa, ou un mois en toutes lettres
+// (français ou anglais) accompagné de son année.
+const MOIS = 'janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre'
+  + '|january|february|march|april|may|june|july|august|september|october|november|december';
+const DATE = new RegExp(
+  String.raw`\b20\d{2}-\d{2}-\d{2}\b` + '|'
+  + String.raw`\b\d{1,2}\/\d{1,2}\/20\d{2}\b` + '|'
+  + String.raw`\b(?:${MOIS})\s+20\d{2}\b` + '|'
+  + String.raw`\b\d{1,2}(?:er)?\s+(?:${MOIS})\s+20\d{2}\b`,
+  'i',
+);
 
 const findings = [];
 const add = (severity, where, what, detail) => findings.push({ severity, where, what, detail });
@@ -92,6 +104,26 @@ const sides = SIDE ? SIDE.split(',').map((x) => x.trim()).filter(Boolean) : [];
 const total = keys.length;
 if (sides.length) keys = keys.filter((k) => sides.some((sd) => k.includes(`-projects-${sd}-`)));
 const skipped = total - keys.length;
+
+// Un côté qui ne désigne rien ne doit surtout pas sortir « ✓ 0 mémoire(s) ».
+// C'est arrivé : une tâche planifiée demandait `--side=personnel` là où le
+// dossier s'appelle `personal`, et le balayage a rendu un vert parfait pendant
+// des semaines sans jamais ouvrir un seul fichier. Un contrôle qui n'a rien
+// contrôlé doit le dire plus fort qu'un contrôle qui n'a rien trouvé.
+if (sides.length && keys.length === 0) {
+  const candidats = [...new Set(
+    (await readdir(BASE, { withFileTypes: true }).catch(() => []))
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name.match(/-projects-([^-]+)-/))
+      .filter(Boolean)
+      .map((m) => m[1]),
+  )].sort();
+  console.error(`✗ --side=${sides.join(',')} ne désigne aucun projet : rien n'a été balayé.`);
+  console.error(candidats.length
+    ? `  Côtés possibles d'après ~/.claude/projects : ${candidats.join(', ')}`
+    : '  Aucun côté lisible sous ~/.claude/projects.');
+  process.exit(1);
+}
 
 let scanned = 0;
 for (const key of keys.sort()) {
@@ -168,7 +200,7 @@ for (const key of keys.sort()) {
       // le contenir : c'est le contraire d'une dérive, c'est la dérive déjà notée.
       // Même principe que pour les liens privés — reconnaître que l'auteur sait.
       const ctx = text.split(/\n(?=\s*[-*]\s|\n)/).filter((b) => b.includes(p)).join(' ');
-      if (/quarantaine|quarantine|retir[ée]|removed|doublon|archiv|n'existe plus|pas de clone/i.test(ctx)) {
+      if (/quarantaine|quarantine|retir[ée]|removed|doublon|archiv|n'existe plus|pas de clone|renomm|renamed|déplac|moved|ancien(?:ne)? (?:nom|chemin)/i.test(ctx)) {
         add('info', where, p, `absent du disque, et la mémoire le dit — rien à corriger`);
         continue;
       }
@@ -176,7 +208,11 @@ for (const key of keys.sort()) {
     }
 
     // Une mémoire sans date est une mémoire qu'on ne peut pas suspecter.
-    if (!/\b20\d{2}-\d{2}-\d{2}\b|\b\d{2}\/\d{2}\/20\d{2}\b/.test(text)) {
+    // Compte aussi les dates en toutes lettres : ces mémoires sont écrites en
+    // prose (« mesuré le 25 août 2026 »), et ne reconnaître que l'ISO faisait
+    // signaler « aucune date » cinq mémoires sur six qui en portaient une. Un
+    // signal faux à ce taux-là n'apprend qu'une chose : à ne plus le lire.
+    if (!DATE.test(text)) {
       add('info', where, '(aucune date)', `rien ne dit quand ceci a été vérifié, donc rien ne dira qu'elle a vieilli`);
     }
   }

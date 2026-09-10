@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-10 · MAJOR · Your memory sweep could report a perfect green without opening a single file
+
+`check-memory.mjs` takes a `--side=` flag to pick which side of your machine it sweeps. If that name
+matched nothing, it printed `✓ 0 mémoire(s) balayée(s)` and exited 0. A monthly scheduled sweep here
+asked for `--side=personnel` where the folder is called `personal`, and got a flawless green report
+every run, for weeks, having read nothing at all. A check that checked nothing now says so loudly
+and exits 1, listing the side names it can actually see.
+
+**What to do:** if you run this script on a schedule with a `--side=` flag, run it once by hand. If
+it was pointing at a name that does not exist, the greens you have been getting were empty, and the
+memories underneath have never been swept.
+
+Two false alarms are gone as well, both of which taught you to stop reading the output. A memory
+dated in prose ("mesuré le 25 août 2026") was reported as having no date, because only ISO dates
+counted; five of six flags here were memories that did carry a date. And a memory that deliberately
+records a path being **renamed** was flagged for containing a dead path, though the guard for
+exactly that case already existed and only lacked the word.
+
 ## 2026-09-04 · MAJOR · Your agent now re-raises the decisions it is waiting on you for
 
 Three things, and the first one is the reason for the other two.
