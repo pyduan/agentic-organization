@@ -18,7 +18,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,9 +31,14 @@ function workshop(body) {
   const dir = mkdtempSync(join(tmpdir(), 'decide-'));
   mkdirSync(join(dir, 'projects/x'), { recursive: true });
   writeFileSync(join(dir, 'projects/x/next-steps.md'), `# Next steps\n\n${body}\n`);
-  cpSync(join(KIT, 'lib'), join(dir, 'lib'), { recursive: true });
   mkdirSync(join(dir, 'scripts'), { recursive: true });
   cpSync(join(KIT, 'scripts/open-decisions.mjs'), join(dir, 'scripts/open-decisions.mjs'));
+  // Reproduire la disposition DE CE PROJET, pas celle du kit. Les projets
+  // intégrés avant le déplacement gardent `scripts/lib/`, et un banc d'essai
+  // qui suppose `lib/` échouait chez eux sur un décor faux pendant que le vrai
+  // script marchait. Un test qui ment sur son décor ne teste rien d'utile.
+  if (existsSync(join(KIT, 'lib/todo.mjs'))) cpSync(join(KIT, 'lib'), join(dir, 'lib'), { recursive: true });
+  else cpSync(join(KIT, 'scripts/lib'), join(dir, 'scripts/lib'), { recursive: true });
   return dir;
 }
 
