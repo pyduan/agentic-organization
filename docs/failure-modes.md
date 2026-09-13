@@ -63,6 +63,16 @@ and its absence cost hours, and once, files.
   space. Machinery built blind acts on files whose status nobody established.
 - **Measure the constraint before designing around it.** Elaborate exclusion rules to save space
   that was never scarce is work that looks careful and is not.
+- **Open the third party's own settings before designing around them, and read what is greyed
+  out.** A provider's configuration is a load-bearing fact about your design, and what it *refuses*
+  to change tells you more than what it offers. A membership form was about to get a whole
+  discipline — a new form each year, a rule about which link to circulate, a reminder not to send
+  last year's. Opening the back office showed the validity period was a **rolling year and locked**,
+  because payments were attached to it. There was never a yearly form to get wrong, and the
+  discipline would have been pure ceremony. Two settings screens, four minutes. The same visit
+  surfaced two limits no documentation mentions, both of which change what the product must say in
+  words. **And when a constraint you find there decides a design, encode it as a check rather than a
+  sentence**: the rolling year became a build failure on any membership link carrying a year.
 - **Never ask a third party for something your own files answer.** A question in a letter to a
   lawyer, an accountant or a partner costs money and dilutes the real questions.
 - **No search can prove an absence — not an index, not a keyword sweep, not a filtered inventory.**
