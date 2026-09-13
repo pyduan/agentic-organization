@@ -472,6 +472,17 @@ useless — or it spends the owner's time on something that was yours to do.
   So **an open decision that waits only on a gesture from the owner is re-raised, not merely
   recorded** — surfaced at the start of a session with its age, until it is closed, and silent by
   itself once it is. A reminder at the end of an answer is not that: it dies with the session.
+- **A decision that changes a computed status becomes data in the same change, or the tool goes on
+  contradicting it.** Once a decision is *taken*, writing it in the minutes is not landing it:
+  people read the dashboard, not the minutes. A general assembly voted that any payment above a
+  threshold counted as the annual membership fee; two days later the tool still filed fifty-four of
+  those people under "gave without joining", and anyone preparing a mailing would have chased
+  members as defaulters. Put the rule where the tool reads it — one row per period, carrying its
+  threshold, its date and its source — and **fail the build on a value that is neither yes nor no,
+  and on a yes with no threshold**, because that column decides who votes. As data rather than
+  code, it stays editable by the people who decide and visible to the people it affects. And keep
+  the history honest: a payment counted as a fee by decision is displayed as its own thing, not
+  repainted as a membership, or the error being repaired disappears from the record.
 - **Only ask the owner to do what only they can do.** The cost of a bad instruction is not
   symmetric: you lose a turn, they lose an afternoon. Probe first, then act yourself where you can.
 - **Talking the owner out of an action is an action, and it needs the same standard.** In the same
