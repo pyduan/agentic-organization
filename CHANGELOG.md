@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-13 · MINOR · Your agent now opens a provider's settings before designing around them
+
+One line added to the failure register, paid for on a live project. A membership form was about to
+get a whole discipline built around it — a new form every year, a rule about which link to
+circulate, a reminder not to send last year's. Opening the payment provider's back office showed
+the validity period was a rolling year **and locked**, because payments were attached to it. There
+was never a yearly form to get wrong. The same four minutes surfaced two other limits no
+documentation mentions, both of which changed what the public page had to say in words.
+
+**What to do:** nothing. Your agent reads the register before any task with several moving parts,
+and will now look at a provider's real configuration — including the greyed-out parts — before
+building around it.
+
 ## 2026-09-10 · MAJOR · Your memory sweep could report a perfect green without opening a single file
 
 `check-memory.mjs` takes a `--side=` flag to pick which side of your machine it sweeps. If that name
