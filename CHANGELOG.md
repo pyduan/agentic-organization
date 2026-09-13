@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-09-14 · MINOR · A decision your board takes now has to reach the tool, not just the minutes
+
+One line added to the failure register. On a live project, a general assembly voted that any payment
+above a threshold counted as the annual membership fee. Two days later the dashboard still filed
+fifty-four of those people under "gave without joining" — anyone preparing a mailing would have
+chased members as defaulters. The decision was recorded correctly, in the right document, and
+changed nothing about what people actually look at.
+
+**What to do:** nothing. When a decision changes who or what the tool counts, your agent will now
+put the rule where the tool reads it — a row per period with its threshold, its date and its source
+— rather than only in the record of the meeting, and make the build refuse an ambiguous value.
+
 ## 2026-09-13 · MINOR · Your agent now opens a provider's settings before designing around them
 
 One line added to the failure register, paid for on a live project. A membership form was about to
