@@ -26,8 +26,9 @@
 // are searched for if the canonical path is absent. A workshop that translated the
 // kit's paths does not need a bridge script.
 
-import { readFile, readdir } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { FAMILIES as KEYS, findFile, loadRegister, validate } from '../lib/register.mjs';
 
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
@@ -36,53 +37,19 @@ const LIST = args.includes('--list');
 const TASK = (args.find((a) => a.startsWith('--task=')) || '').slice(7)
   || (args.includes('--task') ? args[args.indexOf('--task') + 1] || '' : '');
 
-// The seven keys are the same vocabulary as source/quality/README.md and error-report.mjs.
-// `section` is the heading number in docs/failure-modes.md; `cues` are what makes a task
-// touch that family, matched against the --task description.
-const FAMILIES = [
-  {
-    key: 'searched-too-late',
-    section: 1,
-    label: 'Acting before looking',
-    cues: ['search', 'find', 'look', 'missing', 'absent', 'does not exist', 'no record', 'inventory', 'corpus', 'archive', 'document', 'contract', 'clause', 'read', 'summar', 'ask', 'question'],
-  },
-  {
-    key: 'status-of-information',
-    section: 2,
-    label: 'Status of information',
-    cues: ['assum', 'hypothes', 'estimate', 'likely', 'probabl', 'to verify', 'to confirm', 'draft', 'plan', 'account', 'identity', 'deadline', 'test'],
-  },
-  {
-    key: 'numbers',
-    section: 3,
-    label: 'Producing and reading figures',
-    cues: ['calculat', 'comput', 'number', 'figure', 'amount', 'total', 'percent', '%', 'ratio', 'model', 'simulat', 'forecast', 'compare', 'count', 'measur', 'threshold', 'rank', 'price', 'cost', 'valu', 'budget'],
-  },
-  {
-    key: 'expiry',
-    section: 4,
-    label: 'Silent expiry',
-    cues: ['publish', 'update', 'deploy', 'live', 'page', 'summary', 'recap', 'dashboard', 'status', 'deadline', 'decision', 'correct', 'stale', 'refresh'],
-  },
-  {
-    key: 'destructive',
-    section: 5,
-    label: 'Actions on files and the machine',
-    cues: ['delete', 'remove', 'move', 'rename', 'clean', 'purge', 'backup', 'restore', 'archive', 'sync', 'copy', 'migrat', 'disk', 'space', 'script', 'tool', 'cron', 'schedul', 'permission', 'watchdog', 'guard', 'safeguard'],
-  },
-  {
-    key: 'handover',
-    section: 6,
-    label: 'Handover and the relationship',
-    cues: ['deliver', 'report', 'note', 'brief', 'app', 'page', 'explain', 'next step', 'recommend', 'advice', 'present', 'send', 'draft', 'answer'],
-  },
-  {
-    key: 'parallel-sessions',
-    section: 7,
-    label: 'Parallel sessions',
-    cues: ['commit', 'push', 'publish', 'deploy', 'shared', 'token', 'stylesheet', 'session', 'branch', 'merge'],
-  },
-];
+// The seven families come from lib/register.mjs, the one vocabulary shared with
+// source/quality/README.md and error-report.mjs. `cues` are what makes a task touch
+// a family, matched against the --task description.
+const CUES = {
+  'searched-too-late': ['search', 'find', 'look', 'missing', 'absent', 'does not exist', 'no record', 'inventory', 'corpus', 'archive', 'document', 'contract', 'clause', 'read', 'summar', 'ask', 'question'],
+  'status-of-information': ['assum', 'hypothes', 'estimate', 'likely', 'probabl', 'to verify', 'to confirm', 'draft', 'plan', 'account', 'identity', 'deadline', 'test'],
+  numbers: ['calculat', 'comput', 'number', 'figure', 'amount', 'total', 'percent', '%', 'ratio', 'model', 'simulat', 'forecast', 'compare', 'count', 'measur', 'threshold', 'rank', 'price', 'cost', 'valu', 'budget'],
+  expiry: ['publish', 'update', 'deploy', 'live', 'page', 'summary', 'recap', 'dashboard', 'status', 'deadline', 'decision', 'correct', 'stale', 'refresh'],
+  destructive: ['delete', 'remove', 'move', 'rename', 'clean', 'purge', 'backup', 'restore', 'archive', 'sync', 'copy', 'migrat', 'disk', 'space', 'script', 'tool', 'cron', 'schedul', 'permission', 'watchdog', 'guard', 'safeguard'],
+  handover: ['deliver', 'report', 'note', 'brief', 'app', 'page', 'explain', 'next step', 'recommend', 'advice', 'present', 'send', 'draft', 'answer'],
+  'parallel-sessions': ['commit', 'push', 'publish', 'deploy', 'shared', 'token', 'stylesheet', 'session', 'branch', 'merge'],
+};
+const FAMILIES = KEYS.map((f) => ({ ...f, cues: CUES[f.key] }));
 
 const byKey = Object.fromEntries(FAMILIES.map((f) => [f.key, f]));
 
@@ -105,45 +72,18 @@ const selected = named.length
     ? cued
     : FAMILIES;
 
-// ------------------------------------------------------------ the two lists
-
 // ---------------------------------------------------------- locate the two inputs
 // A workshop may translate the kit's paths (a French install keeps its register
 // under a French name). Hardcoding them made this script announce "no incidents
 // logged" over a register holding a hundred and nine — the exact failure it exists
 // to prevent, reported by the owner of that workshop. So: the canonical path, then
-// a flag or env var, then a bounded search. And the three outcomes are never
-// conflated: found / found-and-empty / not-found-at-all.
+// a flag or env var, then a bounded search (lib/register.mjs). And the outcomes are
+// never conflated: found / found-and-empty / not-found-at-all / unreadable.
 
 const flag = (name) => (args.find((a) => a.startsWith(`--${name}=`)) || '').slice(name.length + 3);
 
-async function findFile(canonical, matches, override) {
-  if (override) return { path: resolve(ROOT, override), how: 'given' };
-  if (await readFile(join(ROOT, canonical), 'utf8').then(() => true, () => false)) {
-    return { path: join(ROOT, canonical), how: 'canonical' };
-  }
-  // Bounded walk: deep enough to find a renamed folder, shallow enough to stay instant.
-  const hits = [];
-  const skip = new Set(['node_modules', '.git', 'dist', 'build', '.astro', '.wrangler']);
-  const walk = async (dir, depth) => {
-    if (depth > 4 || hits.length > 8) return;
-    let entries = [];
-    try { entries = await readdir(dir, { withFileTypes: true }); } catch { return; }
-    for (const e of entries) {
-      if (e.name.startsWith('.') && e.name !== '.claude') continue;
-      if (skip.has(e.name)) continue;
-      const full = join(dir, e.name);
-      if (e.isDirectory()) await walk(full, depth + 1);
-      else if (matches(e.name)) hits.push(full);
-    }
-  };
-  await walk(ROOT, 0);
-  if (hits.length === 1) return { path: hits[0], how: 'found' };
-  if (hits.length > 1) return { path: null, how: 'ambiguous', hits };
-  return { path: null, how: 'missing' };
-}
-
 const modesAt = await findFile(
+  ROOT,
   'docs/failure-modes.md',
   (n) => /failure[-_]?modes?.*\.md$/i.test(n) || /modes?[-_]?(de[-_]?)?d[eé]faillance.*\.md$/i.test(n),
   flag('families') || process.env.KIT_FAILURE_MODES,
@@ -186,24 +126,17 @@ function rulesFor(section) {
   return out;
 }
 
-const registerAt = await findFile(
-  'source/quality/incidents.json',
-  (n) => /^incidents?\.json$/i.test(n) || /^incidents?[-_].*\.json$/i.test(n),
-  flag('register') || process.env.KIT_REGISTER,
-);
-let register = null;      // null means: no register file found. Not the same as empty.
-let registerError = null; // a file that exists but will not parse is a third thing again.
-if (registerAt.path) {
-  try { register = JSON.parse(await readFile(registerAt.path, 'utf8')); }
-  catch (e) { registerError = e.message; }
-}
-// A file that parses but has no `incidents` array is a FOURTH outcome, and it used to
+const registerAt = await loadRegister(ROOT, { override: flag('register') || process.env.KIT_REGISTER });
+const register = registerAt.raw;
+const registerError = registerAt.state === 'unreadable' ? registerAt.error : null;
+// A file that parses but has no `incidents` array is its own outcome, and it used to
 // collapse into "it is empty" — the very conflation the register's first entry is about,
-// reproduced one level down. A bare array is the likely shape: the schema example in
-// source/quality/README.md shows one entry, so a register hand-started from it comes out
-// as [ … ] rather than { incidents: [ … ] }.
-const incidents = Array.isArray(register?.incidents) ? register.incidents : [];
-const shapeUnknown = register !== null && !Array.isArray(register?.incidents);
+// reproduced one level down.
+const incidents = registerAt.incidents;
+const shapeUnknown = registerAt.state === 'bare-array' || registerAt.state === 'no-incidents';
+// An entry outside the seven families cannot be selected by family, so filtering by
+// family made it invisible here for good. It is printed whatever the task.
+const offSchema = incidents.filter((i) => !FAMILIES.some((f) => f.key === i.category));
 
 // ------------------------------------------------------------ render
 
@@ -223,7 +156,18 @@ say(`Families: ${selected.map((f) => f.key).join(', ')}`);
 say();
 
 // This project's own past mistakes come first. They are the ones already paid for.
-const mine = incidents.filter((i) => selected.some((f) => f.key === i.category));
+const mine = [...incidents.filter((i) => selected.some((f) => f.key === i.category)), ...offSchema];
+const problems = validate(incidents);
+if (offSchema.length) {
+  say(`⚠ ${offSchema.length} entr${offSchema.length > 1 ? 'ies are' : 'y is'} filed outside the seven families ` +
+      `(${[...new Set(offSchema.map((i) => i.category || '(none)'))].join(', ')}), so they are shown below`);
+  say('  whatever the task. Refile them under a family and keep the finer word in `tags`:');
+  say('  `node scripts/check-register.mjs` lists every entry the schema does not allow.');
+  say();
+} else if (problems.length) {
+  say(`⚠ ${problems.length} problem(s) in the register's entries — \`node scripts/check-register.mjs\` lists them.`);
+  say();
+}
 if (!registerAt.path) {
   // NOT the same as "no incidents". Say which is which, loudly: a check that reports
   // "all clear" when it simply could not read its input is worse than no check.

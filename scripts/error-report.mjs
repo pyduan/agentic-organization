@@ -21,8 +21,11 @@
 //   node scripts/error-report.mjs --anonymized --out=report.md
 //   node scripts/error-report.mjs --anonymized --email   # + the mail line, ready to send
 
-import { readFile, writeFile } from 'node:fs/promises';
-import { resolve, join } from 'node:path';
+import { writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import {
+  FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, guardKind as kindOf, loadRegister,
+} from '../lib/register.mjs';
 
 const MAINTAINER = 'paul@bayesimpact.org'; // the agentic-organization maintainer
 const ROOT = resolve(process.cwd());
@@ -31,30 +34,32 @@ const ANON = args.includes('--anonymized') || args.includes('--anonymised');
 const EMAIL = args.includes('--email');
 const OUT = (args.find((a) => a.startsWith('--out=')) || '').slice(6);
 const TO = (args.find((a) => a.startsWith('--to=')) || '').slice(5) || MAINTAINER;
+const REGISTER = (args.find((a) => a.startsWith('--register=')) || '').slice(11) || undefined;
 
-const CATEGORIES = {
-  'searched-too-late': 'Acting before looking',
-  'status-of-information': 'Status of information',
-  numbers: 'Producing and reading figures',
-  expiry: 'Silent expiry',
-  destructive: 'Actions on files and the machine',
-  handover: 'Handover and relationship',
-  'parallel-sessions': 'Parallel sessions',
-};
-const SEVERITIES = ['critical', 'major', 'minor'];
+const CATEGORIES = Object.fromEntries(FAMILIES.map((f) => [f.key, f.label]));
 const DETECTORS = {
   owner: 'the owner', self: 'the AI, rereading itself', 'another-session': 'another session',
   check: 'an automated check', 'outside-user': 'someone else running this framework',
   'outside user': 'someone else running this framework',
 };
-// Whoever caught it, the question is whether a person had to. The register grew an
-// `outside user` value the map never listed, and the headline figure counted only
-// `owner`, so three incidents found by a person reading her own files were scored
-// as if the framework had caught them itself.
-const HUMAN = new Set(['owner', 'outside-user', 'outside user', 'another-session']);
 
-const raw = JSON.parse(await readFile(join(ROOT, 'source/quality/incidents.json'), 'utf8'));
-const all = (raw.incidents || []).slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+// The register is found the way preflight finds it, so a workshop that keeps it
+// under a translated path gets a report instead of a crash on a missing file.
+const reg = await loadRegister(ROOT, REGISTER ? { override: REGISTER } : undefined);
+if (!['ok', 'empty'].includes(reg.state)) {
+  const why = {
+    missing: 'no source/quality/incidents.json, and no incidents*.json anywhere below this folder',
+    ambiguous: `several candidates, so none was chosen: ${reg.hits.join(', ')}`,
+    unreadable: `${reg.path} does not parse: ${reg.error}`,
+    'bare-array': `${reg.path} is a bare array; the entries belong under { "version": 1, "incidents": [ … ] }`,
+    'no-incidents': `${reg.path} parsed but holds no \`incidents\` array`,
+  }[reg.state];
+  console.error(`error-report: cannot read the register — ${why}.`);
+  console.error('Point at it with --register=<path> or KIT_REGISTER. Schema: source/quality/README.md.');
+  process.exit(2);
+}
+const raw = reg.raw;
+const all = reg.incidents.slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
 const project = (() => {
   try { return (raw.project || '').trim(); } catch { return ''; }
@@ -80,11 +85,7 @@ const project = (() => {
 // hundred and thirteen, because anything phrased as a rule was scored as a guard.
 // Her words, and they are the reason this is not a cosmetic fix: a measure that
 // flatters, in the document whose whole purpose is to stop you reassuring yourself
-// (2026-08-31).
-const EXECUTABLE = new Set(['check', 'test', 'tool']); // it runs, and it can say no
-const WRITTEN = new Set(['rule']);                     // it depends on an attentive reader
-const NOTHING = new Set(['none']);
-const kindOf = (i) => (i.guard && i.guard.kind) || 'none';
+// (2026-08-31). The three sets live in lib/register.mjs.
 
 const n = all.length;
 const heavy = all.filter((i) => i.severity === 'critical' || i.severity === 'major');
@@ -130,10 +131,22 @@ const trend = (() => {
   return { before, after, text: `Newer half ${after}%, ${word} ${before}% in the older half.` };
 })();
 
+// A family the schema does not define gets the same treatment as a guard kind it
+// does not define: shown, counted, and flagged, never dropped. It used to be
+// dropped. The table and the register were built from the seven keys only, so an
+// incident filed under any other word vanished from both while the headline total
+// still counted it: a project whose agent had started inventing families
+// ("domain-accuracy", "delivery", "fabrication") sent a report whose register
+// section was missing most of its recent entries, and whose family table did not
+// add up to its own total row. Nothing said so (2026-10-04).
+const OUTSIDE = 'outside-the-seven';
+const offSchema = all.filter((i) => !CATEGORIES[i.category]);
 const byCat = Object.keys(CATEGORIES)
   .map((key) => ({ key, label: CATEGORIES[key], rows: all.filter((i) => i.category === key) }))
   .filter((c) => c.rows.length)
   .sort((a, b) => b.rows.length - a.rows.length);
+if (offSchema.length) byCat.push({ key: OUTSIDE, label: 'Outside the seven families', rows: offSchema });
+const offSchemaNames = [...new Set(offSchema.map((i) => i.category || '(none)'))];
 const dates = all.map((i) => i.date).filter(Boolean).sort();
 const pct = (part) => (n ? Math.round((part / n) * 100) : 0);
 
@@ -195,10 +208,20 @@ if (!n) {
         '`source/quality/incidents.json` rather than reading round them: an entry nobody can classify ' +
         'is the register quietly shrinking.');
   }
-  say(`- **Largest family: ${byCat[0].label.toLowerCase()}** (${byCat[0].rows.length} of ${n}), ` +
-      'which says where a default is missing and nothing else. Seven wide buckets over a growing ' +
-      'register: the biggest one cannot vanish, so do not read its persistence as evidence that ' +
-      'corrections are not working, and never answer a question about the effect of a fix with it.');
+  if (offSchema.length) {
+    say(`- **⚠ ${offSchema.length} entr${offSchema.length > 1 ? 'ies are' : 'y is'} filed under a family the schema does not define** ` +
+        `(${offSchemaNames.map((k) => `\`${k}\``).join(', ')}). They are listed below under their own heading so ` +
+        'nothing is lost, but they cannot be compared with any other project running the kit. Refile each ' +
+        'one under the nearest of the seven families (`source/quality/README.md`) and keep the finer word in ' +
+        '`tags`.');
+  }
+  const largest = byCat.filter((c) => c.key !== OUTSIDE)[0];
+  if (largest) {
+    say(`- **Largest family: ${largest.label.toLowerCase()}** (${largest.rows.length} of ${n}), ` +
+        'which says where a default is missing and nothing else. Seven wide buckets over a growing ' +
+        'register: the biggest one cannot vanish, so do not read its persistence as evidence that ' +
+        'corrections are not working, and never answer a question about the effect of a fix with it.');
+  }
   say();
 
   say('## By family');
@@ -206,7 +229,7 @@ if (!n) {
   say('| Family | Incidents | Major or critical | Guarded by something that runs |');
   say('|---|---:|---:|---:|');
   for (const c of byCat) {
-    say(`| ${c.label} | ${c.rows.length} | ${c.rows.filter((i) => i.severity !== 'minor').length} | ` +
+    say(`| ${c.label} | ${c.rows.length} | ${c.rows.filter((i) => heavy.includes(i)).length} | ` +
         `${c.rows.filter((i) => EXECUTABLE.has(kindOf(i))).length} |`);
   }
   say(`| **Total** | **${n}** | **${heavy.length}** | **${checked.length}** |`);
@@ -217,8 +240,12 @@ if (!n) {
   for (const c of byCat) {
     say(`### ${c.label}`);
     say();
-    for (const sev of SEVERITIES) {
-      for (const i of c.rows.filter((x) => x.severity === sev)) {
+    // Same rule as the families: a severity outside the three is rendered after them,
+    // never skipped, or an entry marked "high" disappears from the register it is in.
+    const ordered = [...SEVERITIES.flatMap((sev) => c.rows.filter((x) => x.severity === sev)),
+      ...c.rows.filter((x) => !SEVERITIES.includes(x.severity))];
+    {
+      for (const i of ordered) {
         const redact = new Set(i.sensitive || []);
         const show = (field) => (ANON && redact.has(field) ? null : i[field]);
         say(`#### ${i.id} · ${i.severity} · ${i.date}`);
@@ -239,7 +266,8 @@ if (!n) {
 say('---');
 say();
 say(`Generated by \`scripts/error-report.mjs\`${ANON ? ' --anonymized' : ''} from ` +
-    `\`source/quality/incidents.json\` (${n} entr${n === 1 ? 'y' : 'ies'}) on ${new Date().toISOString().slice(0, 10)}. ` +
+    `\`${reg.path.startsWith(ROOT + '/') ? reg.path.slice(ROOT.length + 1) : reg.path}\` ` +
+    `(${n} entr${n === 1 ? 'y' : 'ies'}) on ${new Date().toISOString().slice(0, 10)}. ` +
     'No count in this document is written by hand.');
 
 const text = L.join('\n') + '\n';
@@ -263,7 +291,7 @@ if (EMAIL) {
   const body = encodeURIComponent(
     `Hello,\n\nAttached is an ${ANON ? 'anonymized ' : ''}error report from a project running the ` +
     `agentic-organization kit: ${n} incident${n === 1 ? '' : 's'}, ${heavy.length} major or critical, ` +
-    `${byOwner.length} caught by the owner rather than by the AI.\n\n` +
+    `${byHuman.length} caught by a person rather than by the framework.\n\n` +
     `The file is ${path} in the project folder — attach it before sending.\n\n`);
   console.log(`Report written to ${path}.`);
   console.log(`\nOpen a pre-filled mail to the maintainer:\n\n  mailto:${TO}?subject=${subject}&body=${body}\n`);
