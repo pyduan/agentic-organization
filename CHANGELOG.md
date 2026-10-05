@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MINOR · kit-sync no longer says the kit changed your files when it has not
+
+`kit-sync status` listed every file it keeps as yours under "the kit has changed them since",
+whether or not the kit had moved, because a file you customised always differs from the kit's. An
+owner read that heading on a day the kit had not changed and concluded updates were waiting. It now
+records which version of the kit each of those files was last reconciled with, uses the heading only
+when the kit really changed one, and keeps saying so after an `apply` moves your baseline, until you
+mark the file reconciled (`node scripts/kit-sync.mjs reconciled <file>`). Files kept as yours before
+this change are listed once as "never reconciled against a known version of the kit".
+
+**What to do:** nothing. The next `apply` rewrites `.kit-sync` in the new form.
+
 ## 2026-10-05 · MAJOR · An error report no longer drops the entries your agent filed under a family of its own
 
 Two faults in `scripts/error-report.mjs`, both reported from projects running the kit. The `--email`
