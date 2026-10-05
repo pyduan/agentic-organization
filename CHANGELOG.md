@@ -10,6 +10,23 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MAJOR · Where a repo sits on your machine is no longer written in ORGANIGRAM.md
+
+The repo table used to carry a *Local folder* column, a path on one machine in a file everyone
+shares. On a project several people push to, the map said one folder while a collaborator kept the
+repo under another name, and every tool told him a repo he worked in daily was not cloned. The tools
+now find each repo by its `origin` among the repos beside this one. A layout nothing could guess is
+recorded once per machine, outside every repo, with
+`node scripts/check-workspace.mjs --at=<owner>/<repo>=<path>`.
+
+Two smaller changes in the same check: a kit project of another organization sitting beside yours is
+now mentioned rather than flagged (the warning asked you to add other people's repos to your map),
+and a neighbour whose `CLAUDE.md` points at your repo but has no row still is.
+
+**What to do:** nothing breaks. A map that still has the *Local folder* column keeps working, and
+`check-workspace` says when the column describes another machine; drop it when convenient. If a
+repo you use is not beside this one, have your agent record where it is with `--at`.
+
 ## 2026-10-05 · MINOR · kit-sync no longer says the kit changed your files when it has not
 
 `kit-sync status` listed every file it keeps as yours under "the kit has changed them since",

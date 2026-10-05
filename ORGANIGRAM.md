@@ -12,14 +12,28 @@ Everything the AI might need lives in one of these. **Clone the ones a task need
 `git pull` each at the start of a session** (a stale clone ships an out-of-date brand or a wrong
 fact). Access is per your own accounts — never anyone else's login.
 
-One row per repo. The first two columns are read by `node scripts/check-workspace.mjs` and the
-`Kind` column by `node scripts/check-fleet.mjs`, so keep the repo slug, the local folder and the
-kind in backticks; the rest is prose for you and the AI.
+One row per repo. The first column is read by `node scripts/check-workspace.mjs` and the `Kind`
+column by `node scripts/check-fleet.mjs`, so keep the repo slug and the kind in backticks; the rest
+is prose for you and the AI.
 
-| Repo | Local folder | Kind | What it holds | Access | Publishes to |
-|---|---|---|---|---|---|
-| `<owner>/<repo>` **(this one, the org repo)** | `~/Projects/<repo>` | `router` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
-| _(add a row per repo as you grow)_ | `~/Projects/<other>` | `standalone`, `router` or `satellite` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
+| Repo | Kind | What it holds | Access | Publishes to |
+|---|---|---|---|---|
+| `<owner>/<repo>` **(this one, the org repo)** | `router` | your source of truth, the site, the decks, the apps, the private dashboard | you | `<your-domain>` |
+| _(add a row per repo as you grow)_ | `standalone`, `router` or `satellite` | a project repo the `new-project` skill created; a private repo for sensitive material | who you grant it to | its own URL, or nothing |
+
+**Where each repo sits on a machine is not written here.** It differs from one machine to the next,
+and this file is shared: a map that said `~/projects/x` told a collaborator who kept it at
+`~/Projects/X` that a repo he worked in daily was not cloned. The tools find each repo by its
+`origin` among the repos beside this one (`lib/workspace.mjs`). A layout nothing could guess is
+recorded once per machine, outside every repo:
+
+```sh
+node scripts/check-workspace.mjs --at=<owner>/<repo>=<path>
+```
+
+which writes `~/.config/agentic-organization/workspace.json`. A map that still has a *Local folder*
+column keeps working: the column is read as a hint, and the check says when it describes another
+machine.
 
 **`Kind` is one of three values, and it decides what the tools ask of a repo.**
 
@@ -74,12 +88,12 @@ the other copies keep describing last month. So the kit deliberately keeps **one
   node scripts/check-workspace.mjs
   ```
 
-  It reads this table, then looks at the disk and at what `git remote -v` actually says, and reports
-  the disagreements: a repo listed but not cloned, a folder whose remote is not the one declared, a
-  kit project sitting next to the others but absent from the table, a project repo whose `CLAUDE.md`
-  has no pointer home, a published URL that no longer answers, and an `origin` still pointing at the
-  template (the one mistake that pushes your content into someone else's repo). Run it with the
-  `freshness` sweep.
+  It reads this table, finds each repo on this machine by its `origin`, and reports the
+  disagreements: a repo listed but not on this machine, a legacy folder column that names a repo
+  with another origin, a kit project beside this one whose `CLAUDE.md` points here but which has no
+  row, a project repo whose `CLAUDE.md` has no pointer home, a published URL that no longer answers,
+  and an `origin` still pointing at the template (the one mistake that pushes your content into
+  someone else's repo). Run it with the `freshness` sweep.
 
 ### Signposting: a rule lives where the work happens
 
