@@ -22,36 +22,26 @@
 
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { parse as parseTodos } from '../lib/todo.mjs';
+import { locatedRepos } from '../lib/workspace.mjs';
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const OUT = resolve((args.find((a) => a.startsWith('--out=')) || '').slice(6) || 'apps/dashboard/dist');
-const expand = (p) => resolve(p.replace(/^~/, homedir()));
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return ''; } };
 
 // ---------------------------------------------------------------- the workspace
 
-// ORGANIGRAM.md is the one list of repos (see ORGANIGRAM.md ▸ One map). We read it
-// here rather than keeping a second list, so this cannot describe a stale workspace.
+// ORGANIGRAM.md is the one list of repos (see ORGANIGRAM.md ▸ One map), and
+// lib/workspace.mjs finds each one on this machine by its origin. We read it here
+// rather than keeping a second list, so this cannot describe a stale workspace.
 async function repos() {
   const out = [{ slug: basename(ROOT), dir: ROOT, self: true }];
-  const map = await read(join(ROOT, 'ORGANIGRAM.md'));
-  let inTable = false;
-  for (const line of map.split('\n')) {
-    if (/^\|\s*Repo\s*\|/i.test(line)) { inTable = true; continue; }
-    if (inTable && !line.startsWith('|')) break;
-    if (!inTable || /^\|\s*-+/.test(line)) continue;
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-    if (cells.length < 2 || /add a row|<owner>|<repo>|<other>/i.test(cells[0] + cells[1])) continue;
-    if (/this one/i.test(cells[0])) continue;
-    const slug = ([...cells[0].matchAll(/`([^`]+)`/g)][0] || [])[1];
-    const folder = ([...cells[1].matchAll(/`([^`]+)`/g)][0] || [])[1];
-    if (!slug || !folder) continue;
-    const dir = expand(folder);
-    if (existsSync(dir)) out.push({ slug, dir, self: false });
+  const { rows } = await locatedRepos(ROOT);
+  for (const r of rows) {
+    if (!r.slug || !r.dir || r.dir === ROOT || r.isSelf) continue;
+    out.push({ slug: r.slug, dir: r.dir, self: false });
   }
   return out;
 }

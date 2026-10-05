@@ -194,6 +194,7 @@ routines/<slug>/             the scheduled work, versioned; offered at setup, ne
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
 lib/provenance.mjs           what a tool read, which version, and what each figure rests on
 lib/register.mjs             the incident register: find it, read it, and the schema it must keep
+lib/workspace.mjs            the repo map in ORGANIGRAM.md, and where each repo sits on this machine
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 source/formats/message.md    message playbook: emails and chat, inside and outside, per person
 site/                        the Astro website (npm run dev / build inside it)

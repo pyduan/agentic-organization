@@ -127,8 +127,8 @@ sensitivity, and a new repo is only the far end of it:
 
 Register whichever it is in [`ORGANIGRAM.md`](../../../ORGANIGRAM.md) so the area, and any access
 boundary, is written down once. That table is the **only** list of repos, so registering means:
-add its row (repo slug and local folder in backticks, so `scripts/check-workspace.mjs` can read
-them), and — for a new repo — open its `CLAUDE.md` with a short *Where this repo sits* block naming
+add its row (repo slug and kind in backticks, so the scripts can read them; where it sits on a
+machine is found by its origin, never written in the map), and — for a new repo — open its `CLAUDE.md` with a short *Where this repo sits* block naming
 the organization and the repo that holds the shared guides and the map. A pointer, never a second
 copy of the table. Then run `node scripts/check-workspace.mjs` from the org repo: it should be
 silent about the repo you just created.

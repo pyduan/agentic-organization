@@ -22,46 +22,31 @@
 import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { homedir } from 'node:os';
 import { promisify } from 'node:util';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { locatedRepos } from '../lib/workspace.mjs';
 
 const run = promisify(execFile);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, 'apps/todos/sources.json');
-const expand = (p) => resolve(p.replace(/^~/, homedir()));
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return ''; } };
 
-/** Rows of ORGANIGRAM.md's repo table, plus this repo. Same parse as the dashboard. */
+/** Rows of ORGANIGRAM.md's repo table, located on this machine (lib/workspace.mjs), plus this repo. */
 async function repos() {
   const out = [{ slug: basename(ROOT), dir: ROOT }];
+  const { map, rows } = await locatedRepos(ROOT);
+  if (!map.exists) return { repos: out, rows: 0, skipped: [{ why: 'ORGANIGRAM.md is missing or unreadable' }] };
   const skipped = [];
-  const map = await read(join(ROOT, 'ORGANIGRAM.md'));
-  if (!map) return { repos: out, rows: 0, skipped: [{ why: 'ORGANIGRAM.md is missing or unreadable' }] };
-
-  let inTable = false, rows = 0;
-  for (const line of map.split('\n')) {
-    if (/^\|\s*Repo\s*\|/i.test(line)) { inTable = true; continue; }
-    if (inTable && !line.startsWith('|')) break;
-    if (!inTable || /^\|\s*-+/.test(line)) continue;
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-    if (cells.length < 2 || /add a row|<owner>|<repo>|<other>/i.test(cells[0] + cells[1])) continue;
-    if (/this one/i.test(cells[0])) continue;
-    rows++;
-
-    // Say precisely which expectation a row failed. A map written before this
-    // convention puts the folder in the first cell, in parentheses; silently
-    // skipping it reads as "there is nothing here", which is the wrong lesson.
-    const slug = ([...cells[0].matchAll(/`([^`]+)`/g)][0] || [])[1];
-    const folder = ([...cells[1].matchAll(/`([^`]+)`/g)][0] || [])[1];
-    const label = slug || cells[0].slice(0, 40);
-    if (!slug) { skipped.push({ label, why: 'no `owner/repo` in backticks in column 1' }); continue; }
-    if (!folder) { skipped.push({ label, why: 'no local folder in backticks in column 2 (older maps put it in column 1, in parentheses)' }); continue; }
-    if (!existsSync(expand(folder))) { skipped.push({ label, why: `the folder ${folder} does not exist here` }); continue; }
-    out.push({ slug, dir: expand(folder) });
+  const others = rows.filter((r) => r.dir !== ROOT && !r.isSelf);
+  for (const r of others) {
+    // Say precisely which expectation a row failed: silently skipping it reads as
+    // "there is nothing here", which is the wrong lesson.
+    if (!r.slug) { skipped.push({ label: r.label, why: 'no `owner/repo` in backticks in column 1' }); continue; }
+    if (!r.dir) { skipped.push({ label: r.slug, why: 'not found on this machine (beside this repo, or in the per-machine workspace file)' }); continue; }
+    out.push({ slug: r.slug, dir: r.dir });
   }
-  return { repos: out, rows, skipped };
+  return { repos: out, rows: others.length, skipped };
 }
 
 /** owner/repo as GitHub knows it — the app writes through the API, not through a path. */
@@ -134,8 +119,9 @@ if (!all.length) {
     console.log(`ORGANIGRAM.md: ${rows} row(s) read, none usable:`);
     for (const s of unreadable) console.log(`  - ${s.label ? s.label + ': ' : ''}${s.why}`);
     console.log('');
-    console.log('The table wants `owner/repo` in column 1 and the local folder in column 2, both in');
-    console.log('backticks. Fix the map rather than this script: the map is what every tool reads.');
+    console.log('The table wants `owner/repo` in backticks in column 1, and each repo cloned beside');
+    console.log('this one (or recorded with `node scripts/check-workspace.mjs --at=<owner/repo>=<path>`).');
+    console.log('Fix the map rather than this script: the map is what every tool reads.');
   } else if (!rows) {
     console.log("ORGANIGRAM.md's repo table has no rows yet beyond the template placeholders.");
   } else {
