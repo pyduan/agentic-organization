@@ -223,6 +223,7 @@ scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the 
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/protect-access.mjs   put a Worker behind Access: a list of addresses, a one-time code each, no screen
+scripts/check-contrast.mjs   every text on a page or deck measured against what is behind it (WCAG)
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/check-register.mjs   does every entry in the register keep to the schema?
