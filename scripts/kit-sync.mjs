@@ -15,6 +15,7 @@
 //   node scripts/kit-sync.mjs status   what would change, and what collides
 //   node scripts/kit-sync.mjs apply    apply the safe half, never the collisions
 //   node scripts/kit-sync.mjs adopt    once, for a project older than .kit-sync
+//   node scripts/kit-sync.mjs reconciled <file…>   you merged the kit's changes by hand
 //
 // Zero dependencies. Nothing here writes to a colliding file, ever.
 
@@ -93,7 +94,14 @@ const same = (a, b) => (a === null && b === null) || (a !== null && b !== null &
  * case that proved it: a project whose publish skill was customised, on the very
  * release where the kit added the guard that project most needed.
  *
- * Accepts a bare sha, which is what the first version wrote.
+ * Each set-aside entry is `{ file, at }`: `at` is the template commit the owner's
+ * copy was last reconciled against, or null when nobody knows (a file adopt found
+ * customised). The first version stored bare file names and reported every one
+ * of them under "the kit has changed them since" whenever it differed from the
+ * kit, which a customised file always does. An owner read that title on a day the
+ * kit had not moved and concluded updates were waiting for him (2026-09-21).
+ *
+ * Accepts a bare sha, and a list of bare names, which is what earlier versions wrote.
  */
 function readSync() {
   if (!existsSync(SYNC_FILE)) return { sha: null, setAside: [] };
@@ -104,14 +112,25 @@ function readSync() {
   } else {
     sha = (raw.match(/\b[0-9a-f]{7,40}\b/) || [])[0] || null;
   }
+  setAside = setAside.map((e) => (typeof e === 'string' ? { file: e, at: null } : { file: e.file, at: e.at || null }));
   // A sha we cannot resolve is worse than none: it would silently behave as a
   // first run rather than as an error the operator can see.
   if (sha && tryGit(['cat-file', '-e', `${sha}^{commit}`]) === null) return { missing: sha, setAside };
   return { sha, setAside };
 }
 
+/** One entry per file; a later entry for the same file replaces the earlier one. */
+const mergeSetAside = (...lists) => {
+  const byFile = new Map();
+  for (const e of lists.flat()) byFile.set(e.file, e);
+  return [...byFile.values()];
+};
+
 const writeSync = (sha, setAside) =>
-  writeFileSync(SYNC_FILE, `${JSON.stringify({ sha, setAside: [...setAside].sort() }, null, 2)}\n`);
+  writeFileSync(SYNC_FILE, `${JSON.stringify({
+    sha,
+    setAside: [...setAside].sort((a, b) => (a.file < b.file ? -1 : 1)),
+  }, null, 2)}\n`);
 
 /** Classify every framework file the template knows about. */
 function plan(base) {
@@ -168,11 +187,28 @@ function main() {
   const state = readSync();
   const base = state.sha;
   if (state.missing) {
-    console.error(`.kit-sync names ${base.missing}, which this clone does not have.\nFetch the template, or delete .kit-sync to treat this as a first upgrade.`);
+    console.error(`.kit-sync names ${state.missing}, which this clone does not have.\nFetch the template, or delete .kit-sync to treat this as a first upgrade.`);
     process.exit(1);
   }
 
   const target = git(['rev-parse', REF]).trim();
+
+  if (cmd === 'reconciled') {
+    // The owner (or their agent) has read the kit's version of these files and
+    // merged what they wanted: record that, so the next status measures from here.
+    const files = process.argv.slice(3);
+    if (!files.length) { console.error('Name the file(s) you have reconciled.'); process.exit(1); }
+    const known = new Set(state.setAside.map((e) => e.file));
+    const stray = files.filter((f) => !known.has(f));
+    if (stray.length) {
+      console.error(`Not kept as yours, so nothing to mark: ${stray.join(', ')}`);
+      process.exit(1);
+    }
+    writeSync(base || target, mergeSetAside(state.setAside, files.map((file) => ({ file, at: target }))));
+    console.log(`Marked ${files.length} file(s) reconciled against ${target.slice(0, 8)}.`);
+    return;
+  }
+
   const p = plan(base);
 
   console.log(`Template: ${REF} at ${target.slice(0, 8)}`);
@@ -194,19 +230,47 @@ function main() {
     list(p.reportOnly);
     console.log('\n  Always carries local values or rules. Never replaced, even when only the kit changed it.');
   }
-  // Files adopt set aside are reported whenever the kit has moved on them since,
-  // so a past customisation cannot quietly freeze a future fix.
-  const staleSetAside = state.setAside.filter((f) => {
-    const theirs = show(REF, f);
-    const ours = readLocal(f);
-    return theirs && !same(theirs, ours);
-  });
-  if (staleSetAside.length) {
-    head(`⚠ Set aside when you adopted, and the kit has changed them since (${staleSetAside.length})`);
-    list(staleSetAside);
-    console.log('\n  These carry your edits, so they are never overwritten. But the kit has moved,');
-    console.log('  and you are the only one who can decide what to take:');
+  // Set-aside files carry the owner's edits and are never overwritten. Each is
+  // reported under one of three headings, and only the first claims the kit moved:
+  // it is the one that must never go quiet, so a past customisation cannot freeze
+  // a future fix. The claim is checked against the version the owner last
+  // reconciled with, or failing that the last sync, never against "differs from
+  // the kit", which a customised file always does.
+  const aside = { moved: [], dropped: [], unknown: [], quiet: [], resolved: [] };
+  for (const e of state.setAside) {
+    const theirs = show(REF, e.file);
+    const ours = readLocal(e.file);
+    if (!theirs) { aside.dropped.push(e); continue; }
+    if (same(theirs, ours)) { aside.resolved.push(e); continue; }
+    const ref = e.at || base;
+    const kitMoved = ref ? !same(show(ref, e.file), theirs) : true;
+    if (kitMoved && e.at) aside.moved.push(e);
+    else if (kitMoved && !e.at && base) aside.moved.push(e);    // moved since the last sync, at least
+    else if (!e.at) aside.unknown.push(e);
+    else aside.quiet.push(e);
+  }
+  if (aside.moved.length) {
+    head(`⚠ Kept as yours, and the kit has changed them since you last reconciled (${aside.moved.length})`);
+    for (const e of aside.moved) console.log(`  ${e.file}    git diff ${(e.at || base).slice(0, 8)} ${REF} -- ${e.file}`);
+    console.log('\n  These carry your edits, so they are never overwritten. Take what you want from');
+    console.log('  the diff by hand, then mark the file reconciled so this stops repeating:');
+    console.log('    node scripts/kit-sync.mjs reconciled <file> [<file> …]');
+  }
+  if (aside.dropped.length) {
+    head(`Kept as yours, and the kit no longer ships them (${aside.dropped.length})`);
+    list(aside.dropped.map((e) => e.file));
+    console.log('\n  Yours to keep or delete. Nothing in the kit refers to them any more.');
+  }
+  if (aside.unknown.length) {
+    head(`Kept as yours, never reconciled against a known version of the kit (${aside.unknown.length})`);
+    list(aside.unknown.map((e) => e.file));
+    console.log('\n  Not a change from the kit: these were set aside before kit-sync recorded which');
+    console.log('  version each one matched. Review each once against the kit, then mark it:');
     console.log(`    git diff ${REF} -- <file>`);
+    console.log('    node scripts/kit-sync.mjs reconciled <file> [<file> …]');
+  }
+  if (aside.quiet.length) {
+    console.log(`\n${aside.quiet.length} file(s) kept as yours; the kit has not touched them since you last reconciled.`);
   }
 
   if (p.localOnly.length) { head(`Your own edits, left alone (${p.localOnly.length})`); list(p.localOnly); }
@@ -217,10 +281,12 @@ function main() {
   }
 
   if (cmd === 'status') {
-    console.log(`\n${p.apply.length} file(s) would be applied, ${p.collide.length + p.unknown.length} need a human.`);
-    console.log('Run `node scripts/kit-sync.mjs apply` when you have read the above.');
+    const human = p.collide.length + p.unknown.length + aside.moved.length;
+    console.log(`\n${p.apply.length} file(s) would be applied, ${human} need a human.`);
+    if (p.apply.length) console.log('Run `node scripts/kit-sync.mjs apply` when you have read the above.');
     return;
   }
+
 
   if (cmd === 'adopt') {
     // One-time, for a project that predates .kit-sync. Sorts the unknowns by
@@ -243,7 +309,8 @@ function main() {
       mkdirSync(dirname(join(ROOT, file)), { recursive: true });
       writeFileSync(join(ROOT, file), content);
     }
-    writeSync(target, customised);
+    // A customised file found by adopt was never reconciled with any known version.
+    writeSync(target, mergeSetAside(state.setAside, customised.map((file) => ({ file, at: null }))));
     console.log(`\nAdopted. Baseline is now ${target.slice(0, 8)}; from here upgrades are a three-way merge.`);
     if (customised.length) {
       console.log(`${customised.length} file(s) kept as yours, and recorded in .kit-sync.`);
@@ -270,8 +337,15 @@ function main() {
 
   // The new baseline is recorded even when collisions remain: those files are
   // untouched, and the owner resolving them later is a separate act. Collisions
-  // join the set-aside list for the same reason adopt's do.
-  writeSync(target, [...new Set([...state.setAside, ...p.collide])]);
+  // join the set-aside list, reconciled as of the OLD baseline, because the kit's
+  // change between base and target is exactly what the owner has not taken yet.
+  // Recording the new one would hide that change at the next status. A set-aside
+  // file the owner has since brought level with the kit leaves the list.
+  const stillAside = state.setAside.filter((e) => {
+    const theirs = show(REF, e.file);
+    return !(theirs && same(theirs, readLocal(e.file)));
+  });
+  writeSync(target, mergeSetAside(stillAside, p.collide.map((file) => ({ file, at: base }))));
   console.log(`\nApplied ${p.apply.length} file(s). Baseline is now ${target.slice(0, 8)}.`);
   if (p.collide.length) console.log(`${p.collide.length} file(s) left for you: they changed on both sides.`);
 }
