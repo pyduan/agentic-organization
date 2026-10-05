@@ -193,6 +193,7 @@ packs/<slug>/                installable bundles; the kit never touches this fol
 routines/<slug>/             the scheduled work, versioned; offered at setup, never auto-installed
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
 lib/provenance.mjs           what a tool read, which version, and what each figure rests on
+lib/register.mjs             the incident register: find it, read it, and the schema it must keep
 source/formats/deck.md       deck playbook + source/formats/deck-template.html
 source/formats/message.md    message playbook: emails and chat, inside and outside, per person
 site/                        the Astro website (npm run dev / build inside it)
@@ -215,6 +216,7 @@ scripts/check-fleet.mjs      which projects run this kit, how stale each is, and
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
+scripts/check-register.mjs   does every entry in the register keep to the schema?
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong
 scripts/open-decisions.mjs   at session start: decisions waiting on a person, and hypotheses due a second look
 .claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit

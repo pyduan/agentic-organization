@@ -41,12 +41,12 @@ published: it lives in the repo, and the repo is private.
 
 | Field | What goes in it |
 |---|---|
-| `category` | one of `searched-too-late` · `status-of-information` · `numbers` · `expiry` · `destructive` · `handover` · `parallel-sessions` (see `docs/failure-modes.md`) |
+| `category` | one of `searched-too-late` · `status-of-information` · `numbers` · `expiry` · `destructive` · `handover` · `parallel-sessions` (see `docs/failure-modes.md`). Nothing else: a family of your own makes the entry incomparable with every other project, and `node scripts/check-register.mjs` refuses it. Put the finer word in `tags` |
 | `severity` | `minor` · `major` (a wrong conclusion travelled, or the owner lost real time) · `critical` (data destroyed, or a decision was taken on it) |
 | `inputs` | what the AI actually had available. This is usually the whole story: most errors are sound reasoning over a corpus nobody opened. |
 | `error` | what it did or said. Plainly, no softening. |
 | `why` | the mechanism. "Extrapolating is cheaper than looking, and the result looks like a calculation" is a why; "I was not careful enough" is not. |
-| `detected_by` | `owner` · `self` · `another-session` · `check`. The most useful column in the file: the share caught by the owner is the number that has to come down. |
+| `detected_by` | `owner` · `self` · `another-session` · `check` · `outside-user` (someone running the kit on their own project). The most useful column in the file: the share caught by a person is the number that has to come down. |
 | `guard` | `kind` is one of exactly five values, and `where` names the thing. Something that runs and can refuse: `check` (an assertion inside the code that does the work), `test` (a case in a test file), `tool` (a script that has to be run). Something that does not: `rule`, with the guide it was written into. Or `none`. Nothing else is a legal value: `error-report.mjs` counts these and refuses to print a figure that does not add up, because a kind it cannot classify used to vanish from every total. |
 
 **`none` and `rule` are worth leaving honest.** The temptation is to record the sentence you wrote as
@@ -57,6 +57,7 @@ register, six unguarded against an honest eighty-nine of a hundred and thirteen,
 document meant to stop her reassuring herself.
 | `generic` | the lesson, transferable to any project, with nothing of yours in it. |
 | `sensitive` | the fields to drop when anonymizing. Default to listing `inputs` and `error` whenever they carry a name, an amount, or a document title. |
+| `tags` | optional list of free words, for the distinction the seven families are too wide to carry (`domain-accuracy`, `voice`, `fabrication`). Never counted, never compared across projects |
 
 Keep entries short and keep them coming. A register of thirty honest lines is worth more than five
 essays, and the categories only earn their keep once there is enough in here to count.

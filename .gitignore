@@ -16,3 +16,9 @@ site/src/pages/internal/
 # Only its README (the structure guide) is committed.
 team/*
 !team/README.md
+
+# Machine-local and generated, never the project's. Without these the end-of-session
+# check sees them as unsaved work on every turn: the harness's own local settings,
+# and the report scripts/error-report.mjs --email writes for attaching to a mail.
+.claude/settings.local.json
+error-report.md

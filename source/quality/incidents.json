@@ -63,7 +63,7 @@
       "severity": "major",
       "inputs": "check-fleet.mjs, which answers how far behind the template each instance in a workspace is. The update-kit skill instructs the owner to run it from their own project, not from the template.",
       "error": "Run from anywhere but the template, every 'N template commit(s) behind' is wrong, and the closing alert fires on it. `const templateHead = await git(ROOT, ['rev-parse','HEAD'])` with ROOT = process.cwd() takes the CALLING repo's head as the template's, so `sha..templateHead` counts the project's own commits since it last synced. Reproduced here: run from the template, huguescharnallet is 12 behind and personal-paul up to date; run from huguescharnallet, the same scan says 189 behind and 'no template HEAD to compare' for the up-to-date one — the second symptom the report had not seen, since an instance whose sha is not in the caller's history cannot be ranged at all.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "test",
         "where": "scripts/test-check-fleet.mjs — the behind count must be identical run from the template and from a project; verified failing on the pre-fix script. The template is located by its origin, and an ungrounded figure is refused rather than printed."
@@ -77,7 +77,7 @@
       "severity": "major",
       "inputs": "The SessionStart hook that announces kit news, registered in .claude/settings.json, and check-fleet's second question: is this instance WIRED to tell its own owner anything?",
       "error": "An instance can report 'news: wired' while the mechanism has never once run. The hook's command is `node \"$CLAUDE_PROJECT_DIR/scripts/kit-news.mjs\" 2>/dev/null || true`, so on a machine with no node it fails silently and succeeds loudly. check-fleet reads the hook's presence in settings.json and calls that wired. An outside user ran a month of sessions this way and found it only when a diagnostic prompt made him install node.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "tool",
         "where": "kit-news writes .git/kit-news-ran on every run before any early exit; check-fleet reports 'configured' and 'ran' as different answers, and says outright that the receipt only exists from 2026-08-31 so an absence proves nothing yet."
@@ -91,7 +91,7 @@
       "severity": "minor",
       "inputs": "check-fleet.mjs reads each instance's working copy on disk — .kit-sync, .claude/settings.json — to answer whether it is wired and how far behind it is.",
       "error": "An outside user's scan reported that a project had neither the hook nor .kit-sync, and he wrote to say so. Both were on origin/main and had been for days; his local clone was 118 commits old. He caught it himself before acting, but the report he nearly acted on said a healthy repo needed repair.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "tool",
         "where": "check-fleet prints each clone's lag against its own origin above every verdict drawn from it, and the template clone's own lag above the whole report; covered by a test."
@@ -106,7 +106,7 @@
       "inputs": "error-report.mjs turns source/quality/incidents.json into the report a project sends its maintainer. Its headline figure is how many incidents produced an executable guard rather than a written rule.",
       "error": "The count of unguarded incidents matched only guard.kind 'none', while the sentence printing it read 'produced nothing but a written rule', so every 'rule' entry landed in neither population. The register had also grown two kinds the schema never listed, 'test' and 'tool', and nothing rejected them, so those vanished from every total too. On this repo's own register the output was '1 produced an executable check; 0 produced nothing but a written rule' over six incidents: five uncounted, and the one figure that says whether the framework is improving read as perfect coverage. The detector map had the same hole: 'outside user' was not in it, so three incidents caught by a person were scored as if the framework had caught them, 2 of 6 instead of 5 of 6.",
       "why": "The buckets were written as independent filters rather than as a partition, so nothing forced them to add up to the total, and an unrecognised value could only ever fall out silently. Both fields are small closed enums that nothing validated.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "check",
         "where": "scripts/error-report.mjs — the four guard populations are a partition and the script exits non-zero rather than print a figure that does not add up; an unclassified kind is named in the report instead of dropped"
@@ -122,7 +122,7 @@
       "inputs": "check-fleet.mjs walks the workspace and reports which repos run the framework, how far behind each is, and whether each is wired to announce a kit update.",
       "error": "It counted every repo whose CLAUDE.md merely named the framework as a full instance, and reported ten repos as permanently unwired. Those repos were satellites of a router, which is the architecture the framework's own guide prescribes for an organization of several repos, and in which a satellite deliberately carries none of the method. Obeying the report meant installing eleven copies of a framework that exists once. The owner refused it and wrote to explain why she had.",
       "why": "The tool encoded one of the two shapes the documentation describes, and asserted a verdict about repos it had no way to classify. Nobody had connected the guide to the script, and the map already held the information the script needed.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "test",
         "where": "scripts/check-fleet.mjs reads the Kind column of the ORGANIGRAM repo table, derives it only when the column is absent and says so; three cases in scripts/test-check-fleet.mjs, including that a repo declared a router is still held to every requirement"
@@ -138,7 +138,7 @@
       "inputs": "A repo whose .gitignore forbids a file pattern, and files matching that pattern that were committed before the rule was added.",
       "error": "Four files of a financial model were tracked under a rule that forbade exactly them. An ignore rule applies only to files git is not already tracking, so the rule changed nothing, kept committing them on every change, and read as a guarantee. Reported by an outside user; nothing in the framework asked the question.",
       "why": "Adding the rule feels like the act of protection, so nobody checks the state it was supposed to create. The framework told owners to add ignore rules for sensitive material and never told them the rule is retroactive about nothing.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "check",
         "where": "scripts/check-freshness.mjs ▸ pass `ignored` — git check-ignore --no-index over every tracked file, naming the rule and the files that contradict it"
@@ -154,7 +154,7 @@
       "inputs": "Two owners asked to have a week of uncommitted work put somewhere safe before upgrading the framework.",
       "error": "The ordinary stash-and-branch path saves changes to files already tracked and silently ignores files never added, which on both machines were most of the week's output. One capture had to be redone; five documents would otherwise have gone, and the operation would have reported success either way.",
       "why": "The tool's definition of 'everything' is not the owner's, and the success message is written against the tool's definition.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "rule",
         "where": "docs/failure-modes.md ▸ 5 · Before you destroy — enumerate untracked files, save them explicitly, then re-read the tree and confirm it is clean for the reason you think"
@@ -220,7 +220,7 @@
       "inputs": "A fleet scan whose alert read: 'N instance(s) will never announce an update to their own owner. Run the update-kit skill in each.' An organization built as one router carrying the framework plus ten thin repos consuming it.",
       "error": "Between 01:07 and 01:13, a parallel session in that workshop obeyed the alert literally and wired all ten thin repos to the template. Each gained ten format playbooks, twenty-odd scripts and a .kit-sync: eleven copies of a framework that existed once, in the architecture the framework's own guide prescribes. The owner had reasoned the opposite the previous day and was right, but her reasoning was in an email to the maintainer, which no session reads.",
       "why": "The alert prescribed its own remedy, and a remedy in an alert gets carried out. It stated no condition under which it did not apply, and it invited one action across twelve repos in a single pass. Meanwhile the correction shipped hours earlier — exempting a declared satellite from every requirement — now silently exempts ten repos that really do carry the framework, which is the failure mode that correction was warned about in writing.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "test",
         "where": "scripts/check-fleet.mjs states the exception beside the finding, tells the reader to ask the owner where the map is silent, and prescribes no bulk action; scripts/test-check-fleet.mjs asserts the prescribing sentence never returns"
@@ -238,7 +238,7 @@
       "inputs": "A short follow-up instruction written for another owner's agent: pull a shared repo that was reported as 35 commits behind, and do nothing else in it.",
       "error": "Unexecutable as written. The clone had also diverged — two local commits the origin did not have, from an automated wiring run the night before — so a pull required a merge, and merging a shared repo is not 'nothing else'. The agent stopped and returned the question instead of escalating, which was the right call and not one the instruction had provided for.",
       "why": "Naming an operation assumes a state. The staleness figure came from the recipient's earlier report and was true; divergence was simply never asked about, so the verb was chosen against half the picture.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "rule",
         "where": "docs/failure-modes.md ▸ 6 — an instruction that names an operation says what to do when the operation is not possible"
@@ -256,7 +256,7 @@
       "inputs": "An error register in seven families, fed by around fifteen sessions, and the owner asking whether an updated version was worth sending to the framework's maintainer.",
       "error": "She was told the case count had risen but that the families were the same, and that was used to justify not resending. The statement was exact and the conclusion it invited was false: she inferred nothing had been corrected, while the fixes delivered meanwhile had cut the share of errors she catches herself and nearly extinguished the largest family. The figure that would have contradicted it was available from the same command.",
       "why": "A family is a wide bucket, so it cannot disappear and its persistence carries no information about the effect of a correction. The indicator quoted was the one that computed without effort rather than the one that answered the question asked.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "check",
         "where": "scripts/error-report.mjs now leads on who detects the incident and on its trend across the register's two halves, plus the count of incidents in a family that already had an executable guard; the family count comes last carrying its own caveat"
@@ -292,7 +292,7 @@
       "inputs": "A backup script written by the agent, copying to a mounted 2 TB external volume on a machine where that volume had already self-unmounted once.",
       "error": "The volume unmounted mid-write. The script never checked that the mount point still existed, wrote 7,201 files into a path that had gone, and the interrupted write corrupted the filesystem: 245 GB unreadable, disk reformatted. Then three wrong conclusions in a row, each contradicted by the agent's own notes from days earlier, ending in a proposal to erase the disk to recover it. The owner accepted; after reformatting it still would not open, and the erasure destroyed a partial backup that deferred filesystem repair would probably have recovered.",
       "why": "A removable destination was treated as a stable path, and each diagnosis was asserted from the first plausible cause rather than checked against findings already recorded in the same dossier. The agent's own summary: it concluded faster than its own findings.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "rule",
         "where": "docs/failure-modes.md ▸ 5 While it runs (destination checked before every write) and ▸ 2 (your own earlier notes are the first place to look for the refutation)"
@@ -310,7 +310,7 @@
       "inputs": "The same incident: the owner was about to email her IT support about a device-access block.",
       "error": "The agent's analysis persuaded her not to send it. The analysis was wrong and the message was justified: the block returned after the reboot, which a freshly reformatted disk then demonstrated.",
       "why": "Advising against an action was treated as the cautious direction and held to a lower standard of evidence than an action would have been.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "rule",
         "where": "docs/failure-modes.md ▸ 6 — talking the owner out of an action is an action"
@@ -328,7 +328,7 @@
       "inputs": "A shared read-write page for a third party. The owner had ruled out touching any provider screen, and the tooling of the day could not set the provider's reference access protection programmatically because the API right did not exist yet.",
       "error": "A secret personal link was used instead — a transferable, copyable URL whose revocation needs a redeploy. The choice was correct under the constraint and was recorded nowhere as provisional. Days later the missing API right arrived. Nothing signalled that a lock chosen under duress was waiting to be replayed; it stayed, and later work built on top of it.",
       "why": "A choice forced by a constraint was recorded as a choice, without its constraint, so no later session could know it was contingent. Nothing re-reads such choices when the tooling changes.",
-      "detected_by": "outside user",
+      "detected_by": "outside-user",
       "guard": {
         "kind": "check",
         "where": "scripts/open-decisions.mjs ▸ #revisit — a constrained choice carries a date and is re-raised once it passes; source/formats/todo.md documents writing the constraint in the line, not just the choice"

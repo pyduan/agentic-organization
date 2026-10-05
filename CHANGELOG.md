@@ -10,6 +10,27 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MAJOR · An error report no longer drops the entries your agent filed under a family of its own
+
+Two faults in `scripts/error-report.mjs`, both reported from projects running the kit. The `--email`
+form, the one meant to be sent, crashed every time. And an incident filed under any family other
+than the seven (`domain-accuracy`, `delivery`, `voice`…) vanished from the report's table and from
+its register while still counting in the total: one project's report showed six of its sixteen
+entries, and nothing said so. Both are fixed, and the report now finds a register kept under a
+translated path, as `preflight` already did. `preflight` had the same blind spot and now prints an
+off-schema entry whatever the task.
+
+The register is now checked. `node scripts/check-register.mjs`, also part of `npm run check`, lists
+every entry whose family, severity, guard or detector the schema does not allow. The families stay
+at seven so that registers can be compared across projects; the finer word your agent wanted goes in
+a new `tags` field.
+
+**What to do:** have your agent run `node scripts/check-register.mjs` and refile each entry it lists
+under the nearest of the seven families, keeping its own word in `tags`. Until then those entries
+appear in the report under *Outside the seven families*. Two lines were also added to `.gitignore`,
+so the end-of-session check stops reporting `.claude/settings.local.json` and `error-report.md` as
+unsaved work on every turn.
+
 ## 2026-09-14 · MINOR · A decision your board takes now has to reach the tool, not just the minutes
 
 One line added to the failure register. On a live project, a general assembly voted that any payment
