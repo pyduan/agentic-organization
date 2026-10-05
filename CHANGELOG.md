@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MINOR · check-fleet measures your projects against what the kit published
+
+`check-fleet` measured each project against whatever the template clone on that machine had checked
+out, so a clone nobody had pulled in weeks, or one with local commits, gave every project a wrong
+age. It now measures against the template's origin and says when it cannot. It also stopped taking a
+repo whose name merely starts with the kit's (`agentic-organization-pro`, say) for the kit itself.
+
+**What to do:** nothing.
+
 ## 2026-10-05 · MAJOR · Where a repo sits on your machine is no longer written in ORGANIGRAM.md
 
 The repo table used to carry a *Local folder* column, a path on one machine in a file everyone

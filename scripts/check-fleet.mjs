@@ -23,19 +23,19 @@
 //   node scripts/check-fleet.mjs --json
 //   node scripts/check-fleet.mjs --workspace=~/projects/other   # another folder of siblings
 
-import { readFile, readdir } from 'node:fs/promises';
-import { existsSync, statSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
 import { dirname, join, resolve, basename } from 'node:path';
 import { promisify } from 'node:util';
+import { slugOf, isTemplateSlug, readMap, locateRows, siblingRepos } from '../lib/workspace.mjs';
 
 const run = promisify(execFile);
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
 const OFFLINE = args.includes('--offline');
 const ROOT = resolve(process.cwd());
-const TEMPLATE_SLUG = 'pyduan/agentic-organization';
 
 // The folder whose direct children are the fleet. Never its parent: see below.
 const WORKSPACE = (() => {
@@ -60,39 +60,10 @@ const git = async (cwd, a, timeout = 15_000) => {
 // `--workspace=<path>` widens it deliberately, which is the only way it should
 // ever widen.
 
-// A repo has `.git` as a DIRECTORY. A linked worktree and a submodule both have
-// `.git` as a *file* holding a `gitdir:` pointer, and neither is a separate
-// instance: counting them inflates the fleet and puts rows in the report that can
-// never have a line in the map. An owner's scan read "13 satellite(s)" where three
-// of them were worktrees of repos already listed (reported 2026-09-02).
-const isRepoRoot = (dir) => {
-  const g = join(dir, '.git');
-  try { return statSync(g).isDirectory(); } catch { return false; }
-};
-
-async function candidateDirs() {
-  const seen = new Set();
-  const out = [];
-  for (const base of [WORKSPACE]) {
-    let entries = [];
-    try { entries = await readdir(base, { withFileTypes: true }); } catch { continue; }
-    for (const e of entries) {
-      if (!e.isDirectory() || e.name.startsWith('.')) continue;
-      const p = join(base, e.name);
-      if (isRepoRoot(p) && !seen.has(p)) { seen.add(p); out.push(p); }
-      else {
-        let subs = [];
-        try { subs = await readdir(p, { withFileTypes: true }); } catch { continue; }
-        for (const s of subs) {
-          if (!s.isDirectory() || s.name.startsWith('.')) continue;
-          const q = join(p, s.name);
-          if (isRepoRoot(q) && !seen.has(q)) { seen.add(q); out.push(q); }
-        }
-      }
-    }
-  }
-  return out;
-}
+// Repos beside this one: lib/workspace.mjs ▸ siblingRepos. A linked worktree or
+// a submodule is not a repo of its own and is not counted; an owner's scan once
+// read "13 satellite(s)" where three were worktrees of repos already listed.
+const candidateDirs = async () => (await siblingRepos(WORKSPACE)).map((r) => r.dir);
 
 // A kit instance is a repo carrying the kit's own furniture. `.kit-sync` is the
 // modern marker; the other two catch instances that predate it, which are exactly
@@ -145,30 +116,14 @@ const KINDS = new Set(['router', 'satellite', 'standalone']);
 const CARRIES_FRAMEWORK = new Set(['router', 'standalone']);
 
 // Read the kind out of ORGANIGRAM.md's repo table, which is this organization's
-// one list of repos. Derive, never re-declare: no second manifest and no per-repo
-// config file, parsed the way check-workspace.mjs parses the same table.
+// one list of repos (lib/workspace.mjs ▸ readMap). Keyed by where each repo was
+// found on this machine, never by a folder name written into the shared map.
 async function declaredKinds(dir) {
   const out = new Map();
   if (!dir) return out;
-  let lines;
-  try { lines = (await readFile(join(dir, 'ORGANIGRAM.md'), 'utf8')).split('\n'); }
-  catch { return out; }
-  const ticked = (c) => [...(c || '').matchAll(/`([^`]+)`/g)].map((m) => m[1]);
-  let header = null;
-  for (const line of lines) {
-    if (/^\|\s*Repo\s*\|/i.test(line)) {
-      header = line.split('|').slice(1, -1).map((c) => c.trim().toLowerCase());
-      continue;
-    }
-    if (header && !line.startsWith('|')) { if (out.size) break; else continue; }
-    if (!header || /^\|\s*-+/.test(line)) continue;
-    const col = header.indexOf('kind');
-    if (col < 0) return out; // a table written before the column existed: derive it all
-    const cells = line.split('|').slice(1, -1).map((c) => c.trim());
-    const kind = (ticked(cells[col])[0] || cells[col] || '').toLowerCase();
-    if (!KINDS.has(kind)) continue;
-    for (const key of [...ticked(cells[0]), ...ticked(cells[1])]) out.set(basename(key), kind);
-  }
+  const map = await readMap(dir);
+  const rows = await locateRows(dir, map.rows.filter((r) => !r.isPlaceholder && r.kind), { workspace: WORKSPACE });
+  for (const r of rows) if (r.dir) out.set(r.dir, r.kind);
   return out;
 }
 
@@ -195,8 +150,9 @@ let templateDir = null;
 let templateHead = null;
 let templateBehind = null;
 
-const isTemplate = async (d) =>
-  ((await git(d, ['remote', 'get-url', 'origin'])) || '').includes(TEMPLATE_SLUG);
+// By exact slug. A substring test took `pyduan/agentic-organization-pro`, or any
+// repo whose name merely starts with the kit's, for the template itself.
+const isTemplate = async (d) => isTemplateSlug(slugOf(await git(d, ['remote', 'get-url', 'origin'])) || '');
 
 // Where an instance's yardstick comes from, in order of preference:
 //   1. a clone of the template on this machine, fetched just now;
@@ -222,12 +178,12 @@ async function yardstickFor(dir) {
 async function inspect(dir) {
   const name = basename(dir);
   const origin = (await git(dir, ['remote', 'get-url', 'origin'])) || '';
-  if (origin.includes(TEMPLATE_SLUG)) return null; // the template is not an instance
+  if (isTemplateSlug(slugOf(origin) || '')) return null; // the template is not an instance
 
   const marker = await kitMarker(dir);
   if (!marker) return null;
 
-  const declaredKind = KIND_MAP.get(name) || null;
+  const declaredKind = KIND_MAP.get(dir) || null;
   const kind = declaredKind || deriveKind(marker);
 
   // Rule 3 of the star: a thin repo never copies code from the router. When one
@@ -333,13 +289,20 @@ const dirs = await candidateDirs();
 if (await isTemplate(ROOT)) templateDir = ROOT;
 else for (const d of dirs) if (await isTemplate(d)) { templateDir = d; break; }
 
+// The yardstick is what the template has PUBLISHED, which is its origin, not the
+// commit this clone happens to have checked out. Reading HEAD made an instance
+// that was level with the template read 97 commits behind on a machine whose
+// template clone had not been pulled in weeks, while kit-sync, measuring against
+// the fetched ref, rightly said there was nothing to take (reported 2026-09-16).
+// HEAD is only used when the clone has no upstream at all, and the report says so.
+let templateFrom = 'none';
 if (templateDir) {
   if (!OFFLINE) await git(templateDir, ['fetch', '--quiet', 'origin']);
-  templateHead = await git(templateDir, ['rev-parse', 'HEAD']);
-  // The template clone is a working copy too, and it is the yardstick every other
-  // number here is measured against. Say how fresh it is before using it.
   const up = (await git(templateDir, ['rev-parse', '--verify', '--quiet', '@{u}'])) ? '@{u}'
+    : (await git(templateDir, ['rev-parse', '--verify', '--quiet', `origin/${TEMPLATE_BRANCH}`])) ? `origin/${TEMPLATE_BRANCH}`
     : (await git(templateDir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : null;
+  templateHead = await git(templateDir, ['rev-parse', up || 'HEAD']);
+  templateFrom = up ? 'origin' : 'local-head';
   if (up) {
     const n = await git(templateDir, ['rev-list', '--count', `HEAD..${up}`]);
     templateBehind = n === null ? null : Number(n);
@@ -375,9 +338,12 @@ if (!templateDir) {
   console.log('No clone of the template on this machine. Each instance is therefore measured against');
   console.log(`its own \`${TEMPLATE_REMOTE}/${TEMPLATE_BRANCH}\` ref, which is what it syncs against anyway — so the ages below`);
   console.log('are as fresh as that instance\u2019s last fetch, and two of them can disagree.');
+} else if (templateFrom === 'local-head') {
+  console.log(`⚠ The template clone (${templateDir}) has no upstream, so ages below are measured`);
+  console.log('  against the commit it has checked out, which may be short of what the kit published.');
 } else if (templateBehind) {
-  console.log(`⚠ That template clone (${templateDir}) is itself ${templateBehind} commit(s) behind its`);
-  console.log('  origin, so every age below is measured against a yardstick that is short. git pull it.');
+  console.log(`Ages are measured against the template's origin. The clone at ${templateDir} is itself`);
+  console.log(`  ${templateBehind} commit(s) behind it, which only matters if you edit the kit from there.`);
 }
 console.log();
 
