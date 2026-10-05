@@ -139,10 +139,20 @@ added later, so there is no list of URLs to remember to protect.
    and `wrangler` has no Access command at all. This one step is a human clicking in the dashboard:
    **Zero Trust → set your team domain** (free plan is enough for this).
 
-3. **Protect the Worker**: **Workers & Pages → your dashboard Worker → Access → Protect this
-   Worker**, then choose who may sign in — specific email addresses, or everyone on your email
-   domain. That list *is* the access list; adding a person there is the whole grant, and it applies
-   to everything on that Worker at once.
+3. **Protect the Worker, from the command line.** The list of who may open it is a file in the
+   repo, one address per line, and the script makes Access match it: a one-time code sent to each
+   address, attached to the Worker so every route it answers on is covered.
+
+   ```sh
+   export CLOUDFLARE_API_TOKEN=… CLOUDFLARE_ACCOUNT_ID=…   # token permissions: header of the script
+   node scripts/protect-access.mjs --worker=<name> --emails=apps/dashboard/access.txt
+   ```
+
+   Adding or removing a person is a line in that file and a rerun. `--dry-run` shows what would
+   change; `--write-vars=apps/<app>/wrangler.jsonc` fills `TEAM_DOMAIN` and `POLICY_AUD` for a
+   Worker that checks identity in code. The dashboard screen (**Workers & Pages → the Worker →
+   Access**) does the same thing by hand, but a list kept in a screen is one nobody rereads before
+   sharing a link.
 
 4. **Verify from outside.** The only check that counts: request the URL from a browser you are not
    signed into.

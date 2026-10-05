@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MINOR · Opening a private page to someone outside no longer needs a provider screen
+
+`node scripts/protect-access.mjs --worker=<name> --emails=<file>` puts a Worker behind Cloudflare
+Access from the command line: the people on the list each receive a one-time code by email, and
+removing a line then rerunning revokes them. It is now the default for anything private and for
+giving a page to someone outside your organization; a secret link is a dated fallback to replace as
+soon as possible. The recipe is in `source/formats/webapp.md`, and the dashboard setup in
+`docs/deploy-cloudflare.md` uses it instead of the dashboard screen.
+
+**What to do:** nothing for pages already protected. The next time your agent opens a page to someone
+new, it will ask you for a Cloudflare API token once (the permissions are listed at the top of the
+script), and keep the list of addresses as a file in your repo.
+
 ## 2026-10-05 · MAJOR · Two hooks now hold the two rules your agent kept breaking
 
 Projects running the kit logged the same mistakes again and again after the rule against each was
