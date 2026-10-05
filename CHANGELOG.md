@@ -10,6 +10,36 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MAJOR · Two hooks now hold the two rules your agent kept breaking
+
+Projects running the kit logged the same mistakes again and again after the rule against each was
+written, and one owner's register counted thirty-seven repeats. Two of them now meet the harness
+instead of a sentence.
+
+**Sending.** Any message that would leave in your name, by mail, chat or a script, now stops and asks
+you first, showing the exact call. On a live project a mail went out while its owner was still
+correcting the draft, and in another session a "yes, prepare it" was taken as "yes, send it". You
+approve the one message you asked for; anything else waits. A channel that only ever reaches you (an
+alert your own script mails you) can be exempted in `.claude/send-guard.json`.
+
+**Ending a turn.** Before your agent hands back an answer, a check reads what that turn actually did.
+It refuses to let the answer say something is missing when nothing was searched, that someone never
+replied when the mailbox was not opened, that something was verified when nothing ran, that something
+was sent or published when the last command failed, or to lean on a document it read only in part. It
+blocks once, so a false alarm costs one second look and never a loop. Replayed on a few hundred real
+turns before shipping, it would have stopped about one in fifty.
+
+The failure guide also gained some thirty rules drawn from the registers sent in this month, among
+them: an "ok" on a direction is not a decision; a check that examined nothing returns no verdict; a
+breakdown has no balancing line; before writing a message for you, your agent reads what left your
+mailbox today.
+
+**What to do:** nothing, unless your `.claude/settings.json` carries edits of your own, in which case
+`kit-sync` will list it for you to merge by hand: the two hooks are one `PreToolUse` entry and one
+more line under `Stop`. If you send yourself automatic alerts from a script, add that script to
+`.claude/send-guard.json` so it is not held. For stricter checks on statements of law, copy
+`source/quality/turn-checks.example.json` to `.claude/turn-checks.json`.
+
 ## 2026-10-05 · MINOR · check-fleet measures your projects against what the kit published
 
 `check-fleet` measured each project against whatever the template clone on that machine had checked

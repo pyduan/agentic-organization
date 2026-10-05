@@ -34,6 +34,12 @@ Three findings about the *shape* of these errors, before the list:
   outage happened in one of them. So when you correct something here, ask what would refuse, and
   only fall back to prose when nothing can. Where prose is genuinely the only parade (the three
   mechanisms above), say so in the register's own words: *nothing guards this yet*.
+- **Two of the commonest misses are now refused by the harness rather than by this page.**
+  `.claude/hooks/send-guard.mjs` makes any message leaving in someone's name wait for a person's yes
+  at the moment it leaves. `.claude/hooks/turn-check.mjs` refuses to end a turn whose answer asserts
+  an absence nobody searched for, a silence nobody checked, a verification nobody ran, a success over
+  a failing command, or a conclusion drawn from a source read only in part. A block is answered by
+  doing the check, or by saying exactly what was and was not looked at.
 
 - **Thoroughness is not coverage, and it disguises the gap.** The starkest incident in that register
   was an archive verified for days — hash by hash, restart, throughput, disk — and parked in cloud
@@ -109,6 +115,25 @@ and its absence cost hours, and once, files.
   answer was exact, complete-looking, and a year early. Legal, tax, contractual, economic: say which
   you instructed and which you did not, and if any is missing the answer is an order of magnitude
   and presents itself as one.
+
+- **A search tool says how far it sees, and a zero is read against that.** An index built once
+  and never refreshed answered "no result" for three weeks of mail exactly as it answers for a
+  message that does not exist. Anything that answers with an absence prints the date or extent it
+  covers; a zero beyond it is not an answer.
+- **Bound a search by the question, never by convenience.** A file search cut at its first thirty
+  results, a mailbox read to a fixed number of recent messages, a date filter comparing a number with
+  text: each returned nothing and each was read as an absence. Run the same query without its filter
+  first; a zero on a source you know is live is a broken query.
+- **Before carrying out a procedure a third party fixed, reopen their text and tick each item.** A
+  claim went out with one of the two documents an insurer listed, because it was written from the
+  project's own summary of the procedure.
+- **Before asking the owner to choose between two figures, trace each to its origin.** Two values
+  that differed slightly came from the same document, one of them rounded; the owner chose the
+  rounded one without anyone having looked.
+- **Check which edition of an official text is current before opening it, not before quoting it.**
+  A methodological guide was read whole, page by page, in an edition twenty years old; the current
+  one had dropped the figures about to be quoted. Reading in full says nothing about whether it is
+  the right document.
 
 ## 2 · Status of information *(no check can catch this)*
 
@@ -195,6 +220,21 @@ and the second copies only the number.
   one new format to turn a failure into silence — and a confirmation written beside the command
   turns that silence into a positive claim.
 
+- **An "ok" on a direction is not a decision on a result.** An owner's "ok" in the middle of a set of
+  simulations was filed as decided, carried into two meeting notes and a deadline, and she had to say
+  she had decided nothing. A decision is recorded with the words that took it and what they covered.
+- **A condition travels with what it conditions.** A block titled "if this happens after X" was
+  copied into a guide and a task list without its title. A task list has no conditional mood, so a
+  contingency became something the owner had to do.
+- **Retracting a claim needs the same evidence as making it.** A correct statement of law was
+  withdrawn because the owner contested it twice, and replaced by a quote from the project's own
+  notes. Being contested is a reason to open the primary source, not a proof. The owner is the
+  authority on the facts of their own affairs, not on a rule of law.
+- **A check that examined nothing returns no verdict.** A verifier pointed one folder too deep found
+  no file, computed no hash, and printed "everything written is intact", with "0 verified" two lines
+  above. A favourable verdict needs "no anomaly AND at least one thing checked"; otherwise it says
+  what it could not see and exits in error.
+
 ## 3 · Producing and reading figures
 
 **The mechanism.** The number is wrong, or right and misread, or right and measuring something else.
@@ -268,6 +308,23 @@ and the second copies only the number.
   categories. Third time this register has met this shape in another form: an exact figure lies
   through what it lets you believe.
 
+- **A breakdown has no balancing line.** A detail meant to justify a total did not sum to it, and
+  the program filled the gap with a line called "adjustments" that nobody could open. If the lines do
+  not fall on the total, stop and show the gap: a balancing line hides the one signal that the rule
+  was misread.
+- **Decompose a total before calling a difference an error.** Two totals were opposed as proof that a
+  study was wrong; one counted earnings capped at a ceiling and the other gross earnings, and one mixed
+  contributions with credits. A difference between two composites is an error only once each is broken
+  into terms that measure the same thing.
+- **An exact equality between two scenarios is suspect until explained.** Two options came out equal
+  to the cent and it was presented as a finding; it was one allowance counted in the wrong one of two
+  calculations. Equal results from different inputs are usually one input counted twice.
+- **Two readings are not a trend.** A date was forecast from two observations taken two days apart;
+  the next one showed the series moves in steps.
+- **A counterfactual is labelled every time it appears, and a figure shown then invalidated is
+  corrected out loud.** A "what it would have cost without the cache" figure, four times the real
+  cost, stayed on screen after an interrupted turn and was quoted back days later as the estimate.
+
 ## 4 · Silent expiry *(no check can catch most of this)*
 
 **The mechanism.** The sentence was true when written. Nobody touched it. It is false now. This
@@ -303,6 +360,12 @@ wrong.
 - **A retracted claim stays retracted across every project.** Corrections are remembered where they
   were made; the person you are talking to is the same person in all of them. Fix the thing that
   produced the claim, rather than commenting on it.
+
+- **"Follow up if nothing arrives" is closed by looking, not by its date.** Two answers sat in the
+  inbox for a week while the file said "awaiting reply". Before touching a matter that waits on
+  someone, search their messages since the day you wrote to them.
+- **A document signed online is filed the day it is signed.** The platform sends a link, not the
+  document, and the link expires; two weeks later the document has to be asked for again.
 
 ## 5 · Actions on files and the machine
 
@@ -454,6 +517,24 @@ list here, so it is split by the moment each rule applies.
   swept in a press subscription and people from unrelated organisations. Require context, and
   measure the false-positive rate on the real corpus — it was measurable immediately.
 
+- **A check you have never seen say no checks nothing, and nor does one you have never seen say
+  yes.** A process test matched an unanchored name that system services also carry, so it answered
+  "still running" forever. A completeness test written as an equality could never pass once the agent
+  itself had renamed files. Exercise both answers once before relying on either.
+- **Test a scheduled job through exactly what the scheduler runs.** A dry run called the send script
+  directly, bypassing the entry script the job actually launches, which still read the attachment
+  list in its old format; the mail did not go.
+- **A write is verified by reading the result back.** `open(p, 'w').write(open(p).read()…)` empties
+  the file before reading it and raises nothing; a notes file was committed empty that way, and the
+  agent then blamed a parallel session instead of reading the file's history.
+- **A document the owner has open is not updated until the application holding it reloads it.** A
+  workbook was rewritten six times while the owner read a stale copy on screen, and one save from that
+  window would have erased every correction.
+- **A global visual change is verified everywhere, by measurement.** Inverting a deck's dominant
+  colour left its headline figures dark on dark, contrast 1.26, on the published version; a full sweep
+  then found thirty more texts below the threshold. Measure every element, not the component you
+  suspect.
+
 ## 6 · Handover and the relationship
 
 **The mechanism.** The work is right and arrives in a form, a place, or a vocabulary that makes it
@@ -548,6 +629,23 @@ useless — or it spends the owner's time on something that was yours to do.
   so the sentence lands as "there is nothing for this". What can be missing is a purpose-built tool
   — a simulator, a timeline, a set of documents — and that is what to call it.
 
+- **A decision expected from the owner is written with its question, its options and what each one
+  changes.** "Pending the owner's answer" followed by a field name made her ask twice in one night
+  which question she was meant to answer.
+- **Under a constraint the owner set, list every route that respects it before recommending one.**
+  She found the variant the law allows herself, and asked why it had not been proposed.
+- **Every blank in a template for someone else says what goes in it.** A signature line left as dots
+  under a sentence carrying another date was filled in with that date.
+- **When a third party names a procedure, present it at once with its how.** A form and an address
+  sent by an employer were filed as a fact, and the owner had to raise it again two days later.
+- **Never complete a person's name from a login, a handle or an address.** Those are abbreviations
+  chosen by an IT department or by the person. If the full name is not found, write the identifier.
+- **A link to a private repository reads as broken to anyone not signed in.** The host answers "not
+  found", not "forbidden". Say that access is needed, or send the document itself.
+- **A document signed on screen leaves with its signatures flattened into the page.** A viewer stored
+  them as form fields some readers do not display, and the recipient saw an unsigned page in a file
+  identical, byte for byte, to the one that had been checked.
+
 ## 7 · Parallel sessions
 
 **The mechanism.** Several sessions on the same repos, at the same time. None of these errors exist
@@ -587,3 +685,15 @@ in a single session, and they get more likely exactly when work is going well.
   of that into production. An unconditional instruction in a hook is written for the session that
   just wrote the thing. Before publishing a change you did not write, look at the state of the
   workshop and tell the session that owns it rather than going in its place.
+- **Before writing a message for the owner, read what left their mailbox today.** A parallel session
+  had already sent the same request in her name half an hour earlier.
+- **Before repairing a shared tool or file, list the running sessions and read the one on that
+  subject.** A second session was handed a repair the first was already holding, and an index was
+  rebuilt by hand under a session opened to rebuild it.
+- **Rewrite a shared file only with a serialisation that reproduces the committed version byte for
+  byte.** A register re-indented with one space instead of two turned a one-entry change into
+  thousands of lines, burying two other sessions' uncommitted additions. Read the size of the diff
+  before moving on.
+- **On resuming a matter, read the decisions and the files changed since your last turn there before
+  reasoning about the state of anything.** A task struck through but left unticked by another session
+  still read as "to do", and the instruction it carried outlived the decision that cancelled it.

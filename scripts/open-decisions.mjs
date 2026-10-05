@@ -79,6 +79,7 @@ async function collect() {
   const { parse, dueEnd, isOverdue } = await todoLib();
   const decisions = [];
   const revisits = [];
+  const struck = [];
   for (const file of await todoFiles(ROOT)) {
     // parse() returns the array of items itself, not { items }. Reading `.items`
     // here gave undefined, so this whole check could never fire and its silence
@@ -90,6 +91,7 @@ async function collect() {
       if (it.done) continue;
       const tags = (it.tags || []).map((t) => t.toLowerCase());
       const where = relative(ROOT, file);
+      if (it.struck) { struck.push({ where, text: it.text.replace(/^~~|~~$/g, ''), id: it.id || null }); continue; }
       if (tags.includes('decide')) {
         decisions.push({
           where, text: it.text, id: it.id || null, owners: it.owners || [], due: it.due || null,
@@ -105,10 +107,10 @@ async function collect() {
     }
   }
   const age = (a, b) => (b.lateBy ?? -1) - (a.lateBy ?? -1);
-  return { decisions: decisions.sort(age), revisits: revisits.sort(age) };
+  return { decisions: decisions.sort(age), revisits: revisits.sort(age), struck };
 }
 
-let out = { decisions: [], revisits: [] };
+let out = { decisions: [], revisits: [], struck: [] };
 // Un rappel ne casse jamais une session, mais il ne doit pas non plus mourir
 // sans un mot : c'est précisément le silence que ce script existe pour empêcher.
 try { out = await collect(); } catch (e) {
@@ -121,7 +123,7 @@ if (AS_JSON) {
 }
 
 // Silence is the default, and it is what keeps the notice worth reading.
-if (!out.decisions.length && !out.revisits.length) process.exit(0);
+if (!out.decisions.length && !out.revisits.length && !out.struck.length) process.exit(0);
 
 const line = (x, kind) => {
   const who = x.owners && x.owners.length ? ` — ${x.owners.map((o) => `@${o}`).join(' ')}` : '';
@@ -149,5 +151,12 @@ if (out.revisits.length) {
   if (out.revisits.length > MAX) console.log(`  … and ${out.revisits.length - MAX} more`);
   console.log('  Check whether what forced the choice still holds. A constraint that has lifted');
   console.log('  should replay the choices it dictated, and nothing else will say so.');
+  console.log();
+}
+if (out.struck.length) {
+  console.log(`${out.struck.length} item(s) struck through but never ticked, so every tool still shows them as to do:`);
+  for (const x of out.struck.slice(0, MAX)) console.log(`  · ${x.text}${x.id ? `  ^${x.id}` : ''}\n    ${x.where}`);
+  console.log('  Tick each one with a dated update saying why it was dropped, or remove the strike if');
+  console.log('  it still stands. A struck line keeps whatever instruction it carried alive.');
   console.log();
 }

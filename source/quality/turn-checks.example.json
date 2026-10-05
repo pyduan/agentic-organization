@@ -1,0 +1,20 @@
+{
+  "_what": "Copy to .claude/turn-checks.json to add checks to the end-of-turn hook (.claude/hooks/turn-check.mjs) or disable a default one. Each check fires on the turn's final answer only, and blocks once.",
+  "_requires": "search = a search ran this turn · look = a search ran or a file was read whole · any-call = any tool ran · last-call-ok = the last call did not error · cite = the sentence itself carries the `cite` pattern (a reference, an attribution, or a reservation)",
+  "disable": [],
+  "checks": [
+    {
+      "id": "law",
+      "_why": "A rule of law stated from memory, with an exact-sounding reason, closes the question for the owner: the one case where a wrong answer is believed precisely because it is argued. Brought by a workshop whose agent justified an omission with a rule it had not read, twice in an hour. Cite, attribute, or say you do not know; never deduce.",
+      "patterns": [
+        "\\b(l'administration|le fisc|la loi|le code|la jurisprudence|la doctrine)\\b[^.]{0,80}\\b(retient|impose|exige|interdit|permet|exonère|s'applique|ne s'applique pas)\\b",
+        "\\b(est|sont|n'est pas|ne sont pas) (déductibles?|imposables?|exonérée?s?|taxée?s?|soumise?s? à)\\b",
+        "\\b(the law|the tax authority|case law|the code)\\b[^.]{0,80}\\b(requires|forbids|allows|exempts|applies)\\b",
+        "\\b(is|are|is not|are not) (deductible|taxable|tax[- ]exempt|subject to)\\b"
+      ],
+      "requires": "cite",
+      "cite": "\\b(article|art\\.|BOI-|BOFiP|légifrance|legifrance|arrêt|décision|cass\\.|CE,|selon|d'après|according to|section|§|lu le|read on|à vérifier|sous réserve|je ne sais pas|to be confirmed|I do not know)\\b",
+      "say": "states a rule of law with no reference, no attribution and no reservation in the same sentence. Cite the text and the date you read it, say who says it, or say it is to be checked with the adviser. Withdrawing such a statement needs the same evidence as making it."
+    }
+  ]
+}
