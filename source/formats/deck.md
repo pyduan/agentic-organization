@@ -23,6 +23,16 @@ Start every new deck from `source/formats/deck-template.html`, which provides th
 - Numbers get a source; either in `source/content/`/`source/facts/` or in small print on the slide.
 - Consistent slide anatomy: recurring layouts (title slide, statement slide, evidence slide) rather than a new composition each time.
 
+## Every text is measured before it ships
+
+`node scripts/check-contrast.mjs site/public/decks/<slug>/index.html` measures the contrast of every
+piece of text against what is behind it, on every slide including the hidden ones, against the WCAG
+thresholds (4.5:1, or 3:1 for large text), and measures a gradient at its worst stop. It exits 1 on
+anything under the threshold and 2 when it measured nothing, and lists text over a photograph as
+something to check by eye. Run it before review and again after any change of colour, theme or
+background: a deck whose dominant colour was inverted went live with its headline figures at 1.26:1,
+and a full sweep then found thirty more texts below the threshold, all on slides nobody suspected.
+
 ## Presenting and sharing
 
 - Present in a browser, fullscreen (F11 or ⌘⌃F), arrow keys to navigate.

@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-05 · MINOR · A deck's text is measured for contrast before it ships
+
+A deck went live with its four headline figures dark green on a green ground, invisible, after its
+dominant colour was inverted; a full sweep then found thirty more texts too faint to read. `node
+scripts/check-contrast.mjs <deck>` now measures every text on every slide, hidden ones included,
+against the accessibility thresholds, using the Chrome already on your machine. The new-deck and
+publish recipes run it before a deck is shown or published.
+
+**What to do:** nothing. If you want to know where your existing decks stand, ask your agent to run
+it on each; expect small grey captions and coloured headings on light grounds to show up.
+
 ## 2026-10-05 · MINOR · Opening a private page to someone outside no longer needs a provider screen
 
 `node scripts/protect-access.mjs --worker=<name> --emails=<file>` puts a Worker behind Cloudflare
