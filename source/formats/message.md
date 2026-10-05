@@ -23,6 +23,16 @@ block below for whoever is sending it.
   as sending-adjacent**: it lands in their mailbox and can leave on a click they did not decide, so
   do not create one either unless you were asked to.
 
+  **An approval covers one message, in the version the person saw, on the channel they saw.** Two
+  readings broke this on a live project, once each, in the same week: an instruction about one
+  sentence of a draft ("ask him to please confirm") taken as the order to send the whole, while the
+  owner was still correcting it; and a "yes" to "shall I prepare the message?" taken as a yes to
+  sending it, on a chat channel the rule was thought not to cover. So: a yes to *preparing* is not a
+  yes to *sending*; any edit after the go needs the text shown again and a new go; and the rule holds
+  for every channel that carries someone's name, chat and instant messaging included. The harness
+  backs this up: `.claude/hooks/send-guard.mjs` holds every send-like tool call and shell command for
+  a person's approval, so the approval is given at the moment the message leaves, on the exact call.
+
   When a task involves reading someone's mail, **say in one line what you did and did not do**
   ("read only, nothing was sent"), and if you are asked, verify it rather than answering from
   memory: a sent-items and drafts search for the recipients in question is a fact, your recollection

@@ -107,3 +107,11 @@ test('the two are reported apart, and an ordinary overdue beside them is still i
     assert.doesNotMatch(out, /todo ordinaire/);
   });
 });
+
+test('a line struck through but never ticked is reported, not read as closed', () => {
+  on('- [ ] ~~Empty the second backup once coverage is proven~~ ^ab12\n- [x] ~~An old one, ticked~~ done:2026-09-01 ^cd34', (out) => {
+    assert.match(out, /1 item\(s\) struck through but never ticked/);
+    assert.match(out, /Empty the second backup/);
+    assert.doesNotMatch(out, /An old one/, 'a ticked line is closed whatever its formatting');
+  });
+});

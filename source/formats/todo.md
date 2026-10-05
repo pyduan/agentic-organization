@@ -20,7 +20,19 @@ Fixed field order, everything optional except the checkbox and the text:
 | checkbox | `- [ ]` / `- [x]` | Valid GFM, so it renders as a checkbox on GitHub and in any editor |
 | text | plain prose | The **action**, not its status. Short enough to read as a row |
 | owner | `@slug` | Repeatable. Never `[Nom]`: brackets collide with the checkbox |
-| due | `due:2026-09-15`, `due:2026-W36`, `due:2026-09` | ISO only, at the precision that was actually decided. Never `08-22`, never "next week" as words |
+| due | `due:2026-09-15`, `due:2026-W36`, `due:2026-09` | ISO only, at the precision that was actually decided. Never `08-22`, never "next week" as words. A date comes from a document or from a person; a target the agent sets itself for a follow-up goes in the text, never in `due:`, or the item shows as late on a day nothing was due |
+| done | `done:YYYY-MM-DD` | On completed items |
+| tag | `#slug` | Repeatable, optional |
+| id | `^k3f9` | Generated once, **never written or changed by hand** |
+| update | `      YYYY-MM-DD @who · text` | An indented, dated line. Append-only, see below |
+
+Context that is not the action goes on indented continuation lines. They travel with the item and
+never become its title:
+
+```markdown
+- [ ] Chase the printer for the brochure proof @sam due:2026-08-29 ^k3f9
+      Third time asking. They have had the files since the 12th.
+```
 
 ### Two tags that get re-raised, and only two
 
@@ -53,18 +65,14 @@ because the API right did not exist yet. Days later that right arrived. Nothing 
 made under duress was waiting to be replayed, so it stayed, and later work built on top of it. **A
 constraint that has lifted should replay the choices it dictated**, and nothing else in the repo will
 say so. Write the constraint in the line, not just the choice, and give it a date.
-| done | `done:YYYY-MM-DD` | On completed items |
-| tag | `#slug` | Repeatable, optional |
-| id | `^k3f9` | Generated once, **never written or changed by hand** |
-| update | `      YYYY-MM-DD @who · text` | An indented, dated line. Append-only, see below |
 
-Context that is not the action goes on indented continuation lines. They travel with the item and
-never become its title:
+### Dropping an item
 
-```markdown
-- [ ] Chase the printer for the brochure proof @sam due:2026-08-29 ^k3f9
-      Third time asking. They have had the files since the 12th.
-```
+Tick it, with a dated update saying why it was dropped. Never strike it through and leave it open:
+every tool reads the checkbox, so a struck line goes on showing as to-do, and the instruction it
+carried outlives the decision that cancelled it. `open-decisions` reports any such line at session
+start. Likewise a "follow up if nothing arrives" item is closed by looking in the inbox, not by its
+date passing.
 
 ### A due date carries its own precision
 
