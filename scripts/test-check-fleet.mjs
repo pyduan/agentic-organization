@@ -240,3 +240,37 @@ test('standalone is a kind: it carries the framework but is not this org’s rou
       'and labelled, so no session mistakes it for the router');
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
+
+test('the yardstick is what the template published, not what its clone has checked out', () => {
+  // A template clone that has not been pulled must not make an instance look current
+  // (or, with local commits, behind): ages are measured against its origin.
+  const ws = mkdtempSync(join(tmpdir(), 'fleet-'));
+  try {
+    const upstream = join(ws, 'upstream');
+    const shas = repo(upstream, { origin: 'https://example.invalid/x.git', commits: 3 });
+    const clone = join(ws, 'template');
+    execFileSync('git', ['clone', '-q', upstream, clone]);
+    git(clone, 'reset', '-q', '--hard', shas[0]);                 // the clone lags its origin
+    git(clone, 'remote', 'set-url', 'origin', 'https://github.com/pyduan/agentic-organization.git');
+    const proj = join(ws, 'proj');
+    repo(proj, { origin: 'https://github.com/someone/proj.git', commits: 1, kitSync: true });
+    writeFileSync(join(proj, '.kit-sync'), JSON.stringify({ sha: shas[0] }));
+    git(proj, 'add', '-A');
+    git(proj, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', 'sync');
+    rmSync(upstream, { recursive: true, force: true });            // only the clone's refs remain
+    const out = scan(proj, ws);
+    assert.match(out, /proj[\s\S]*?2 template commit\(s\) behind/);
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
+test('a repo whose name merely starts with the kit’s is not taken for the template', () => {
+  const { ws, proj } = fleet();
+  try {
+    rmSync(join(ws, 'template'), { recursive: true, force: true });  // no real clone here
+    repo(join(ws, 'kit-pro'), { origin: 'https://github.com/pyduan/agentic-organization-pro.git', commits: 5 });
+    const out = scan(proj, ws);
+    // Measured against the instance's own template ref, which is the honest fallback.
+    assert.match(out, /proj[\s\S]*?2 template commit\(s\) behind/);
+    assert.match(out, /No clone of the template on this machine/);
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
