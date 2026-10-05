@@ -77,8 +77,8 @@ dashboard links to it. What must not happen is a second dashboard.
 Never a public URL "nobody knows" — a URL is not a lock; it ends up in a history, a screenshot, a
 chat message. It publishes as its own Worker with a Cloudflare Access policy attached, per
 `docs/deploy-cloudflare.md` ▸ *Publishing something private*. `npm run deploy:dashboard` builds and
-deploys; who may open it is the Access policy's list of emails, set at setup and changed whenever
-someone joins or leaves.
+deploys; who may open it is the Access policy's list of emails, kept as a file in the repo and
+applied with `node scripts/protect-access.mjs`, changed whenever someone joins or leaves.
 
 Verification is the only part that counts: request it from a browser you are **not** signed into. A
 login redirect or a `403` is right. A `200` is an incident.

@@ -43,6 +43,7 @@ Find every row that matches the task at hand and read those files before produci
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | **Anything new** — a project, a client, an area, a pile of documents that just arrived — or the owner asks "what do we actually know about X" | `.claude/skills/fact-finding/SKILL.md` — the master recipe: decide the structure, decide which facts matter, sweep the corpus, record facts + decisions + history, *then* build |
 | A **private page only the owner (and whoever they name) may open**: a dashboard, a recap of where projects stand, anything with client or unreleased material | `source/formats/dashboard.md` — it publishes as its own Access-gated Worker, never a public URL, and `npm run dashboard` builds it |
+| A page **someone outside the organization** must read or answer (a relative, a partner, an accountant) | `source/formats/webapp.md` ▸ *Opening a page to someone outside the organization* — Access with their address and a one-time code, set by `scripts/protect-access.mjs`; a secret link only as a dated fallback |
 | An **analysis**, or any task with several moving parts where being wrong costs something | `docs/complex-tasks.md` — objectives and constraints first, plans checked back against them, the task cut into judgeable subtasks, and `node scripts/preflight.mjs` before delivery |
 | About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
@@ -221,6 +222,7 @@ apps/dashboard/              the private dashboard app; npm run dashboard builds
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
+scripts/protect-access.mjs   put a Worker behind Access: a list of addresses, a one-time code each, no screen
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/check-register.mjs   does every entry in the register keep to the schema?

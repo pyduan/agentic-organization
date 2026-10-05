@@ -336,6 +336,26 @@ Four things decide whether this is pleasant or awful:
 editors, live collaboration, queries or aggregation over thousands of rows — it stops being clever
 and the escalation below applies.
 
+## Opening a page to someone outside the organization
+
+A relative who co-decides a file, a partner, an accountant: someone who should read a page, or
+answer questions on it, without an account anywhere. **The default is Cloudflare Access with a list
+of email addresses and a one-time code sent to each**, set by `scripts/protect-access.mjs`, never by
+asking the person or the owner to click through a provider's screens. The person types their
+address, receives a code, and is in; removing their line from the list and rerunning revokes them.
+
+A secret link (a long random token in the URL) is the fallback, not an equal option. It can be
+forwarded, copied into a chat, kept in a browser history, and it identifies nobody. On a live project
+one was built because the owner had ruled out provider screens and the API right to set Access did
+not exist yet; when the right arrived nothing said the choice should be replayed, and later work was
+built on it. So if a secret link is used, it is written down as a choice made under a constraint, in
+a `#revisit` line with the constraint in it and a date (`source/formats/todo.md`), with a rotation and
+an expiry, and replaced by Access as soon as the constraint lifts.
+
+What the third party writes goes to a store the app reads (a KV namespace, a D1 table), never
+straight into git: the repo is written by a session, and nothing exposed to an outsider holds a token
+that can commit.
+
 ## Access and identity: the trap that does not show up in dev
 
 Found on a live project, and worth its own section because every part of it is silent: the door
