@@ -37,3 +37,20 @@ test('a page whose text all reads passes, and a page with no text gets no verdic
   assert.equal(run(deck('<section style="background:#111;color:#fafafa"><p>Readable</p></section>')).status, 0);
   assert.equal(run(deck('<div></div>')).status, 2, 'measuring nothing is not passing');
 });
+
+test('a glow is judged where it is painted, and a photo is measured rather than waved through', { skip: !HAS_CHROME && 'no Chrome on this machine' }, () => {
+  const glow = 'radial-gradient(120% 130% at 0% 100%,rgba(236,122,60,.07),transparent 42%),#F5EEE1';
+  const photo = (fill) => `url('data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"><rect width="10" height="10" fill="#${fill}"/></svg>`)}')`;
+  const r = run(deck(`
+    <section style="position:relative;width:1200px;height:675px;background:${glow}">
+      <p style="position:absolute;top:20px;left:40px;margin:0;font-size:15px;color:#B0501E">Kicker far from the glow</p>
+      <p style="position:absolute;bottom:8px;left:8px;margin:0;font-size:15px;color:#B0501E">Caption inside the glow</p>
+    </section>
+    <section style="background:${photo('111')};padding:20px"><p style="color:#fafafa">Light on a dark photo</p><p style="color:#333">Dark on a dark photo</p></section>
+    <section style="display:none;background:${photo('111')}"><p style="color:#fafafa">On a photo nobody can see</p></section>`));
+  assert.equal(r.status, 1, r.stderr);
+  const [res] = JSON.parse(r.stdout);
+  assert.deepEqual(res.failures.map((f) => f.text).sort(), ['Caption inside the glow', 'Dark on a dark photo']);
+  assert.ok(res.failures.every((f) => f.by === 'pixels'));
+  assert.deepEqual(res.unmeasurable.map((u) => u.text), ['On a photo nobody can see'], 'what cannot be shown stays unmeasured, never passed');
+});

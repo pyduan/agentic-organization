@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-06 · MINOR · The contrast check no longer fails a title for a glow in the far corner
+
+A deck with a soft coloured glow in one corner had every small title on its light slides reported
+as too faint, because the check counted the glow as if it covered the whole slide. It now measures
+the pixels actually painted under the words whenever a gradient or a background photograph is
+involved, so those false alarms are gone and text over a photograph is measured too instead of being
+left for you to check by eye.
+
+**What to do:** nothing. If your agent darkened a colour last week only to satisfy the check, it can
+rerun it and see whether the change was needed.
+
 ## 2026-10-05 · MINOR · A deck's text is measured for contrast before it ships
 
 A deck went live with its four headline figures dark green on a green ground, invisible, after its
