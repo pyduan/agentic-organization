@@ -11,7 +11,8 @@ if printf '%s' "$input" | grep -q '"stop_hook_active"[[:space:]]*:[[:space:]]*tr
   exit 0
 fi
 
-cd "${CLAUDE_PROJECT_DIR:-$(dirname "$0")/../..}" || exit 0
+hooks="$(cd "$(dirname "$0")" && pwd)"
+cd "${CLAUDE_PROJECT_DIR:-$hooks/../..}" || exit 0
 
 # A session opened on one repo checks that repo. A session opened on the workspace, the
 # folder holding the repos side by side (docs/workspace/), checks every repo in it.
@@ -34,11 +35,22 @@ for r in "${repos[@]}"; do
 done
 [ ${#left[@]} -eq 0 ] && exit 0
 
+# In a clone several sessions share, most leftovers are a neighbour's. Keep only what this
+# session produced (own-changes.mjs reads its transcript); if that cannot be decided, keep all.
+others=""
+if command -v node >/dev/null 2>&1 && own=$(printf '%s' "$input" | node "$hooks/own-changes.mjs" "${left[@]}" 2>/dev/null); then
+  others=$(printf '%s\n' "$own" | sed -n 's/^#others //p')
+  left=()
+  while IFS= read -r r; do [ -n "$r" ] && left+=("$(printf '%s' "$r" | tr -d '"\\')"); done <<< "$(printf '%s\n' "$own" | grep -v '^#')"
+  [ ${#left[@]} -eq 0 ] && exit 0
+fi
+
 where="in this repo"
 if [ "${repos[0]}" != "." ]; then
   where="in: ${left[0]}"
   for r in "${left[@]:1}"; do where="$where, $r"; done
 fi
+[ -n "$others" ] && [ "$others" != "0" ] && where="$where (yours; $others change(s) by other sessions left alone)"
 
 printf '{"decision": "block", "reason": "End-of-session check: there are unsaved or unpublished changes %s. Before finishing: (1) commit the files you touched by name, with git commit --only -- <paths> (git add a new file first), so nothing another session staged rides along; (2) push so the change goes live; (3) run the reflection pass from .claude/skills/reflect/SKILL.md, folding anything learned this session into the guides; (4) tell the owner in plain words what was published and saved. If the leftover files are not yours to commit, say so to the owner instead of committing blindly."}\n' "$where"
 exit 0
