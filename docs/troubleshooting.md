@@ -31,6 +31,25 @@ the popup, bring it back with:
 xcode-select --install
 ```
 
+## Commits signed with the computer's name
+
+`git log` shows an author like `sam@sams-macbook.local` or `sam@device-12.home`, and GitHub shows
+those commits with a grey silhouette instead of your account. Git was never told who you are, so it
+made up an address from your user name and the computer's name. Nothing breaks, which is why it goes
+unnoticed for weeks, but the history no longer says who did what. The bootstrap scripts set this;
+a machine set up another way may not have it.
+
+Set it once, for every repo on the machine. The address GitHub keeps private for you works well:
+it is on github.com ▸ Settings ▸ Emails, in the form `<number>+<login>@users.noreply.github.com`.
+
+```sh
+git config --global user.name "Sam Example"
+git config --global user.email "<number>+<login>@users.noreply.github.com"
+```
+
+Commits already made keep their old author. Rewriting a published history to fix them costs more
+than it is worth; leave them.
+
 ## "command not found" right after installing something
 
 The terminal window you already had open doesn't know about tools installed a minute ago (its
@@ -117,6 +136,27 @@ provider, so there was no setting on the named service to fix at all — and cha
 configuration would have looked like action while fixing nothing. Diagnose the path, then the
 config.
 
+## Auto mode refused a command
+
+In auto mode, Claude Code has each command reviewed before it runs, and some kinds it refuses
+whatever the wording. Seen on live setups: changing a GitHub organization's member permissions
+through the API, running a script that writes a secret into a hosting provider's secret store, and a
+global package install (`npm install -g`). Opening a pull request on someone else's public repo was
+refused too ("Create Public Surface") until the owner asked for it in so many words in the
+conversation; an earlier "yes" to one item of a short list had not been enough. The refusal names a category,
+such as "Permission Grant" or "Secret-Store Writes", or none at all.
+
+Do not look for another route to the same result: the refusal is about the result, not the command.
+Finish the rest of the task, then hand the one step to the owner:
+
+- the deep link to the exact setting and what to choose there (for a GitHub organization's base
+  permission: `https://github.com/organizations/<org>/settings/member_privileges`), or the one
+  command to type in their own terminal; a script that asks for a secret without echoing it is fine
+  there;
+- then read the result back yourself, with `gh api …` or a list of secret names, before calling it
+  done. Twice in one afternoon a "done" was not: a confirmation dialog had been closed instead of
+  confirmed, and a token had been created but never stored.
+
 ## A renamed repository leaves your local copy pointing at the old name
 
 Renaming a repo on GitHub is safe, and the old name keeps redirecting, which is exactly why this is
@@ -174,3 +214,63 @@ the owner what you tried, and have them ask whoever set the project up.
   not a bug. Add the path deliberately.
 - **A write returns 200 but the file does not change** — the item's `^id` was not found, usually
   because something regenerated the file and churned the ids. See `source/formats/todo.md`.
+
+## Wrangler asks to register a workers.dev subdomain
+
+The first `wrangler deploy` on an account that has never had a Worker on `workers.dev` asks
+"Would you like to register a workers.dev subdomain now?". In a workflow, or in an agent's shell,
+nobody can answer, so it takes "no" and stops with an error. Cloudflare's own message sends you to
+the dashboard, where opening Workers & Pages once creates one.
+
+No screen is needed. One call registers it, with the same Cloudflare sign-in the CLI already has:
+
+```sh
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/<account id>/workers/subdomain" \
+  -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+  -d '{"subdomain":"<name>"}'
+```
+
+The name is the account's for good (every Worker becomes `<worker>.<name>.workers.dev`), so pick it
+with the owner, and try the next candidate if Cloudflare answers that it is taken. Then rerun the
+deploy.
+
+## A Worker that reads many files from GitHub fails or is slow
+
+An app that reads a repo of records (one Markdown file per contact, per order, per request) works
+with twenty files and fails with two thousand. On the free Workers plan one page load may make 50
+outbound requests, and fetching files one by one through GitHub's contents API spends one per file:
+past fifty, the page errors with "Too many subrequests".
+
+What holds at that size, on a live app reading a few thousand records across several repos:
+
+- **One listing per repo per page.** `GET /repos/<owner>/<repo>/git/trees/<branch>?recursive=1`
+  returns every path with its blob sha in a single request.
+- **Contents by the hundred.** GitHub's GraphQL API returns many blobs in one query
+  (`object(oid: "<sha>") { ... on Blob { text } }`, aliased once per file, about 150 per query).
+- **Kept by sha.** A blob's content never changes for a given sha, so the Worker keeps what it has
+  read in memory and refetches only the shas it has not seen.
+
+The first load after a quiet spell still takes a few seconds: on a `workers.dev` address the Worker
+cannot count on Cloudflare's cache (the documentation gives working cache operations to Workers on a
+custom domain), so a fresh instance starts from nothing. A custom domain brings the cache back; the
+paid plan raises the request limit, not the cache.
+
+## Reading PDFs and scans on a Mac with nothing installed
+
+Ingesting a folder of PDFs usually starts with installing `pdftotext` or an OCR tool, which needs
+Homebrew and an administrator password the owner may not have. A Mac already holds both engines:
+the Command Line Tools that brought `git` also bring `swift`, and a short Swift script can use
+**PDFKit** for the text layer of a PDF and **Vision** (`VNRecognizeTextRequest`, French and English)
+for pages that are only an image. A few seconds per scanned page, nothing installed, nothing sent
+anywhere. A figure or a date read by OCR still gets checked against the page image before anything
+relies on it. `textutil` (also built in) turns `.doc` and `.docx` into text.
+
+## A workbook import shows dates where there should be postal codes
+
+A spreadsheet's address columns are often formulas (a lookup into another tab), and the file stores
+both the formula and the value it last showed. Some readers recompute or reinterpret those cells: on a
+live import, a JavaScript reader returned the postal code 60100 as a date in 2064, and only about
+half the schools could be matched to the official directory; reading the saved values brought it to
+nearly four in five. Read the values the spreadsheet saved instead
+(Python's `openpyxl` with `data_only=True` does exactly that), extract them once to JSON with the
+file's hash, and import from that extraction.

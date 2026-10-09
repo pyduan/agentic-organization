@@ -126,7 +126,10 @@ about them.
 - **One parent folder, `~/Projects`, with the repos side by side inside it.** Not nested, not
   scattered between the desktop and the downloads folder. Open the agent on that parent folder and
   come back to it: that is what lets one session read across several repos, which is the whole
-  reason it runs on your machine rather than in the cloud.
+  reason it runs on your machine rather than in the cloud. The guards of your main repo (the send
+  guard, the end-of-session check) do not load from that folder on their own: once the main repo is
+  cloned, have the agent run `node <main repo>/scripts/install-workspace.mjs`, which gives the folder
+  the copy it needs.
 - **Auto mode, including if you are not technical.** Approving every single read teaches you to
   approve without reading, which is worse than not being asked. What makes it safe is that the
   ground is bounded: everything is versioned and one commit away from being undone, the confidential

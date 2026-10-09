@@ -10,6 +10,133 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Importing from your invoicing or sales tool, and one day writing into it
+
+When the records come from a tool your organization runs, your agent now reads them through the
+tool's API rather than an export, and uses any export you keep only to check the totals. The access
+it uses can only read, and its password stays in your computer's keychain. If you later want your
+agent to create invoices or quotes in that tool, it does so as drafts that a person validates in the
+tool, with a separate access, and only once the import is shown to be right.
+
+**What to do:** nothing.
+
+## 2026-10-09 · MINOR · Internal tools start from what owners say the first time they use one
+
+An owner's first review of a team intranet, the day it went live, asked for five things:
+remove the example mode, organize the tabs by who uses them, use words people understand and show
+where each imported status comes from, let people handle hundreds of requests at once, and fix a
+count that was visibly wrong. `source/formats/webapp.md` now builds these in from the start, so the
+next tool needs less correcting.
+
+**What to do:** nothing. If you have an internal tool with an example mode and real data, your agent
+can remove the mode when you ask.
+
+## 2026-10-09 · MINOR · Your agent no longer asks you to approve technical details
+
+Asked to approve a list of nearly two hundred items line by line before an import could start, an
+owner said it was too technical, not a user's decision, and that the agent should set it up. Your
+agent now settles that kind of detail itself (how files are filed and named, how two tools' steps
+match), in a way it can undo, and comes to you only with the result and with what only a person can
+decide: a missing document, two sources that disagree, anything the organization says or commits to.
+
+**What to do:** nothing.
+
+## 2026-10-09 · MINOR · Sessions working side by side announce the files they take
+
+When two or more sessions work on the same app, the one about to change a shared file now tells the
+other first and says when it is done, and the other pulls before touching it again. And when two
+sessions find themselves on the same job, they stop and split it instead of doing it twice. This is
+how three sessions built an organization's intranet together for a full day without overwriting
+each other.
+
+**What to do:** nothing.
+
+## 2026-10-09 · MINOR · The end-of-session check stops asking about another session's work
+
+When several sessions work in the same copy of your repos, the check that stops a session from
+ending with unsaved work used to fire on whatever was unsaved, whoever had written it. On one
+afternoon four sessions were stopped seventeen times between them, nearly always over a neighbour's
+files, and each time the agent had to explain that they were not its own. The check now reads what
+the session itself did and asks only about that. When it cannot tell, it asks about everything, as
+before.
+
+**What to do:** nothing.
+
+## 2026-10-09 · MINOR · A choice your agent made for you waits for your yes before it counts as settled
+
+Your agent treats what is written in `source/decisions.md` as settled and does not reopen it. That
+was also true of choices it had made itself, on your behalf, during setup: a default, an assumption,
+a design call. Those now go in marked "(proposed)", with a line asking you to confirm, and they only
+become settled once you have said yes or corrected them.
+
+**What to do:** nothing. If your setup is recent, you can ask your agent which entries in
+`source/decisions.md` it wrote without you.
+
+## 2026-10-09 · MINOR · A private app can deploy itself on every push with no dashboard screen
+
+`docs/deploy-cloudflare.md` now describes a second way to keep a private app deployed: a GitHub
+Actions workflow in your repo instead of connecting the repo to Cloudflare in its dashboard, with a
+deploy token that can do nothing else and a last step that fails if the app ever answers a stranger.
+Your agent can set it all up from the command line. Three entries in `docs/troubleshooting.md` cover
+what came up on the way: an account's first deploy asking a question nobody can answer, an app that
+reads thousands of files from GitHub on the free plan, and reading PDFs and scans on a Mac without
+installing anything.
+
+**What to do:** nothing. Your existing deploys keep working as they are.
+
+## 2026-10-09 · MINOR · When a step can only be yours, you get one link, and your agent checks it took
+
+Some steps only you can take: creating a GitHub token, changing who can read your organization's
+repos. Your agent now hands them over as one link to the exact setting, with what to choose there,
+and then reads the setting back rather than taking "done" for an answer: on a live setup, a
+permission reported changed was still unchanged twice, because its confirmation window had been
+closed rather than confirmed. Anything still waiting on you at the end of a setup becomes a
+`#decide` line that is raised at the start of every session until it is settled, instead of a
+paragraph at the bottom of a chat. Two security defaults come with it: before inviting anyone to a
+GitHub organization, the setup sets its base permission to "No permission", since GitHub otherwise
+lets every member read every repo, restricted ones included; and where one repo is restricted, an
+app's GitHub token is a fine-grained one that leaves it out, never a copy of your own.
+
+**What to do:** if your organization has a restricted repo and has already invited people, ask your
+agent to check the organization's base permission. Nothing else.
+
+## 2026-10-09 · MAJOR · The guards now follow you into the folder that holds your repos
+
+The kit tells you to open your agent on the folder that holds all your repos side by side, and that
+is still right. But the guards that live in your main repo (asking you before a message leaves in
+your name, checking a turn's claims, the end-of-session check) load only in the folder the agent was
+opened on, so in that parent folder none of them ran, and nothing said so. An organization set up
+from the kit found out and had to build a copy for the parent folder by hand. The kit now ships it:
+`node scripts/install-workspace.mjs` writes a `CLAUDE.md` and a `.claude/settings.json` into the
+parent folder that send the agent to your main repo's rules and run its guards. A session opened
+there also pulls every repo at the start, names any repo it could not update, and checks every repo
+for unsaved work at the end. It also warns when git does not know who you are on that machine, since
+commits then go out under the computer's name.
+
+**What to do:** if you open your agent on the folder that holds your repos, ask it once to run
+`node <your main repo>/scripts/install-workspace.mjs`, then open a new session there: its first line
+should read "Workspace: … repo(s) up to date." If that folder already has a `CLAUDE.md` or
+`.claude/settings.json` you made yourself, the script stops and shows you; nothing is overwritten.
+
+## 2026-10-09 · MINOR · Putting a page behind Access accepts the newer kind of Cloudflare token
+
+Cloudflare now issues API tokens that belong to the account rather than to a person, and
+`scripts/protect-access.mjs` refused them as invalid although they had every permission needed: it
+only asked Cloudflare whether the token was a personal one. It now checks both, so either kind works.
+
+**What to do:** nothing. If your agent ever told you a freshly made token "was refused", it was this.
+
+## 2026-10-09 · MINOR · A commit no longer carries away what another session staged
+
+When two sessions work in the same copy of a repo, whatever one of them has staged waits in an area
+both share, and a plain commit from the other takes it along under the wrong message. It happened on
+a live project the day two sessions set up an organization side by side: nine files of one session's
+work left inside the other's commit, caught only because the agent read what the commit contained
+before publishing it. Your agent now commits with `git commit --only`, naming every file it touched,
+and the end-of-session reminder says the same.
+
+**What to do:** nothing.
+
 ## 2026-10-06 · MINOR · The contrast check no longer fails a title for a glow in the far corner
 
 A deck with a soft coloured glow in one corner had every small title on its light slides reported

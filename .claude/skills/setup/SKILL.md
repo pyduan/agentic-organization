@@ -111,14 +111,28 @@ How to run it:
   the order to click — one screen at a time, confirming each before the next. Never send someone
   non-technical to "the settings".
 - **Never take a secret through the conversation.** A key pasted into the chat is a key in a
-  transcript. Have them set it where it belongs (a hosting secret, a password manager) and, if a
+  transcript. Have them set it where it belongs (a hosting secret, a password manager, the computer's
+  keychain for a credential a local script uses) and, if a
   script is needed, write one that prompts for it locally and never echoes it. The same rule kills the
-  shortcut of creating tokens on their behalf: a token you create is a token you have seen.
+  shortcut of creating tokens on their behalf: a token you create is a token you have seen. The one
+  exception is a token a CLI mints and pipes straight into the store that uses it: never printed,
+  able to do one job, and dated (`docs/deploy-cloudflare.md` ▸ *Without a dashboard screen*).
 - **Record the outcome, not the secret.** One table in `docs/` per project: which account, whose
   login, what it is used for, and where the credential lives. Future sessions read that table instead
   of asking again.
-- **Note what is still missing and who owes it.** An access the owner could not grant today becomes a
-  dated line in the to-do list with their name on it, not a vague intention.
+- **Before the first invitation to a GitHub organization, set its base permission to "No
+  permission".** GitHub's default lets every member read every repo of the organization, so the first
+  person invited for one repo can also read the restricted one. Give access per team or per repo
+  instead, as `ORGANIGRAM.md` says, and read the setting back:
+  `gh api orgs/<org> --jq .default_repository_permission` must answer `none`.
+- **Note what is still missing and who owes it.** An access the owner could not grant today, a token
+  only they can create, a choice about what the organization does or says that you made on their
+  behalf and they have not confirmed: each becomes a
+  dated `#decide` line in the to-do list with their name on it (`source/formats/todo.md`), so that
+  `open-decisions` raises it at the start of every session, a parallel one included, until it is
+  ticked. Not a vague intention, and not only a paragraph in the closing message: on a live setup three
+  such steps lived only there, and the next session, asked to "do the three open actions", had to dig
+  them out of another session's transcript.
 
 The failure this prevents: a system that works only when its owner is available to authorise
 something. Judge the pass by asking whether you could now do a month of work without them.
