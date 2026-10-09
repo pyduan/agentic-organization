@@ -660,6 +660,11 @@ in a single session, and they get more likely exactly when work is going well.
   published that way inside commits about two unrelated people, and the session that lost them had
   staged them itself, half an hour earlier, and moved on. Stage and commit in one step. And treat
   `git checkout <ref> -- <file>` as a staging command, because that is what it is.
+- **The one-step form is `git commit --only -- <paths>`.** It commits exactly those paths and leaves
+  whatever a neighbour staged where it was. `git add <yours>` then `git commit` is two steps however
+  fast it is typed: on a live project it carried a neighbour's nine staged deletions under a message
+  about four other files, and only reading the commit's stat before the push caught it. A new file
+  still needs its `git add` first; `--only` refuses a path git has never seen.
 - **Ownership comes from a file's history, not its location.** Read it before editing something
   outside your own scope, and tell the session that actually owns it.
 - **Write down who owns what** when more than one session is running: a two-column note in the repo
