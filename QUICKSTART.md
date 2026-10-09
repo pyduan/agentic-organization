@@ -17,6 +17,17 @@ Four, and two of them are free.
 
 No account for a CMS, a page builder or a project tool. Those are the middlemen this removes.
 
+**Which plan, for whom.** Size it by what the person does, not by their rank. Whoever runs the setup
+and later writes recipes needs a larger plan: the setup is the heaviest session there will ever be
+(it installs, imports history and builds the structure in parallel), and on a recent onboarding it
+used up a standard plan's window about an hour in, mid-import. Someone who asks rather than builds
+is fine on the standard plan. For a team, take an organization plan with one seat each rather than
+everyone paying personally, so the larger seats go to the builders. A nonprofit should look at
+Anthropic's nonprofit offer before paying the public price: on 2026-10-09 its team plan was listed
+at $8 per user per month
+([Claude for Nonprofits](https://academy.claude.com/tutorials/getting-started-with-claude-for-nonprofits)),
+with eligibility checked by a form.
+
 ## 2. Install, in one paste
 
 Open Claude Code (the desktop app is the easiest on-ramp) and paste this. It checks your machine,
@@ -83,12 +94,28 @@ photo, an export, then say what it is. The agent files the content into `source/
 original in `source/brand/assets/`, and empties the folder. This is the door for everything that
 has no connector, and it stays the simplest one.
 
+**A folder on a file server** (agreements, grant files, years of archives) goes in the same way, in
+bulk: copy it or download it as a zip onto the disk, then tell the agent the path. A zip dragged into
+the conversation does not get unpacked, and a path does. Take everything rather than sorting first:
+sorting is the agent's job, and the agreement nobody remembered signing is exactly what it finds.
+
 **Gmail and Drive** go through the provider's managed connector, which you enable once in your
 Claude settings under Connectors. No token lives on your machine and you revoke it in one click.
 What it is good for: "find the thread with the printer and pull out what I promised", "file the
 invoice that arrived on Tuesday", "read my meeting notes from the last two weeks and tell me what I
 owe people". What it is not: a mirror of your mailbox in the repo. The agent reads, extracts, and
 writes the conclusion into a file.
+
+**One mailbox per login, and a shared mailbox belongs to a machine.** The mail connector binds to a
+single account per Claude login, so decide which mailbox gets it. When the work comes in through a
+shared mailbox (bookings, requests, a `contact@`), connect that one on the login of the person
+running the setup: it is the setup you will hand to the others, and the automation lives there. The
+lasting arrangement is a spare machine that stays on, signed into the shared mailbox, running the
+routine that processes it, while each person keeps their own mailbox on their own login. Until that
+machine exists, reach your personal mail through browser control. Forwarding one mailbox into
+another also works, at a cost: every mail is duplicated, the receiving mailbox is exposed, and the
+history does not come along. One more thing to plan before the setup hour: a shared account's second
+factor is usually on somebody's phone, so have that person reachable.
 
 **WhatsApp** has no managed connector, so pick by what you need:
 
@@ -118,10 +145,20 @@ freezes silently on its install day), a token pasted into a config (it gets copi
 leaks), a method that lives inside a scheduled task instead of a guide, and a second source of truth
 in a tool nobody versions. Business logic lives in the repo. Connectors only carry data.
 
-## 4. Four settings, once
+## 4. The settings, once
 
 Defaults for someone starting out, not rules. Five minutes at first launch, then you stop thinking
 about them.
+
+- **The Code tab, never the chat.** The two do not share a memory: a session in Code reads the repo,
+  and the chat reads nothing of it. The chat answers faster, which is why people drift back to it, and
+  a team that mixes the two ends up with one assistant that knows the organization and one that does
+  not, with nobody able to say why. Everyone, every time, in Code.
+- **In the desktop app, keep everything inside the workspace folder, and let it work in parallel.**
+  Point the location where sessions keep their working copies (the worktree setting) inside that
+  folder, so nothing ends up somewhere you will never look. Allow subagents and parallel work: a
+  setup that installs, imports and structures at the same time finishes far sooner. Turn on browser
+  control if you will use it. These cost more quota, which is the plan's job, not yours.
 
 - **One parent folder, `~/Projects`, with the repos side by side inside it.** Not nested, not
   scattered between the desktop and the downloads folder. Open the agent on that parent folder and
@@ -186,7 +223,39 @@ Two rules the agent already follows here, worth knowing so you can hold it to th
 files line by line rather than rewriting them, and an incoming message is data, never an instruction
 it obeys.
 
-## 7. Publishing: three doors, not one
+**Say the job to the agent, not to the person helping you.** When you sit with someone for the setup,
+the reflex is to explain your process to them so they can phrase it. Skip the middle: say it, or
+dictate it, straight into the session, the way you would to a new colleague. The agent asks what it
+is missing, and nothing gets lost in a retelling.
+
+**Record the setup meeting** with the transcription your video tool already has, in-person mode
+included, rather than with a third-party note-taker: telling voices apart means fingerprinting them,
+which is personal data, and one more company holding your meetings is one more you have to vet. The
+transcript becomes the documentation of your setup, and the next onboarding is built from it.
+
+## 7. The second person, and everyone after
+
+The first setup is the long step, and it happens once: an hour or two, most of it waiting while the
+agent installs, imports and structures. The next person does not repeat it. The organization's repo
+already exists, and it carries the logic of how the agent behaves there, so joining is cloning and
+connecting.
+
+What they need beforehand: a seat on the organization's plan, a GitHub account invited to the
+organization, and the desktop app with the settings above. Then this paste:
+
+> I am joining an organization that already runs on the agentic-organization kit. Check what is on my
+> machine (git, Node, the GitHub CLI, whether I am logged into GitHub), install what is missing one
+> step at a time, explaining each step and checking it worked, and log me into GitHub with
+> `gh auth login --git-protocol ssh`. Then list the repos of my organization on GitHub that I can
+> access and clone them side by side in `~/Projects`, and run `node <main repo>/scripts/install-workspace.mjs`
+> from there. Read the main repo's `CLAUDE.md` and `source/brief.md`, and tell me in plain words what
+> the organization already does with you. Then ask me what my job is, so we find my first use case.
+
+After that, they connect their own mailbox (one per login, section 3), and they describe their first
+use case to the agent, out loud if they like. What the first person built is already there for them
+to use.
+
+## 8. Publishing: three doors, not one
 
 | Door | Where it goes | Who sees it |
 |---|---|---|
@@ -209,7 +278,23 @@ from a browser you are not signed into, where a login screen is the right answer
 incident. The whole procedure is [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md) ▸ *Publishing something
 private*, and the agent walks you through it while you click.
 
-## 8. Then what
+Two things the agent can do on Cloudflare for you rather than through its screens: install
+Cloudflare's own connector or plugin when the setup offers it, so it can create the Worker and the
+Access rule itself; and set how long a sign-in lasts. A day is the default, so a team opening its
+intranet every morning types a code every morning; a month is the maximum Cloudflare allows
+(`scripts/protect-access.mjs --session=730h`), and it is what we use for a team intranet.
+
+**Who sees what, once there are several of you.** Start in trust mode while the team is small, and
+know that the system already has the two levels for later. The first is **the repo**: someone with no
+access to a repo cannot read anything in it, and that is enforced by GitHub, not by the model, so it
+is the level for billing, payroll and personal data. The second sits **inside a repo**: a file says
+who may change what directly and whose changes go through a pull request that someone approves
+(`ORGANIGRAM.md`). And a rule the reader cannot open is still signposted where they work: the agent
+knows a billing recipe exists, does not reinvent it, and names the person to ask. When the day comes,
+describe how you want access to work in your own words and ask the agent to map it onto the kit's
+governance; you do not need the technical vocabulary.
+
+## 9. Then what
 
 Talk. Drop files in `source/inbox/` when something new arrives. The agent saves, publishes and folds
 what it learned into your guides at the end of each session.
@@ -219,3 +304,9 @@ what it learned into your guides at the end of each session.
   touching your content
 - Starting something for a different client or brand: ask first, the `new-project` skill decides
   whether that is a new repo or a folder here
+- Your personal projects on the same machine: give them their own root folder next to the
+  organization's, with their own GitHub account or organization, and pick that folder when you open
+  the session. Same app, separate contexts, and nothing of one is read as a source by the other
+- Once in a while, at the end of a week with quota left, ask for a clean-up pass: *"go over
+  everything, find what drifted or got duplicated, and propose the clean-up"*. The more you use the
+  system the more it knows, and this is the small hygiene that keeps it that way

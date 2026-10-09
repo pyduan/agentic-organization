@@ -274,3 +274,45 @@ half the schools could be matched to the official directory; reading the saved v
 nearly four in five. Read the values the spreadsheet saved instead
 (Python's `openpyxl` with `data_only=True` does exactly that), extract them once to JSON with the
 file's hash, and import from that extraction.
+
+## The agent stopped in the middle: "usage limit reached"
+
+A subscription gives a window of usage that refills over a few hours, and the setup is the heaviest
+session there will ever be: it installs, imports your history and builds the structure, often with
+several subagents at once. On a recent onboarding a standard plan ran out about an hour in, during
+the import. Nothing is lost, the work done so far is in the repo. Either wait for the window to
+refill and say "continue", or move the person who builds to a larger plan, which is the lasting
+answer (QUICKSTART ▸ *Which plan, for whom*). Paying for extra usage at API prices is the expensive
+way to the same place.
+
+## I dropped a zip into the conversation and nothing happened
+
+A zip dragged into the chat box is not unpacked. Put it on the disk (the Downloads folder is fine)
+and tell the agent where it is: "the agreements are in `~/Downloads/agreements.zip`, unpack it and
+file what matters". The same goes for a folder copied from a file server.
+
+## The mail connector takes only one account
+
+That is how it works today: one mail account per Claude login. Connect the mailbox the automation
+is about (often a shared one), and reach the other through browser control, where you are already
+signed in. The arrangement that lasts, a spare machine that stays on with the shared mailbox, is in
+QUICKSTART ▸ *One mailbox per login*.
+
+## Connecting a shared account asks for a code on someone else's phone
+
+Shared mailboxes and shared accounts usually have their second factor on one person's phone. Find
+out who before the setup hour and make sure they can be reached, or the session waits on a phone
+call.
+
+## The chat does not know what my Code sessions know
+
+They do not share a memory. A session in the Code tab reads the repo, which is where everything the
+organization has taught the agent lives; the chat reads none of it. Use Code for everything,
+including quick questions.
+
+## Dictation or the microphone does nothing in the desktop app
+
+Check that the app is allowed to use the microphone (on a Mac: System Settings ▸ Privacy & Security ▸
+Microphone, then quit and reopen the app). If it is allowed and still silent, use the system's own
+dictation into the message box instead (on a Mac, the dictation key or the shortcut set in System
+Settings ▸ Keyboard): the agent receives the same text.

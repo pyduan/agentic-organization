@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Bringing in the second person, shared mailboxes, and which plan for whom
+
+From a real onboarding of an association. The quick start now covers what the setup hour actually
+ran into: which plan each person needs (the setup itself used up a standard plan's window), the mail
+connector taking one account per login and what to do with a shared mailbox, the settings the desktop
+app asks for, a file-server folder to import, and how access works once there are several of you. It
+also has a new section for the second person, with the one paste that clones the organization's repo
+instead of redoing the setup. The troubleshooting guide gained the matching entries.
+
+**What you need to do:** nothing today. When someone joins you, hand them QUICKSTART ▸ *The second
+person, and everyone after* rather than walking them through your own setup again, and make sure
+everyone works in the Code tab, never the chat, since the two do not share a memory.
+
 ## 2026-10-09 · MAJOR · Decks are composed from components, built by a script, and measured on every slide
 
 Decks made by hand as one HTML file each kept drifting: every deck carried its own copy of the

@@ -142,6 +142,10 @@ For the public site, in short: connect the GitHub repo to Cloudflare Workers (fr
 
 ## Hand over
 
+The next person in the organization does not go through this file: they clone the repo you just
+built and connect their own mailbox, with the paste in [QUICKSTART.md](QUICKSTART.md) ▸ *The second
+person, and everyone after*.
+
 Teach the owner the entire technical surface they need:
 
 1. Open Terminal (or the Claude Code desktop app).
