@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · A choice your agent made for you waits for your yes before it counts as settled
+
+Your agent treats what is written in `source/decisions.md` as settled and does not reopen it. That
+was also true of choices it had made itself, on your behalf, during setup: a default, an assumption,
+a design call. Those now go in marked "(proposed)", with a line asking you to confirm, and they only
+become settled once you have said yes or corrected them.
+
+**What to do:** nothing. If your setup is recent, you can ask your agent which entries in
+`source/decisions.md` it wrote without you.
+
 ## 2026-10-09 · MINOR · A private app can deploy itself on every push with no dashboard screen
 
 `docs/deploy-cloudflare.md` now describes a second way to keep a private app deployed: a GitHub
