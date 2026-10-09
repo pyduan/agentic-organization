@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Importing from your invoicing or sales tool, and one day writing into it
+
+When the records come from a tool your organization runs, your agent now reads them through the
+tool's API rather than an export, and uses any export you keep only to check the totals. The access
+it uses can only read, and its password stays in your computer's keychain. If you later want your
+agent to create invoices or quotes in that tool, it does so as drafts that a person validates in the
+tool, with a separate access, and only once the import is shown to be right.
+
+**What to do:** nothing.
+
 ## 2026-10-09 · MINOR · Internal tools start from what owners say the first time they use one
 
 An owner's first review of a team intranet, the day it went live, asked for five things:
