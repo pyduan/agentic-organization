@@ -10,6 +10,45 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MAJOR · Decks are composed from components, built by a script, and measured on every slide
+
+Decks made by hand as one HTML file each kept drifting: every deck carried its own copy of the
+engine, the agent redrew the layout each time, and the look was right on one slide and random on the
+next. An owner who fed her agent a long deck playbook and her best old decks still got slides she
+had to redo entirely. Decks now work the way the best intranets around this kit already build them.
+
+- **A deck is `decks/<slug>/deck.mdx`**: a short frontmatter (audience, the one thing to remember),
+  the plan in a comment, then one component per slide (`Cover`, `Slide`, `Agenda`, `Cards`, `Stats`,
+  `Steps`, `Timeline`, `Split`, `Image`, `People`, `Logos`, `Donut` and a dozen more). The agent fills
+  the content; the layout comes from the components, so it holds from the first deck to the
+  twentieth. `node scripts/deck/build.mjs components` lists them.
+- **Your brand's look lives in `source/brand/deck/`**: a `theme.css`, your own components if you need
+  a shape the kit lacks, your logos, and `deck.md`, your own deck rules. These are your files and an
+  update never touches them, so your corrections stop colliding with the kit's.
+- **`node scripts/deck/build.mjs build <slug>` builds and checks.** It opens every slide in Chrome and
+  refuses text that runs off the slide or under the footer, text cut by its box, type under the
+  theme's floor, unequal cards, broken images and faint text. It warns on slides whose content is
+  stuck in a corner or that are mostly empty. It writes a picture of every slide and a contact sheet
+  the agent looks at before showing you anything.
+- **Old PowerPoint decks are read, not imitated.** `node scripts/deck/read-pptx.mjs old.pptx` writes
+  every slide's text in order (the facts, to fold into your content files) and the deck's measured
+  style: canvas, fonts, type scale, colours, header band, recurring logos. Your theme is written
+  from those numbers. A `.pptx` is a better reference than its PDF.
+- **Decks are not published by default.** They live in `decks/`, versioned but never served.
+  `build.mjs publish <slug>` puts a copy without speaker notes on your site, when you ask for it.
+  `--share` makes a single file to send, `--pdf` a PDF.
+
+**What you need to do:** run update-kit, then move your own deck rules out of `source/formats/deck.md` into `source/brand/deck/deck.md`, and ask your agent to write your deck theme from your best old deck. In detail:
+1. If you edited `source/formats/deck.md` or `deck-template.html`, update-kit keeps your version aside.
+   **Move what is about your brand into `source/brand/deck/deck.md`** (your colours, your partners,
+   your corrections), then take the kit's `deck.md`. Delete `source/formats/deck-template.html`: it is
+   retired, and an update does not delete files.
+2. Ask your agent to set up your deck theme from your best old deck: *"read our best old deck with
+   read-pptx and write our deck theme from it, then build the component catalogue on it"*.
+3. `CLAUDE.md` and `package.json` are yours: add the two lines the kit's versions now carry (the
+   deck routing rows in `CLAUDE.md`, and `scripts/deck/test.mjs` in the `test` script).
+4. Decks already under `site/public/decks/` keep working. Rebuild one in the new format when you next
+   edit it.
 ## 2026-10-09 · MINOR · Importing from your invoicing or sales tool, and one day writing into it
 
 When the records come from a tool your organization runs, your agent now reads them through the

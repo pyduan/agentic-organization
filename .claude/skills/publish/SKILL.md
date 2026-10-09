@@ -14,7 +14,7 @@ cleanly and confirm it landed **on the live URL**.
    dashboard, anything with client or unreleased material — belongs on the Access-gated Worker
    (`npm run deploy:dashboard`), never on a public URL, and that mistake is not fixable by deleting
    the page afterwards. If it is private and about to become public, stop and reroute it.
-1. **Verify first.** If the change is visual and hasn't been checked yet, run the site locally and look at it (mobile and desktop) before publishing. A deck: run `node scripts/check-contrast.mjs` on it (it must exit 0), then open it and click through. If words changed, reread them once against the voice guide, check any figure or name against `source/content/` and `source/facts/`, and click the links. Nothing invented ever ships.
+1. **Verify first.** If the change is visual and hasn't been checked yet, run the site locally and look at it (mobile and desktop) before publishing. A deck: `node scripts/deck/build.mjs publish <slug>` rebuilds it, measures it and refuses on a defect; look at its `.check/sheet.png`, and publish a deck only when the owner asked for that deck to be public. If words changed, reread them once against the voice guide, check any figure or name against `source/content/` and `source/facts/`, and click the links. Nothing invented ever ships.
 2. **Stage explicitly.** `git status`, then `git add` the files you touched, by name. Other sessions or machines may have left unrelated files around; a blind `git add -A` has shipped accidents before.
 3. **Commit** with a message that says what changed in plain words (`add two paintings to gallery, mark Nocturne sold`).
 4. **Push.** If the push is rejected because the remote moved, pull with rebase, re-verify, push again.

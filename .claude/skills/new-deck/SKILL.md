@@ -1,17 +1,45 @@
 ---
 name: new-deck
-description: "Create a new presentation deck as a self-contained HTML file under site/public/decks/. Use when the owner asks for a deck, slides, a presentation, or a pitch."
+description: "Create or rework a presentation deck: composed from components in decks/<slug>/deck.mdx, built and measured by scripts/deck/build.mjs. Also when the owner hands over old decks (.pptx, PDF) to learn a style or facts from. Use when the owner asks for a deck, slides, a presentation, a pitch, or a deck 'like our old ones'."
 ---
 
 # New deck
 
-Read first: `source/brand/voice.md`, `source/brand/design.md`, `source/formats/deck.md`, and `source/brief.md` for context.
+Read first: `source/formats/deck.md` (the method), `source/brand/deck/deck.md` (this brand's deck
+rules, if it exists), `source/brand/voice.md`, and `source/brief.md` for context.
 
-1. **Frame it**: audience, occasion, language, and the one thing the audience should remember. Ask only what you can't infer from the brief and recent conversation.
-2. **Outline before designing.** Propose the slide list (title + one line each) and get a nod. Facts and numbers come from `source/content/` (the owner's own) or `source/facts/` (sourced third-party figures); anything missing, ask rather than invent.
-3. **Build** from `source/formats/deck-template.html` into `site/public/decks/<slug>/index.html`. Copy the current values from `source/brand/tokens.css` into the template's token block. Design within the system: one idea per slide, type sized for the back of the room, recurring slide layouts.
-4. **Measure, then review.** Run `node scripts/check-contrast.mjs site/public/decks/<slug>/index.html` and fix everything it lists before showing anyone: it measures every text on every slide, hidden ones included, and an eye on the slide you suspect is exactly what let a deck go live with its headline figures dark on dark. Rerun it after any change of colour, theme or background. Then walk the owner through it locally, slide by slide. Iterate.
-5. **Publish** (publish skill). Hand over the live URL plus the two presenting facts worth repeating: fullscreen in the browser, arrow keys to move. Print to PDF from the browser if they need an attachment.
-6. Record the deck's existence and purpose in `source/brief.md` under derivatives.
+1. **Frame it**: audience, occasion, language, the one thing they should remember. Ask only what the
+   brief and the conversation do not say. Then `node scripts/deck/build.mjs new <slug>`, and fill the
+   frontmatter (`audience`, `takeaway` included).
+2. **Facts before slides.** Every fact and figure comes from `source/content/` or `source/facts/`,
+   with its source. If the owner handed over old decks, read each with
+   `node scripts/deck/read-pptx.mjs <file.pptx> --out=source/content/archives/<name>`, fold what they
+   say into the content files, and **list the contradictions between them for the owner to settle**
+   before using either version. Anything missing: ask, never invent.
+3. **The plan, approved.** One line per slide (title, then what it proves) in the comment at the top
+   of `deck.mdx`. Get a nod before composing.
+4. **Compose** from the registry: `node scripts/deck/build.mjs components` lists every component and
+   its props, the brand's included; `scripts/deck/examples/deck.mdx` shows each one in use. A shape
+   that is missing becomes a component in `source/brand/deck/components.mjs`, never HTML in a deck.
+5. **Build, check, look.** `node scripts/deck/build.mjs build <slug>` must end with 0 defects. Fix
+   by cutting or splitting content, never by shrinking type. Then open `decks/<slug>/.check/sheet.png`
+   and look at every slide, and at the full-size `slide-NN.png` of any that looks off. Say what you
+   looked at; a check that did not run (no Chrome) is said too, never reported as passed.
+6. **Review with the owner** in the browser (F fullscreen, O overview, N notes). Each correction goes
+   into the deck **and** into the rule it teaches: `source/brand/deck/deck.md` for the brand, its
+   `theme.css` or `components.mjs` for a shape, the content files for a fact.
+7. **Commit** `decks/<slug>/` (`deck.mdx`, `assets/`, `index.html`), with `git commit --only -- decks/<slug>`
+   (`git add` the new folder first). That does not publish it. A copy to
+   send is `build <slug> --share` (one file, no speaker notes), a PDF is `build <slug> --pdf`.
+   Publishing on the website is `node scripts/deck/build.mjs publish <slug>`, only when the owner asks
+   for that deck, then the publish skill.
+8. Record the deck and its purpose in `source/brief.md` under Derivatives ▸ Decks.
 
-If the deck is confidential, don't push it; the repo publishes on push. Build it outside the repo and present it locally, and say so to the owner.
+**The first deck of a brand** also sets up `source/brand/deck/`: read the brand's best old deck with
+`read-pptx`, write `theme.css` from the numbers in its `style.md` (the `--dk-*` values first, then the
+components that need restyling), copy the recurring images from its `media/` into `assets/`, and start
+`deck.md` with what the owner says about the look. Build `scripts/deck/examples/deck.mdx` against the
+new theme: every component on one deck, measured, is how a theme is checked.
+
+If the deck is confidential beyond the repo's collaborators, build it outside the repo, present it
+locally, and say so to the owner.

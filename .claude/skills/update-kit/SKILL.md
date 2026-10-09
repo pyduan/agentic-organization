@@ -24,7 +24,8 @@ theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format
   (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`, and `quality/incidents.json` — the
   register of what went wrong on *their* project), all of `site/`, `apps/` **except
   `apps/dashboard/` and `apps/todos/`** (framework, minus the owner values in their
-  `wrangler.jsonc`), and `site/public/decks/`.
+  `wrangler.jsonc`), `site/public/decks/`, and `decks/`. `source/brand/deck/` (the brand's deck
+  theme, components and rules) is the owner's, like the rest of `source/brand/`.
 
 ## The one owner file with generic content in it
 

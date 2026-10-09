@@ -20,7 +20,7 @@
 
 ## Derivatives
 
-- **Decks**: TODO (list decks under site/public/decks/, each with its purpose and audience)
+- **Decks**: TODO (list decks under decks/, each with its purpose and audience; `node scripts/deck/build.mjs list` shows them)
 - **Apps**: TODO (list apps under apps/, each with what it does and where it's published)
 
 ## Governance
