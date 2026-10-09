@@ -31,6 +31,14 @@ So, concretely, once something is recorded here:
 The mirror obligation is on the writing side: **a decision taken in conversation and left unwritten
 will be re-litigated.** Record it the day it is taken. That is the whole mechanism.
 
+**Only a person settles.** A choice the agent made on the owner's behalf (a default it picked during
+setup, a figure it had to assume, a design call nobody asked about) goes in as **(proposed)**, with a
+`#decide` line in the to-do list naming who confirms it. It is a premise for nobody until they do:
+then the mark comes off, or a new dated entry records the correction. Otherwise the rule above turns
+the agent's own guesses into settled matters the owner never saw. A live setup wrote nine such
+choices here in one day, marked them, and had them confirmed or corrected in one reply; one of the
+nine had the organization's main project wrong.
+
 ## How to use it
 
 - **After any discussion that moves a hypothesis or the positioning, add an entry at the top**
