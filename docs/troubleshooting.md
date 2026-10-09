@@ -31,6 +31,25 @@ the popup, bring it back with:
 xcode-select --install
 ```
 
+## Commits signed with the computer's name
+
+`git log` shows an author like `sam@sams-macbook.local` or `sam@device-12.home`, and GitHub shows
+those commits with a grey silhouette instead of your account. Git was never told who you are, so it
+made up an address from your user name and the computer's name. Nothing breaks, which is why it goes
+unnoticed for weeks, but the history no longer says who did what. The bootstrap scripts set this;
+a machine set up another way may not have it.
+
+Set it once, for every repo on the machine. The address GitHub keeps private for you works well:
+it is on github.com ▸ Settings ▸ Emails, in the form `<number>+<login>@users.noreply.github.com`.
+
+```sh
+git config --global user.name "Sam Example"
+git config --global user.email "<number>+<login>@users.noreply.github.com"
+```
+
+Commits already made keep their old author. Rewriting a published history to fix them costs more
+than it is worth; leave them.
+
 ## "command not found" right after installing something
 
 The terminal window you already had open doesn't know about tools installed a minute ago (its
