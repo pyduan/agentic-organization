@@ -299,7 +299,17 @@ repositories* is legitimate when every repo in the workspace has a `next-steps.m
 **Contents: read and write**. That is deliberately narrower than it sounds: a classic `repo` scope
 also carries webhooks, deploy keys, releases and `workflow`, none of which an app that edits
 markdown has any use for. It has to be created in a browser, because **GitHub has no API for
-minting a personal access token** — by design, so that a token cannot mint another one.
+minting a personal access token** — by design, so that a token cannot mint another one. The form can
+be pre-filled from its address, which leaves the owner one link to open and the repositories to tick:
+
+```
+https://github.com/settings/personal-access-tokens/new?name=todos-app&description=Lets+the+to-dos+app+edit+next-steps.md&target_name=<owner>&expires_in=366&contents=write
+```
+
+`target_name` is the user or organization that owns the repositories and `expires_in` a number of
+days (366 at most). The repositories themselves cannot be chosen from the address: the owner ticks
+them on the page. Before storing the token, check it can read each repo it is meant for, so a
+missing tick shows now rather than as a 401 next month.
 
 **A token piped from the `gh` CLI** is the answer when the setup step is the obstacle:
 
@@ -316,6 +326,11 @@ app on the phone quietly starts failing.
 That asymmetry is the whole reason `docs/troubleshooting.md` carries an entry for it. **If you set
 it up this way, write down that you did**, in the project's own notes, or the eventual 401 is
 undiagnosable by whoever meets it.
+
+**Not when the workspace has a restricted repo.** `gh auth token` carries everything its owner can
+reach, in every organization that lets the GitHub CLI in, the restricted repo included. Piped into a
+Worker, it gives that Worker, and anyone who finds a flaw in it, read and write on a repo the rest of
+the team must not see. There, use the fine-grained token and leave the restricted repo off its list.
 
 ## The note bubble: capture that is not a to-do edit
 
