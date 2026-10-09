@@ -113,7 +113,9 @@ How to run it:
 - **Never take a secret through the conversation.** A key pasted into the chat is a key in a
   transcript. Have them set it where it belongs (a hosting secret, a password manager) and, if a
   script is needed, write one that prompts for it locally and never echoes it. The same rule kills the
-  shortcut of creating tokens on their behalf: a token you create is a token you have seen.
+  shortcut of creating tokens on their behalf: a token you create is a token you have seen. The one
+  exception is a token a CLI mints and pipes straight into the store that uses it: never printed,
+  able to do one job, and dated (`docs/deploy-cloudflare.md` ▸ *Without a dashboard screen*).
 - **Record the outcome, not the secret.** One table in `docs/` per project: which account, whose
   login, what it is used for, and where the credential lives. Future sessions read that table instead
   of asking again.

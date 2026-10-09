@@ -212,3 +212,53 @@ the owner what you tried, and have them ask whoever set the project up.
   not a bug. Add the path deliberately.
 - **A write returns 200 but the file does not change** — the item's `^id` was not found, usually
   because something regenerated the file and churned the ids. See `source/formats/todo.md`.
+
+## Wrangler asks to register a workers.dev subdomain
+
+The first `wrangler deploy` on an account that has never had a Worker on `workers.dev` asks
+"Would you like to register a workers.dev subdomain now?". In a workflow, or in an agent's shell,
+nobody can answer, so it takes "no" and stops with an error. Cloudflare's own message sends you to
+the dashboard, where opening Workers & Pages once creates one.
+
+No screen is needed. One call registers it, with the same Cloudflare sign-in the CLI already has:
+
+```sh
+curl -X PUT "https://api.cloudflare.com/client/v4/accounts/<account id>/workers/subdomain" \
+  -H "Authorization: Bearer <token>" -H "Content-Type: application/json" \
+  -d '{"subdomain":"<name>"}'
+```
+
+The name is the account's for good (every Worker becomes `<worker>.<name>.workers.dev`), so pick it
+with the owner, and try the next candidate if Cloudflare answers that it is taken. Then rerun the
+deploy.
+
+## A Worker that reads many files from GitHub fails or is slow
+
+An app that reads a repo of records (one Markdown file per contact, per order, per request) works
+with twenty files and fails with two thousand. On the free Workers plan one page load may make 50
+outbound requests, and fetching files one by one through GitHub's contents API spends one per file:
+past fifty, the page errors with "Too many subrequests".
+
+What holds at that size, on a live app reading a few thousand records across several repos:
+
+- **One listing per repo per page.** `GET /repos/<owner>/<repo>/git/trees/<branch>?recursive=1`
+  returns every path with its blob sha in a single request.
+- **Contents by the hundred.** GitHub's GraphQL API returns many blobs in one query
+  (`object(oid: "<sha>") { ... on Blob { text } }`, aliased once per file, about 150 per query).
+- **Kept by sha.** A blob's content never changes for a given sha, so the Worker keeps what it has
+  read in memory and refetches only the shas it has not seen.
+
+The first load after a quiet spell still takes a few seconds: on a `workers.dev` address the Worker
+cannot count on Cloudflare's cache (the documentation gives working cache operations to Workers on a
+custom domain), so a fresh instance starts from nothing. A custom domain brings the cache back; the
+paid plan raises the request limit, not the cache.
+
+## Reading PDFs and scans on a Mac with nothing installed
+
+Ingesting a folder of PDFs usually starts with installing `pdftotext` or an OCR tool, which needs
+Homebrew and an administrator password the owner may not have. A Mac already holds both engines:
+the Command Line Tools that brought `git` also bring `swift`, and a short Swift script can use
+**PDFKit** for the text layer of a PDF and **Vision** (`VNRecognizeTextRequest`, French and English)
+for pages that are only an image. A few seconds per scanned page, nothing installed, nothing sent
+anywhere. A figure or a date read by OCR still gets checked against the page image before anything
+relies on it. `textutil` (also built in) turns `.doc` and `.docx` into text.
