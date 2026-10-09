@@ -108,6 +108,21 @@ whole model inherits the confidence of its firmest number. Five statuses, weakes
 vocabulary rather than a technical one, because they describe what the paperwork supports, and that
 is the only thing that can bound what a check is allowed to assert.
 
+Two more rules come from importing the records of a tool the organization runs (an invoicing or
+sales tool) rather than a sheet kept by hand:
+
+- **When the tool has an API, the API is the source and the export is the check.** An export is a
+  copy with an age; the API is the original. If the owner also keeps an export, its totals become
+  what the import must land on. On a live import from a workbook with a tab per school year and a
+  summary tab, the script refused to write anything until each year added up to the summary, and the
+  one known gap was accepted by name on the command line (`--accept-gap=<year>:<column>`) and written
+  into the provenance rather than corrected. Within the hour the owner chose the tool's API as the
+  source, and the workbook kept exactly that role.
+- **Read only, by construction.** The client that imports from the tool refuses any method but a read
+  before the request leaves, and its credential lives in the operating system's keychain (filled by a
+  script that asks for it without echoing it) or, for a scheduled run, in the repo's secrets. Writing
+  into that tool is a separate decision with its own rules: see the inbox protocol in `CLAUDE.md`.
+
 And the sweep asks the same question when nobody has opened the app: `node
 scripts/check-freshness.mjs` ▸ pass `sources` re-verifies every manifest in the repo and names the
 figures resting on something other than a document. A model nobody has run for three weeks is

@@ -141,8 +141,10 @@ config.
 In auto mode, Claude Code has each command reviewed before it runs, and some kinds it refuses
 whatever the wording. Seen on live setups: changing a GitHub organization's member permissions
 through the API, running a script that writes a secret into a hosting provider's secret store, and a
-global package install (`npm install -g`). The refusal names a category, such as "Permission Grant"
-or "Secret-Store Writes", or none at all.
+global package install (`npm install -g`). Opening a pull request on someone else's public repo was
+refused too ("Create Public Surface") until the owner asked for it in so many words in the
+conversation; an earlier "yes" to one item of a short list had not been enough. The refusal names a category,
+such as "Permission Grant" or "Secret-Store Writes", or none at all.
 
 Do not look for another route to the same result: the refusal is about the result, not the command.
 Finish the rest of the task, then hand the one step to the owner:
@@ -262,3 +264,13 @@ the Command Line Tools that brought `git` also bring `swift`, and a short Swift 
 for pages that are only an image. A few seconds per scanned page, nothing installed, nothing sent
 anywhere. A figure or a date read by OCR still gets checked against the page image before anything
 relies on it. `textutil` (also built in) turns `.doc` and `.docx` into text.
+
+## A workbook import shows dates where there should be postal codes
+
+A spreadsheet's address columns are often formulas (a lookup into another tab), and the file stores
+both the formula and the value it last showed. Some readers recompute or reinterpret those cells: on a
+live import, a JavaScript reader returned the postal code 60100 as a date in 2064, and only about
+half the schools could be matched to the official directory; reading the saved values brought it to
+nearly four in five. Read the values the spreadsheet saved instead
+(Python's `openpyxl` with `data_only=True` does exactly that), extract them once to JSON with the
+file's hash, and import from that extraction.

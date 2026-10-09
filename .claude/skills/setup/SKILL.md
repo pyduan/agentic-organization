@@ -111,7 +111,8 @@ How to run it:
   the order to click — one screen at a time, confirming each before the next. Never send someone
   non-technical to "the settings".
 - **Never take a secret through the conversation.** A key pasted into the chat is a key in a
-  transcript. Have them set it where it belongs (a hosting secret, a password manager) and, if a
+  transcript. Have them set it where it belongs (a hosting secret, a password manager, the computer's
+  keychain for a credential a local script uses) and, if a
   script is needed, write one that prompts for it locally and never echoes it. The same rule kills the
   shortcut of creating tokens on their behalf: a token you create is a token you have seen. The one
   exception is a token a CLI mints and pipes straight into the store that uses it: never printed,
