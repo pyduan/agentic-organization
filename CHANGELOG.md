@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Your agent no longer asks you to approve technical details
+
+Asked to approve a list of nearly two hundred items line by line before an import could start, an
+owner said it was too technical, not a user's decision, and that the agent should set it up. Your
+agent now settles that kind of detail itself (how files are filed and named, how two tools' steps
+match), in a way it can undo, and comes to you only with the result and with what only a person can
+decide: a missing document, two sources that disagree, anything the organization says or commits to.
+
+**What to do:** nothing.
+
 ## 2026-10-09 · MINOR · Sessions working side by side announce the files they take
 
 When two or more sessions work on the same app, the one about to change a shared file now tells the
