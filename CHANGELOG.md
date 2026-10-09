@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Internal tools start from what owners say the first time they use one
+
+An owner's first review of a team intranet, the day it went live, asked for five things:
+remove the example mode, organize the tabs by who uses them, use words people understand and show
+where each imported status comes from, let people handle hundreds of requests at once, and fix a
+count that was visibly wrong. `source/formats/webapp.md` now builds these in from the start, so the
+next tool needs less correcting.
+
+**What to do:** nothing. If you have an internal tool with an example mode and real data, your agent
+can remove the mode when you ask.
+
 ## 2026-10-09 · MINOR · Your agent no longer asks you to approve technical details
 
 Asked to approve a list of nearly two hundred items line by line before an import could start, an
