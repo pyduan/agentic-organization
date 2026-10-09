@@ -117,8 +117,18 @@ How to run it:
 - **Record the outcome, not the secret.** One table in `docs/` per project: which account, whose
   login, what it is used for, and where the credential lives. Future sessions read that table instead
   of asking again.
-- **Note what is still missing and who owes it.** An access the owner could not grant today becomes a
-  dated line in the to-do list with their name on it, not a vague intention.
+- **Before the first invitation to a GitHub organization, set its base permission to "No
+  permission".** GitHub's default lets every member read every repo of the organization, so the first
+  person invited for one repo can also read the restricted one. Give access per team or per repo
+  instead, as `ORGANIGRAM.md` says, and read the setting back:
+  `gh api orgs/<org> --jq .default_repository_permission` must answer `none`.
+- **Note what is still missing and who owes it.** An access the owner could not grant today, a token
+  only they can create, a choice you made on their behalf and they have not confirmed: each becomes a
+  dated `#decide` line in the to-do list with their name on it (`source/formats/todo.md`), so that
+  `open-decisions` raises it at the start of every session, a parallel one included, until it is
+  ticked. Not a vague intention, and not only a paragraph in the closing message: on a live setup three
+  such steps lived only there, and the next session, asked to "do the three open actions", had to dig
+  them out of another session's transcript.
 
 The failure this prevents: a system that works only when its owner is available to authorise
 something. Judge the pass by asking whether you could now do a month of work without them.

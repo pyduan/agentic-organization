@@ -136,6 +136,25 @@ provider, so there was no setting on the named service to fix at all — and cha
 configuration would have looked like action while fixing nothing. Diagnose the path, then the
 config.
 
+## Auto mode refused a command
+
+In auto mode, Claude Code has each command reviewed before it runs, and some kinds it refuses
+whatever the wording. Seen on live setups: changing a GitHub organization's member permissions
+through the API, running a script that writes a secret into a hosting provider's secret store, and a
+global package install (`npm install -g`). The refusal names a category, such as "Permission Grant"
+or "Secret-Store Writes", or none at all.
+
+Do not look for another route to the same result: the refusal is about the result, not the command.
+Finish the rest of the task, then hand the one step to the owner:
+
+- the deep link to the exact setting and what to choose there (for a GitHub organization's base
+  permission: `https://github.com/organizations/<org>/settings/member_privileges`), or the one
+  command to type in their own terminal; a script that asks for a secret without echoing it is fine
+  there;
+- then read the result back yourself, with `gh api …` or a list of secret names, before calling it
+  done. Twice in one afternoon a "done" was not: a confirmation dialog had been closed instead of
+  confirmed, and a token had been created but never stored.
+
 ## A renamed repository leaves your local copy pointing at the old name
 
 Renaming a repo on GitHub is safe, and the old name keeps redirecting, which is exactly why this is

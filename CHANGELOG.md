@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · When a step can only be yours, you get one link, and your agent checks it took
+
+Some steps only you can take: creating a GitHub token, changing who can read your organization's
+repos. Your agent now hands them over as one link to the exact setting, with what to choose there,
+and then reads the setting back rather than taking "done" for an answer: on a live setup, a
+permission reported changed was still unchanged twice, because its confirmation window had been
+closed rather than confirmed. Anything still waiting on you at the end of a setup becomes a
+`#decide` line that is raised at the start of every session until it is settled, instead of a
+paragraph at the bottom of a chat. Two security defaults come with it: before inviting anyone to a
+GitHub organization, the setup sets its base permission to "No permission", since GitHub otherwise
+lets every member read every repo, restricted ones included; and where one repo is restricted, an
+app's GitHub token is a fine-grained one that leaves it out, never a copy of your own.
+
+**What to do:** if your organization has a restricted repo and has already invited people, ask your
+agent to check the organization's base permission. Nothing else.
+
 ## 2026-10-09 · MAJOR · The guards now follow you into the folder that holds your repos
 
 The kit tells you to open your agent on the folder that holds all your repos side by side, and that
