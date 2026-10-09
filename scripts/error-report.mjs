@@ -27,7 +27,7 @@ import {
   FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, guardKind as kindOf, loadRegister,
 } from '../lib/register.mjs';
 
-const MAINTAINER = 'paul@bayesimpact.org'; // the agentic-organization maintainer
+const MAINTAINER = 'pyh.duan@gmail.com'; // the agentic-organization maintainer
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const ANON = args.includes('--anonymized') || args.includes('--anonymised');
