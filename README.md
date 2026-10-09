@@ -61,7 +61,7 @@ source/              your source of truth
   formats/           one playbook per output: website pages, decks, apps, messages, the dashboard
   quality/           the register of the AI's own mistakes on your project (see below)
 site/                the website itself (Astro, deployed by Cloudflare Workers)
-site/public/decks/   your presentations, each a single shareable HTML file
+decks/               your presentations: each composed in deck.mdx, built into one shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
 apps/dashboard/      your private dashboard: where every project stands, behind a login
 projects/            (optional module) your real work, tracked: charter, log, files, next steps

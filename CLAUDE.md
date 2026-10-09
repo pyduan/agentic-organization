@@ -4,7 +4,7 @@
 
 ## The paradigm
 
-This repo is the single source of truth. `source/` holds the truth: content, brand, and format playbooks. `site/` and the decks under `site/public/decks/` are derivatives, built from those sources. When a derivative and its source disagree, the source wins; either fix the derivative or, if the owner changed their mind, update the source deliberately and then the derivative.
+This repo is the single source of truth. `source/` holds the truth: content, brand, and format playbooks. `site/` and the decks under `decks/` are derivatives, built from those sources. When a derivative and its source disagree, the source wins; either fix the derivative or, if the owner changed their mind, update the source deliberately and then the derivative.
 
 ## Start of every session
 
@@ -26,7 +26,8 @@ Find every row that matches the task at hand and read those files before produci
 | A subject the owner keeps asking about where the answer is a **figure built from several sources** and being wrong costs something — money, tax, a deadline, a legal position | `source/formats/webapp.md` ▸ *Who decides there should be a tool*. Offer to build it rather than answering again, and give it invariants that refuse |
 | A tool built on a **document the owner maintains by hand** (a spreadsheet, a workbook, an export) | `source/formats/webapp.md` ▸ *The tool is the source of truth*, and use `lib/provenance.mjs` rather than re-deriving it — the tool wins, the document is an input, and the import is where it goes wrong: identity verified before every run and refusing, export age compared, each figure carrying its status, severity capped by the weakest input, no authority word without its clause |
 | Anything touching a to-do — writing one, ticking one, building over `next-steps.md` | `source/formats/todo.md` (the line format and the patch rule), and use `lib/todo.mjs` rather than a new regex |
-| A deck or presentation | `source/formats/deck.md`, plus voice and design above |
+| A deck or presentation | `.claude/skills/new-deck/SKILL.md` and `source/formats/deck.md`, then the brand's `source/brand/deck/deck.md` |
+| An old deck (`.pptx`, PDF) handed over to learn a style or facts from | `source/formats/deck.md` ▸ Old decks as references: `node scripts/deck/read-pptx.mjs`, never by eye |
 | A message someone will **send**: an email out, an email to the team, a chat message | `source/formats/message.md` (the shape per format, plus the per-person block), and `source/brand/voice.md` for the plain-text email rules |
 | A phone / chat / platform demo (inside a deck, page, or app) | `source/formats/demos.md`, plus voice and design above |
 | A discussion (internal or external) that moves a hypothesis or the positioning | `source/decisions.md` — add a dated entry (the why, before → after) |
@@ -62,7 +63,7 @@ Find every row that matches the task at hand and read those files before produci
 - **This repo is public, and every example in it is invented.** ⚠ Sessions that touch this template usually have other repos open too — the owner's own site, a client's project, an employer's internal repos. Never take an example from one of them, and never paste a line out of whatever file happens to be open: a person's name, a client, an internal project code, a supplier's situation are real information about real people, and a public template is the worst place for them. Write `@sam`, a printer, a brochure. Before committing, read the diff for names, clients and project codes that came from somewhere else. **If you are unsure which project a change belongs to, say so and ask rather than guessing** — the repos in a workspace have different audiences, and the boundary only holds if it is checked deliberately.
 - **A recorded decision is closed. Do not re-adjudicate it.** Once something is written down in `source/decisions.md` — or confirmed by the owner and recorded anywhere in the repo — it is settled, and a later session treats it as a premise rather than an open question. The failure is specific and it compounds: re-raising a closed choice as "have you considered", re-adding a hedge or a "to be confirmed" to a fact the owner already confirmed, or quietly re-opening a debate because this session would have chosen differently. That makes the owner argue for the same decision several times, which is exactly the cost the file exists to remove. Re-open one only if the owner asks, or if something genuinely new turns up — and then it is a new dated entry saying what changed, never a silent reversal. **Only a person closes a decision**: a choice you made on the owner's behalf about what the organization does, says or commits to (a setup default, an assumption, a design call) goes in marked (proposed), with a `#decide` line, and is a premise for nobody until they confirm it. **Maintaining that file is part of the job, not an optional extra**: a decision taken in conversation and not written down will be re-litigated, so write it down the day it is taken.
 - **Strip the AI tells before anything ships.** Everything here is written by a machine, so prose that reads as machine-written is the default outcome rather than an accident, and it costs the owner their credibility. The full list is in `source/brand/voice.md` ▸ *AI tics*; the three that appear without fail are the antithesis ("not just X, it's Y"), the triad ("faster, simpler, better"), and the evenly-weighted bolded bullet list standing in for an argument. Read a draft aloud before shipping it. Do not over-correct into stilted prose either: the goal is writing a person would have written, not writing that avoids a word list.
-- **Reuse before you invent.** Start from the playbook and the components already here (a page per `website.md`, a deck from `deck-template.html`, an app per `webapp.md`). Bespoke is the last resort, and even then it's built from the tokens, never as a parallel system.
+- **Reuse before you invent.** Start from the playbook and the components already here (a page per `website.md`, a deck composed from the components in `scripts/deck/`, an app per `webapp.md`). Bespoke is the last resort, and even then it's built from the tokens, never as a parallel system.
 - **Never write a confirmation next to a command. Deduce it from the result.** Reported twice from a live project on the same day: a publish announced as done, and a test suite announced green while it was failing — caught by a parallel session, not by the one that wrote the sentence. The failure is not carelessness, it is that "ran the command" and "the command succeeded" feel like one act while writing. So: read the exit code, read the output, fetch the live URL, count the passing tests. If you did not look, say you did not look. A confidently wrong "done" costs the owner more than an honest "I ran it, here is the output, I am not sure".
 - **Two hooks hold what these rules could not.** A message leaving in someone's name waits for a
   person's yes at the moment it leaves (`.claude/hooks/send-guard.mjs`), and a turn cannot end on an
@@ -203,10 +204,13 @@ lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfi
 lib/provenance.mjs           what a tool read, which version, and what each figure rests on
 lib/register.mjs             the incident register: find it, read it, and the schema it must keep
 lib/workspace.mjs            the repo map in ORGANIGRAM.md, and where each repo sits on this machine
-source/formats/deck.md       deck playbook + source/formats/deck-template.html
+source/formats/deck.md       deck playbook: decks are composed, built and measured
+scripts/deck/                the deck engine: build.mjs (new · components · build · list · publish), read-pptx.mjs, the checks
+source/brand/deck/           the brand's deck layer: theme.css, components.mjs, assets/, deck.md (its own rules)
+decks/<slug>/                one folder per deck: deck.mdx, assets/, the built index.html; never served
 source/formats/message.md    message playbook: emails and chat, inside and outside, per person
 site/                        the Astro website (npm run dev / build inside it)
-site/public/decks/<slug>/    published decks, one self-contained HTML each
+site/public/decks/<slug>/    the decks the owner asked to publish, copied there by build.mjs publish
 wrangler.jsonc + package.json  repo-root deploy layer: builds site/ and serves site/dist on Cloudflare Workers (docs/deploy-cloudflare.md)
 apps/<slug>/                 web apps of this project, one self-contained folder each
 projects/<slug>/             the org's work, tracked: charter, log, files, next steps

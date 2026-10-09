@@ -1,0 +1,86 @@
+/* The deck engine: the stage, the viewer around it, and the modes (present, check, print).
+   Structure only. How a deck looks is theme.css, then the brand's own deck theme on top of it.
+
+   The stage is a fixed 1280×720 box scaled to the window, the same box on screen, in the check
+   and on paper: what fits on screen fits the PDF, and what the check measures is what is shown. */
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body.dk-page { background: var(--dk-letterbox); overflow: hidden; -webkit-font-smoothing: antialiased; }
+
+.dk-app { position: fixed; inset: 0; display: grid; grid-template-rows: 1fr auto auto; }
+.dk-stage-wrap { position: relative; min-height: 0; overflow: hidden; }
+.dk-stage {
+  position: absolute; left: 50%; top: 50%; width: 1280px; height: 720px;
+  transform: translate(-50%, -50%) scale(var(--dk-scale, 0.5)); transform-origin: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.18);
+}
+.dk-slide {
+  position: absolute; inset: 0; width: 1280px; height: 720px; overflow: hidden;
+  display: none; flex-direction: column;
+  padding: var(--dk-pad-top) var(--dk-pad-x) var(--dk-pad-bottom);
+}
+.dk-slide[data-active] { display: flex; }
+.dk-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; justify-content: center; gap: var(--dk-gap); }
+/* A block never shrinks under its content: squeezed, its text would spill over the next block and
+   nothing would say so. Too much content then runs past the slide's margin, where the check sees it. */
+.dk-body > * { flex-shrink: 0; }
+.dk-body.is-top { justify-content: flex-start; }
+.dk-bleed { position: absolute; inset: 0; }
+.dk-notes { display: none; }
+
+/* The viewer: a bar under the stage, a notes panel, an overview. Hidden in fullscreen. */
+.dk-chrome {
+  display: flex; align-items: center; gap: 12px; height: 44px; padding: 0 14px;
+  font: 500 13px/1 system-ui, sans-serif; color: #e8e6e1; background: #1b1b1a;
+}
+.dk-chrome button {
+  font: inherit; color: inherit; background: transparent; border: 1px solid #3a3936; border-radius: 6px;
+  height: 28px; min-width: 30px; padding: 0 9px; cursor: pointer;
+}
+.dk-chrome button:hover, .dk-chrome button[aria-pressed="true"] { background: #33322f; }
+.dk-chrome-chapter { flex: 1; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #a9a59d; }
+.dk-count { font-variant-numeric: tabular-nums; min-width: 64px; text-align: center; }
+.dk-progress { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: transparent; pointer-events: none; }
+.dk-progress i { display: block; height: 100%; background: var(--dk-accent); transition: width .2s; }
+.dk-notes-panel {
+  display: none; max-height: 26vh; overflow: auto; padding: 14px 20px; white-space: pre-wrap;
+  font: 400 16px/1.5 system-ui, sans-serif; color: #e8e6e1; background: #262624; border-top: 1px solid #3a3936;
+}
+.dk-app[data-notes] .dk-notes-panel { display: block; }
+.dk-overview {
+  position: fixed; inset: 0 0 44px 0; z-index: 5; overflow: auto; padding: 24px;
+  display: none; grid-template-columns: repeat(auto-fill, minmax(256px, 1fr)); gap: 20px 16px; align-content: start;
+  background: rgba(20, 20, 19, 0.96);
+}
+.dk-app[data-overview] .dk-overview { display: grid; }
+.dk-thumb { all: unset; cursor: pointer; display: grid; gap: 6px; color: #cfcbc3; font: 500 12px/1.3 system-ui, sans-serif; }
+.dk-thumb-frame { position: relative; width: 256px; height: 144px; overflow: hidden; border-radius: 4px; outline: 2px solid transparent; }
+.dk-thumb[aria-current="true"] .dk-thumb-frame { outline-color: var(--dk-accent); }
+.dk-thumb-frame > .dk-slide { display: flex; transform: scale(0.2); transform-origin: 0 0; pointer-events: none; }
+.dk-thumb-chapter { grid-column: 1 / -1; margin-top: 8px; color: #8d8981; font: 600 11px/1 system-ui, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+:fullscreen .dk-chrome, :fullscreen .dk-notes-panel { display: none; }
+:fullscreen .dk-app { grid-template-rows: 1fr; }
+:fullscreen .dk-stage { box-shadow: none; }
+
+/* Check mode (?check): every slide laid out at full size, one under the other, nothing scaled.
+   The deck checker measures this, and it is what a screenshot of one slide shows. */
+html.dk-check, html.dk-check body.dk-page { height: auto; overflow: visible; background: #fff; }
+html.dk-check .dk-app { position: static; display: block; }
+html.dk-check .dk-stage-wrap { overflow: visible; }
+html.dk-check .dk-stage { position: static; transform: none; width: 1280px; height: auto; box-shadow: none; }
+html.dk-check .dk-slide { position: relative; display: flex; }
+html.dk-check .dk-chrome, html.dk-check .dk-notes-panel, html.dk-check .dk-overview { display: none !important; }
+
+/* Print: one slide per page, at the size it was designed, backgrounds kept, no blank last page. */
+@page { size: 1280px 720px; margin: 0; }
+@media print {
+  html, body, * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body.dk-page { height: auto; overflow: visible; background: #fff; }
+  .dk-app { position: static; display: block; }
+  .dk-stage-wrap { overflow: visible; }
+  .dk-stage { position: static; transform: none !important; width: 1280px; height: auto; box-shadow: none; }
+  .dk-slide { position: relative; display: flex !important; break-after: page; break-inside: avoid; }
+  .dk-slide:last-child { break-after: auto; }
+  .dk-chrome, .dk-notes-panel, .dk-overview { display: none !important; }
+}

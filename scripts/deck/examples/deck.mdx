@@ -1,0 +1,178 @@
+---
+title: "Le catalogue des composants"
+date: 2026-10-09
+lang: fr
+audience: "Quiconque compose un deck avec ce moteur"
+takeaway: "Chaque forme de slide existe déjà : on compose, on ne dessine pas"
+status: final
+footer: "Catalogue des composants"
+---
+
+{/* Chaque composant du registre, dans un cas réaliste. Construire ce deck sert aussi de test :
+   node scripts/deck/build.mjs build scripts/deck/examples
+   Les organisations, les personnes et les chiffres sont inventés. */}
+
+<Cover
+  kicker="Atelier Nord, comité de pilotage"
+  title="Rénover les écoles de la *vallée*"
+  subtitle="Bilan de la première année et feuille de route 2027"
+  date="2026-10-09"
+  by="Camille Martin et Idriss Benali"
+  url="atelier-nord.example"
+  image="assets/photo-1.svg"
+  logos={["assets/logo-1.svg", "assets/logo-2.svg", "assets/logo-3.svg"]}
+  notes="On ouvre sur le bilan, la feuille de route vient en troisième partie."
+/>
+
+<Agenda items={[
+  { title: "Ce que nous avons fait", items: ["Les chantiers", "Les chiffres"] },
+  { title: "Ce que nous avons appris", items: ["Les familles", "Les équipes"] },
+  { title: "Ce que nous proposons pour 2027" },
+]} />
+
+<Agenda active={1} items={[
+  { title: "Ce que nous avons fait", items: ["Les chantiers", "Les chiffres"] },
+  { title: "Ce que nous avons appris", items: ["Les familles", "Les équipes"] },
+  { title: "Ce que nous proposons pour 2027" },
+]} />
+
+<Slide chapter="Ce que nous avons fait" kicker="Bullets et Image dans un Split" title="Quatre écoles rénovées en une année scolaire" source="Registre des chantiers, septembre 2026">
+  <Split ratio="3 2">
+    <Bullets groups={[
+      { head: "Pourquoi ces écoles", items: ["Les quatre bâtiments les plus anciens de la vallée", { text: "Des classes à **14 °C** en janvier", items: ["Mesuré par les enseignants, hiver 2025"] }] },
+      { head: "En pratique", items: ["Isolation par l'extérieur pendant les vacances", "Chauffage remplacé école par école"] },
+    ]} />
+    <Image src="assets/photo-2.svg" caption="L'école des Prés, juin 2026" />
+  </Split>
+  <Callout tone="next">Les deux dernières écoles de la liste suivent en 2027.</Callout>
+</Slide>
+
+<Slide kicker="Stats" title="Ce que la première année a changé" source="Relevés de l'atelier, octobre 2026">
+  <Stats items={[
+    { value: "4", label: "écoles rénovées" },
+    { value: "-38 %", label: "de chauffage consommé", sub: "sur l'hiver 2025-2026" },
+    { value: "21 °C", label: "dans les classes en janvier" },
+  ]} />
+  <Callout>Le chantier n'a fermé aucune classe un seul jour.</Callout>
+</Slide>
+
+<Slide kicker="Stats en grille" title="Les chiffres du chantier" source="Comptabilité de l'atelier, octobre 2026">
+  <Stats size="grid" items={[
+    { value: "1 240", label: "élèves concernés" },
+    { value: "96", label: "classes" },
+    { value: "18", label: "entreprises locales" },
+    { value: "2,1 M€", label: "engagés" },
+    { value: "11", label: "semaines de travaux" },
+    { value: "0", label: "accident" },
+  ]} />
+</Slide>
+
+<Slide kicker="Cards" title="Trois choses qui ont compté">
+  <Cards items={[
+    { label: "Les familles", title: "Prévenues un mois avant", text: "Une réunion par école, avec le planning des travaux et un numéro à appeler.", tone: "soft" },
+    { label: "Les équipes", title: "Le chantier pendant les vacances", text: "Le gros œuvre tenait en huit semaines d'été, le reste se faisait le mercredi." },
+    { label: "Le suivi", title: "Une sonde par classe", text: "La température relevée toutes les heures, publiée chaque semaine aux parents.", tone: "accent" },
+  ]} />
+</Slide>
+
+<Divider n={2} title="Ce que nous avons appris" lead="Ce que les familles et les équipes nous ont dit, et ce que nous changeons" />
+
+<Slide kicker="Timeline" title="Une année en cinq étapes">
+  <Timeline items={[
+    { date: "nov. 2025", title: "Diagnostic", text: "Les quatre bâtiments mesurés" },
+    { date: "fév. 2026", title: "Appel d'offres", text: "18 entreprises retenues" },
+    { date: "juil. 2026", title: "Gros œuvre", text: "Pendant les vacances" },
+    { date: "sept. 2026", title: "Rentrée", text: "Classes ouvertes à l'heure", accent: true },
+    { date: "janv. 2027", title: "Premier hiver", text: "Relevés publiés" },
+  ]} />
+</Slide>
+
+<Slide kicker="Steps" title="Comment une école est rénovée">
+  <Steps items={[
+    { title: "Mesurer", text: "Une sonde par classe pendant un hiver", items: ["Température", "Humidité"] },
+    { title: "Prévoir", text: "Le chantier découpé en vacances scolaires", items: ["Planning partagé avec l'école"] },
+    { title: "Rénover", text: "Les entreprises locales, un lot chacune", items: ["Isolation", "Chauffage"] },
+    { title: "Vérifier", text: "Les mêmes sondes, l'hiver suivant", items: ["Relevés publiés"] },
+  ]} />
+</Slide>
+
+<Slide kicker="Quote" title="Ce que disent les enseignants">
+  <Quote text="Pour la première fois depuis que j'enseigne ici, les enfants enlèvent leur manteau en classe." by="Nadia Roux" role="Professeure des écoles, école des Prés" photo="assets/person-2.svg" />
+</Slide>
+
+<Slide kicker="Compare" title="L'école des Prés avant et après">
+  <Compare
+    left={{ label: "Avant", image: "assets/photo-3.svg", items: ["Simple vitrage", "Chaudière de 1987"] }}
+    right={{ label: "Aujourd'hui", image: "assets/photo-1.svg", items: ["Isolation par l'extérieur", "Pompe à chaleur"] }}
+  />
+</Slide>
+
+<Slide kicker="Table" title="Les quatre écoles" source="Registre des chantiers, septembre 2026">
+  <Table highlight={4} head={["École", "Élèves", "Travaux", "Livrée"]} rows={[
+    ["Les Prés", "310", "Isolation, chauffage", "août 2026"],
+    ["Le Moulin", "280", "Chauffage", "août 2026"],
+    ["La Source", "390", "Isolation, fenêtres", "sept. 2026"],
+    ["Les Tilleuls", "260", "Isolation", "sept. 2026"],
+  ]} />
+</Slide>
+
+<Slide kicker="Bars et Donut" title="Où est allé le budget" source="Comptabilité de l'atelier, octobre 2026">
+  <Split ratio="1 1" align="center">
+    <Bars unit=" k€" items={[
+      { label: "Isolation", value: 980, accent: true },
+      { label: "Chauffage", value: 640 },
+      { label: "Fenêtres", value: 310 },
+      { label: "Études", value: 170 },
+    ]} />
+    <Donut total="2,1 M€" label="engagés" items={[
+      { label: "Région", value: 50 },
+      { label: "Commune", value: 30 },
+      { label: "Fondation Lys", value: 20 },
+    ]} />
+  </Split>
+</Slide>
+
+<Slide kicker="People" title="L'équipe du projet">
+  <People items={[
+    { name: "Camille Martin", role: "Direction du projet", text: "Architecte, quinze ans de rénovation scolaire", photo: "assets/person-1.svg" },
+    { name: "Idriss Benali", role: "Chantiers", text: "Coordonne les entreprises", photo: "assets/person-3.svg" },
+    { name: "Léa Fontaine", role: "Familles et écoles", photo: "assets/person-4.svg" },
+    { name: "Hugo Perrin", role: "Mesures", text: "Ingénieur thermicien" },
+  ]} />
+</Slide>
+
+<Slide kicker="Meta, Callout et Gallery" title="Le projet Sondes, en détail" source="Convention avec la Fondation Lys, 2025">
+  <Meta title="Sondes : mesurer chaque classe" by="Porté par Hugo Perrin depuis novembre 2025" items={[{ label: "Budget", value: "48 000 €, Fondation Lys" }, { label: "Livrable", value: "un relevé public chaque semaine" }]} />
+  <Callout tone="goal">Savoir, classe par classe, si la rénovation tient ses promesses.</Callout>
+  <Gallery items={[
+    { src: "assets/photo-2.svg", caption: "La sonde, posée sous le tableau" },
+    { src: "assets/photo-4.svg", caption: "Le relevé affiché à l'entrée" },
+    { src: "assets/photo-3.svg", caption: "Les données, chaque lundi" },
+  ]} height={200} />
+</Slide>
+
+<Slide kicker="Logos" title="Ceux qui ont rendu le projet possible">
+  <Logos groups={[
+    { title: "Financeurs", items: ["assets/logo-2.svg", "assets/logo-3.svg"] },
+    { title: "Partenaires", items: ["assets/logo-1.svg", "assets/logo-4.svg"] },
+  ]} />
+</Slide>
+
+<Statement kicker="Statement" text="Une école bien chauffée, c'est *une heure de cours en plus* par semaine." sub="Estimation des enseignants des quatre écoles, juin 2026" />
+
+<Divider n={3} title="Ce que nous proposons pour 2027" image="assets/photo-4.svg" />
+
+<Slide kicker="Text" title="Notre proposition">
+  <Text size="large">
+    Rénover les deux écoles restantes pendant l'été 2027, avec les mêmes entreprises et le même suivi.
+
+    - Un comité par trimestre
+    - Les relevés publiés chaque semaine
+  </Text>
+</Slide>
+
+<Closing
+  title="Valider le calendrier 2027 en novembre"
+  lead="Nous revenons vers vous avec le budget détaillé le 15 novembre."
+  contacts={[{ name: "Camille Martin", role: "Direction du projet", email: "camille@atelier-nord.example" }]}
+/>

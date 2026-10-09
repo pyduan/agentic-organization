@@ -29,19 +29,23 @@
 //   CHROME_PATH=/path/to/chrome node scripts/check-contrast.mjs <file>
 //
 // Exit: 0 all readable · 1 something under the threshold · 2 nothing measured or no browser.
+//
+// The deck checker (scripts/deck/check.mjs) imports measure() and runs it on a deck laid out in
+// its check mode, where every slide is on screen: the pixel pass then reaches every slide, not
+// only the one a single-slide viewer shows at load.
 
 import { spawn, execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, realpathSync, rmSync } from 'node:fs';
 import { tmpdir, platform } from 'node:os';
 import { join, resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
 const targets = args.filter((a) => !a.startsWith('--'));
 const [WIDTH, HEIGHT] = (args.find((a) => a.startsWith('--viewport='))?.slice(11) || '1440x900').split('x').map(Number);
 
-function findChrome() {
+export function findChrome() {
   if (process.env.CHROME_PATH) return process.env.CHROME_PATH;
   const mac = ['Google Chrome', 'Chromium', 'Microsoft Edge', 'Brave Browser']
     .map((n) => `/Applications/${n}.app/Contents/MacOS/${n}`);
@@ -226,7 +230,7 @@ async function groundInPage(src, fg) {
   return { ratio: Math.round(r * 100) / 100, bg: '#' + key.toString(16).padStart(6, '0') };
 }
 
-async function withChrome(fn) {
+export async function withChrome(fn) {
   const chrome = findChrome();
   if (!chrome) throw Object.assign(new Error('No Chrome, Chromium or Edge found. Set CHROME_PATH.'), { code: 2 });
   const profile = mkdtempSync(join(tmpdir(), 'contrast-'));
@@ -247,7 +251,7 @@ async function withChrome(fn) {
   }
 }
 
-async function measure(port, url) {
+export async function measure(port, url) {
   const target = await (await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })).json();
   const ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((ok, ko) => { ws.onopen = ok; ws.onerror = ko; });
@@ -295,38 +299,42 @@ async function measure(port, url) {
   };
 }
 
-if (!targets.length) {
-  console.error('Name one or more HTML files or URLs to check.');
-  process.exit(2);
-}
-
-let code = 0;
-try {
-  const results = await withChrome(async (port) => {
-    const out = [];
-    for (const t of targets) {
-      const url = /^https?:|^file:/.test(t) ? t : pathToFileURL(resolve(t)).href;
-      out.push({ target: t, ...(await measure(port, url)) });
-    }
-    return out;
-  });
-  if (AS_JSON) console.log(JSON.stringify(results, null, 2));
-  for (const r of results) {
-    if (!AS_JSON) {
-      for (const f of r.failures) {
-        console.log(`  ✘ ${f.slide ? `slide ${f.slide} · ` : ''}${f.tag} «${f.text}» ${f.ratio}:1 (needs ${f.min}:1) — ${f.fg} on ${f.bg}, ${f.size}px${f.by === 'pixels' ? ', on the painted pixels' : ''}`);
-      }
-      for (const u of r.unmeasurable.slice(0, 10)) console.log(`  ? ${u.slide ? `slide ${u.slide} · ` : ''}«${u.text}» sits on an image that could not be brought on screen: check it by eye`);
-      if (r.unmeasurable.length > 10) console.log(`  ? … and ${r.unmeasurable.length - 10} more on images`);
-      const verdict = !r.measured ? '✘ measured nothing' : r.failures.length ? '✘' : '✓';
-      console.log(`${verdict} ${r.target}: ${r.measured} text(s) measured (${r.byPixels} on the painted pixels, at ${WIDTH}x${HEIGHT}), `
-        + `${r.failures.length} under the threshold, ${r.unmeasurable.length} not measurable`);
-    }
-    if (!r.measured) code = Math.max(code, 2);
-    else if (r.failures.length) code = Math.max(code, 1);
+// Run as a command, not when the deck checker imports measure().
+const isMain = (() => { try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; } })();
+if (isMain) {
+  if (!targets.length) {
+    console.error('Name one or more HTML files or URLs to check.');
+    process.exit(2);
   }
-} catch (e) {
-  console.error(`check-contrast: ${e.message}`);
-  code = e.code || 2;
+
+  let code = 0;
+  try {
+    const results = await withChrome(async (port) => {
+      const out = [];
+      for (const t of targets) {
+        const url = /^https?:|^file:/.test(t) ? t : pathToFileURL(resolve(t)).href;
+        out.push({ target: t, ...(await measure(port, url)) });
+      }
+      return out;
+    });
+    if (AS_JSON) console.log(JSON.stringify(results, null, 2));
+    for (const r of results) {
+      if (!AS_JSON) {
+        for (const f of r.failures) {
+          console.log(`  ✘ ${f.slide ? `slide ${f.slide} · ` : ''}${f.tag} «${f.text}» ${f.ratio}:1 (needs ${f.min}:1) — ${f.fg} on ${f.bg}, ${f.size}px${f.by === 'pixels' ? ', on the painted pixels' : ''}`);
+        }
+        for (const u of r.unmeasurable.slice(0, 10)) console.log(`  ? ${u.slide ? `slide ${u.slide} · ` : ''}«${u.text}» sits on an image that could not be brought on screen: check it by eye`);
+        if (r.unmeasurable.length > 10) console.log(`  ? … and ${r.unmeasurable.length - 10} more on images`);
+        const verdict = !r.measured ? '✘ measured nothing' : r.failures.length ? '✘' : '✓';
+        console.log(`${verdict} ${r.target}: ${r.measured} text(s) measured (${r.byPixels} on the painted pixels, at ${WIDTH}x${HEIGHT}), `
+          + `${r.failures.length} under the threshold, ${r.unmeasurable.length} not measurable`);
+      }
+      if (!r.measured) code = Math.max(code, 2);
+      else if (r.failures.length) code = Math.max(code, 1);
+    }
+  } catch (e) {
+    console.error(`check-contrast: ${e.message}`);
+    code = e.code || 2;
+  }
+  process.exit(code);
 }
-process.exit(code);
