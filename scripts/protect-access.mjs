@@ -143,7 +143,11 @@ export async function protect({
   const acct = `/accounts/${accountId}/access`;
 
   log('→ Token');
-  const v = await cf('GET', '/user/tokens/verify');
+  // A token created under the user's profile verifies at /user/tokens/verify; an
+  // account-owned token (dashboard ▸ Manage account ▸ API tokens, or minted from a CLI
+  // session) is unknown there and verifies only under its account. Both are fine here.
+  let v = await cf('GET', '/user/tokens/verify');
+  if (!v.success) v = await cf('GET', `/accounts/${accountId}/tokens/verify`);
   if (!v.success) throw new Stop(`The token was refused: ${JSON.stringify(v.errors)}\nThis must be an API token, not the Global API Key.\n${TOKEN_HELP}`);
 
   log('→ Zero Trust organization');

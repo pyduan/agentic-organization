@@ -7,7 +7,7 @@ import assert from 'node:assert/strict';
 import { protect, readEmails, writeVars, normaliseToken, classify } from './protect-access.mjs';
 
 /** A minimal Access API: organizations, identity providers, workers, apps, policies. */
-function fakeApi({ org = 'acme.cloudflareaccess.com', idps = [], apps = [], workers = [{ id: 'acme-dash', tag: 'w-1' }], refuse = null } = {}) {
+function fakeApi({ org = 'acme.cloudflareaccess.com', idps = [], apps = [], workers = [{ id: 'acme-dash', tag: 'w-1' }], refuse = null, tokenOwner = 'user' } = {}) {
   const state = { idps: [...idps], apps: [...apps], policies: {}, calls: [] };
   let n = 0;
   const ok = (result) => ({ json: async () => ({ success: true, result }) });
@@ -18,7 +18,9 @@ function fakeApi({ org = 'acme.cloudflareaccess.com', idps = [], apps = [], work
     if (refuse && method !== 'GET' && path.includes(refuse)) {
       return { json: async () => ({ success: false, errors: [{ code: 10000, message: 'Authentication error' }] }) };
     }
-    if (path === '/user/tokens/verify') return ok({ status: 'active' });
+    const invalid = { json: async () => ({ success: false, errors: [{ code: 1000, message: 'Invalid API Token' }] }) };
+    if (path === '/user/tokens/verify') return tokenOwner === 'user' ? ok({ status: 'active' }) : invalid;
+    if (/^\/accounts\/[^/]+\/tokens\/verify$/.test(path)) return tokenOwner === 'account' ? ok({ status: 'active' }) : invalid;
     if (path.endsWith('/access/organizations')) return ok(org ? { auth_domain: org } : null);
     if (path.endsWith('/access/identity_providers')) {
       if (method === 'GET') return ok(state.idps);
@@ -76,6 +78,16 @@ test('a second run updates in place and never duplicates', async () => {
 test('a refused write stops with what the token needs', async () => {
   const api = fakeApi({ refuse: '/access/apps' });
   await assert.rejects(protect({ ...base, fetchImpl: api.fetchImpl }), /Access: Apps and Policies/);
+});
+
+test('an account-owned token is accepted; a token valid nowhere still stops before any write', async () => {
+  const api = fakeApi({ tokenOwner: 'account' });
+  const r = await protect({ ...base, fetchImpl: api.fetchImpl });
+  assert.ok(r.aud);
+  assert.ok(api.state.calls.includes('GET /accounts/a1/tokens/verify'));
+  const bad = fakeApi({ tokenOwner: 'nobody' });
+  await assert.rejects(protect({ ...base, fetchImpl: bad.fetchImpl }), /token was refused/);
+  assert.ok(bad.state.calls.every((c) => c.startsWith('GET')), bad.state.calls.join(', '));
 });
 
 test('a dry run reads and changes nothing', async () => {

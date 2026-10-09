@@ -10,6 +10,14 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Putting a page behind Access accepts the newer kind of Cloudflare token
+
+Cloudflare now issues API tokens that belong to the account rather than to a person, and
+`scripts/protect-access.mjs` refused them as invalid although they had every permission needed: it
+only asked Cloudflare whether the token was a personal one. It now checks both, so either kind works.
+
+**What to do:** nothing. If your agent ever told you a freshly made token "was refused", it was this.
+
 ## 2026-10-09 · MINOR · A commit no longer carries away what another session staged
 
 When two sessions work in the same copy of a repo, whatever one of them has staged waits in an area
