@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · Sessions working side by side announce the files they take
+
+When two or more sessions work on the same app, the one about to change a shared file now tells the
+other first and says when it is done, and the other pulls before touching it again. And when two
+sessions find themselves on the same job, they stop and split it instead of doing it twice. This is
+how three sessions built an organization's intranet together for a full day without overwriting
+each other.
+
+**What to do:** nothing.
+
 ## 2026-10-09 · MINOR · The end-of-session check stops asking about another session's work
 
 When several sessions work in the same copy of your repos, the check that stops a session from

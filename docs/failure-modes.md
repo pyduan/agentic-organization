@@ -667,6 +667,18 @@ in a single session, and they get more likely exactly when work is going well.
   still needs its `git add` first; `--only` refuses a path git has never seen.
 - **Ownership comes from a file's history, not its location.** Read it before editing something
   outside your own scope, and tell the session that actually owns it.
+- **Claim a shared file before editing it, and hand it back once it is pushed.** On a live day three
+  sessions changed the same app for hours without overwriting each other, with one message each way:
+  "I am changing these four files for the next half hour, leave them until I say they are pushed",
+  then "pushed in <commit>; here is what changed in your files". The other session pulled before its
+  next edit. A message costs seconds; untangling two half-finished edits of one file costs the
+  afternoon.
+- **One subject, one session; a second source becomes the check.** Two sessions started the same
+  import within minutes, one from a spreadsheet export the owner had handed it, the other from the
+  system's API. The second saw the first's untracked files before writing a record, stopped, and
+  proposed a split the owner approved in two words: the API is the source, and the export is only a
+  set of totals the import must reconcile with. Before anything that writes records in bulk, look at
+  the untracked files and the running sessions.
 - **Write down who owns what** when more than one session is running: a two-column note in the repo
   (who decides what, who writes where) is enough, and it has to exist before the collision.
 - **After changing anything shared** — tokens, a stylesheet, a helper — check every consumer of it.
