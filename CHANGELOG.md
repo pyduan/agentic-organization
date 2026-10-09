@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · A private app can deploy itself on every push with no dashboard screen
+
+`docs/deploy-cloudflare.md` now describes a second way to keep a private app deployed: a GitHub
+Actions workflow in your repo instead of connecting the repo to Cloudflare in its dashboard, with a
+deploy token that can do nothing else and a last step that fails if the app ever answers a stranger.
+Your agent can set it all up from the command line. Three entries in `docs/troubleshooting.md` cover
+what came up on the way: an account's first deploy asking a question nobody can answer, an app that
+reads thousands of files from GitHub on the free plan, and reading PDFs and scans on a Mac without
+installing anything.
+
+**What to do:** nothing. Your existing deploys keep working as they are.
+
 ## 2026-10-09 · MINOR · When a step can only be yours, you get one link, and your agent checks it took
 
 Some steps only you can take: creating a GitHub token, changing who can read your organization's

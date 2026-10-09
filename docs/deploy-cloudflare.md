@@ -165,6 +165,78 @@ added later, so there is no list of URLs to remember to protect.
    cache-buster**: Cloudflare caches these answers, and a plain `curl` has reported a hole still
    open minutes after it was closed, and vice versa.
 
+### Without a dashboard screen: deploying from GitHub Actions
+
+Connecting a Worker to the repo (Workers Builds, step 1) installs Cloudflare's GitHub app, and that
+takes a browser. When the owner should not have to open one, a GitHub Actions workflow in the repo
+does the same job, and everything it needs can be set from the command line. A live organization's
+private app has deployed this way since its first day, and nobody opened the Cloudflare dashboard
+for it after the one Zero Trust step above.
+
+1. **A deploy token that can do one thing.** Account-owned, **Workers Scripts: Edit** and nothing
+   else, with an expiry date. A Cloudflare CLI signed in with the owner's own approval (`cf auth
+   login` shows a code to approve in the browser) can mint it through the account tokens API
+   (`cf accounts tokens create` at the time of writing), and its value goes straight into the
+   repo's secrets without being printed:
+
+   ```sh
+   cf accounts tokens create --name "<app>-deploy" --policies @deploy-policy.json --expires-on <date> \
+     | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const j=JSON.parse(s);process.stdout.write(j.value||j.result.value)})' \
+     | gh secret set CLOUDFLARE_API_TOKEN -R <owner>/<repo>
+   gh variable set CLOUDFLARE_ACCOUNT_ID -R <owner>/<repo> -b <account id>
+   ```
+
+   `deploy-policy.json` is one line,
+   `[{"effect":"allow","resources":{"com.cloudflare.api.account.<account id>":"*"},"permission_groups":[{"id":"<id>"}]}]`,
+   where `<id>` is the one `cf accounts tokens permission-groups list` gives for *Workers Scripts
+   Write*.
+
+   This is the one kind of token the agent may create on the owner's behalf (see the setup skill):
+   the value reaches no screen, file or conversation, it can do a single job, and it expires. A token
+   needed once, such as the Access rights `scripts/protect-access.mjs` uses, gets an expiry of an
+   hour or two and is deleted as soon as the script has run.
+
+2. **The workflow**, `.github/workflows/<app>.yml`. It deploys only when something the app is built
+   from changes, and its last step is the outside check from step 4, so a deploy that opened the
+   door fails in red instead of passing in silence:
+
+   ```yaml
+   name: Deploy <app>
+   on:
+     push:
+       branches: [main]
+       paths: ['apps/<app>/**', 'lib/**', 'package-lock.json', '.github/workflows/<app>.yml']
+     workflow_dispatch:
+   concurrency: { group: <app>, cancel-in-progress: false }
+   jobs:
+     deploy:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v5
+         - uses: actions/setup-node@v5
+           with: { node-version: 24 }
+         - run: npm ci && npm test
+         - run: npx wrangler deploy --config apps/<app>/wrangler.jsonc
+           env:
+             CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+             CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+         - name: The door is still shut to strangers
+           run: |
+             sleep 5
+             code=$(curl -s -o /dev/null -w '%{http_code}' "https://<name>.<subdomain>.workers.dev/?cb=$RANDOM$RANDOM")
+             echo "anonymous request: $code"
+             [ "$code" = 302 ] || [ "$code" = 403 ]
+   ```
+
+3. **In this order, the first time:** deploy a Worker that refuses everybody while its `POLICY_AUD`
+   is empty (`lib/access.mjs` does), check from outside that it answers anything but `200`, run
+   `protect-access.mjs --write-vars`, push, and only then give the Worker the token to its data. On
+   the live setup the app answered `500` for the three minutes between its first deploy and Access:
+   that is what failing closed looks like, and it is why the data token comes last.
+
+On a fresh account the first `wrangler deploy` from a workflow can stop on a question it cannot
+answer: see *Wrangler asks to register a workers.dev subdomain* in `docs/troubleshooting.md`.
+
 Two things worth knowing before you design anything on it:
 
 - **The policy is the boundary — do not write your own identity check.** An assets-only Worker (what
