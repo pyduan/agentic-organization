@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · The end-of-session check stops asking about another session's work
+
+When several sessions work in the same copy of your repos, the check that stops a session from
+ending with unsaved work used to fire on whatever was unsaved, whoever had written it. On one
+afternoon four sessions were stopped seventeen times between them, nearly always over a neighbour's
+files, and each time the agent had to explain that they were not its own. The check now reads what
+the session itself did and asks only about that. When it cannot tell, it asks about everything, as
+before.
+
+**What to do:** nothing.
+
 ## 2026-10-09 · MINOR · A choice your agent made for you waits for your yes before it counts as settled
 
 Your agent treats what is written in `source/decisions.md` as settled and does not reopen it. That
