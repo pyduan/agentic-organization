@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MAJOR · The guards now follow you into the folder that holds your repos
+
+The kit tells you to open your agent on the folder that holds all your repos side by side, and that
+is still right. But the guards that live in your main repo (asking you before a message leaves in
+your name, checking a turn's claims, the end-of-session check) load only in the folder the agent was
+opened on, so in that parent folder none of them ran, and nothing said so. An organization set up
+from the kit found out and had to build a copy for the parent folder by hand. The kit now ships it:
+`node scripts/install-workspace.mjs` writes a `CLAUDE.md` and a `.claude/settings.json` into the
+parent folder that send the agent to your main repo's rules and run its guards. A session opened
+there also pulls every repo at the start, names any repo it could not update, and checks every repo
+for unsaved work at the end. It also warns when git does not know who you are on that machine, since
+commits then go out under the computer's name.
+
+**What to do:** if you open your agent on the folder that holds your repos, ask it once to run
+`node <your main repo>/scripts/install-workspace.mjs`, then open a new session there: its first line
+should read "Workspace: … repo(s) up to date." If that folder already has a `CLAUDE.md` or
+`.claude/settings.json` you made yourself, the script stops and shows you; nothing is overwritten.
+
 ## 2026-10-09 · MINOR · Putting a page behind Access accepts the newer kind of Cloudflare token
 
 Cloudflare now issues API tokens that belong to the account rather than to a person, and

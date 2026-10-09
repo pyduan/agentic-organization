@@ -220,6 +220,7 @@ source/formats/dashboard.md  the private dashboard: what it shows, and why one a
 source/quality/              the incident register (the AI's own mistakes) + its schema
 apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
+scripts/install-workspace.mjs  gives the parent folder this repo's guards (templates in docs/workspace/)
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/protect-access.mjs   put a Worker behind Access: a list of addresses, a one-time code each, no screen
