@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-09 · MINOR · A commit no longer carries away what another session staged
+
+When two sessions work in the same copy of a repo, whatever one of them has staged waits in an area
+both share, and a plain commit from the other takes it along under the wrong message. It happened on
+a live project the day two sessions set up an organization side by side: nine files of one session's
+work left inside the other's commit, caught only because the agent read what the commit contained
+before publishing it. Your agent now commits with `git commit --only`, naming every file it touched,
+and the end-of-session reminder says the same.
+
+**What to do:** nothing.
+
 ## 2026-10-06 · MINOR · The contrast check no longer fails a title for a glow in the far corner
 
 A deck with a soft coloured glow in one corner had every small title on its light slides reported

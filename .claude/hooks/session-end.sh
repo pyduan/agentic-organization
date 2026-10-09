@@ -22,7 +22,7 @@ fi
 
 if [ -n "$dirty" ] || [ -n "$unpushed" ]; then
   cat <<'EOF'
-{"decision": "block", "reason": "End-of-session check: there are unsaved or unpublished changes in this repo. Before finishing: (1) stage the files you touched explicitly and commit; (2) push so the change goes live; (3) run the reflection pass from .claude/skills/reflect/SKILL.md, folding anything learned this session into the guides; (4) tell the owner in plain words what was published and saved. If the leftover files are not yours to commit, say so to the owner instead of committing blindly."}
+{"decision": "block", "reason": "End-of-session check: there are unsaved or unpublished changes in this repo. Before finishing: (1) commit the files you touched by name, with git commit --only -- <paths> (git add a new file first), so nothing another session staged rides along; (2) push so the change goes live; (3) run the reflection pass from .claude/skills/reflect/SKILL.md, folding anything learned this session into the guides; (4) tell the owner in plain words what was published and saved. If the leftover files are not yours to commit, say so to the owner instead of committing blindly."}
 EOF
   exit 0
 fi
