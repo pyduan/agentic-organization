@@ -10,6 +10,12 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-13 · MINOR · The same folder tree on every machine
+
+The quick start now asks for the same parent folder, under the same names, on every machine of the
+organization, and the second person's paste clones into it. A path, a command or a prompt one person
+writes then works as is for the next.
+
 ## 2026-10-09 · MINOR · Bringing in the second person, shared mailboxes, and which plan for whom
 
 From a real onboarding of an association. The quick start now covers what the setup hour actually
