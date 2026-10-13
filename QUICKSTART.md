@@ -161,7 +161,9 @@ about them.
   control if you will use it. These cost more quota, which is the plan's job, not yours.
 
 - **One parent folder, `~/Projects`, with the repos side by side inside it.** Not nested, not
-  scattered between the desktop and the downloads folder. Open the agent on that parent folder and
+  scattered between the desktop and the downloads folder. **And the same path, with the same folder
+  names, on every machine of the organization**: a path, a command or a prompt one person writes then
+  works as is for the next, and helping someone remotely takes one sentence. Open the agent on that parent folder and
   come back to it: that is what lets one session read across several repos, which is the whole
   reason it runs on your machine rather than in the cloud. The guards of your main repo (the send
   guard, the end-of-session check) do not load from that folder on their own: once the main repo is
@@ -247,7 +249,7 @@ organization, and the desktop app with the settings above. Then this paste:
 > machine (git, Node, the GitHub CLI, whether I am logged into GitHub), install what is missing one
 > step at a time, explaining each step and checking it worked, and log me into GitHub with
 > `gh auth login --git-protocol ssh`. Then list the repos of my organization on GitHub that I can
-> access and clone them side by side in `~/Projects`, and run `node <main repo>/scripts/install-workspace.mjs`
+> access and clone them side by side in `~/Projects`, the same folder as everyone else, and run `node <main repo>/scripts/install-workspace.mjs`
 > from there. Read the main repo's `CLAUDE.md` and `source/brief.md`, and tell me in plain words what
 > the organization already does with you. Then ask me what my job is, so we find my first use case.
 
