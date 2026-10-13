@@ -188,6 +188,16 @@ for (const key of keys.sort()) {
         }
       }
 
+      // Une API qu'on appelle en POST (`…/v2/entries:list`) répond 404 à un HEAD
+      // alors qu'elle est bien vivante. On ne POSTe pas à sa place, un appel peut
+      // avoir des effets : si le bloc qui nomme l'URL dit POST, on se contente de
+      // l'indiquer.
+      const postBlock = text.split(/\n(?=\s*[-*]\s|\n)/).some((b) => b.includes(clean) && /\bPOST\b/.test(b));
+      if ((st.status === 404 || st.status === 405) && postBlock) {
+        add('info', where, clean, `endpoint appelé en POST : un HEAD anonyme ne prouve rien`);
+        continue;
+      }
+
       if (st.status === 404 || st.status === 410) add('fail', where, clean, `répond ${st.status} — la mémoire pointe vers une page morte`);
       else if (st.error) add('info', where, clean, `injoignable (${st.error}) — peut être normal derrière un accès restreint`);
     }
