@@ -27,6 +27,8 @@ function workspace() {
   mkdirSync(join(router, 'docs'), { recursive: true });
   cpSync(join(KIT, 'docs/workspace'), join(router, 'docs/workspace'), { recursive: true });
   cpSync(join(KIT, '.claude/hooks'), join(router, '.claude/hooks'), { recursive: true });
+  // workspace-start runs the router's sync, which reads the map through lib/workspace.mjs.
+  for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs']) cpSync(join(KIT, f), join(router, f));
   return { ws, router };
 }
 const home = () => mkdtempSync(join(tmpdir(), 'home-'));
@@ -156,7 +158,7 @@ test('workspace-start pulls what it can, names what it cannot, and flags a missi
   const noIdentity = join(ws, '..', `gitconfig-empty-${Date.now()}`);
   writeFileSync(noIdentity, '');
   const out = start({ GIT_CONFIG_GLOBAL: noIdentity });
-  assert.match(out, /Workspace: 1 repo\(s\) up to date\./);
+  assert.match(out, /Workspace: 1 repo\(s\) up to date \(1 pulled just now\)\./);
   assert.ok(existsSync(join(notes.dir, 'news.md')), 'notes was fast-forwarded');
   assert.match(out, /• sales: NOT updated/);
   assert.match(out, /Git has no identity on this machine/);

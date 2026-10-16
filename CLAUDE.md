@@ -8,7 +8,7 @@ This repo is the single source of truth. `source/` holds the truth: content, bra
 
 ## Start of every session
 
-1. `git pull` first, always. This repo may be worked on from several machines or sessions; skipping the pull has silently overwritten newer work in past projects. **Pull again before you hand anything over**, too: a draft written earlier in the session can already be wrong if another session corrected a fact in the meantime, so re-check what a deliverable asserts against the files as they stand now before you show it, send it, or call it ready. **If your organization spans more than this repo** (a shared org repo plus separate project repos the `new-project` skill created, or repos with restricted access), clone the ones a task needs **side by side** and `git pull` each at the start — the repo map and who-can-access-what live in `ORGANIGRAM.md`. Working from a stale clone ships an out-of-date brand or a wrong fact.
+1. `git pull` first, always. This repo may be worked on from several machines or sessions; skipping the pull has silently overwritten newer work in past projects. **Pull again before you hand anything over**, too: a draft written earlier in the session can already be wrong if another session corrected a fact in the meantime, so re-check what a deliverable asserts against the files as they stand now before you show it, send it, or call it ready. **If your organization spans more than this repo** (a shared org repo plus separate project repos the `new-project` skill created, or repos with restricted access), clone the ones a task needs **side by side** and `git pull` each at the start — the repo map and who-can-access-what live in `ORGANIGRAM.md`. The session-start hook already fast-forwards the clones it safely can (`scripts/workspace-sync.mjs`) and names the others: deal with a named one before writing in it, and never by discarding changes. Working from a stale clone ships an out-of-date brand or a wrong fact.
 2. Read `source/brief.md`. It holds who this site is for, what exists, and current priorities.
 3. If `brief.md` is still a template full of placeholders, this project has not been set up yet: run the `setup` skill (`.claude/skills/setup/SKILL.md`) before anything else.
 4. If the owner asks to start something new (a different client, a different brand, "another site"), don't assume — run the `new-project` skill (`.claude/skills/new-project/SKILL.md`) to decide whether that's a new repo or a variant of this one before creating anything.
@@ -54,6 +54,7 @@ Find every row that matches the task at hand and read those files before produci
 | Onboarding someone onto the kit, or "is everyone on the current version", "why did X not get the update" | `node scripts/check-fleet.mjs` — per instance: how far behind the template, whether it is wired to announce its own news, and who last pushed. A project onboarded before a mechanism cannot announce that mechanism exists |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks — including whether the `.gitignore` rules are true, since one added after the files were committed protects nothing |
 | The agent seems to ignore what this repo says, or someone is setting the kit up on a machine that has been used with Claude before | `node scripts/check-conflicts.mjs` — what is instructing the agent from OUTSIDE this repo: a user-level `CLAUDE.md`, installed plugins and global skills, globally declared MCP servers, scheduled tasks, a second clone. `--park` moves the safe ones aside, reversibly; it never deletes |
+| "Check my setup", "is everything installed", right after an install, or the agent behaves differently on one computer | `.claude/skills/check-setup/SKILL.md` → `node scripts/setup-status.mjs`: one green, orange or red line per piece of the setup, each with its fix. It changes nothing; the fixes are separate commands |
 | An install or hosting step fails, or the owner pastes an error | `docs/troubleshooting.md` — check it before improvising; if the problem isn't in it, add the entry once solved |
 
 ## Working rules
@@ -228,6 +229,8 @@ scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the 
 scripts/install-workspace.mjs  gives the parent folder this repo's guards (templates in docs/workspace/)
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
+scripts/workspace-sync.mjs   keeps the clones current: fast-forwards a clean default branch, names the rest
+scripts/setup-status.mjs     every setup check in one table, green to red, with the fixes (--json for a skill or an app)
 scripts/protect-access.mjs   put a Worker behind Access: a list of addresses, a one-time code each, no screen
 scripts/check-contrast.mjs   every text on a page or deck measured against what is behind it (WCAG)
 scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
@@ -235,5 +238,5 @@ scripts/error-report.mjs     the incident register → a report, full or anonymi
 scripts/check-register.mjs   does every entry in the register keep to the schema?
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong
 scripts/open-decisions.mjs   at session start: decisions waiting on a person, and hypotheses due a second look
-.claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit
+.claude/skills/              setup · fact-finding · new-project · publish · new-deck · research · projects · team · reflect · feedback · update-kit · check-setup
 ```

@@ -4,7 +4,8 @@
 # not load. Installed by scripts/install-workspace.mjs (templates in docs/workspace/).
 #
 # 1. Fast-forwards every repo, never a merge or a rebase, and names the ones it could
-#    not update. Working from a stale clone is how newer work gets overwritten.
+#    not update. Working from a stale clone is how newer work gets overwritten. The rules
+#    (default branch only, nothing uncommitted in the way) are scripts/workspace-sync.mjs.
 # 2. Warns when git has no identity on this machine. Commits then go out signed
 #    <user>@<computer name>, attached to no account, and nobody notices until someone
 #    reads the history: a new organization's whole first day of commits went out so.
@@ -13,21 +14,11 @@
 router="$(cd "$(dirname "$0")/../.." && pwd)"
 cd "${CLAUDE_PROJECT_DIR:-$(dirname "$router")}" || exit 0
 
-ok=0
-notes=()
-for d in */; do
-  d="${d%/}"
-  [ -e "$d/.git" ] || continue
-  if ! git -C "$d" rev-parse --abbrev-ref '@{upstream}' >/dev/null 2>&1; then
-    notes+=("• $d: no upstream branch, not pulled")
-  elif git -C "$d" pull --ff-only -q >/dev/null 2>&1; then
-    ok=$((ok + 1))
-  else
-    notes+=("• $d: NOT updated (local changes in the way, or the histories diverged). Run git pull --rebase in it before writing.")
-  fi
-done
-echo "Workspace: $ok repo(s) up to date."
-for n in "${notes[@]}"; do echo "$n"; done
+if command -v node >/dev/null 2>&1; then
+  node "$router/scripts/workspace-sync.mjs" sync --siblings 2>/dev/null
+else
+  echo "▲ Node is not installed on this machine, so no repo was brought up to date and the guards cannot run. Install it (QUICKSTART ▸ Install, in one paste)."
+fi
 
 email="$(git -C "$router" config user.email 2>/dev/null)"
 case "$email" in
