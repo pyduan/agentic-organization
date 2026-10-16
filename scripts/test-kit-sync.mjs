@@ -27,13 +27,13 @@ function setup({ legacy }) {
   const ws = mkdtempSync(join(tmpdir(), 'kitsync-'));
   const tpl = join(ws, 'template');
   mkdirSync(tpl);
-  git(tpl, 'init', '-q');
+  git(tpl, 'init', '-q', '-b', 'main');
   write(tpl, 'docs/guide.md', 'kit v1\n');
   const v1 = commit(tpl, 'v1');
 
   const proj = join(ws, 'proj');
   mkdirSync(proj);
-  git(proj, 'init', '-q');
+  git(proj, 'init', '-q', '-b', 'main');
   write(proj, 'docs/guide.md', 'kit v1\nmy own line\n');          // customised
   copyFileSync(SCRIPT, join(mkdirSync(join(proj, 'scripts'), { recursive: true }) || join(proj, 'scripts'), 'kit-sync.mjs'));
   write(proj, '.kit-sync', JSON.stringify({ sha: v1, setAside: legacy ? ['docs/guide.md'] : [{ file: 'docs/guide.md', at: v1 }] }));
