@@ -26,9 +26,10 @@ and the agent can run the same checks.
   version, what instructs the agent from outside the repo), green, orange or red, with the fix beside
   each. `node scripts/setup-status.mjs --json` gives the same answer to a script or an app.
 
-**What you need to do:** nothing to install. A repo marked "NOT updated" when a session opens is one
-the sync left alone on purpose (another branch, uncommitted changes, or commits of its own): ask the
-agent to sort it out, and it will not discard anything to do so.
+**What you need to do:** take this update, then say "check my setup" once on each computer that
+works in the organization and let the agent fix what is red. From then on, a repo marked "NOT
+updated" when a session opens is one the sync left alone on purpose (another branch, uncommitted
+changes, or commits of its own): ask the agent to sort it out, and it will not discard anything.
 
 ## 2026-10-13 · MINOR · The same folder tree on every machine
 
