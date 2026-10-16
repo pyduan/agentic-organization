@@ -24,9 +24,15 @@
 //
 // Zero dependencies. Reads the hook's JSON on stdin, prints a decision or nothing.
 
-import { readFileSync, realpathSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+// The message playbook of the repo this guard ships in, named so the agent can reread it. The same
+// file guards repos laid out differently, so it names the one that exists.
+const HOME = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+const PLAYBOOK = ['source/formats/message.md', 'recipes/messages/README.md']
+  .find((p) => existsSync(join(HOME, p))) || 'the message playbook';
 
 const MCP_SEND = /(^|_)(send|reply|forward)(_|$)|post_?message|chat_?post|create_draft|update_draft|send_draft|schedule_send/i;
 const SHELL_SEND = [
@@ -80,7 +86,7 @@ if (isMain) {
         permissionDecision: 'ask',
         permissionDecisionReason:
           `This would send a message in someone's name (${hit.what}). The kit's rule is that you draft and ` +
-          'they send (source/formats/message.md). Approve only if the owner explicitly asked for this exact ' +
+          `they send (${PLAYBOOK}). Approve only if the owner explicitly asked for this exact ` +
           'message to go, after the last version they saw: an answer to "shall I prepare it?" is not an order ' +
           'to send, and any edit made after their go needs a fresh one.',
       },
