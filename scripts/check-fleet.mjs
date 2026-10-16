@@ -214,8 +214,13 @@ async function inspect(dir) {
   // so it describes a clone and not a repo. An owner was told a healthy project
   // had no hook and no .kit-sync, on the strength of a clone 118 commits old.
   if (!OFFLINE) await git(dir, ['fetch', '--quiet', 'origin']);
+  // The branch's own remote twin comes last: a repo pushed with `git push origin
+  // main` and no -u has no upstream, and git before 2.48 never creates origin/HEAD
+  // on a fetch, so without it such a clone was never measured at all.
+  const branch = await git(dir, ['symbolic-ref', '--short', '-q', 'HEAD']);
   const upstream = (await git(dir, ['rev-parse', '--verify', '--quiet', '@{u}'])) ? '@{u}'
-    : (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : null;
+    : (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD'
+      : branch && (await git(dir, ['rev-parse', '--verify', '--quiet', `origin/${branch}`])) ? `origin/${branch}` : null;
   let copyBehind = null;
   if (upstream) {
     const n = await git(dir, ['rev-list', '--count', `HEAD..${upstream}`]);

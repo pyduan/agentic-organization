@@ -21,7 +21,7 @@ const git = (cwd, ...args) => execFileSync('git', args, { cwd, encoding: 'utf8',
 /** A repo with `n` commits, an origin, and optionally a .kit-sync. */
 function repo(dir, { origin, commits, kitSync = null }) {
   mkdirSync(dir, { recursive: true });
-  git(dir, 'init', '-q');
+  git(dir, 'init', '-q', '-b', 'main');
   git(dir, 'remote', 'add', 'origin', origin);
   const shas = [];
   for (let i = 0; i < commits; i++) {
@@ -135,7 +135,7 @@ test('a stale checkout is flagged before any verdict drawn from it', () => {
 /** A thin repo: its CLAUDE.md points at the router, and it carries none of the method. */
 function satellite(dir, { origin, method = false }) {
   mkdirSync(dir, { recursive: true });
-  git(dir, 'init', '-q');
+  git(dir, 'init', '-q', '-b', 'main');
   git(dir, 'remote', 'add', 'origin', origin);
   writeFileSync(join(dir, 'CLAUDE.md'),
     'This repo belongs to an organization whose router holds the agentic-organization framework.');
