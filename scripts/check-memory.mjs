@@ -33,7 +33,10 @@ const args = process.argv.slice(2);
 // projets de la machine, Bayes compris, et un balayage lancé depuis le côté
 // personnel n'a rien à aller lire chez le voisin (Paul, 2026-08-28). `--all`
 // élargit délibérément, `--side=<nom>` cible un autre côté.
-const WORKSPACE_SIDE = basename(dirname(resolve(process.cwd())));
+// Lancé depuis un dépôt, le côté est le dossier qui le contient ; lancé depuis ce
+// dossier lui-même (le dossier de travail, qui n'est pas un dépôt), c'est lui.
+const CWD = resolve(process.cwd());
+const WORKSPACE_SIDE = existsSync(join(CWD, '.git')) ? basename(dirname(CWD)) : basename(CWD);
 const ALL = args.includes('--all');
 const SIDE = ALL ? '' : ((args.find((a) => a.startsWith('--side=')) || `--side=${WORKSPACE_SIDE}`).slice(7));
 const AS_JSON = args.includes('--json');
@@ -92,7 +95,8 @@ async function checkUrl(url) {
 let keys = [];
 try {
   keys = (await readdir(BASE, { withFileTypes: true }))
-    .filter((e) => e.isDirectory() && e.name.startsWith('-Users-'))
+    // Un chemin absolu encodé commence par un tiret, /Users/ sur Mac comme /home/ sur Linux.
+    .filter((e) => e.isDirectory() && e.name.startsWith('-'))
     .map((e) => e.name);
 } catch { console.error(`Pas de ${BASE}`); process.exit(1); }
 
@@ -102,7 +106,9 @@ try {
 // dirait « rien à corriger » sur des mémoires qu'il n'a pas ouvertes.
 const sides = SIDE ? SIDE.split(',').map((x) => x.trim()).filter(Boolean) : [];
 const total = keys.length;
-if (sides.length) keys = keys.filter((k) => sides.some((sd) => k.includes(`-projects-${sd}-`)));
+// `-projects-<côté>-` attrape les sessions ouvertes dans un dépôt du côté, et la fin
+// `-projects-<côté>` celles ouvertes sur le dossier de travail lui-même, qu'on oubliait.
+if (sides.length) keys = keys.filter((k) => sides.some((sd) => k.includes(`-projects-${sd}-`) || k.endsWith(`-projects-${sd}`)));
 const skipped = total - keys.length;
 
 // Un côté qui ne désigne rien ne doit surtout pas sortir « ✓ 0 mémoire(s) ».
