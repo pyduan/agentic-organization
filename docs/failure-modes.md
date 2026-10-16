@@ -7,8 +7,8 @@ owner real time. They are not exotic. Most of them are sound reasoning applied t
 opened.
 
 Read this before acting on real data, before a figure or a claim leaves the repo, and whenever you
-are about to build a tool. The `reflect` skill uses the same seven names when it logs an incident
-(`source/quality/README.md`), so the families here and the register there stay one vocabulary.
+are about to build a tool. The incident register files every entry under the same seven names
+(`lib/register.mjs`), so the families here and the register there stay one vocabulary.
 
 Three findings about the *shape* of these errors, before the list:
 

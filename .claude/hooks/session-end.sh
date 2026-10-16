@@ -45,6 +45,10 @@ if command -v node >/dev/null 2>&1 && own=$(printf '%s' "$input" | node "$hooks/
   [ ${#left[@]} -eq 0 ] && exit 0
 fi
 
+# The reflection pass is a skill here and a section of the manual where the kit has no skills.
+reflect="from .claude/skills/reflect/SKILL.md"
+[ -f "$hooks/../skills/reflect/SKILL.md" ] || reflect="at the end of CLAUDE.md"
+
 where="in this repo"
 if [ "${repos[0]}" != "." ]; then
   where="in: ${left[0]}"
@@ -52,5 +56,5 @@ if [ "${repos[0]}" != "." ]; then
 fi
 [ -n "$others" ] && [ "$others" != "0" ] && where="$where (yours; $others change(s) by other sessions left alone)"
 
-printf '{"decision": "block", "reason": "End-of-session check: there are unsaved or unpublished changes %s. Before finishing: (1) commit the files you touched by name, with git commit --only -- <paths> (git add a new file first), so nothing another session staged rides along; (2) push so the change goes live; (3) run the reflection pass from .claude/skills/reflect/SKILL.md, folding anything learned this session into the guides; (4) tell the owner in plain words what was published and saved. If the leftover files are not yours to commit, say so to the owner instead of committing blindly."}\n' "$where"
+printf '{"decision": "block", "reason": "End-of-session check: there are unsaved or unpublished changes %s. Before finishing: (1) commit the files you touched by name, with git commit --only -- <paths> (git add a new file first), so nothing another session staged rides along; (2) push so the change goes live; (3) run the reflection pass %s, folding anything learned this session into the guides; (4) tell the owner in plain words what was published and saved. If the leftover files are not yours to commit, say so to the owner instead of committing blindly."}\n' "$where" "$reflect"
 exit 0
