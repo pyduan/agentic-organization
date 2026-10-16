@@ -10,6 +10,12 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-16 · MINOR · The memory sweep reads the workspace folder's own memories
+
+`check-memory` skipped the memories of sessions opened on the folder that holds your repos, which is
+where most sessions open since the workspace guards, and on Linux it read nothing at all. It now
+reads both, and run from that folder it sweeps that folder's side.
+
 ## 2026-10-16 · MINOR · Edits that cancel each other no longer save anything
 
 In the to-do app, a card moved down and back up, an item ticked and unticked, or a date set and
