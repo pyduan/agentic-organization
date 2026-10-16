@@ -117,6 +117,21 @@ Worker; don't nest it as a subfolder of an existing one. If you're unsure whethe
 something is a new project or a variant of the current one, ask Claude — the `new-project` skill
 exists exactly for that call.
 
+## A repo says "NOT updated" when a session starts
+
+Each session starts by bringing your clones up to date, and it only does so when nothing can be lost:
+the repo is on its main branch and nothing uncommitted is in the way. Anything else it names, with
+what is in the way, and leaves exactly as it was. Usually it is one of these:
+
+- **Uncommitted changes**: a session left work unsaved. Commit it (or ask whose it is), then pull.
+- **Your commits and new ones on main**: the two histories diverged. `git pull --rebase` in it, then push.
+- **On another branch**: someone is working on a branch there. Normal; main is not touched under it.
+- **Could not reach origin**: offline, or the GitHub login expired. Say **"check my setup"**.
+
+Ask the agent to sort it out; it does the git. Whatever the case, nothing gets discarded to make the
+line go away: the changes may be another session's, or another person's.
+`node scripts/workspace-sync.mjs status` shows where every clone stands.
+
 ## Still stuck?
 
 Paste the exact error message to Claude and ask it to diagnose step by step. And if your problem

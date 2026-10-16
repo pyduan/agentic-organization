@@ -22,6 +22,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/workspace-sync.mjs\" sync --quiet 2>/dev/null || true"
+          },
+          {
+            "type": "command",
             "command": "node \"$CLAUDE_PROJECT_DIR/scripts/kit-news.mjs\" 2>/dev/null || true"
           },
           {

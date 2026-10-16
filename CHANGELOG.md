@@ -10,6 +10,26 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-16 · MINOR · Clones kept current without touching work in progress, and "check my setup"
+
+Ported from a small desktop app another organization gave its team for both jobs. The logic came
+over and the app did not: an app needs signing, an installer per system and someone to support it,
+and the agent can run the same checks.
+
+- **Session start keeps every clone current, safely.** It used to pull whatever branch was checked
+  out. It now fast-forwards a repo only when it is on its main branch with nothing uncommitted in the
+  way, and names every other repo with what is in the way, leaving it exactly as it was. It also runs
+  when a session opens on the main repo, for the repos on your map, and not only on the workspace
+  folder. `node scripts/workspace-sync.mjs status` shows where each clone stands.
+- **Say "check my setup".** One line per piece of the setup (git and Node, the GitHub login, the git
+  identity, the repo map, the clones, the workspace folder's guards, the session hooks, the kit
+  version, what instructs the agent from outside the repo), green, orange or red, with the fix beside
+  each. `node scripts/setup-status.mjs --json` gives the same answer to a script or an app.
+
+**What you need to do:** nothing to install. A repo marked "NOT updated" when a session opens is one
+the sync left alone on purpose (another branch, uncommitted changes, or commits of its own): ask the
+agent to sort it out, and it will not discard anything to do so.
+
 ## 2026-10-13 · MINOR · The same folder tree on every machine
 
 The quick start now asks for the same parent folder, under the same names, on every machine of the

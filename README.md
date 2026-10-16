@@ -68,7 +68,7 @@ projects/            (optional module) your real work, tracked: charter, log, fi
 team/                (optional module) your team files — gitignored, local-only, never shared
 scripts/             install scripts (mac + windows), the deploy/build helpers, the checks
 docs/                how it works, the deploy guide, the troubleshooting FAQ, how this goes wrong
-.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, feedback, update-kit) + hooks
+.claude/             skills (setup, new-project, publish, new-deck, research, projects, team, reflect, feedback, update-kit, check-setup) + hooks
 ```
 
 The guides ship as genericized templates distilled from real projects. The first session personalizes them: the AI interviews you, then builds from whatever you start with — documents dropped in the inbox, an existing live site it scrapes, or an existing repo it clones and mines for content (rebasing onto this kit's own structure, never reusing the old code) — or from nothing at all, if you're starting fresh.

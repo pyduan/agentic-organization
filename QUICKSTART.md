@@ -60,6 +60,10 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 
 Both are safe to run twice if something gets interrupted.
 
+Once it is done, and whenever something seems off later, say **"check my setup"**. You get one line
+per piece of the setup, green, orange or red, with the fix beside each one, and the agent fixes what
+only touches your own machine (`node scripts/setup-status.mjs` underneath).
+
 ### If this machine has been used with Claude before
 
 The kit works because one repo holds the instructions. Anything installed outside it and still
@@ -250,7 +254,7 @@ organization, and the desktop app with the settings above. Then this paste:
 > step at a time, explaining each step and checking it worked, and log me into GitHub with
 > `gh auth login --git-protocol ssh`. Then list the repos of my organization on GitHub that I can
 > access and clone them side by side in `~/Projects`, the same folder as everyone else, and run `node <main repo>/scripts/install-workspace.mjs`
-> from there. Read the main repo's `CLAUDE.md` and `source/brief.md`, and tell me in plain words what
+> from there. Then run `node <main repo>/scripts/setup-status.mjs` and fix what is red. Read the main repo's `CLAUDE.md` and `source/brief.md`, and tell me in plain words what
 > the organization already does with you. Then ask me what my job is, so we find my first use case.
 
 After that, they connect their own mailbox (one per login, section 3), and they describe their first
