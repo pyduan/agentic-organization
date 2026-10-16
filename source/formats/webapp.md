@@ -341,9 +341,12 @@ Four things decide whether this is pleasant or awful:
 2. **Send the blob sha, and treat the 409 as a feature.** It is compare-and-swap: a stale sha is
    refused. Re-read, re-find by id, re-apply the same intent, retry once. This works because the
    anchor is an id, not a position.
-3. **Debounce.** A commit per checkbox is 300-800 ms of latency and an unreadable history. Apply
-   optimistically, commit after a few seconds of idle, one commit per batch. On drag and drop,
-   commit on drop and never during the drag.
+3. **Debounce, and send the net effect.** A commit per checkbox is 300-800 ms of latency and an
+   unreadable history. Apply optimistically, commit after a few seconds of idle, one commit per
+   batch. On drag and drop, commit on drop and never during the drag. Edits that cancel each other
+   (a card moved and moved back, a tick and an untick) leave nothing to send: the queue keeps each
+   edit's starting point and drops what ends where it began (`coalesce` in `lib/todo.mjs`), and the
+   server writes nothing when the batch changes nothing.
 4. **Do not bake the data at build time.** A commit changes nothing on screen until the next build.
    The shell is static, the list is fetched from the Worker on mount.
 

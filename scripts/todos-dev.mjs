@@ -13,7 +13,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { parse, apply, ensureIds } from '../lib/todo.mjs';
+import { parse, apply, ensureIds, coalesce } from '../lib/todo.mjs';
 
 // Resolved from this file, not from the cwd, so it can be started from anywhere.
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -74,12 +74,13 @@ const server = createServer(async (req, res) => {
       const seeded = ensureIds(markdown);
       let out = seeded.markdown;
       const rejected = [];
-      for (const intent of body.intents || []) {
+      for (const intent of coalesce(body.intents || [])) {
         const r = apply(out, intent.op === 'comment' ? { ...intent, by: 'local' } : intent);
         if (r.changed) out = r.markdown;
         else if (r.reason) rejected.push({ intent, reason: r.reason });
       }
-      if (out !== markdown) await writeFile(full, out, 'utf8');
+      // Same rule as the Worker: a batch that nets to nothing writes nothing, ids included.
+      if (out !== seeded.markdown) await writeFile(full, out, 'utf8');
       return send(res, 200, { source: src.id, sha: 'local', items: parse(out), rejected });
     }
 

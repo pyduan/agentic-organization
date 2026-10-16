@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-16 · MINOR · Edits that cancel each other no longer save anything
+
+In the to-do app, a card moved down and back up, an item ticked and unticked, or a date set and
+cleared used to send a save, commit it, and write "2 ticked" in the history of a file where nothing
+had changed. The app now keeps where each edit started and drops whatever ends where it began, so
+nothing is sent and the status goes straight back to the open count. The server applies the same
+rule to whatever reaches it, and ticking something already ticked keeps the day it was first done.
+
+**What you need to do:** if you run the to-do app, redeploy it (`npm run deploy:todos`). A page you
+built by hand over `lib/todo-client.mjs` keeps working as before; to get the cancelling, pass `from`
+with each edit, the way `apps/todos/src/components/TodoApp.jsx` does.
+
 ## 2026-10-16 · MINOR · Clones kept current without touching work in progress, and "check my setup"
 
 Ported from a small desktop app another organization gave its team for both jobs. The logic came

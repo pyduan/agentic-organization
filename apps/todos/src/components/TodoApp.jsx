@@ -217,7 +217,8 @@ export default function TodoApp() {
     // never a constant from page load, never the UTC day. See localToday.
     const on = localToday();
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, done, doneOn: done ? on : null } : i)));
-    push({ op: 'toggle', id: item.id, done, on });
+    // `from` is what lets the queue cancel this against an untick before it is sent.
+    push({ op: 'toggle', id: item.id, done, on, from: item.done });
   };
   const onComment = (item, text) => {
     // Optimistic, like the rest: the server stamps the real date and the author.
@@ -228,7 +229,7 @@ export default function TodoApp() {
   };
   const onDue = (item, due) => {
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, due: due || null } : i)));
-    push({ op: 'set', id: item.id, due: due || null });
+    push({ op: 'set', id: item.id, due: due || null, from: { due: item.due ?? null } });
   };
 
   const sensors = useSensors(
@@ -243,7 +244,8 @@ export default function TodoApp() {
     const to = items.findIndex((i) => i.id === over.id);
     const next = arrayMove(items, from, to);
     setItems(next);
-    push({ op: 'reorder', ids: next.map((i) => i.id).filter(Boolean) });
+    // Dragged back to where it was, this cancels the earlier move and nothing is sent.
+    push({ op: 'reorder', ids: next.map((i) => i.id).filter(Boolean), from: items.map((i) => i.id).filter(Boolean) });
   };
 
   const ids = useMemo(() => items.map((i) => i.id ?? `line-${i.lineNo}`), [items]);

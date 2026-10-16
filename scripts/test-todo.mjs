@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { parse, parseLine, formatLine, apply, reorder, ensureIds, idFrom } from '../lib/todo.mjs';
+import { parse, parseLine, formatLine, apply, reorder, ensureIds, idFrom, coalesce } from '../lib/todo.mjs';
 
 const CANON = '- [ ] Chase the printer for the brochure proof @sam due:2026-08-29 #brochure ^k3f9';
 
@@ -285,4 +285,43 @@ test('a sanitized batch still applies through apply()', () => {
   const r = apply(md, intent);
   assert.equal(r.changed, true);
   assert.match(r.markdown, /- \[x\]/);
+});
+
+test('coalesce keeps the net effect of a batch', () => {
+  assert.deepEqual(coalesce([
+    { op: 'toggle', id: 'a', done: true, on: '2026-10-16' },
+    { op: 'toggle', id: 'a', done: false },
+    { op: 'comment', id: 'b', text: 'one' },
+    { op: 'set', id: 'c', due: '2026-11' },
+    { op: 'set', id: 'c', due: '2026-12', text: 'Renamed' },
+    { op: 'comment', id: 'b', text: 'two' },
+  ]), [
+    { op: 'toggle', id: 'a', done: false },
+    { op: 'comment', id: 'b', text: 'one' },
+    { op: 'set', id: 'c', due: '2026-12', text: 'Renamed' },
+    { op: 'comment', id: 'b', text: 'two' },
+  ]);
+});
+
+test('coalesce drops what ends where it started, when the start is known', () => {
+  assert.deepEqual(coalesce([
+    { op: 'toggle', id: 'a', done: true, from: false },
+    { op: 'toggle', id: 'a', done: false, from: true },
+    { op: 'set', id: 'c', due: '2026-11', from: { due: null } },
+    { op: 'set', id: 'c', due: null, from: { due: '2026-11' } },
+    { op: 'reorder', ids: ['b', 'a'], from: ['a', 'b'] },
+    { op: 'reorder', ids: ['a', 'b'], from: ['b', 'a'] },
+  ]), []);
+});
+
+test('coalesce leaves a flip alone: its effect depends on a state it does not carry', () => {
+  const flips = [{ op: 'toggle', id: 'a' }, { op: 'toggle', id: 'a' }];
+  assert.deepEqual(coalesce(flips), flips);
+});
+
+test('ticking what is already ticked keeps the day it was done', () => {
+  const done = apply(FILE, { op: 'toggle', id: 'bbbb', done: true, on: '2026-08-20' }).markdown;
+  const again = apply(done, { op: 'toggle', id: 'bbbb', done: true, on: '2026-10-16' });
+  assert.equal(again.changed, false);
+  assert.equal(again.markdown, done);
 });
