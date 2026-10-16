@@ -17,7 +17,7 @@
 // and try once more. Re-applying is safe because an intent names an item by its
 // ^id, never by a line number.
 
-import { parse, apply, ensureIds, sanitizeIntents } from '../../lib/todo.mjs';
+import { parse, apply, ensureIds, sanitizeIntents, coalesce } from '../../lib/todo.mjs';
 import { verifyAccessJwt } from '../../lib/access.mjs';
 // Generated from ORGANIGRAM.md by scripts/todo-sources.mjs. The kit keeps one map
 // of the workspace; this file is that map answered for this app, not a second one.
@@ -258,8 +258,11 @@ export default {
       if (request.method === 'POST') {
         // The whole batch or nothing: the UI only sends well-formed intents, so a
         // malformed one is not the UI, and half-applying its batch helps nobody.
-        const intents = sanitizeIntents(body.intents);
-        if (!intents) return json({ error: 'malformed intents' }, 400);
+        const sane = sanitizeIntents(body.intents);
+        if (!sane) return json({ error: 'malformed intents' }, 400);
+        // The net effect only: a tick and an untick in one batch tick nothing, and
+        // must neither commit nor say "2 ticked" in the history.
+        const intents = coalesce(sane);
 
         // The client's sha is deliberately not used as a precondition. Intents are
         // semantic ("tick ^k3f9"), so they apply correctly to whatever the file says
@@ -270,7 +273,9 @@ export default {
           const seeded = ensureIds(base.markdown);
           const { markdown, done, rejected } = applyBatch(seeded.markdown, intents, email);
 
-          if (markdown === base.markdown) {
+          // Compared with the seeded file, not the one read: ids alone are not a
+          // reason to commit, and a batch that nets to nothing writes nothing.
+          if (markdown === seeded.markdown) {
             return json({ source: src.id, sha: base.sha, items: parse(base.markdown), rejected });
           }
 

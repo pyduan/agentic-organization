@@ -172,3 +172,66 @@ test('a browser that refuses storage loses the receipts and nothing else', () =>
   assert.deepEqual(log.read(), []);
   assert.deepEqual(log.missing({ id: 'k3f9', comments: [] }), []);
 });
+
+test('a tick and an untick queue nothing, and the state goes back to idle', async () => {
+  const states = [];
+  let calls = 0;
+  const q = createQueue({ delay: 5, send: async () => { calls++; }, onState: (s) => states.push(s) });
+  q.push({ op: 'toggle', id: 'a', done: true, from: false });
+  assert.equal(q.busy, true);
+  q.push({ op: 'toggle', id: 'a', done: false, from: true });
+  assert.equal(q.busy, false, 'nothing left to save');
+  assert.equal(states.at(-1), 'idle');
+  await q.flush();
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(calls, 0, 'no request at all');
+});
+
+test('a card moved down and back up sends nothing', async () => {
+  let calls = 0;
+  const q = createQueue({ delay: 5, send: async () => { calls++; } });
+  q.push({ op: 'reorder', ids: ['b', 'a', 'c'], from: ['a', 'b', 'c'] });
+  q.push({ op: 'reorder', ids: ['a', 'b', 'c'], from: ['b', 'a', 'c'] });
+  await q.flush();
+  assert.equal(calls, 0);
+});
+
+test('only the edits that did not cancel are sent, without their starting points', async () => {
+  const sent = [];
+  const q = createQueue({ delay: 5, send: async (b) => { sent.push(b); } });
+  q.push({ op: 'toggle', id: 'a', done: true, from: false, on: '2026-10-16' });
+  q.push({ op: 'set', id: 'b', due: '2026-11', from: { due: null } });
+  q.push({ op: 'toggle', id: 'a', done: false, from: true });
+  q.push({ op: 'comment', id: 'c', text: 'called them' });
+  await q.flush();
+  assert.deepEqual(sent, [[{ op: 'set', id: 'b', due: '2026-11' }, { op: 'comment', id: 'c', text: 'called them' }]]);
+});
+
+test('an undo that arrives while the save is in flight is sent, not dropped', async () => {
+  const sent = [];
+  let release;
+  const q = createQueue({ delay: 1000, send: (b) => { sent.push(b); return new Promise((r) => { release = r; }); } });
+  q.push({ op: 'toggle', id: 'a', done: true, from: false });
+  const first = q.flush();
+  q.push({ op: 'toggle', id: 'a', done: false, from: true });
+  assert.equal(q.busy, true, 'the untick is queued behind the tick');
+  release();
+  await first;
+  const second = q.flush();
+  release();
+  await second;
+  assert.deepEqual(sent.map((b) => b[0].done), [true, false]);
+});
+
+test('an undo of a failed save cancels it, and nothing is retried', async () => {
+  let calls = 0;
+  const states = [];
+  const q = createQueue({ delay: 1000, send: async () => { calls++; throw new Error('offline'); }, onState: (s) => states.push(s) });
+  q.push({ op: 'toggle', id: 'a', done: true, from: false });
+  await q.flush();
+  assert.equal(q.busy, true, 'the failed tick is still queued');
+  q.push({ op: 'toggle', id: 'a', done: false, from: true });
+  assert.equal(q.busy, false);
+  assert.equal(states.at(-1), 'idle');
+  assert.equal(calls, 1);
+});
