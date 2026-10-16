@@ -22,7 +22,7 @@
 //   node scripts/error-report.mjs --anonymized --email   # + the mail line, ready to send
 
 import { writeFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import {
   FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, guardKind as kindOf, loadRegister,
 } from '../lib/register.mjs';
@@ -205,14 +205,14 @@ if (!n) {
     say(`- **⚠ ${unclassified.length} entr${unclassified.length > 1 ? 'ies' : 'y'} record a guard of a kind the schema does not define** ` +
         `(${[...new Set(unclassified.map((i) => kindOf(i)))].map((k) => `\`${k}\``).join(', ')}), ` +
         'so they are counted in none of the three figures above. Fix them in ' +
-        '`source/quality/incidents.json` rather than reading round them: an entry nobody can classify ' +
+        `\`${relative(ROOT, reg.path)}\` rather than reading round them: an entry nobody can classify ` +
         'is the register quietly shrinking.');
   }
   if (offSchema.length) {
     say(`- **⚠ ${offSchema.length} entr${offSchema.length > 1 ? 'ies are' : 'y is'} filed under a family the schema does not define** ` +
         `(${offSchemaNames.map((k) => `\`${k}\``).join(', ')}). They are listed below under their own heading so ` +
         'nothing is lost, but they cannot be compared with any other project running the kit. Refile each ' +
-        'one under the nearest of the seven families (`source/quality/README.md`) and keep the finer word in ' +
+        `one under the nearest of the seven families (\`${relative(ROOT, join(dirname(reg.path), 'README.md'))}\`) and keep the finer word in ` +
         '`tags`.');
   }
   const largest = byCat.filter((c) => c.key !== OUTSIDE)[0];

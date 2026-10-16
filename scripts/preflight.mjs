@@ -27,7 +27,7 @@
 // kit's paths does not need a bridge script.
 
 import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
+import { dirname, join, relative, resolve } from 'node:path';
 import { FAMILIES as KEYS, findFile, loadRegister, validate } from '../lib/register.mjs';
 
 const ROOT = resolve(process.cwd());
@@ -127,6 +127,8 @@ function rulesFor(section) {
 }
 
 const registerAt = await loadRegister(ROOT, { override: flag('register') || process.env.KIT_REGISTER });
+// The schema sits beside the register this run read, wherever the project keeps it.
+const schema = registerAt.path ? relative(ROOT, join(dirname(registerAt.path), 'README.md')) : 'source/quality/README.md';
 const register = registerAt.raw;
 const registerError = registerAt.state === 'unreadable' ? registerAt.error : null;
 // A file that parses but has no `incidents` array is its own outcome, and it used to
@@ -188,13 +190,13 @@ if (!registerAt.path) {
   say(`  It parsed, but there is no \`incidents\` array in it${Array.isArray(register)
     ? ': the file is a bare array, and the entries belong under { "version": 1, "incidents": [ … ] }.'
     : '.'}`);
-  say('  Schema: source/quality/README.md. Nothing this project has already got wrong is in');
+  say(`  Schema: ${schema}. Nothing this project has already got wrong is in`);
   say('  this run — the entries are there and this script cannot see them.');
   say();
 } else if (!incidents.length) {
   say(`Register read (${registerAt.path.replace(ROOT + '/', '')}): it is empty.`);
   say('An empty register after weeks of work usually means the reflection pass is recording');
-  say('lessons but not the misses that produced them (source/quality/README.md).');
+  say(`lessons but not the misses that produced them (${schema}).`);
   say();
 } else if (!mine.length) {
   say(`Register (${registerAt.path.replace(ROOT + '/', '')}): ${incidents.length} logged, none in these families.`);
