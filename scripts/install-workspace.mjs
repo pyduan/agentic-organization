@@ -9,22 +9,30 @@
 // loaded leaves no trace. A live organization set up from this kit found it out and had
 // to give its parent folder a hand-made copy.
 //
-// This script writes that copy, from docs/workspace/, with this repo's folder name filled in:
+// This script gives the parent folder, from docs/workspace/ with this repo's folder name filled in:
 //   <parent>/CLAUDE.md               sends the agent to this repo's CLAUDE.md (an @import)
-//   <parent>/.claude/settings.json   runs this repo's hooks from the parent folder
+//   <parent>/.claude/settings.json   runs this repo's hooks from the parent folder:
+//                                    SessionStart  own-changes (baseline), workspace-sync (clones,
+//                                                  git identity), kit-news, open-decisions
+//                                    PreToolUse    send-guard
+//                                    Stop          session-end, turn-check
 //
-//   node scripts/install-workspace.mjs            write what is missing, refresh what it wrote before
-//   node scripts/install-workspace.mjs --check    say what is missing or out of date; change nothing
-//   node scripts/install-workspace.mjs --replace  also take over a file someone else wrote,
-//                                                 after moving it aside (<name>.before-workspace)
+//   node scripts/install-workspace.mjs           write what is missing, add the hooks a settings file lacks
+//   node scripts/install-workspace.mjs --check   say what is missing or out of date; change nothing
 //
-// A file is refreshed only if it is exactly what some earlier version of the template
-// produced; anything else is someone's work and is left alone unless --replace says so.
-// It refuses the home folder (~/.claude/settings.json there is the user's own settings,
-// loaded by every session on the machine) and a parent folder that is itself in a repo.
+// A file exactly as some earlier version of the template rendered it is ours, and is refreshed.
+// A CLAUDE.md someone wrote is left alone; it is enough that it imports this repo's. A
+// settings.json someone wrote gets the hooks it lacks, by script name, and loses only the hooks
+// pointing at a file this repo retired; everything else in it stays. One that is not valid
+// JSON is reported, never rewritten. It refuses the home folder (~/.claude/settings.json there
+// is the user's own settings, loaded by every session on the machine) and a parent folder that
+// is itself in a repo.
+//
+// The hooks run in exec form (`node` with its arguments, no shell), so the same file works on
+// macOS, Linux and Windows. Zero dependencies, Node built-ins and git.
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, realpathSync, renameSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -39,6 +47,7 @@ export const FILES = [
 export const render = (text, router) => text.split('{{ROUTER}}').join(router);
 
 const real = (p) => { try { return realpathSync(p); } catch { return resolve(p); } };
+const hookText = (h) => [h?.command, ...(Array.isArray(h?.args) ? h.args : [])].map((x) => String(x ?? '')).join(' ');
 
 /** Every version of a template this repo ever committed, newest first. */
 function pastVersions(routerDir, template) {
@@ -59,15 +68,77 @@ function insideRepo(dir) {
   } catch { return false; }
 }
 
+/** The hooks a rendered settings template wires, as { event, matcher, hook, script }. */
+export function kitHooks(settings) {
+  const out = [];
+  for (const [event, groups] of Object.entries(settings.hooks ?? {})) {
+    for (const g of groups) {
+      for (const hook of g.hooks ?? []) {
+        const script = (hookText(hook).match(/([\w.-]+\.(?:mjs|js|cjs|sh))\b/) || [])[1];
+        if (script) out.push({ event, matcher: g.matcher, hook, script });
+      }
+    }
+  }
+  return out;
+}
+
+/** The kit hooks a settings object lacks, by script name, wherever in that event it is wired. */
+export function lacking(settings, kit) {
+  const has = (event, script) => (settings?.hooks?.[event] ?? [])
+    .some((g) => (g?.hooks ?? []).some((h) => hookText(h).includes(script)));
+  return kit.filter((k) => !has(k.event, k.script));
+}
+
+/** Files of the router a hook runs, read from its command and arguments. */
+const routerFiles = (hook, router) => [...hookText(hook).matchAll(new RegExp(`CLAUDE_PROJECT_DIR\\}?[/\\\\]${router.replace(/[.]/g, '\\.')}/([^"'\\s]+)`, 'g'))].map((m) => m[1]);
+
 /**
- * What would change, without changing it. Each step is { target, path, want, state }, state
- * being missing, current, stale (an earlier rendering of ours) or different (someone's work).
+ * `settings` with the hooks pointing at a file the router no longer has taken out, and the kit
+ * hooks it lacks added, grouped by event and matcher. Returns { settings, added, removed }.
+ */
+export function merge(settings, kit, { router, routerDir }) {
+  const out = structuredClone(settings);
+  out.hooks ??= {};
+  const removed = [];
+  const wired = new Set(kit.map((k) => k.script));
+  for (const [event, groups] of Object.entries(out.hooks)) {
+    if (!Array.isArray(groups)) continue;
+    for (const g of groups) {
+      if (!Array.isArray(g?.hooks)) continue;
+      g.hooks = g.hooks.filter((h) => {
+        // A file the template still wires is missing here by accident, not retired: keep its hook.
+        const gone = routerFiles(h, router).find((f) => !existsSync(join(routerDir, f)) && !wired.has(basename(f)));
+        if (gone) removed.push(`${event} ${basename(gone)}`);
+        return !gone;
+      });
+    }
+    out.hooks[event] = groups.filter((g) => !Array.isArray(g?.hooks) || g.hooks.length);
+    if (!out.hooks[event].length) delete out.hooks[event];
+  }
+  const added = lacking(out, kit);
+  const groups = new Map();
+  for (const k of added) {
+    const key = `${k.event}|${k.matcher ?? ''}`;
+    if (!groups.has(key)) {
+      const group = k.matcher ? { matcher: k.matcher, hooks: [] } : { hooks: [] };
+      (out.hooks[k.event] ??= []).push(group);
+      groups.set(key, group);
+    }
+    groups.get(key).hooks.push(structuredClone(k.hook));
+  }
+  return { settings: out, added: added.map((k) => `${k.event} ${k.script}`), removed };
+}
+
+/**
+ * What would change, without changing it. Each step is { target, path, want, state, lacks? },
+ * state being missing, current, stale (an earlier rendering of ours), partial (a settings file
+ * that can take the hooks it lacks) or different (a file this script will not touch).
  */
 export function plan({ routerDir, home = homedir() }) {
   const router = basename(real(routerDir));
   const workspace = dirname(real(routerDir));
   if (!/^[A-Za-z0-9._-]+$/.test(router)) {
-    throw new Stop(`This repo's folder is called "${router}". The workspace files name it in an import and in shell commands, so keep it to letters, digits, dots, dashes and underscores, then rerun.`);
+    throw new Stop(`This repo's folder is called "${router}". The workspace files name it in an import and in hook paths, so keep it to letters, digits, dots, dashes and underscores, then rerun.`);
   }
   if (workspace === real(home)) {
     throw new Stop('This repo sits directly in your home folder, so its parent is your home folder, and .claude/settings.json there is your own settings file for every session on this machine. Move the repos into one folder of their own (~/Projects, side by side), then rerun from there.');
@@ -78,25 +149,34 @@ export function plan({ routerDir, home = homedir() }) {
   return FILES.map(({ template, target }) => {
     const want = render(readFileSync(join(routerDir, template), 'utf8'), router);
     const path = join(workspace, target);
-    if (!existsSync(path)) return { template, target, path, want, state: 'missing' };
+    const step = { template, target, path, want };
+    if (!existsSync(path)) return { ...step, state: 'missing' };
     const have = readFileSync(path, 'utf8');
-    if (have === want) return { template, target, path, want, state: 'current' };
-    const ours = pastVersions(routerDir, template).some((t) => render(t, router) === have);
-    return { template, target, path, want, state: ours ? 'stale' : 'different' };
+    if (have === want) return { ...step, state: 'current' };
+    if (pastVersions(routerDir, template).some((t) => render(t, router) === have)) return { ...step, state: 'stale' };
+    if (target === 'CLAUDE.md') {
+      return have.includes(`@${router}/CLAUDE.md`) ? { ...step, state: 'current' }
+        : { ...step, state: 'different', lacks: `a line @${router}/CLAUDE.md, which imports this repo's manual` };
+    }
+    let parsed = null;
+    try { parsed = JSON.parse(have); } catch { /* reported below */ }
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+      return { ...step, state: 'different', lacks: 'valid JSON, so the hooks cannot be added to it' };
+    }
+    const { settings, added, removed } = merge(parsed, kitHooks(JSON.parse(want)), { router, routerDir });
+    if (!added.length && !removed.length) return { ...step, state: 'current' };
+    return {
+      ...step, state: 'partial', want: `${JSON.stringify(settings, null, 2)}\n`,
+      lacks: [added.length ? added.join(', ') : '', removed.length ? `drop ${removed.join(', ')} (no longer in this repo)` : ''].filter(Boolean).join('; '),
+    };
   });
 }
 
-/** Write the steps that need it. A different file is touched only with replace, and moved aside first. */
-export function apply(steps, { replace = false } = {}) {
+/** Writes what is missing or ours to refresh, and adds the hooks a settings file lacks. Never touches anything else. */
+export function apply(steps) {
   const written = [];
   for (const s of steps) {
-    if (s.state === 'current' || (s.state === 'different' && !replace)) continue;
-    if (s.state === 'different') {
-      let aside = `${s.path}.before-workspace`;
-      for (let i = 2; existsSync(aside); i++) aside = `${s.path}.before-workspace-${i}`;
-      renameSync(s.path, aside);
-      s.movedTo = aside;
-    }
+    if (!['missing', 'stale', 'partial'].includes(s.state)) continue;
     mkdirSync(dirname(s.path), { recursive: true });
     writeFileSync(s.path, s.want);
     written.push(s);
@@ -108,27 +188,27 @@ const isMain = (() => {
   try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
 })();
 if (isMain) {
-  const args = new Set(process.argv.slice(2));
+  const check = process.argv.includes('--check');
   const routerDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   let steps;
   try { steps = plan({ routerDir }); } catch (e) {
     if (e instanceof Stop) { console.error(e.message); process.exit(1); }
     throw e;
   }
-  const workspace = dirname(real(routerDir));
-  const label = { missing: 'missing', current: 'in place', stale: 'out of date', different: 'written by someone else' };
-  for (const s of steps) console.log(`  ${s.target.padEnd(22)} ${label[s.state]}`);
-  const blocked = steps.filter((s) => s.state === 'different');
-  if (args.has('--check')) process.exit(steps.every((s) => s.state === 'current') ? 0 : 1);
-  if (blocked.length && !args.has('--replace')) {
-    for (const s of blocked) {
-      console.error(`\n${s.path} exists and is not a file this script wrote. Compare it with ${s.template}, carry over anything of yours into the router, then rerun with --replace: it is moved aside to ${s.target}.before-workspace, never deleted.`);
-    }
+  const written = check ? [] : apply(steps);
+  for (const s of steps) {
+    const done = written.includes(s);
+    if (done && s.state === 'partial') console.log(`  ✓ ${s.path}: ${s.lacks}`);
+    else if (done) console.log(`  ✓ wrote ${s.path}`);
+    else if (s.state === 'current') console.log(`  ✓ ${s.target} in place`);
+    else if (s.state === 'missing') console.log(`  ▲ ${s.target} missing`);
+    else if (s.state === 'stale') console.log(`  ▲ ${s.target} out of date`);
+    else if (s.state === 'partial') console.log(`  ▲ ${s.target} lacks ${s.lacks}`);
+    else console.log(`  ▲ ${s.path} exists and lacks ${s.lacks}. It is someone's file: add that by hand, from ${s.template}.`);
   }
-  const written = apply(steps, { replace: args.has('--replace') });
-  for (const s of written) console.log(`✓ wrote ${s.path}${s.movedTo ? ` (the previous one is ${s.movedTo})` : ''}`);
   if (written.length) {
-    console.log(`\nOpen the agent on ${workspace}. Its first lines should now read "Workspace: N repo(s) up to date."; if they do not, the guards are not loaded there.`);
+    console.log(`\nOpen the agent on ${dirname(real(routerDir))}. Its first lines should now read "Workspace: N repo(s) up to date."; if they do not, the guards are not loaded there.`);
   }
-  process.exit(blocked.length && !args.has('--replace') ? 1 : 0);
+  const left = steps.filter((s) => s.state !== 'current' && !written.includes(s));
+  process.exit(left.length ? 1 : 0);
 }

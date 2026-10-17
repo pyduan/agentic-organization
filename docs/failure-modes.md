@@ -658,29 +658,51 @@ in a single session, and they get more likely exactly when work is going well.
   `git add <their file>` followed by a plain `git commit` carries away everything already staged,
   and the work lands under a message describing something else entirely. Two framework files were
   published that way inside commits about two unrelated people, and the session that lost them had
-  staged them itself, half an hour earlier, and moved on. Stage and commit in one step. And treat
+  staged them itself, half an hour earlier, and moved on. Stage right before you commit, and treat
   `git checkout <ref> -- <file>` as a staging command, because that is what it is.
-- **The one-step form is `git commit --only -- <paths>`.** It commits exactly those paths and leaves
-  whatever a neighbour staged where it was. `git add <yours>` then `git commit` is two steps however
-  fast it is typed: on a live project it carried a neighbour's nine staged deletions under a message
-  about four other files, and only reading the commit's stat before the push caught it. A new file
-  still needs its `git add` first; `--only` refuses a path git has never seen.
+- **Staging by path is not the guard; reading the staged diff is.** Two sessions can edit the same
+  file, and then naming the path stages the neighbour's lines with yours: a one-line correction to a
+  to-do file went out carrying eight of a neighbour's edits under its own title. Read the body of
+  `git diff --cached` before every commit. A `--stat` is not a reading: it says a file changed, never
+  whose lines are in it, and the sessions in that case had been reading exactly that. Do not filter
+  the body either: `grep '^[-+][^-+]'`, a common way to drop the `+++`/`---` headers, also drops every
+  changed markdown bullet (a removed `- item` shows as `-- item`), and a report's diff looked like a
+  date bump that way. `git commit --only -- <paths>` still keeps whatever a neighbour staged in other
+  files out of your commit (a new file needs its `git add` first); nothing but the reading keeps their
+  lines in your file out.
+- **`HEAD` can move between the reading and the commit.** A session read a clean staged diff, and in
+  the seconds before its commit a neighbour committed and pushed from the same checkout; the commit
+  landed on top and silently reverted the neighbour's correction. Where another session may be
+  committing, commit from a worktree of your own: `git worktree add --detach <dir> origin/main`,
+  commit there, `git push origin HEAD:main`. Before any push, `git log -2`: the parent must be the
+  commit you started from.
+- **The stash is shared too.** Every worktree of a repo reads the same stash list. A session stashed
+  in a shared checkout, popped onto a `HEAD` that had moved, and pushed a file with its conflict
+  markers and rows doubled; two more sessions spent their time cleaning it. Never stash in a checkout
+  you share.
+- **Another session can switch the branch under you.** A session working on a pull-request branch
+  had the checkout moved to `main` by a neighbour, and its next commit went straight to `main`: the
+  host printed a bypassed-rule warning and took it. `git branch --show-current` before you stage,
+  every time, not only at the start, and read the push output rather than trusting a quiet push.
 - **Ownership comes from a file's history, not its location.** Read it before editing something
   outside your own scope, and tell the session that actually owns it.
-- **Claim a shared file before editing it, and hand it back once it is pushed.** On a live day three
-  sessions changed the same app for hours without overwriting each other, with one message each way:
-  "I am changing these four files for the next half hour, leave them until I say they are pushed",
-  then "pushed in <commit>; here is what changed in your files". The other session pulled before its
-  next edit. A message costs seconds; untangling two half-finished edits of one file costs the
-  afternoon.
 - **One subject, one session; a second source becomes the check.** Two sessions started the same
   import within minutes, one from a spreadsheet export the owner had handed it, the other from the
   system's API. The second saw the first's untracked files before writing a record, stopped, and
   proposed a split the owner approved in two words: the API is the source, and the export is only a
   set of totals the import must reconcile with. Before anything that writes records in bulk, look at
   the untracked files and the running sessions.
-- **Write down who owns what** when more than one session is running: a two-column note in the repo
-  (who decides what, who writes where) is enough, and it has to exist before the collision.
+- **Write down who owns what, and claim a shared file there before editing it.** When more than one
+  session is running, a two-column note in the repo (who decides what, who writes where) is enough,
+  and it has to exist before the collision. A claim is one line in it: these files, this session,
+  until pushed; the commit that pushes them removes the line and says what changed in them. Sessions
+  cannot message each other by default, so the note is the channel, or the owner relays the line. On
+  a live day three sessions changed the same app for hours without overwriting each other, with one
+  claim and one hand-back each, and each pulled before its next edit. Before claiming, look for a neighbour already on the file:
+  `git fetch`, then `git log --oneline @{upstream}..origin/main` for what landed, and
+  `gh pr list --search <file>` for what waits on a branch, which `main` never shows. A file that does
+  not look like what you expected may be their deliberate rewrite: `git log --oneline -3 -- <path>`
+  before calling it stale.
 - **After changing anything shared** — tokens, a stylesheet, a helper — check every consumer of it.
 - **One door per subject.** Two sessions each building their own complete home page produces two
   pages that will disagree on the same figures by tomorrow.

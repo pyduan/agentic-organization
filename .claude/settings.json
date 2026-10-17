@@ -22,15 +22,34 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/workspace-sync.mjs\" sync --quiet 2>/dev/null || true"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/own-changes.mjs",
+              "--baseline"
+            ]
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/kit-news.mjs\" 2>/dev/null || true"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/workspace-sync.mjs",
+              "sync",
+              "--quiet"
+            ]
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/open-decisions.mjs\" 2>/dev/null || true"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/kit-news.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/open-decisions.mjs"
+            ]
           }
         ]
       }
@@ -41,7 +60,10 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/send-guard.mjs\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/send-guard.mjs"
+            ]
           }
         ]
       }
@@ -51,11 +73,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-end.sh\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-end.mjs"
+            ]
           },
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/turn-check.mjs\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/turn-check.mjs"
+            ]
           }
         ]
       }
