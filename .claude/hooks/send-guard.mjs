@@ -77,7 +77,8 @@ if (isMain) {
   for await (const chunk of process.stdin) raw += chunk;
   let event;
   try { event = JSON.parse(raw); } catch { process.exit(0); }
-  const dir = process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
+  // A session opened on the workspace folder passes the router, whose tuning this reads.
+  const dir = process.argv[2] || process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
   const hit = classify(event, loadAllow(dir));
   if (hit) {
     process.stdout.write(JSON.stringify({

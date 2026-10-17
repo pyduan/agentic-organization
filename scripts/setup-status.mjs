@@ -52,9 +52,10 @@ async function guards(root) {
   catch (e) { if (e instanceof Stop) return warn(e.message); throw e; }
   const off = steps.filter((s) => s.state !== 'current');
   if (!off.length) return ok('the folder beside this repo loads its guards (send guard, end-of-session check)');
-  if (off.some((s) => s.state === 'different')) {
-    return warn(`${off.map((s) => s.target).join(' and ')} in the workspace folder was written by someone else, so a session opened there may skip this repo's guards`,
-      'compare it with docs/workspace/, then node scripts/install-workspace.mjs --replace (moves it aside, never deletes)');
+  const theirs = off.filter((s) => s.state === 'different');
+  if (theirs.length) {
+    return warn(`${theirs.map((s) => `${s.target} in the workspace folder lacks ${s.lacks}`).join('; ')}, so a session opened there may skip this repo's guards`,
+      'it is someone\'s file: add what it lacks by hand, from docs/workspace/');
   }
   return warn(`a session opened on the workspace folder would run without this repo's guards (${off.map((s) => `${s.target} ${s.state}`).join(', ')})`,
     'node scripts/install-workspace.mjs');
