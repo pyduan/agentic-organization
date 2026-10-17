@@ -126,13 +126,11 @@ How to run it:
   instead, as `ORGANIGRAM.md` says, and read the setting back:
   `gh api orgs/<org> --jq .default_repository_permission` must answer `none`.
 - **Note what is still missing and who owes it.** An access the owner could not grant today, a token
-  only they can create, a choice about what the organization does or says that you made on their
-  behalf and they have not confirmed: each becomes a
-  dated `#decide` line in the to-do list with their name on it (`source/formats/todo.md`), so that
-  `open-decisions` raises it at the start of every session, a parallel one included, until it is
-  ticked. Not a vague intention, and not only a paragraph in the closing message: on a live setup three
-  such steps lived only there, and the next session, asked to "do the three open actions", had to dig
-  them out of another session's transcript.
+  only they can create, a choice you made on their behalf (`source/decisions.md` ▸ *Only a person
+  settles*): each becomes a dated `#decide` line in the to-do list with their name on it
+  (`source/formats/todo.md`), so that `open-decisions` raises it at the start of every session, a
+  parallel one included, until it is ticked. A step that lives only in the closing message is lost
+  to the next session.
 
 The failure this prevents: a system that works only when its owner is available to authorise
 something. Judge the pass by asking whether you could now do a month of work without them.
