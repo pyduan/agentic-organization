@@ -7,8 +7,8 @@
 // here on the laid-out page (?check puts every slide on screen at full size), so the verdict is
 // the same on any machine and for any reviewer.
 //
-//   defects   fail the check: overflow, margin, spill, overlap, clipped, small, image, grid, error,
-//             contrast
+//   defects   fail the check: overflow, margin, spill, overlap, cramped, clipped, small, image, grid,
+//             error, contrast
 //   warnings  are read: bunched, sparse, dense, blurry
 //
 // Thresholds come from the deck's own theme (--dk-min-font, --dk-max-words), so a brand whose
@@ -27,6 +27,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /** Runs inside the page, in check mode. */
 function auditInPage() {
   const TOL = 2;
+  const MIN_GAP = 12;
   const px = Math.round;
   const out = [];
   const visible = (el) => {
@@ -70,13 +71,17 @@ function auditInPage() {
       const spill = Math.max(b.top - r.top, r.bottom - b.bottom, b.left - r.left, r.right - b.right);
       if (spill > TOL) add('defect', 'spill', el, `runs ${px(spill)}px out of its block, over what is next to it`);
     }
-    for (const parent of [s.querySelector(':scope > .dk-body'), ...s.querySelectorAll('.dk-col')].filter(Boolean)) {
+    // Two blocks closer than MIN_GAP read as one: a theme that took the gap away, or a margin that
+    // pulled a block up against the previous one.
+    for (const parent of [s.querySelector(':scope > .dk-body'), ...s.querySelectorAll('.dk-col, .dk-split')].filter(Boolean)) {
       const kids = [...parent.children].filter(visible).map((k) => ({ k, r: k.getBoundingClientRect() }));
       for (let x = 1; x < kids.length; x++) {
         const a = kids[x - 1], b = kids[x];
         const over = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
         const side = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
-        if (over > TOL && side > TOL) add('defect', 'overlap', b.k, `lies ${px(over)}px over the block above it`);
+        if (over > TOL && side > TOL) { add('defect', 'overlap', b.k, `lies ${px(over)}px over the block above it`); continue; }
+        const gap = side > TOL ? b.r.top - a.r.bottom : over > TOL ? b.r.left - a.r.right : Infinity;
+        if (gap < MIN_GAP) add('defect', 'cramped', b.k, `${px(Math.max(0, gap))}px from the block ${side > TOL ? 'above' : 'beside'} it (at least ${MIN_GAP}px)`);
       }
     }
 
