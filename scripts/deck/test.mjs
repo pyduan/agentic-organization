@@ -10,9 +10,10 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import { parseDeck, parseLiteral, frontmatter } from './parse.mjs';
 import { md } from './text.mjs';
+import { wordsToAvoid, unitOf } from './copy.mjs';
 import { renderDeck } from './render.mjs';
 import { components, validate, S } from './components.mjs';
-import { stripDark, buildDeck } from './build.mjs';
+import { stripDark, buildDeck, undefinedTokens } from './build.mjs';
 import { readZip, readPptx, outline, style } from './read-pptx.mjs';
 import { findChrome } from './chrome.mjs';
 import { checkDeck } from './check.mjs';
@@ -62,12 +63,30 @@ test('schemas: enums, required fields, list limits as warnings', () => {
   assert.match(warnings[0], /3 items/);
 });
 
-test('text: escaped, then marked, then typeset; code is left alone', () => {
-  assert.equal(md('<b>x</b> *mot* **gras**'), '&lt;b&gt;x&lt;/b&gt; <em>mot</em> <strong>gras</strong>');
-  assert.equal(md('Une *source* : la vôtre'), 'Une <em>source</em>\u00a0: la vôtre');
-  assert.equal(md('`a : *b*`'), '<code>a : *b*</code>');
-  assert.equal(md('1 606 112 €'), '1\u202f606\u202f112\u00a0€');
-  assert.equal(md('l\'équipe', 'en'), 'l’équipe');
+test('text: escaped, then marked, then typeset in the deck\'s language; code is left alone', () => {
+  assert.equal(md('<b>x</b> *word* **bold**'), '&lt;b&gt;x&lt;/b&gt; <em>word</em> <strong>bold</strong>');
+  assert.equal(md('A *source*: yours'), 'A <em>source</em>: yours');
+  assert.equal(md('Une *source* : la vôtre', 'fr'), 'Une <em>source</em>\u00a0: la vôtre');
+  assert.equal(md('`a : *b*`', 'fr'), '<code>a : *b*</code>');
+  assert.equal(md('1 606 112 €', 'fr-FR'), '1\u202f606\u202f112\u00a0€');
+  assert.equal(md('38 % en 3 jours, 12 patients', 'fr'), '38\u00a0% en 3\u00a0jours, 12 patients');
+  assert.equal(md('the team\'s 1 606 visits : 3 %'), 'the team’s 1 606 visits : 3 %');
+});
+
+test('a deck is in English unless its frontmatter says otherwise, and its quotes follow', () => {
+  const en = render('<Slide title="t" />');
+  assert.match(en.html, /<html lang="en">/);
+  assert.match(render('---\ndate: 2026-10-01\n---\n<Cover title="t" date="2026-10-01" />').html, /1 October 2026/);
+  const fr = render('---\nlang: fr-FR\n---\n<Cover title="t" date="2026-10-01" />');
+  assert.match(fr.html, /<html lang="fr-FR">/);
+  assert.match(fr.html, /1er octobre 2026/);
+  const repoFr = render('<Cover title="t" date="2026-10-01" />', { defaultLang: 'fr' });
+  assert.match(repoFr.html, /<html lang="fr">/, 'a repo whose paths.mjs says fr gets French when the deck says nothing');
+  assert.match(render('---\nlang: en\n---\n<Slide title="t" />', { defaultLang: 'fr' }).html, /<html lang="en">/);
+  const theme = readFileSync(join(HERE, 'theme.css'), 'utf8');
+  assert.match(theme, /blockquote::before \{ content: open-quote/);
+  assert.match(theme, /blockquote:lang\(fr\) \{ quotes: "\\00AB/);
+  assert.ok(!/content: "«/.test(theme), 'no quote mark written into the theme');
 });
 
 test('chapters carry over, a Divider sets one, an Agenda does not show one', () => {
@@ -99,6 +118,43 @@ takeaway: b
   assert.match(r.warnings.join('\n'), /slide 4: second dark slide in a row/);
 });
 
+test('copy rules: titles, paragraphs, kickers, the voice, figures that compare, the close, said twice', () => {
+  const long = Array.from({ length: 45 }, (_, i) => `word${i}`).join(' ');
+  const r = render(`---
+title: x
+date: 2026-10-09
+audience: a
+takeaway: b
+---
+<Slide chapter="One" kicker="Part one" title="A label that ends like a sentence."><Text>${long}</Text></Slide>
+<Slide kicker="Again" title="A title that runs on well past the dozen words a title should ever need here"><Text>It is not just a tool. The result? A seamless journey.</Text></Slide>
+<Slide title="Figures" source="Accounts"><Stats items={[{ value: "4", label: "schools" }, { value: "-38%", label: "heating" }, { value: "21 °C", label: "in January" }]} /></Slide>
+<Slide title="Comparable" source="Accounts"><Stats items={[{ value: "-41%", label: "a" }, { value: "-38 %", label: "b" }]} /></Slide>
+<Slide title="Said"><Quote text="It is not just a tool, it is a seamless journey." by="Someone" /><Text>The sensors measure every classroom temperature hourly during winter.</Text></Slide>
+<Slide title="Again"><Text>Every classroom temperature is measured hourly by the sensors during winter.</Text></Slide>
+<Closing title="Thank you" />`, { avoid: ['seamless', 'journey'] });
+  const w = r.warnings.join('\n');
+  assert.match(w, /slide 1 .*drop its closing full stop/);
+  assert.match(w, /slide 1 .*45-word paragraph/);
+  assert.match(w, /slide 2 .*words in the title/);
+  assert.match(w, /slide 2 .*a kicker inside a part \(slide 1 opens it\)/);
+  assert.match(w, /slide 2 .*antithesis/);
+  assert.match(w, /slide 2 .*one-word question/);
+  assert.match(w, /slide 2 .*“seamless” is on the voice's list/);
+  assert.match(w, /slide 3 .*counted in plain numbers, “%”, “°c”/);
+  assert.ok(!/slide 4 .*counted in/.test(w), 'one unit, written two ways, compares');
+  assert.ok(!/slide 5 .*(antithesis|seamless)/.test(w), 'a quote is someone else\'s words');
+  assert.match(w, /slide 6 .*says again what slide 5 says/);
+  assert.match(w, /slide 7 .*closes on a thank-you/);
+  assert.equal(r.errors.length, 0);
+});
+
+test('copy rules: the words to avoid come from the voice, an entry with a qualifier is left to a reader', () => {
+  assert.deepEqual(wordsToAvoid('x\n\n**Words to avoid.** delve, landscape (as an abstract noun), robust, and genuinely / truly / actually used as intensifiers. **This list is meant to be edited.**'), ['delve', 'robust', 'genuinely', 'truly']);
+  assert.deepEqual(wordsToAvoid('# Voice\n\nNothing here.'), []);
+  assert.deepEqual(['€2.1M', '2,1 M€', '48,000 €', '1,240', '-38 %', '12k'].map(unitOf), ['€', '€', '€', '', '%', '']);
+});
+
 test('a shared copy carries no speaker notes', () => {
   const src = '<Slide title="t" notes="Ne pas citer ce chiffre" />';
   assert.ok(render(src).html.includes('Ne pas citer ce chiffre'));
@@ -109,6 +165,20 @@ test('a deck is always on paper: the dark half of the brand tokens is dropped', 
   const css = stripDark(':root{--a:#fff}\n@media (prefers-color-scheme: dark){:root{--a:#000}}\n:root[data-theme="dark"]{--a:#111}\n.x{color:red}');
   assert.ok(css.includes('--a:#fff') && css.includes('.x{color:red}'));
   assert.ok(!css.includes('#000') && !css.includes('#111'));
+});
+
+test('a token read with no fallback and never defined stops the build', async () => {
+  const found = undefinedTokens([
+    { label: 'kit', css: ':root { --a: 1px; }\n/* var(--in-a-comment) */\n.x { gap: var(--a); margin: var(--b, 2px); color: var(--gone); width: var(--cols); }' },
+  ], ['style="--cols:${n}"']);
+  assert.deepEqual(found, [{ token: '--gone', where: 'kit' }]);
+  const dir = mkdtempSync(join(tmpdir(), 'deck-tokens-'));
+  mkdirSync(join(dir, 'brand'));
+  writeFileSync(join(dir, 'brand', 'theme.css'), '.dk-card { background: var(--card-ground); }');
+  writeFileSync(join(dir, 'deck.mdx'), '<Slide title="t" />');
+  const r = await buildDeck(join(dir, 'deck.mdx'), { root: dir, tokens: [], brand: join(dir, 'brand'), decks: [dir] }, { log: () => {} });
+  assert.match(r.errors.join('\n'), /brand\/theme\.css: var\(--card-ground\) is read but never defined/);
+  assert.equal(r.out, null);
 });
 
 test('the component catalogue builds without an error', async () => {
@@ -174,18 +244,21 @@ test('read-pptx: text in order with its style, the header band, the theme fonts'
 });
 
 const chrome = findChrome();
-test('the browser check finds what overflows, what lies over its neighbour, what is unequal', { skip: !chrome && 'no Chrome on this machine' }, async () => {
+test('the browser check finds what overflows, what lies over its neighbour, what is unequal or cramped, what is bunched', { skip: !chrome && 'no Chrome on this machine' }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'deck-check-'));
   mkdirSync(join(dir, 'brand'));
   // A theme mistake that pushes one block over the next: every edge of the slide stays clean, so
   // only the overlap check can see it (a dense slide shipped that way once, measured "0 defects").
-  writeFileSync(join(dir, 'brand', 'theme.css'), '#pile .dk-callout + .dk-callout { margin-top: -60px; }');
+  writeFileSync(join(dir, 'brand', 'theme.css'), '#pile .dk-callout + .dk-callout { margin-top: -60px; }\n#left .dk-quote { justify-content: flex-start; }\n#tight .dk-callout + .dk-callout { margin-top: -24px; }');
   const deck = join(dir, 'deck.mdx');
   const long = Array.from({ length: 14 }, (_, i) => `"Point numéro ${i + 1}, assez long pour prendre toute une ligne de la slide quand il est affiché"`).join(', ');
   writeFileSync(deck, `<Slide title="Trop plein"><Bullets items={[${long}]} /></Slide>
 <Slide title="Cartes"><Cards items={[{ title: "Une", text: "courte" }, { title: "Deux", text: "une carte beaucoup plus longue que l'autre, sur plusieurs lignes, pour que la rangée soit inégale si rien ne l'égalise" }]} /></Slide>
 <Slide title="Propre"><Stats items={[{ value: "4", label: "écoles" }, { value: "96", label: "classes" }]} /></Slide>
-<Slide id="pile" title="Empilé"><Callout>Une première phrase</Callout><Callout tone="next">Une seconde phrase</Callout></Slide>`);
+<Slide id="pile" title="Empilé"><Callout>Une première phrase</Callout><Callout tone="next">Une seconde phrase</Callout></Slide>
+<Slide title="Ce qu'ils disent"><Quote text="Ça marche." by="Une enseignante" /></Slide>
+<Slide id="left" title="Ce qu'ils disent"><Quote text="Ça marche." by="Une enseignante" /></Slide>
+<Slide id="tight" title="Serré"><Callout>Une première phrase</Callout><Callout tone="next">Une seconde phrase</Callout></Slide>`);
   const paths = { tokens: [], brand: join(dir, 'brand'), decks: [dir], assetMode: 'link' };
   const b = await buildDeck(deck, paths, { log: () => {} });
   assert.deepEqual(b.errors, []);
@@ -195,4 +268,9 @@ test('the browser check finds what overflows, what lies over its neighbour, what
   assert.ok(!r.defects.some((d) => d.n === 2 && d.issue === 'grid'), 'cards in a row are equalised by the theme');
   assert.ok(!r.defects.some((d) => d.n === 3), JSON.stringify(r.defects.filter((d) => d.n === 3)));
   assert.ok(r.defects.some((d) => d.n === 4 && d.issue === 'overlap'), JSON.stringify(r.defects.filter((d) => d.n === 4)));
+  const bunched = (n) => r.warnings.some((w) => w.n === n && w.issue === 'bunched');
+  assert.ok(!bunched(5), 'a quote alone on its slide sits in the middle, it is not bunched');
+  assert.ok(bunched(6), 'the same quote pushed to the left of an empty slide still is');
+  assert.ok(r.defects.some((d) => d.n === 7 && d.issue === 'cramped'), JSON.stringify(r.defects.filter((d) => d.n === 7)));
+  assert.ok(!r.defects.some((d) => d.issue === 'cramped' && d.n !== 7), JSON.stringify(r.defects.filter((d) => d.issue === 'cramped')));
 });

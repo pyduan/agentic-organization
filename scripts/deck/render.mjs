@@ -6,11 +6,12 @@
 // two dark slides in a row, a list too long to read), printed with the slide they belong to.
 
 import { S, validate, prose, frame } from './components.mjs';
-import { esc, md, plain, words } from './text.mjs';
+import { esc, md, plain, words, baseLang } from './text.mjs';
+import { copyWarnings, NOT_COPY } from './copy.mjs';
 
 const STRINGS = {
-  fr: { source: 'Source\u00a0: ', part: 'Partie', agenda: 'Ordre du jour', colon: '\u00a0: ', noNotes: 'Pas de note sur cette slide.', overview: 'Vue d’ensemble', notes: 'Notes', full: 'Plein écran', print: 'PDF', prev: 'Précédente', next: 'Suivante' },
-  en: { source: 'Source: ', part: 'Part', agenda: 'Agenda', colon: ': ', noNotes: 'No notes on this slide.', overview: 'Overview', notes: 'Notes', full: 'Fullscreen', print: 'PDF', prev: 'Previous', next: 'Next' },
+  fr: { source: 'Source\u00a0: ', part: 'Partie', agenda: 'Ordre du jour', colon: '\u00a0: ', percent: '\u00a0%', noNotes: 'Pas de note sur cette slide.', overview: 'Vue d’ensemble', notes: 'Notes', full: 'Plein écran', print: 'PDF', prev: 'Précédente', next: 'Suivante' },
+  en: { source: 'Source: ', part: 'Part', agenda: 'Agenda', colon: ': ', percent: '%', noNotes: 'No notes on this slide.', overview: 'Overview', notes: 'Notes', full: 'Fullscreen', print: 'PDF', prev: 'Previous', next: 'Next' },
 };
 const MONTHS = {
   fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
@@ -24,13 +25,13 @@ const formatDate = (d, lang) => {
 };
 
 // A figure worth a source: a percentage, an amount, a large count. Years and slide numbers are not.
-const FIGURE = /(\d[\d\s\u202f.,]*\s?(%|€|k€|M€|Md€|\$|millions?|milliards?|M\b|k\b))|(\b\d{1,3}(?:[\s\u202f.]\d{3})+\b)|(\b(?!(?:19|20)\d{2}\b)\d{3,}\b)/i;
+const FIGURE = /(\d[\d\s\u202f.,]*\s?(%|€|k€|M€|Md€|\$|£|millions?|milliards?|billions?|bn\b|M\b|k\b))|(\b\d{1,3}(?:[\s\u202f.,]\d{3})+\b)|(\b(?!(?:19|20)\d{2}\b)\d{3,}\b)/i;
 
 /** Every string a slide shows, for counting words and finding figures. Notes and sources excluded. */
 function texts(node, out = []) {
   if (node.type === 'text') { out.push(node.text); return out; }
   const walk = (v, key) => {
-    if (['notes', 'source', 'src', 'mark', 'image', 'photo', 'icon', 'id', 'url', 'email', 'phone', 'chapter', 'ground', 'tone', 'size', 'look', 'fit', 'ratio', 'align', 'focus', 'caption'].includes(key)) return;
+    if (NOT_COPY.includes(key)) return;
     if (typeof v === 'string') out.push(v);
     else if (Array.isArray(v)) v.forEach((x) => walk(x));
     else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, k);
@@ -43,10 +44,14 @@ const hasSource = (node) => Boolean(node.props?.source) || (node.children || [])
   || JSON.stringify(node.props || {}).includes('"source"');
 
 export function renderDeck(deck, opts) {
-  const { registry, asset, css, js, lang: langOpt, shareMode = false } = opts;
+  const { registry, asset, css, js, lang: langOpt, defaultLang = 'en', shareMode = false, avoid = [] } = opts;
   const meta = deck.meta;
-  const lang = langOpt || meta.lang || 'fr';
-  const strings = STRINGS[lang] || STRINGS.en;
+  // The deck says its language in its frontmatter; when it does not, the repo's default from
+  // paths.mjs, English unless that says otherwise. `lang` is what the
+  // page declares (the theme's :lang() rules read it), `base` what typography and dates follow.
+  const lang = String(langOpt || meta.lang || defaultLang);
+  const base = baseLang(lang);
+  const strings = STRINGS[base] || STRINGS.en;
   const errors = [];
   const warnings = [];
   const info = [];
@@ -97,7 +102,7 @@ export function renderDeck(deck, opts) {
     // A Divider or an Agenda never shows a chapter label itself; it says which part follows.
     const own = def?.chapter ? (def.chapter(p) ?? '') : undefined;
     const ctx = {
-      n, lang, meta, t: (k) => strings[k] ?? k, date: (d) => formatDate(d, lang),
+      n, lang, meta, t: (k) => strings[k] ?? k, date: (d) => formatDate(d, base),
       md: (s) => md(s, lang), asset: (src) => asset(src, `${where} <${node.name}>`),
       title: plain(p.title || p.text || node.name),
       chapter: own !== undefined ? '' : chapter,
@@ -119,8 +124,9 @@ export function renderDeck(deck, opts) {
   info.forEach((s, i) => {
     const prev = info[i - 1];
     if (prev && ['dark', 'accent'].includes(prev.ground) && ['dark', 'accent'].includes(s.ground)) warnings.push(`slide ${s.n}: second dark slide in a row (slide ${prev.n} is dark too). A dark slide opens a part; merge them or lighten one.`);
-    if (s.figure) warnings.push(`slide ${s.n} «${s.title}»: a figure without a source («${s.figure.slice(0, 50)}»). Add source="…" to the slide, or say on the slide that it is an estimate.`);
+    if (s.figure) warnings.push(`slide ${s.n} “${s.title}”: a figure without a source (“${s.figure.slice(0, 50)}”). Add source="…" to the slide, or say on the slide that it is an estimate.`);
   });
+  warnings.push(...copyWarnings(deck.slides, info, { lang, avoid }));
   for (const k of ['title', 'date']) if (!meta[k]) warnings.push(`frontmatter: no "${k}"`);
   for (const k of ['audience', 'takeaway']) if (!meta[k]) warnings.push(`frontmatter: no "${k}". Who is in the room, and the one thing they should remember, decide what goes on every slide.`);
 
