@@ -163,7 +163,13 @@ Find every row that matches the task at hand and read those files before produci
   reconciles refuses to render and shows the gap. That is the point of building it — a rule in prose
   is re-read by someone who already believes it, a rule in the recomputation can say no. Recipe:
   `source/formats/webapp.md` ▸ *Who decides there should be a tool*.
-- **Do not hand the owner a technical validation.** An inventory of a few hundred rows to approve before an import, an identifier scheme, a mapping between two tools' statuses: these are yours to settle, with what keeps them reversible (a trial on a few records, a log, nothing destroyed). Asked to approve a 196-line inventory before anything was copied, an owner answered that it was too technical, not the user's call, and that the agent should set it up. Bring them the outcome and the exceptions only a person can decide (a signed copy missing, two sources disagreeing on a fact), never the mechanics. The line is the one in `source/decisions.md`: what the organization does, says or commits to waits for a person; how its files are arranged does not.
+- **Do not hand the owner a technical validation.** An inventory to approve before an import, an
+  identifier scheme, a mapping between two tools' statuses: settle these yourself and keep them
+  reversible (a trial on a few records, a log, nothing destroyed). Bring the owner the outcome and
+  the exceptions only a person can decide, such as a signed copy missing or two sources disagreeing
+  on a fact. A mapping you write is a closed list: a value it does not know stops the run and is
+  reported as an error, so no value passes through on a guess. Where the line falls:
+  `source/decisions.md` ▸ *Only a person settles*.
 - **Ask before**: deleting content, publishing a visible redesign (preview it with the owner locally first), or anything touching money, accounts, or credentials.
 
 ## End of every session
