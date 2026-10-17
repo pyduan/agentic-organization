@@ -231,7 +231,7 @@ export async function checkDeck(htmlFile, opts = {}) {
 export function printReport(r, { title = '', strict = false, log = console.log } = {}) {
   if (r.skipped) { log(`  ✘ not checked in a browser: ${r.skipped}. Overflow, contrast and grids are unverified.`); return 2; }
   const order = [...r.defects.map((f) => ({ ...f, mark: '✘' })), ...r.warnings.map((f) => ({ ...f, mark: '!' }))].sort((a, b) => a.n - b.n || (a.mark === '✘' ? -1 : 1));
-  for (const f of order) log(`  ${f.mark} ${f.n ? `slide ${f.n}` : 'deck'} · ${f.issue}${f.text ? ` «${f.text}»` : ''}: ${f.detail}`);
+  for (const f of order) log(`  ${f.mark} ${f.n ? `slide ${f.n}` : 'deck'} · ${f.issue}${f.text ? ` “${f.text}”` : ''}: ${f.detail}`);
   const c = r.contrast ? `, contrast measured on ${r.contrast.measured} texts` : ', contrast not measured (no check-contrast.mjs)';
   log(`${r.defects.length ? '✘' : '✓'} ${title}${r.slides} slides: ${r.defects.length} defect(s), ${r.warnings.length} warning(s)${c}`);
   if (r.sheet) log(`  Look at every slide: ${r.sheet}`);

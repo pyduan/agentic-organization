@@ -62,12 +62,27 @@ test('schemas: enums, required fields, list limits as warnings', () => {
   assert.match(warnings[0], /3 items/);
 });
 
-test('text: escaped, then marked, then typeset; code is left alone', () => {
-  assert.equal(md('<b>x</b> *mot* **gras**'), '&lt;b&gt;x&lt;/b&gt; <em>mot</em> <strong>gras</strong>');
-  assert.equal(md('Une *source* : la vôtre'), 'Une <em>source</em>\u00a0: la vôtre');
-  assert.equal(md('`a : *b*`'), '<code>a : *b*</code>');
-  assert.equal(md('1 606 112 €'), '1\u202f606\u202f112\u00a0€');
-  assert.equal(md('l\'équipe', 'en'), 'l’équipe');
+test('text: escaped, then marked, then typeset in the deck\'s language; code is left alone', () => {
+  assert.equal(md('<b>x</b> *word* **bold**'), '&lt;b&gt;x&lt;/b&gt; <em>word</em> <strong>bold</strong>');
+  assert.equal(md('A *source*: yours'), 'A <em>source</em>: yours');
+  assert.equal(md('Une *source* : la vôtre', 'fr'), 'Une <em>source</em>\u00a0: la vôtre');
+  assert.equal(md('`a : *b*`', 'fr'), '<code>a : *b*</code>');
+  assert.equal(md('1 606 112 €', 'fr-FR'), '1\u202f606\u202f112\u00a0€');
+  assert.equal(md('38 % en 3 jours, 12 patients', 'fr'), '38\u00a0% en 3\u00a0jours, 12 patients');
+  assert.equal(md('the team\'s 1 606 visits : 3 %'), 'the team’s 1 606 visits : 3 %');
+});
+
+test('a deck is in English unless its frontmatter says otherwise, and its quotes follow', () => {
+  const en = render('<Slide title="t" />');
+  assert.match(en.html, /<html lang="en">/);
+  assert.match(render('---\ndate: 2026-10-01\n---\n<Cover title="t" date="2026-10-01" />').html, /1 October 2026/);
+  const fr = render('---\nlang: fr-FR\n---\n<Cover title="t" date="2026-10-01" />');
+  assert.match(fr.html, /<html lang="fr-FR">/);
+  assert.match(fr.html, /1er octobre 2026/);
+  const theme = readFileSync(join(HERE, 'theme.css'), 'utf8');
+  assert.match(theme, /blockquote::before \{ content: open-quote/);
+  assert.match(theme, /blockquote:lang\(fr\) \{ quotes: "\\00AB/);
+  assert.ok(!/content: "«/.test(theme), 'no quote mark written into the theme');
 });
 
 test('chapters carry over, a Divider sets one, an Agenda does not show one', () => {

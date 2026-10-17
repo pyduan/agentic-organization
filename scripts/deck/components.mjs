@@ -450,7 +450,7 @@ export const components = {
       const sum = p.items.reduce((a, b) => a + b.value, 0) || 1;
       let at = 0;
       const stops = p.items.map((b, i) => { const from = at; at += (b.value / sum) * 100; return `var(--dk-c${(i % 5) + 1}) ${from.toFixed(2)}% ${at.toFixed(2)}%`; }).join(', ');
-      return `<div class="dk-block dk-donut"><div class="dk-donut-ring" style="background:conic-gradient(${stops})"><div class="dk-donut-hole">${when(p.total, (t) => `<strong>${esc(t)}</strong>`)}${when(p.label, (l) => `<span>${ctx.md(l)}</span>`)}</div></div><ul class="dk-donut-legend">${p.items.map((b, i) => `<li><i style="background:var(--dk-c${(i % 5) + 1})"></i><span>${ctx.md(b.label)}</span><b>${esc(b.display ?? `${Math.round((b.value / sum) * 100)}\u00a0%`)}</b></li>`).join('')}</ul></div>`;
+      return `<div class="dk-block dk-donut"><div class="dk-donut-ring" style="background:conic-gradient(${stops})"><div class="dk-donut-hole">${when(p.total, (t) => `<strong>${esc(t)}</strong>`)}${when(p.label, (l) => `<span>${ctx.md(l)}</span>`)}</div></div><ul class="dk-donut-legend">${p.items.map((b, i) => `<li><i style="background:var(--dk-c${(i % 5) + 1})"></i><span>${ctx.md(b.label)}</span><b>${esc(b.display ?? `${Math.round((b.value / sum) * 100)}${ctx.t('percent')}`)}</b></li>`).join('')}</ul></div>`;
     },
   },
 };
