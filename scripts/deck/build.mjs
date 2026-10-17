@@ -85,19 +85,41 @@ function makeAsset({ deckDir, brandDir, outDir, mode, errors, warnings }) {
 }
 
 /** Engine, brand tokens, kit theme, brand deck theme: the order a brand overrides the kit in. */
-export function assembleCss(paths, asset) {
-  const parts = [readFileSync(join(HERE, 'engine.css'), 'utf8')];
-  for (const t of paths.tokens) parts.push(`/* brand tokens: ${basename(t)} */\n${stripDark(readFileSync(t, 'utf8'))}`);
-  parts.push(readFileSync(join(HERE, 'theme.css'), 'utf8'));
+export function cssLayers(paths, asset) {
+  const layers = [{ label: 'scripts/deck/engine.css', css: readFileSync(join(HERE, 'engine.css'), 'utf8') }];
+  for (const t of paths.tokens) layers.push({ label: relative(paths.root || process.cwd(), t), css: `/* brand tokens: ${basename(t)} */\n${stripDark(readFileSync(t, 'utf8'))}` });
+  layers.push({ label: 'scripts/deck/theme.css', css: readFileSync(join(HERE, 'theme.css'), 'utf8') });
   const brandTheme = join(paths.brand, 'theme.css');
   if (existsSync(brandTheme)) {
     const css = readFileSync(brandTheme, 'utf8').replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/g, (m, q, u) => {
       if (/^(data:|https?:|#)/.test(u)) return m;
       return `url("${asset(`brand:${relative(join(paths.brand, 'assets'), resolve(paths.brand, u)).split(sep).join('/')}`, 'brand theme')}")`;
     });
-    parts.push(`/* brand deck theme */\n${css}`);
+    layers.push({ label: relative(paths.root || process.cwd(), brandTheme), css: `/* brand deck theme */\n${css}` });
   }
-  return parts.join('\n');
+  return layers;
+}
+
+export const assembleCss = (paths, asset) => cssLayers(paths, asset).map((l) => l.css).join('\n');
+
+/**
+ * A custom property read without a fallback that nothing defines. CSS drops such a declaration
+ * without a word, so a renamed token empties every card that used it and no check sees an error.
+ * Definitions count from every layer and from what sets them inline (the components, the engine).
+ * Returns [{ token, where }].
+ */
+export function undefinedTokens(layers, sources = []) {
+  const bare = layers.map((l) => ({ ...l, css: l.css.replace(/\/\*[\s\S]*?\*\//g, '') }));
+  const defined = new Set();
+  for (const text of [...bare.map((l) => l.css), ...sources]) {
+    for (const m of text.matchAll(/(--[\w-]+)\s*:/g)) defined.add(m[1]);
+    for (const m of text.matchAll(/setProperty\(\s*['"](--[\w-]+)/g)) defined.add(m[1]);
+  }
+  const out = new Map();
+  for (const l of bare) {
+    for (const m of l.css.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)) if (!defined.has(m[1]) && !out.has(m[1])) out.set(m[1], l.label);
+  }
+  return [...out].map(([token, where]) => ({ token, where }));
 }
 
 /** A slug, a folder or a file → the deck's file. */
@@ -137,8 +159,13 @@ export async function buildDeck(deckFile, paths, opts = {}) {
   if (share) writeFileSync(join(outDir, '.gitignore'), '*\n');
   const asset = makeAsset({ deckDir, brandDir: paths.brand, outDir, mode, errors, warnings });
   const registry = await loadRegistry(paths, log);
-  const css = assembleCss(paths, asset);
+  const layers = cssLayers(paths, asset);
+  const css = layers.map((l) => l.css).join('\n');
   const js = readFileSync(join(HERE, 'engine.js'), 'utf8');
+  const inline = Object.values(registry).flatMap((d) => [d.render, d.check].filter(Boolean).map(String));
+  for (const { token, where } of undefinedTokens(layers, [js, ...inline])) {
+    errors.push(`${where}: var(${token}) is read but never defined, so the browser drops that declaration. Define ${token} (in the brand's tokens or deck theme), or give it a fallback: var(${token}, …)`);
+  }
   const r = renderDeck(deck, { registry, asset, css, js, shareMode: share });
   errors.push(...r.errors);
   warnings.push(...r.warnings);

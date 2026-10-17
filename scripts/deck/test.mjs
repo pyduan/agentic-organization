@@ -12,7 +12,7 @@ import { parseDeck, parseLiteral, frontmatter } from './parse.mjs';
 import { md } from './text.mjs';
 import { renderDeck } from './render.mjs';
 import { components, validate, S } from './components.mjs';
-import { stripDark, buildDeck } from './build.mjs';
+import { stripDark, buildDeck, undefinedTokens } from './build.mjs';
 import { readZip, readPptx, outline, style } from './read-pptx.mjs';
 import { findChrome } from './chrome.mjs';
 import { checkDeck } from './check.mjs';
@@ -124,6 +124,20 @@ test('a deck is always on paper: the dark half of the brand tokens is dropped', 
   const css = stripDark(':root{--a:#fff}\n@media (prefers-color-scheme: dark){:root{--a:#000}}\n:root[data-theme="dark"]{--a:#111}\n.x{color:red}');
   assert.ok(css.includes('--a:#fff') && css.includes('.x{color:red}'));
   assert.ok(!css.includes('#000') && !css.includes('#111'));
+});
+
+test('a token read with no fallback and never defined stops the build', async () => {
+  const found = undefinedTokens([
+    { label: 'kit', css: ':root { --a: 1px; }\n/* var(--in-a-comment) */\n.x { gap: var(--a); margin: var(--b, 2px); color: var(--gone); width: var(--cols); }' },
+  ], ['style="--cols:${n}"']);
+  assert.deepEqual(found, [{ token: '--gone', where: 'kit' }]);
+  const dir = mkdtempSync(join(tmpdir(), 'deck-tokens-'));
+  mkdirSync(join(dir, 'brand'));
+  writeFileSync(join(dir, 'brand', 'theme.css'), '.dk-card { background: var(--card-ground); }');
+  writeFileSync(join(dir, 'deck.mdx'), '<Slide title="t" />');
+  const r = await buildDeck(join(dir, 'deck.mdx'), { root: dir, tokens: [], brand: join(dir, 'brand'), decks: [dir] }, { log: () => {} });
+  assert.match(r.errors.join('\n'), /brand\/theme\.css: var\(--card-ground\) is read but never defined/);
+  assert.equal(r.out, null);
 });
 
 test('the component catalogue builds without an error', async () => {
