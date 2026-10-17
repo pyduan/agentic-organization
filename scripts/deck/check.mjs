@@ -144,9 +144,10 @@ function auditInPage() {
       const inner = leaves.filter((el) => body.contains(el)).map((el) => el.getBoundingClientRect());
       if (inner.length) {
         const u = inner.reduce((a, r) => ({ l: Math.min(a.l, r.left), t: Math.min(a.t, r.top), r: Math.max(a.r, r.right), b: Math.max(a.b, r.bottom) }), { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity });
-        const below = br.bottom - u.b, above = u.t - br.top, right = br.right - u.r;
+        const below = br.bottom - u.b, above = u.t - br.top, right = br.right - u.r, left = u.l - br.left;
+        // Bunched is off-centre: a narrow block set in the middle of its slide (a lone quote) is not.
         if (u.b - u.t < 0.55 * br.height && below > 1.5 * above + 60) add('warning', 'bunched', body, `content sits at the top, ${px(below)}px empty under it`);
-        if (u.r - u.l < 0.62 * br.width && right > 220) add('warning', 'bunched', body, `content sits on the left, ${px(right)}px empty on the right: pair it with an image, a figure or a second column`);
+        if (u.r - u.l < 0.62 * br.width && right > 220 && right > 1.5 * left + 60) add('warning', 'bunched', body, `content sits on the left, ${px(right)}px empty on the right: pair it with an image, a figure or a second column`);
         if (((u.r - u.l) * (u.b - u.t)) / (br.width * br.height) < 0.28) add('warning', 'sparse', body, 'the content fills under a third of the slide');
       }
     }
