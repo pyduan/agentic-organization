@@ -13,6 +13,11 @@
 // Anything else is reported and left exactly as it was. A sync never merges, rebases,
 // stashes, clones or pushes.
 //
+// A rule usually lands with a backlog: files written before it that break it. A commit
+// that knows of one says so in a trailer, `Retroactive: <what to sweep>` (or
+// `Retroactive: none`). After a fast-forward the sync lists the trailers of the commits it
+// just pulled, other than none, so the session applies them to what already exists.
+//
 // Which repos: the ones on the map (ORGANIGRAM.md) that sit on this machine, found by
 // their origin (lib/workspace.mjs), this repo included. With --siblings, also every repo
 // beside this one, which is what the workspace hook wants: that folder is the
@@ -111,13 +116,30 @@ export async function inspect(dir, { fetch = false } = {}) {
   return { branch, defaultBranch, dirty, ahead, behind, ...decide({ branch, defaultBranch, dirty, ahead, behind }) };
 }
 
+/** The `Retroactive:` trailers of the commits in a range, oldest first, `none` left out. */
+export async function retroactive(dir, range) {
+  const log = (await tryGit(dir, ['log', '--reverse', '--format=%H%x1f%s%x1f%B%x1e', range])) ?? '';
+  const out = [];
+  for (const entry of log.split('\x1e').map((e) => e.trim()).filter(Boolean)) {
+    const [sha, subject, body = ''] = entry.split('\x1f');
+    for (const m of body.matchAll(/^\s*Retroactive:\s*(.+)$/gim)) {
+      if (!/^none\b/i.test(m[1].trim())) out.push({ sha, subject, sweep: m[1].trim() });
+    }
+  }
+  return out;
+}
+
 /** Fetches, and fast-forwards when decide() allows it. Says where the clone stands after. */
 export async function syncRepo(dir) {
   const found = await inspect(dir, { fetch: true });
   if (!found.merge) return found;
   try {
+    const before = await git(dir, ['rev-parse', 'HEAD']);
     await git(dir, ['merge', '--quiet', '--ff-only', `origin/${found.defaultBranch}`]);
-    return { ...found, state: 'updated', merge: false, detail: `pulled ${commits(found.behind, 'new ')}` };
+    return {
+      ...found, state: 'updated', merge: false, detail: `pulled ${commits(found.behind, 'new ')}`,
+      retroactive: await retroactive(dir, `${before}..HEAD`),
+    };
   } catch (e) {
     // An untracked file where a new commit adds one, or another session's git holding the
     // index: git refuses, and the clone is exactly as it was.
@@ -187,6 +209,12 @@ export function syncReport(result, { quiet = false } = {}) {
   if (quiet && out.length) {
     out.unshift('Workspace: some clones need a look before anyone writes in them.');
     out.push('Never discard changes or commits to bring one up to date: they may be another session\'s.');
+  }
+  const sweeps = result.repos.flatMap((r) => (r.retroactive || []).map((x) => ({ name: r.name, ...x })));
+  if (sweeps.length) {
+    out.push('Rules just pulled that apply to what already exists (Retroactive: trailers):');
+    for (const x of sweeps) out.push(`• ${x.name} ${x.sha.slice(0, 8)} ${x.subject}: ${x.sweep}`);
+    out.push('Find the existing files each one names and fix them now; name anything bigger to the owner with its scope.');
   }
   return out.join('\n');
 }
