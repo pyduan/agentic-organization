@@ -230,7 +230,7 @@ test('a clone git cannot compare with origin is named, never reported up to date
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });
 
-test('from the command line: JSON out, and exit 1 only when a sync failed for a reason nobody chose', () => {
+test('from the command line: JSON out, and exit 1 only when a sync failed for a reason nobody chose, never under --quiet', () => {
   const area = scratch(['| `acme/shop` | | |']);
   try {
     for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs']) cpSync(join(KIT, f), join(area.org, f));
@@ -247,8 +247,9 @@ test('from the command line: JSON out, and exit 1 only when a sync failed for a 
     // Still acme/shop by its URL, so the map still finds it; just nothing answers there.
     git(shop.dir, 'remote', 'set-url', 'origin', join(area.top, 'gone', 'acme', 'shop.git'));
     const failed = cli('sync', '--quiet');
-    assert.equal(failed.status, 1);
+    assert.equal(failed.status, 0, 'a session-start hook reaches the agent only when it exits 0');
     assert.match(failed.stdout, /• shop: NOT updated, could not reach origin/);
+    assert.equal(cli('sync').status, 1);
     assert.equal(cli('status', '--offline').status, 0, 'status always exits 0');
     assert.equal(cli('pull').status, 1, 'an unknown command is refused');
   } finally { rmSync(area.top, { recursive: true, force: true }); }
