@@ -29,25 +29,25 @@ and the lessons.
 
 ```mdx
 ---
-title: "Comité de pilotage"
+title: "Steering committee"
 date: 2026-10-09
-lang: fr
+lang: en
 audience: "Who is in the room, and what they already know"
 takeaway: "The one thing they should remember"
 status: draft
-footer: "Organisation, comité du 9 octobre 2026"
+footer: "Organization, steering committee, 9 October 2026"
 ---
 
 {/* The plan, approved before any slide is composed. A comment is kept, never published. */}
 
 <Cover title="…" subtitle="…" date="2026-10-09" />
 
-<Slide chapter="Ce que nous avons fait" title="Quatre écoles rénovées en une année" source="Registre des chantiers, 2026">
+<Slide chapter="What we did" title="Four schools renovated in one year" source="Site register, 2026">
   <Split ratio="3 2">
-    <Bullets groups={[{ head: "Pourquoi", items: ["…", "…"] }, { head: "En pratique", items: ["…"] }]} />
-    <Image src="assets/ecole.jpg" />
+    <Bullets groups={[{ head: "Why", items: ["…", "…"] }, { head: "In practice", items: ["…"] }]} />
+    <Image src="assets/school.jpg" />
   </Split>
-  <Callout tone="next">Les deux dernières écoles suivent en 2027.</Callout>
+  <Callout tone="next">The last two schools follow in 2027.</Callout>
 </Slide>
 ```
 
@@ -58,8 +58,10 @@ footer: "Organisation, comité du 9 octobre 2026"
   expression, an unknown component or prop. A shape that is missing becomes a component in
   `source/brand/deck/components.mjs` (or a proposal to the kit), never a one-off inside a deck. A
   one-off is invisible to the theme, to the checks and to the next deck.
-- **Text takes three marks**: `*accent*`, `**bold**`, `` `code` ``. Typography (non-breaking spaces in
-  French, curly apostrophes) is applied at build, to every text.
+- **`lang` sets the deck's language**, English when it is missing: the dates, the viewer's labels,
+  the quotation marks and the typography follow it.
+- **Text takes three marks**: `*accent*`, `**bold**`, `` `code` ``. Typography (curly apostrophes,
+  and in French the non-breaking spaces) is applied at build, to every text.
 - **`chapter` carries over** to the following slides until another one is set; a `Divider` sets it, an
   `Agenda` with `active` names the part that opens. The viewer groups the overview by chapter, and a
   theme can print it on the slide.

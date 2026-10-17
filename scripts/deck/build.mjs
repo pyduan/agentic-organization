@@ -213,7 +213,7 @@ function cmdNew([slug], flags, paths) {
   writeFileSync(join(dir, 'deck.mdx'), `---
 title: "${flags.title || 'The deck title'}"
 date: ${today}
-lang: ${flags.lang || 'fr'}
+lang: ${flags.lang || 'en'}
 audience: "Who will be in the room, and what they already know"
 takeaway: "The one thing they should remember"
 status: draft

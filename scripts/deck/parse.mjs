@@ -9,13 +9,13 @@
 // invisible to every rule and every check the kit has.
 //
 //   ---
-//   title: "Comité de pilotage"
+//   title: "Steering committee"
 //   ---
 //
 //   <Cover title="…" />
 //   <Slide title="…" lead="…">
 //     <Cards items={[{ title: "…", text: "…" }]} />
-//     <Callout>La phrase que la slide doit laisser</Callout>
+//     <Callout>The sentence the slide should leave</Callout>
 //   </Slide>
 //
 //   {/* A comment: kept in the source, never published. */}
