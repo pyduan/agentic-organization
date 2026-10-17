@@ -188,6 +188,20 @@ test('no origin, or an origin that does not answer: named, never an error that h
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });
 
+test('a clone git cannot compare with origin is named, never reported up to date', async () => {
+  const area = scratch(['| `acme/shop` | `satellite` | the shop |']);
+  try {
+    const shop = repoFor(area, 'shop');
+    // origin/main names a commit this clone does not have.
+    writeFileSync(join(shop.dir, '.git', 'refs', 'remotes', 'origin', 'main'), `${'1'.repeat(40)}\n`);
+    const status = await run(area.org, { command: 'status', fetch: false });
+    const r = byName(status, 'shop');
+    assert.equal(r.state, 'unreadable');
+    assert.match(r.detail, /^could not compare with origin\/main/);
+    assert.match(statusReport(status), /0 can be fast-forwarded, 1 need a person/);
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
 test('from the command line: JSON out, and exit 1 only when a sync failed for a reason nobody chose', () => {
   const area = scratch(['| `acme/shop` | | |']);
   try {
