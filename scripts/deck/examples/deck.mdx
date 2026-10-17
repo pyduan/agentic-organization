@@ -133,11 +133,11 @@ footer: "Component catalogue"
 {/* Bars and Donut in a Split */}
 <Slide title="Where the budget went" source="Workshop accounts, October 2026">
   <Split ratio="1 1" align="center">
-    <Bars unit="k€" items={[
-      { label: "Insulation", value: 980, accent: true },
-      { label: "Heating", value: 640 },
-      { label: "Windows", value: 310 },
-      { label: "Studies", value: 170 },
+    <Bars items={[
+      { label: "Insulation", value: 980, display: "€980k", accent: true },
+      { label: "Heating", value: 640, display: "€640k" },
+      { label: "Windows", value: 310, display: "€310k" },
+      { label: "Studies", value: 170, display: "€170k" },
     ]} />
     <Donut total="€2.1M" label="committed" items={[
       { label: "Region", value: 50 },
