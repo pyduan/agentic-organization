@@ -2,6 +2,9 @@
   "name": "todos",
   "type": "module",
   "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",

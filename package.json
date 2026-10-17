@@ -1,6 +1,9 @@
 {
   "name": "agentic-organization",
   "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
   "type": "module",
   "//": "Root deploy layer only. The website itself lives in site/ (its own package.json); `npm run dev` there for local work. This root wraps `build` + `deploy` so Cloudflare Workers (and one-command local deploys) can build the site and upload site/dist as static assets. See docs/deploy-cloudflare.md.",
   "scripts": {
