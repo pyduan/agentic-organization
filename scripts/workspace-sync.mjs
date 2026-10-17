@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 // Keep the organization's clones on this machine current, without ever losing work.
 //
-// Every session is told to pull first, and the workspace hook used to do it with
-// `git pull --ff-only` in every folder beside the main repo. That pulls whatever branch
-// happens to be checked out, into a working copy another session may be editing. The
-// rules below come from an organization that runs this sync unattended, every quarter of
-// an hour, on every laptop, where a sync that moved a file under someone's feet would
-// have been noticed within a day.
+// Every session is told to pull first, and a plain `git pull --ff-only` in every folder
+// pulls whatever branch happens to be checked out, into a working copy another session
+// may be editing. The rules below hold for a sync run unattended, on every laptop.
 //
 // A clone is fast-forwarded only when all of these hold:
 //   - it is on its default branch (origin/HEAD, else main or master);
@@ -80,9 +77,9 @@ export function decide({ branch, defaultBranch, dirty, ahead, behind }) {
 }
 
 /** States that need a person. Everything else is a clone that is current. */
-export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'refused']);
+export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'unreadable', 'refused']);
 /** States where the sync failed for a reason nobody chose. */
-export const FAILED = new Set(['unreachable', 'refused']);
+export const FAILED = new Set(['unreachable', 'unreadable', 'refused']);
 
 /** origin/HEAD as the clone recorded it, else main or master, whichever origin has. */
 async function defaultBranchOf(dir) {
@@ -107,8 +104,10 @@ export async function inspect(dir, { fetch = false } = {}) {
   }
   const branch = (await tryGit(dir, ['branch', '--show-current'])) ?? '';
   const dirty = ((await tryGit(dir, ['status', '--porcelain', '--untracked-files=no'])) ?? '') !== '';
-  const counts = await tryGit(dir, ['rev-list', '--left-right', '--count', `HEAD...origin/${defaultBranch}`]);
-  const [ahead, behind] = (counts ?? '0 0').split(/\s+/).map(Number);
+  let counts;
+  try { counts = await git(dir, ['rev-list', '--left-right', '--count', `HEAD...origin/${defaultBranch}`]); }
+  catch (e) { return { branch, defaultBranch, dirty, state: 'unreadable', merge: false, detail: `could not compare with origin/${defaultBranch} (${reason(e)})` }; }
+  const [ahead, behind] = counts.split(/\s+/).map(Number);
   return { branch, defaultBranch, dirty, ahead, behind, ...decide({ branch, defaultBranch, dirty, ahead, behind }) };
 }
 
@@ -192,7 +191,7 @@ export function syncReport(result, { quiet = false } = {}) {
   return out.join('\n');
 }
 
-const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', refused: '✘' };
+const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
 
 export function statusReport(result) {
   const width = Math.max(4, ...result.repos.map((r) => r.name.length));
