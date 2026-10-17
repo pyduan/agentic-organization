@@ -189,18 +189,20 @@ test('read-pptx: text in order with its style, the header band, the theme fonts'
 });
 
 const chrome = findChrome();
-test('the browser check finds what overflows, what lies over its neighbour, what is unequal', { skip: !chrome && 'no Chrome on this machine' }, async () => {
+test('the browser check finds what overflows, what lies over its neighbour, what is unequal, what is bunched', { skip: !chrome && 'no Chrome on this machine' }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'deck-check-'));
   mkdirSync(join(dir, 'brand'));
   // A theme mistake that pushes one block over the next: every edge of the slide stays clean, so
   // only the overlap check can see it (a dense slide shipped that way once, measured "0 defects").
-  writeFileSync(join(dir, 'brand', 'theme.css'), '#pile .dk-callout + .dk-callout { margin-top: -60px; }');
+  writeFileSync(join(dir, 'brand', 'theme.css'), '#pile .dk-callout + .dk-callout { margin-top: -60px; }\n#left .dk-quote { justify-content: flex-start; }');
   const deck = join(dir, 'deck.mdx');
   const long = Array.from({ length: 14 }, (_, i) => `"Point numéro ${i + 1}, assez long pour prendre toute une ligne de la slide quand il est affiché"`).join(', ');
   writeFileSync(deck, `<Slide title="Trop plein"><Bullets items={[${long}]} /></Slide>
 <Slide title="Cartes"><Cards items={[{ title: "Une", text: "courte" }, { title: "Deux", text: "une carte beaucoup plus longue que l'autre, sur plusieurs lignes, pour que la rangée soit inégale si rien ne l'égalise" }]} /></Slide>
 <Slide title="Propre"><Stats items={[{ value: "4", label: "écoles" }, { value: "96", label: "classes" }]} /></Slide>
-<Slide id="pile" title="Empilé"><Callout>Une première phrase</Callout><Callout tone="next">Une seconde phrase</Callout></Slide>`);
+<Slide id="pile" title="Empilé"><Callout>Une première phrase</Callout><Callout tone="next">Une seconde phrase</Callout></Slide>
+<Slide title="Ce qu'ils disent"><Quote text="Ça marche." by="Une enseignante" /></Slide>
+<Slide id="left" title="Ce qu'ils disent"><Quote text="Ça marche." by="Une enseignante" /></Slide>`);
   const paths = { tokens: [], brand: join(dir, 'brand'), decks: [dir], assetMode: 'link' };
   const b = await buildDeck(deck, paths, { log: () => {} });
   assert.deepEqual(b.errors, []);
@@ -210,4 +212,7 @@ test('the browser check finds what overflows, what lies over its neighbour, what
   assert.ok(!r.defects.some((d) => d.n === 2 && d.issue === 'grid'), 'cards in a row are equalised by the theme');
   assert.ok(!r.defects.some((d) => d.n === 3), JSON.stringify(r.defects.filter((d) => d.n === 3)));
   assert.ok(r.defects.some((d) => d.n === 4 && d.issue === 'overlap'), JSON.stringify(r.defects.filter((d) => d.n === 4)));
+  const bunched = (n) => r.warnings.some((w) => w.n === n && w.issue === 'bunched');
+  assert.ok(!bunched(5), 'a quote alone on its slide sits in the middle, it is not bunched');
+  assert.ok(bunched(6), 'the same quote pushed to the left of an empty slide still is');
 });
