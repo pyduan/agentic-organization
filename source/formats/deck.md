@@ -19,11 +19,8 @@ first, then this, then the brand's own deck rules in `source/brand/deck/deck.md`
 | This method | `source/formats/deck.md` | the kit |
 
 **A rule that is about your brand goes in `source/brand/deck/deck.md`, never in this file.** This
-file is replaced by every kit update. An instance that wrote its colours, its partners and two
-months of corrections into its copy of this playbook could no longer take an update without a
-merge, and its playbook grew to 140 lines whose rules contradicted each other by date. The split
-above is what prevents that: the kit improves the method and the engine, the owner keeps the look
-and the lessons.
+file is replaced by every kit update: the kit improves the method and the engine, the owner keeps
+the look and the lessons.
 
 ## How a deck is written
 
@@ -55,7 +52,8 @@ footer: "Organization, steering committee, 9 October 2026"
   components` lists every one with its props, the brand's included. `scripts/deck/examples/deck.mdx`
   shows each in a realistic slide.
 - **The build refuses what would let a deck carry its own layout**: raw HTML, a style, an import, an
-  expression, an unknown component or prop. A shape that is missing becomes a component in
+  expression, an unknown component or prop. It also refuses a theme that reads a CSS token nothing
+  defines (`var(--x)` with no fallback), which the browser would drop without a word. A shape that is missing becomes a component in
   `source/brand/deck/components.mjs` (or a proposal to the kit), never a one-off inside a deck. A
   one-off is invisible to the theme, to the checks and to the next deck.
 - **`lang` sets the deck's language**, English when it is missing: the dates, the viewer's labels,
@@ -71,29 +69,38 @@ footer: "Organization, steering committee, 9 October 2026"
 
 ## Building one
 
+This is the procedure; the `new-deck` skill runs it.
+
 1. **Frame it.** Audience, occasion, language, and the one thing they should remember: the
    frontmatter carries them, and the build warns when `audience` or `takeaway` is missing, because
    they decide what goes on every slide. Ask only what the brief and the conversation do not say.
+   `node scripts/deck/build.mjs new <slug>` starts the folder with its frontmatter and the plan's
+   skeleton.
 2. **Gather the facts before the slides.** Facts come from `source/content/` and `source/facts/`,
    each with its source. Old decks are evidence, read with `read-pptx` (below), and what they say is
-   folded into the content files first. A deck built straight from a pile of old decks inherits
-   every contradiction between them.
+   folded into the content files first: a deck built straight from a pile of old decks inherits
+   every contradiction between them, so **list the contradictions for the owner to settle** before
+   using either version. Anything missing: ask, never invent.
 3. **Write the plan and get it approved.** One line per slide: its title, then what it proves, in the
    comment at the top of `deck.mdx`. Restructuring a plan is cheap; restructuring finished slides is
-   not. `node scripts/deck/build.mjs new <slug>` starts the folder with this skeleton.
+   not. Get a nod before composing.
 4. **Compose.** For each slide, the component whose shape matches the content: a sequence is `Steps`,
    a few grouped facts are `Cards`, three to four headline figures are `Stats`, an argument with a
    picture is a `Split` of `Bullets` and an `Image`. Bullets are for an argued point, not a default.
    When the brand keeps a master deck (`decks/master/`), start from its slides.
 5. **Build and check:** `node scripts/deck/build.mjs build <slug>`. Every defect is fixed before
-   anyone sees the deck. Then **open `decks/<slug>/.check/sheet.png` and look at every slide**, and at
-   the full-size `slide-NN.png` of any slide that looks off: the check finds what is wrong, looking
-   finds what is ugly.
+   anyone sees the deck, by cutting or splitting content, never by shrinking type, and every warning
+   is read. Then **open `decks/<slug>/.check/sheet.png` and look at every slide**, and at the
+   full-size `slide-NN.png` of any slide that looks off: the check finds what is wrong, looking finds
+   what is ugly. Say what you looked at; a check that did not run (no Chrome) is said too, never
+   reported as passed.
 6. **Walk the owner through it**, in the browser, fullscreen. Every correction is applied to the deck
    **and** written as a rule: into `source/brand/deck/deck.md` when it is about the brand, into its
    theme or components when it is about a shape, into the content files when it is about a fact.
-7. **Commit** `deck.mdx`, `assets/` and `index.html`. That saves and versions the deck; it does not
-   publish it.
+7. **Commit** `decks/<slug>/` (`deck.mdx`, `assets/`, `index.html`; the check's output stays out),
+   with `git commit --only -- decks/<slug>` (`git add` the new folder first). That saves and
+   versions the deck; it does not publish it (see *Presenting and sharing*).
+8. **Record the deck** and its purpose in `source/brief.md` under Derivatives ▸ Decks.
 
 ## What the check measures
 
@@ -106,6 +113,7 @@ on a defect:
 | `margin` | it runs into the margin, often under the footer | same; never shrink the type to make it fit |
 | `spill` | a text runs out of its own block, over its neighbour | the block carries too much: cut or split |
 | `overlap` | a block lies over the one above it | a theme rule moved it: fix the CSS |
+| `cramped` | two blocks less than 12px apart, so they read as one | same: the theme took the gap away |
 | `clipped` | a box hides part of its own text | shorten the text |
 | `small` | a text under the theme's floor (`--dk-min-font`) | the slide carries too much |
 | `grid` | boxes on one row have different heights | a theme bug: fix the component's CSS |
@@ -114,9 +122,10 @@ on a defect:
 | `error` | the page threw an error | the build output says where |
 
 And warns, for a person to judge: `bunched` (content stuck in the top or left of a slide with the
-rest empty: pair it with an image, a figure or a second column), `sparse` (the content fills under a
-third of the slide), `dense` (more words than the theme's `--dk-max-words`), `blurry` (an image
-shown well past its resolution). A thin slide gets more real content, a figure already sitting in
+rest empty: pair it with an image, a figure or a second column; a narrow block centred on its
+slide, a lone quote, is not bunched), `sparse` (the content fills under a third of the slide),
+`dense` (more words than the theme's `--dk-max-words`), `blurry` (an image shown well past its
+resolution). A thin slide gets more real content, a figure already sitting in
 the text, or a companion image, before it gets a bigger font.
 
 A brand whose decks are dense by design raises `--dk-max-words` in its theme once, rather than
@@ -155,10 +164,38 @@ also writes one PNG per slide when LibreOffice is installed; nothing else needs 
 - **Numbers get a source**, on the slide (`source`) and in the content files. An estimate says so.
 - **Recurring anatomy.** The same kind of slide takes the same component everywhere in the deck.
 - **Never two dark slides in a row** (the build warns). A dark slide opens a part.
-- **The title names the audience's job, not the concept**; the concept goes in the lead.
-- **Symptoms first, then the law that names them, then the answer.**
-- **Show the mechanism, not the prompt**: what goes in, what the system reads, what comes out.
-- **A staged message says it is staged.**
+- **A title names what the slide shows.** It does not sell the slide, conclude for the reader or
+  claim more than the slide proves: the argument goes into the content. Read the slide without its
+  title; if the point has gone, it belongs in the lead. Check a title against the slide's job in the
+  deck too: a pitch and a final proposal title the same content differently.
+- **A reader who opens the deck on any slide can say who did what.** A title that points at a
+  mechanism the reader has not met yet is a riddle: name the actor and the result, and leave the how
+  to the slide.
+- **A title is a label**: no closing full stop, six to nine words as a habit, a second sentence only
+  when it turns the first. Numbering titles tells a sequence that one `Steps` shows better. One
+  contrast title per deck at most.
+- **No paragraph over 40 words.** Reach for a table (an inventory, a comparison), a figure, an example
+  or two short lines.
+- **Figures side by side have to compare**: one unit, or one question. Three true figures from three
+  domains do not add up to an argument; the reader stops on the numbers. One figure can carry a slide.
+- **Say it once.** The same information on two slides is merged into the one with the evidence.
+- **The deck does not narrate itself.** Nothing on a slide explains what the deck contains, why a
+  slide is there or what was left out: that reasoning goes in the plan, in the comment at the top.
+  Nor does a caption explain what the reader can see.
+- **A kicker opens a section.** The slide that opens a part may carry the line above its title; the
+  slides inside it go without.
+- **The deck closes on a real next step**: the concrete one for a deck shown outside, never an
+  invented one; questions for an internal deck; never a thank-you slide.
+- **Something built for the deck says so**: a mock-up, a staged message, an invented example.
+
+The build reads every slide's copy against these rules and the brand's voice, and warns with the
+slide: a title with a closing full stop, over 12 words or numbered; a paragraph over 40 words; a
+second kicker in one part; `Stats` counted in different units; a closing thank-you; two sentences
+on two slides that say the same thing; the tells of `voice.md` ▸ *AI tics* that a pattern can find
+(the antithesis, the one-word question, signposting, inflated significance) and its words to avoid,
+read from the brand's own list. A `Quote` is someone else's words and is not read. The rest (the
+triad, even weighting, a title at the wrong altitude) needs a reader: read the titles alone, as a
+list, then the deck aloud.
 
 ## Presenting and sharing
 
