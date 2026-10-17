@@ -24,7 +24,7 @@ Connect Cloudflare only **after** the first version of the site has been committ
 6. Save and deploy. The first build takes a couple of minutes and gives you a URL like `https://<name>.<subdomain>.workers.dev`. That URL is live from now on; put it in `source/brief.md`.
 7. **Verify the connection exists, don't assume it.** Push a trivial commit and watch a build start on its own in **Workers & Pages → your Worker → Deployments**. If no build appears, the repo is not connected and every later push will look published while nothing goes live. This is the single most expensive thing to get wrong here, because it fails silently — see the box below.
 
-If the build fails, open the build log. The usual fix for version complaints is setting the build's Node version to a current LTS (for example `22`) in the build settings.
+If the build fails, open the build log. The usual fix for version complaints is setting the build's Node version to a current LTS (for example `24`) in the build settings.
 
 ### The build command is always `npm run build` — including when there is nothing to build
 

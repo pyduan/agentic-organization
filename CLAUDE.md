@@ -102,6 +102,7 @@ Find every row that matches the task at hand and read those files before produci
   that reaches them without an email, so write it for the owner rather than the developer, and use it
   for the things a title cannot say — a workaround they can now delete, a setting to check, a path
   that moved. A change shipped with no entry reaches nobody: it happened today, to five commits.
+- **A commit that adds or changes a rule ends its message with a `Retroactive:` trailer**: `none`, or the existing files that now break it (`Retroactive: date the price lists already published`). The session-start sync lists these for every commit it pulls; fix what they name in the same session.
 - **Structure and facts come before anything you build.** Faced with something new — a project, a
   client, an area, a folder of documents — the first move is never the deliverable. It is: where will
   this material live (decided with the owner, not inherited), which facts matter, and what does the

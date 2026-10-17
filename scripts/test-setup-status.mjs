@@ -100,7 +100,24 @@ test('hooks: no receipt is orange, a receipt from today is green', async () => {
     writeFileSync(join(area.org, '.git', 'kit-news-ran'), JSON.stringify({ at: Date.now(), day: '2026-10-16' }));
     assert.equal(byId(await only(area, ['hooks']), 'hooks').level, 'ok');
     writeFileSync(join(area.org, '.git', 'kit-news-ran'), JSON.stringify({ at: Date.now() - 30 * 864e5, day: '2026-09-16' }));
-    assert.match(byId(await only(area, ['hooks']), 'hooks').detail, /last ran on 2026-09-16/);
+    const stale = byId(await only(area, ['hooks']), 'hooks');
+    assert.match(stale.detail, /last ran on 2026-09-16, so any session opened here since did not load/);
+    assert.match(stale.fix, /install-workspace\.mjs/);
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+test('workspace folder: missing guards are orange on an organization\'s repo, not applicable on the template', async () => {
+  const area = scratch();
+  try {
+    mkdirSync(join(area.org, 'docs', 'workspace'), { recursive: true });
+    writeFileSync(join(area.org, 'docs', 'workspace', 'CLAUDE.md'), '@{{ROUTER}}/CLAUDE.md\n');
+    writeFileSync(join(area.org, 'docs', 'workspace', 'settings.json'), '{}\n');
+    const org = byId(await only(area, ['guards'], { template: false }), 'guards');
+    assert.equal(org.level, 'warn');
+    assert.match(org.fix, /install-workspace\.mjs/);
+    const tpl = byId(await only(area, ['guards'], { template: true }), 'guards');
+    assert.equal(tpl.level, 'info');
+    assert.equal(tpl.fix, null);
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });
 

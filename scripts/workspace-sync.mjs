@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 // Keep the organization's clones on this machine current, without ever losing work.
 //
-// Every session is told to pull first, and the workspace hook used to do it with
-// `git pull --ff-only` in every folder beside the main repo. That pulls whatever branch
-// happens to be checked out, into a working copy another session may be editing. The
-// rules below come from an organization that runs this sync unattended, every quarter of
-// an hour, on every laptop, where a sync that moved a file under someone's feet would
-// have been noticed within a day.
+// Every session is told to pull first, and a plain `git pull --ff-only` in every folder
+// pulls whatever branch happens to be checked out, into a working copy another session
+// may be editing. The rules below hold for a sync run unattended, on every laptop.
 //
 // A clone is fast-forwarded only when all of these hold:
 //   - it is on its default branch (origin/HEAD, else main or master);
@@ -15,6 +12,11 @@
 //   - it has no commits that origin lacks.
 // Anything else is reported and left exactly as it was. A sync never merges, rebases,
 // stashes, clones or pushes.
+//
+// A rule usually lands with a backlog: files written before it that break it. A commit
+// that knows of one says so in a trailer, `Retroactive: <what to sweep>` (or
+// `Retroactive: none`). After a fast-forward the sync lists the trailers of the commits it
+// just pulled, other than none, so the session applies them to what already exists.
 //
 // Which repos: the ones on the map (ORGANIGRAM.md) that sit on this machine, found by
 // their origin (lib/workspace.mjs), this repo included. With --siblings, also every repo
@@ -80,9 +82,9 @@ export function decide({ branch, defaultBranch, dirty, ahead, behind }) {
 }
 
 /** States that need a person. Everything else is a clone that is current. */
-export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'refused']);
+export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'unreadable', 'refused']);
 /** States where the sync failed for a reason nobody chose. */
-export const FAILED = new Set(['unreachable', 'refused']);
+export const FAILED = new Set(['unreachable', 'unreadable', 'refused']);
 
 /** origin/HEAD as the clone recorded it, else main or master, whichever origin has. */
 async function defaultBranchOf(dir) {
@@ -107,9 +109,24 @@ export async function inspect(dir, { fetch = false } = {}) {
   }
   const branch = (await tryGit(dir, ['branch', '--show-current'])) ?? '';
   const dirty = ((await tryGit(dir, ['status', '--porcelain', '--untracked-files=no'])) ?? '') !== '';
-  const counts = await tryGit(dir, ['rev-list', '--left-right', '--count', `HEAD...origin/${defaultBranch}`]);
-  const [ahead, behind] = (counts ?? '0 0').split(/\s+/).map(Number);
+  let counts;
+  try { counts = await git(dir, ['rev-list', '--left-right', '--count', `HEAD...origin/${defaultBranch}`]); }
+  catch (e) { return { branch, defaultBranch, dirty, state: 'unreadable', merge: false, detail: `could not compare with origin/${defaultBranch} (${reason(e)})` }; }
+  const [ahead, behind] = counts.split(/\s+/).map(Number);
   return { branch, defaultBranch, dirty, ahead, behind, ...decide({ branch, defaultBranch, dirty, ahead, behind }) };
+}
+
+/** The `Retroactive:` trailers of the commits in a range, oldest first, `none` left out. */
+export async function retroactive(dir, range) {
+  const log = (await tryGit(dir, ['log', '--reverse', '--format=%H%x1f%s%x1f%B%x1e', range])) ?? '';
+  const out = [];
+  for (const entry of log.split('\x1e').map((e) => e.trim()).filter(Boolean)) {
+    const [sha, subject, body = ''] = entry.split('\x1f');
+    for (const m of body.matchAll(/^\s*Retroactive:\s*(.+)$/gim)) {
+      if (!/^none\b/i.test(m[1].trim())) out.push({ sha, subject, sweep: m[1].trim() });
+    }
+  }
+  return out;
 }
 
 /** Fetches, and fast-forwards when decide() allows it. Says where the clone stands after. */
@@ -117,8 +134,12 @@ export async function syncRepo(dir) {
   const found = await inspect(dir, { fetch: true });
   if (!found.merge) return found;
   try {
+    const before = await git(dir, ['rev-parse', 'HEAD']);
     await git(dir, ['merge', '--quiet', '--ff-only', `origin/${found.defaultBranch}`]);
-    return { ...found, state: 'updated', merge: false, detail: `pulled ${commits(found.behind, 'new ')}` };
+    return {
+      ...found, state: 'updated', merge: false, detail: `pulled ${commits(found.behind, 'new ')}`,
+      retroactive: await retroactive(dir, `${before}..HEAD`),
+    };
   } catch (e) {
     // An untracked file where a new commit adds one, or another session's git holding the
     // index: git refuses, and the clone is exactly as it was.
@@ -189,10 +210,16 @@ export function syncReport(result, { quiet = false } = {}) {
     out.unshift('Workspace: some clones need a look before anyone writes in them.');
     out.push('Never discard changes or commits to bring one up to date: they may be another session\'s.');
   }
+  const sweeps = result.repos.flatMap((r) => (r.retroactive || []).map((x) => ({ name: r.name, ...x })));
+  if (sweeps.length) {
+    out.push('Rules just pulled that apply to what already exists (Retroactive: trailers):');
+    for (const x of sweeps) out.push(`• ${x.name} ${x.sha.slice(0, 8)} ${x.subject}: ${x.sweep}`);
+    out.push('Find the existing files each one names and fix them now; name anything bigger to the owner with its scope.');
+  }
   return out.join('\n');
 }
 
-const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', refused: '✘' };
+const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
 
 export function statusReport(result) {
   const width = Math.max(4, ...result.repos.map((r) => r.name.length));
