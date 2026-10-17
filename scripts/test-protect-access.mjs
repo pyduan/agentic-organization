@@ -20,7 +20,8 @@ function fakeApi({ org = 'acme.cloudflareaccess.com', idps = [], apps = [], work
     }
     const invalid = { json: async () => ({ success: false, errors: [{ code: 1000, message: 'Invalid API Token' }] }) };
     if (path === '/user/tokens/verify') return tokenOwner === 'user' ? ok({ status: 'active' }) : invalid;
-    if (/^\/accounts\/[^/]+\/tokens\/verify$/.test(path)) return tokenOwner === 'account' ? ok({ status: 'active' }) : invalid;
+    const unknown = { json: async () => ({ success: false, errors: [{ code: 9109, message: 'Unauthorized to access requested resource' }] }) };
+    if (/^\/accounts\/[^/]+\/tokens\/verify$/.test(path)) return tokenOwner === 'account' ? ok({ status: 'active' }) : unknown;
     if (path.endsWith('/access/organizations')) return ok(org ? { auth_domain: org } : null);
     if (path.endsWith('/access/identity_providers')) {
       if (method === 'GET') return ok(state.idps);
@@ -86,7 +87,12 @@ test('an account-owned token is accepted; a token valid nowhere still stops befo
   assert.ok(r.aud);
   assert.ok(api.state.calls.includes('GET /accounts/a1/tokens/verify'));
   const bad = fakeApi({ tokenOwner: 'nobody' });
-  await assert.rejects(protect({ ...base, fetchImpl: bad.fetchImpl }), /token was refused/);
+  await assert.rejects(protect({ ...base, fetchImpl: bad.fetchImpl }), (e) => {
+    assert.match(e.message, /token was refused/);
+    assert.match(e.message, /as a user token: .*Invalid API Token/);
+    assert.match(e.message, /as an account token: .*Unauthorized to access/);
+    return true;
+  });
   assert.ok(bad.state.calls.every((c) => c.startsWith('GET')), bad.state.calls.join(', '));
 });
 
