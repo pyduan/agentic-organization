@@ -146,9 +146,16 @@ export async function protect({
   // A token created under the user's profile verifies at /user/tokens/verify; an
   // account-owned token (dashboard ▸ Manage account ▸ API tokens, or minted from a CLI
   // session) is unknown there and verifies only under its account. Both are fine here.
-  let v = await cf('GET', '/user/tokens/verify');
-  if (!v.success) v = await cf('GET', `/accounts/${accountId}/tokens/verify`);
-  if (!v.success) throw new Stop(`The token was refused: ${JSON.stringify(v.errors)}\nThis must be an API token, not the Global API Key.\n${TOKEN_HELP}`);
+  const asUser = await cf('GET', '/user/tokens/verify');
+  if (!asUser.success) {
+    const asAccount = await cf('GET', `/accounts/${accountId}/tokens/verify`);
+    if (!asAccount.success) {
+      throw new Stop('The token was refused both ways:\n'
+        + `  as a user token: ${JSON.stringify(asUser.errors)}\n`
+        + `  as an account token: ${JSON.stringify(asAccount.errors)}\n`
+        + `This must be an API token, not the Global API Key.\n${TOKEN_HELP}`);
+    }
+  }
 
   log('→ Zero Trust organization');
   if (!teamDomain) {
