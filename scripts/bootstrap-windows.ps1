@@ -37,6 +37,9 @@ if (-not (Test-Command "git")) {
 if (-not (Test-Command "node")) {
   Write-Host "Installing Node.js..."
   winget install --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements
+} elseif (-not ([version]((node --version).TrimStart('v')) -ge [version]'22.12.0')) {
+  Write-Host "Node $(node --version) is too old (the sites need 22.12 or later). Updating..."
+  winget upgrade --id OpenJS.NodeJS.LTS -e --source winget --accept-package-agreements --accept-source-agreements
 } else {
   Write-Host "OK Node found ($(node --version))"
 }
