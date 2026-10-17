@@ -10,6 +10,66 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-17 · MAJOR · The end-of-session check sees moved and copied files, and the guards run on Windows
+
+The end-of-session check let a session stop with work unsaved when that work was a file moved or
+copied in (it keeps its old date) or a folder deleted. It now holds the session to those too, and
+its reminder names each file. When other sessions share the same folder, your agent now reads
+exactly what it is about to commit, commits from a copy of its own, and never parks work in a
+shared stash. A `claude/` branch pushed from a cloud session no longer counts as delivered, and a
+branch with unfinished work is deleted only behind a tag that can bring it back.
+
+The workspace installer no longer moves your files aside: it adds the guards a settings file lacks
+and leaves the rest. Every hook now runs through Node with no shell, so the guards work on Windows.
+This needs Claude Code 2.1.139 or later, which `setup-status` now checks.
+
+**What you need to do:** ask your agent to run `node scripts/install-workspace.mjs` once, so the
+folder holding your repos picks up the new hooks, and `claude update` if `setup-status` says
+Claude Code is too old.
+
+## 2026-10-17 · MINOR · Memory sweep on any folder layout, Node 22.12, and rules that apply to the past
+
+- `check-memory` found nothing in a flat `~/Projects` folder and stopped with an error. It now finds
+  the memories of the folder holding your repos whatever its name, on a Mac or on Linux. `--side`
+  becomes `--folder=<path>`.
+- Cloudflare now builds with Node 24, and the setup check and install scripts ask for 22.12 or
+  later, which the sites need.
+- When a session start pulls a commit whose message says `Retroactive: <what to fix>`, your agent is
+  told, and fixes the existing files it names.
+- The setup check no longer reports the template's own workspace folder as missing guards, and a
+  clone git cannot compare is no longer reported up to date.
+
+**What you need to do:** nothing, unless a scheduled task runs `check-memory --side=…`: change it
+to `--folder=<path>`.
+
+## 2026-10-17 · MINOR · Decks default to English and read their copy at build
+
+A deck without `lang` was typeset in French, and every quote showed « » whatever the language.
+Decks are now in English unless the frontmatter says `lang: fr` (or `fr-FR`), and quotation marks,
+dates and spacing follow it. The build now warns about copy that reads badly on a slide: a title
+ending in a full stop or past 12 words, a paragraph over 40 words, a kicker on every slide, figures
+side by side in different units, a closing thank-you, the same point made on two slides, and the
+AI tells and words to avoid from your `voice.md`. It fails two blocks that touch and a theme colour
+or size nothing defines. A lone quote is no longer flagged as bunched, and the check's screenshots
+stay out of git.
+
+**What you need to do:** add `lang: fr` to the frontmatter of a French deck that has none, or set
+`lang` in `scripts/deck/paths.mjs` if all your decks are French, then rebuild them
+(`node scripts/deck/build.mjs build --all`).
+
+## 2026-10-17 · MINOR · The lessons from an organization set up on the kit, made generic and stated once
+
+The rules that came in on 2026-10-09 lose that organization's details, and each now lives in one
+place. Proposed decisions are in `source/decisions.md`. Importing from a tool you already run has
+its own section in `source/formats/webapp.md`: a dry run by default and `--write` to apply, existing
+records never overwritten, a mapping that stops on a value it does not know, and how to retire the
+old tool. The GitHub Actions deploy template keeps every credential off the runner until the build
+is done. The next person you bring in clones the main repo, then only what their role needs.
+
+**What you need to do:** if a Worker of yours deploys from GitHub Actions, ask your agent to compare
+its workflow with `docs/deploy-cloudflare.md` ▸ *Without a dashboard screen*, and to disconnect
+Workers Builds for that Worker if it is still connected.
+
 ## 2026-10-16 · MINOR · The memory sweep reads the workspace folder's own memories
 
 `check-memory` skipped the memories of sessions opened on the folder that holds your repos, which is
