@@ -65,7 +65,7 @@ async function todoFiles(dir, out = []) {
 // intégrés avant ce déplacement gardent l'ancienne disposition, et un chemin en
 // dur y rendait ce rappel inerte : l'import échouait, le catch en bas mangeait
 // l'erreur, et le script sortait 0 sans une ligne. Vu pour de vrai sur
-// huguescharnallet. On essaie donc les deux emplacements.
+// un projet intégré tôt. On essaie donc les deux emplacements.
 async function todoLib() {
   const essais = ['../lib/todo.mjs', '../scripts/lib/todo.mjs'];
   let derniere;

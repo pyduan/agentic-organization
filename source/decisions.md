@@ -69,7 +69,7 @@ Two properties it has to keep, because they are what makes it usable rather than
 
 - **Instantiated by default at first setup**, so nobody has to decide to create it.
 - **Correct from day one with a single maintainer**, and rights added progressively as people
-  arrive. The reference case is `huguescharnallet`, which started as one maintainer and is three
+  arrive. The reference case is a small association, which started as one maintainer and is three
   people today.
 
 **What this obliges, and is not done yet.** The repo map has to move to `CLAUDE.md`, and the three

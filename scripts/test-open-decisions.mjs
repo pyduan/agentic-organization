@@ -53,10 +53,10 @@ const on = (body, fn) => {
 // ------------------------------------------------------------ it must fire
 
 test('an overdue decision is raised, with who owes it and how long it has waited', () => {
-  on('- [ ] Trancher l’accès à l’archive #decide @brigitte due:2020-01-31 ^ab12', (out) => {
+  on('- [ ] Trancher l’accès à l’archive #decide @sam due:2020-01-31 ^ab12', (out) => {
     assert.match(out, /1 decision\(s\) waiting on a person/);
     assert.match(out, /Trancher l’accès à l’archive/);
-    assert.match(out, /@brigitte/);
+    assert.match(out, /@sam/);
     assert.match(out, /\d+d past 2020-01-31/, 'the age is the number that matters, not that it exists');
     assert.match(out, /Writing one down again is not raising it/);
   });
@@ -91,14 +91,14 @@ test('a revisit whose date has not come does not nag', () => {
 });
 
 test('a decision that has been taken goes quiet by itself', () => {
-  on('- [x] Trancher l’accès #decide @brigitte due:2020-01-31 done:2020-02-01 ^kl12', (out) => {
+  on('- [x] Trancher l’accès #decide @sam due:2020-01-31 done:2020-02-01 ^kl12', (out) => {
     assert.equal(out.trim(), '', 'ticking it is what stops it: no second gesture to remember');
   });
 });
 
 test('the two are reported apart, and an ordinary overdue beside them is still ignored', () => {
   on([
-    '- [ ] Trancher l’accès #decide @brigitte due:2020-01-31 ^ab12',
+    '- [ ] Trancher l’accès #decide @sam due:2020-01-31 ^ab12',
     '- [ ] Serrure sous contrainte #revisit due:2020-06-30 ^ef56',
     '- [ ] Un todo ordinaire en retard due:2020-01-01 ^ij90',
   ].join('\n'), (out) => {
