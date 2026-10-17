@@ -84,7 +84,7 @@ something gets interrupted partway through.
 - **GitHub account**: the owner's own — create one first if they don't have one. It has to be
   theirs, since the whole point is owning your own source of truth.
 - **git** (macOS: `xcode-select --install`; Windows: [git-scm.com](https://git-scm.com))
-- **Node.js** LTS ([nodejs.org](https://nodejs.org), or `brew install node` / `winget install OpenJS.NodeJS.LTS`)
+- **Node.js** 22.12 or later, 24 LTS recommended ([nodejs.org](https://nodejs.org), or `brew install node` / `winget install OpenJS.NodeJS.LTS`)
 - **GitHub CLI**: `brew install gh` / `winget install GitHub.cli`, then `gh auth login` and choose
   **SSH**: `gh` creates the key and uploads it to your account in the same step, on Mac and Windows
   alike (OpenSSH ships with Windows 10+). This is the default on purpose: from then on your agent is
@@ -93,7 +93,8 @@ something gets interrupted partway through.
 - **Claude Code**: [claude.com/claude-code](https://claude.com/claude-code) — the desktop app needs
   no separate terminal setup; the CLI (`npm install -g @anthropic-ai/claude-code`, or the installer
   on the same page) is just as good if you're already comfortable in one. The owner needs a Claude
-  subscription either way; this is the one running cost besides the domain name.
+  subscription either way; this is the one running cost besides the domain name. The kit's hooks
+  need Claude Code 2.1.139 or later (`claude update`); `setup-status` says so when it is older.
 
 Then create your own copy and clone it — pick anywhere memorable, `~/Projects/<name>` is a good
 default:

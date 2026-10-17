@@ -44,6 +44,9 @@ fi
 if ! command -v node >/dev/null 2>&1; then
   echo "Installing Node.js..."
   brew install node
+elif ! node -e 'const [a,b]=process.versions.node.split(".").map(Number);process.exit(a>22||(a===22&&b>=12)?0:1)'; then
+  echo "Node $(node --version) is too old (the sites need 22.12 or later). Updating..."
+  if brew list node >/dev/null 2>&1; then brew upgrade node; else brew install node; fi
 else
   echo "✓ Node found ($(node --version))"
 fi
