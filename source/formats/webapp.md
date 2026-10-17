@@ -108,21 +108,6 @@ whole model inherits the confidence of its firmest number. Five statuses, weakes
 vocabulary rather than a technical one, because they describe what the paperwork supports, and that
 is the only thing that can bound what a check is allowed to assert.
 
-Two more rules come from importing the records of a tool the organization runs (an invoicing or
-sales tool) rather than a sheet kept by hand:
-
-- **When the tool has an API, the API is the source and the export is the check.** An export is a
-  copy with an age; the API is the original. If the owner also keeps an export, its totals become
-  what the import must land on. On a live import from a workbook with a tab per school year and a
-  summary tab, the script refused to write anything until each year added up to the summary, and the
-  one known gap was accepted by name on the command line (`--accept-gap=<year>:<column>`) and written
-  into the provenance rather than corrected. Within the hour the owner chose the tool's API as the
-  source, and the workbook kept exactly that role.
-- **Read only, by construction.** The client that imports from the tool refuses any method but a read
-  before the request leaves, and its credential lives in the operating system's keychain (filled by a
-  script that asks for it without echoing it) or, for a scheduled run, in the repo's secrets. Writing
-  into that tool is a separate decision with its own rules: see the inbox protocol in `CLAUDE.md`.
-
 And the sweep asks the same question when nobody has opened the app: `node
 scripts/check-freshness.mjs` ▸ pass `sources` re-verifies every manifest in the repo and names the
 figures resting on something other than a document. A model nobody has run for three weeks is
@@ -168,6 +153,34 @@ And the owner's own hypotheses are not results. Six scenarios exploring what mig
 is known today are her work, and a low scenario is *meant* to be low. Declaring them wrong for
 falling outside a range the tool invented inverts the whole relationship, and the fix an owner would
 then make is to break their own assumptions until the tool stops complaining.
+
+### Records from a tool the organization runs
+
+When the records come from a tool the organization runs (an invoicing or sales tool) rather than a
+sheet kept by hand, the import follows six more rules.
+
+- **When the tool has an API, the API is the source and the export is the check.** An export is a
+  copy with an age; the API is the original. If the owner also keeps an export, its totals become
+  what the import must land on: the script refuses to write until each period adds up to the
+  export's summary, and a known gap is accepted by name on the command line
+  (`--accept-gap=<period>:<column>`) and written into the provenance rather than corrected.
+- **Read only, by construction.** The client that imports from the tool refuses any method but a read
+  before the request leaves, and its credential lives in the operating system's keychain (filled by a
+  script that asks for it without echoing it) or, for a scheduled run, in the repo's secrets.
+- **A dry run by default.** The import prints what it would create and touches nothing; `--write`
+  applies it. A record that already exists in the repo is skipped, never overwritten, since a person
+  may have added to it what no export holds.
+- **The values it maps form a closed list.** A status, category or owner the mapping does not know
+  stops the import as an error to fix in the mapping. Passed through, it reaches a screen as a value
+  nobody defined.
+- **Writing back is the exception, and bounded.** Only for a tool that stays the record for something
+  a counterparty or the law relies on (invoices, quotes), and only when the owner asks to create in it
+  from here: drafts only, each one validated by a person in that tool; a credential separate from the
+  one the import reads with; and only once the import from that tool reconciles.
+- **When the repo replaces the tool, the move is a dated plan.** A file in the repo says what moves, in
+  what shape, what stays behind and who owns it, and it is deleted once the move is done. The old
+  tool turns read-only and stays as a backup until nothing points at it, then it is removed. The new
+  source of truth gets its entry in `source/decisions.md`.
 
 ## Page or app?
 
@@ -460,31 +473,21 @@ talks to, not the place your facts, voice, or content live.
 
 ## An internal tool after its first review
 
-The first time the owner clicks through an internal tool, the review arrives fast and may well be
-dictated, with the speech recognition's mistakes in it. Read all of it, restate the points as a list,
-and ask only what no file can answer (who has left the team, which of two names is the current
-one). One such review of a team intranet, the day it went live, produced the five rules below;
-expect them in the next one and build them in from the start.
+The first review of an internal tool arrives fast, often dictated. Read all of it, restate the points
+as a list, and ask only what no file can answer. Five rules to build in from the start:
 
-- **No example mode once the real data is in.** A switch that shows invented records lets people try
-  the tool safely before it holds anything, and the day it holds the real records it only makes
-  everyone ask which screen is true. The owner's verdict was to remove it, since it served no purpose.
-  Invented data belongs to local tests.
-- **One tab per kind of user.** The manager's dashboard, the coordinator's queue, the
-  logistics board and the guide every employee reads are four tabs, even when they show the same
-  records. A "rules" tab that mixed a policy reference with a reimbursement simulator served neither
-  the people who set the rules nor the ones who travel.
-- **Every label in the users' words, and every imported state says where it came from.** A bare "?"
-  next to a field, or a status like "Done" that nobody remembers setting, gets asked about. A status
-  the import set (from a mailbox, a calendar, an export) shows its origin until a person confirms it.
-- **An import of hundreds of open items needs bulk actions on the first day.** Five hundred requests
-  pulled from a mailbox cannot be worked one by one. Offer rules that select (no answer for 30 days,
-  outside the usual region, probable duplicates), a preview, one commit for the whole batch, and the
-  items that cannot follow returned with their reason.
-- **A count the owner can contradict is a bug.** The first dashboard said 30 agreements
-  were running; the owner knew there were more. A state derived from dates has to cover the cases
-  real documents have: no end date, several years, tacit renewal, an amendment that extends. Show the
-  rule next to the count so the next contradiction points at the case that was missed.
+- **No example mode once the real data is in.** Invented records belong to local tests; next to the
+  real ones they make everyone ask which screen is true.
+- **One tab per kind of user**, even when the tabs show the same records. A tab that serves the people
+  who set the rules and the people who apply them serves neither.
+- **Labels in the users' words, and every imported state shows where it came from** until a person
+  confirms it. A bare "?" or a "Done" nobody remembers setting gets asked about.
+- **Bulk actions on the first day when an import brings hundreds of open items:** rules that select
+  (no answer for a month, probable duplicates), a preview, one commit for the batch, and the items
+  that cannot follow returned with their reason.
+- **A count the owner can contradict is a bug.** A state derived from dates covers what real
+  documents do: no end date, several years, tacit renewal, an amendment that extends. Show the rule
+  next to the count, so the next contradiction points at the case that was missed.
 
 ## Quality bar
 
