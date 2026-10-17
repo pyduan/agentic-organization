@@ -19,9 +19,8 @@ No account for a CMS, a page builder or a project tool. Those are the middlemen 
 
 **Which plan, for whom.** Size it by what the person does, not by their rank. Whoever runs the setup
 and later writes recipes needs a larger plan: the setup is the heaviest session there will ever be
-(it installs, imports history and builds the structure in parallel), and on a recent onboarding it
-used up a standard plan's window about an hour in, mid-import. Someone who asks rather than builds
-is fine on the standard plan. For a team, take an organization plan with one seat each rather than
+(it installs, imports history and builds the structure in parallel). Someone who asks rather than
+builds is fine on the standard plan. For a team, take an organization plan with one seat each rather than
 everyone paying personally, so the larger seats go to the builders. A nonprofit should look at
 Anthropic's nonprofit offer before paying the public price: on 2026-10-09 its team plan was listed
 at $8 per user per month
@@ -288,7 +287,7 @@ Two things the agent can do on Cloudflare for you rather than through its screen
 Cloudflare's own connector or plugin when the setup offers it, so it can create the Worker and the
 Access rule itself; and set how long a sign-in lasts. A day is the default, so a team opening its
 intranet every morning types a code every morning; a month is the maximum Cloudflare allows
-(`scripts/protect-access.mjs --session=730h`), and it is what we use for a team intranet.
+(`scripts/protect-access.mjs --session=730h`), which suits an intranet the team opens daily.
 
 **Who sees what, once there are several of you.** Start in trust mode while the team is small, and
 know that the system already has the two levels for later. The first is **the repo**: someone with no

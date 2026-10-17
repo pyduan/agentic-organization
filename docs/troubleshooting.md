@@ -154,12 +154,10 @@ config.
 ## Auto mode refused a command
 
 In auto mode, Claude Code has each command reviewed before it runs, and some kinds it refuses
-whatever the wording. Seen on live setups: changing a GitHub organization's member permissions
-through the API, running a script that writes a secret into a hosting provider's secret store, and a
-global package install (`npm install -g`). Opening a pull request on someone else's public repo was
-refused too ("Create Public Surface") until the owner asked for it in so many words in the
-conversation; an earlier "yes" to one item of a short list had not been enough. The refusal names a category,
-such as "Permission Grant" or "Secret-Store Writes", or none at all.
+whatever the wording: changing a GitHub organization's member permissions through the API, running
+a script that writes a secret into a hosting provider's secret store, a global package install
+(`npm install -g`). The refusal names a category, such as "Permission Grant" or "Secret-Store
+Writes", or none at all.
 
 Do not look for another route to the same result: the refusal is about the result, not the command.
 Finish the rest of the task, then hand the one step to the owner:
@@ -169,8 +167,8 @@ Finish the rest of the task, then hand the one step to the owner:
   command to type in their own terminal; a script that asks for a secret without echoing it is fine
   there;
 - then read the result back yourself, with `gh api …` or a list of secret names, before calling it
-  done. Twice in one afternoon a "done" was not: a confirmation dialog had been closed instead of
-  confirmed, and a token had been created but never stored.
+  done. The owner's "done" is a claim: a confirmation dialog closed instead of confirmed, or a token
+  created but never stored where the app reads it, both look done from their side.
 
 ## A renamed repository leaves your local copy pointing at the old name
 
@@ -256,7 +254,7 @@ with twenty files and fails with two thousand. On the free Workers plan one page
 outbound requests, and fetching files one by one through GitHub's contents API spends one per file:
 past fifty, the page errors with "Too many subrequests".
 
-What holds at that size, on a live app reading a few thousand records across several repos:
+What holds at that size:
 
 - **One listing per repo per page.** `GET /repos/<owner>/<repo>/git/trees/<branch>?recursive=1`
   returns every path with its blob sha in a single request.
@@ -275,30 +273,28 @@ paid plan raises the request limit, not the cache.
 Ingesting a folder of PDFs usually starts with installing `pdftotext` or an OCR tool, which needs
 Homebrew and an administrator password the owner may not have. A Mac already holds both engines:
 the Command Line Tools that brought `git` also bring `swift`, and a short Swift script can use
-**PDFKit** for the text layer of a PDF and **Vision** (`VNRecognizeTextRequest`, French and English)
-for pages that are only an image. A few seconds per scanned page, nothing installed, nothing sent
+**PDFKit** for the text layer of a PDF and **Vision** (`VNRecognizeTextRequest`, set to the
+documents' languages) for pages that are only an image. A few seconds per scanned page, nothing installed, nothing sent
 anywhere. A figure or a date read by OCR still gets checked against the page image before anything
 relies on it. `textutil` (also built in) turns `.doc` and `.docx` into text.
 
-## A workbook import shows dates where there should be postal codes
+## A workbook import shows dates where there should be codes
 
-A spreadsheet's address columns are often formulas (a lookup into another tab), and the file stores
-both the formula and the value it last showed. Some readers recompute or reinterpret those cells: on a
-live import, a JavaScript reader returned the postal code 60100 as a date in 2064, and only about
-half the schools could be matched to the official directory; reading the saved values brought it to
-nearly four in five. Read the values the spreadsheet saved instead
-(Python's `openpyxl` with `data_only=True` does exactly that), extract them once to JSON with the
-file's hash, and import from that extraction.
+A spreadsheet's columns are often formulas (a lookup into another tab), and the file stores both the
+formula and the value it last showed. Some readers recompute or reinterpret those cells, so a product
+reference like `3-12` comes back as the 12th of March and the rows no longer match the catalogue they
+point to. Read the values the spreadsheet saved instead (Python's `openpyxl` with `data_only=True`
+does exactly that), extract them once to JSON with the file's hash, and import from that extraction.
+The share of rows that match their reference list is the check: count it before and after.
 
 ## The agent stopped in the middle: "usage limit reached"
 
 A subscription gives a window of usage that refills over a few hours, and the setup is the heaviest
 session there will ever be: it installs, imports your history and builds the structure, often with
-several subagents at once. On a recent onboarding a standard plan ran out about an hour in, during
-the import. Nothing is lost, the work done so far is in the repo. Either wait for the window to
-refill and say "continue", or move the person who builds to a larger plan, which is the lasting
-answer (QUICKSTART ▸ *Which plan, for whom*). Paying for extra usage at API prices is the expensive
-way to the same place.
+several subagents at once, so it is where a standard plan runs out. Nothing is lost, the work done
+so far is in the repo. Either wait for the window to refill and say "continue", or move the person
+who builds to a larger plan, which is the lasting answer (QUICKSTART ▸ *Which plan, for whom*).
+Paying for extra usage at API prices is the expensive way to the same place.
 
 ## I dropped a zip into the conversation and nothing happened
 
