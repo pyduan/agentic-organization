@@ -118,7 +118,7 @@ function cloneInto(ws, name) {
   git(dir, 'add', '-A'); git(dir, 'commit', '-q', '-m', 'first'); git(dir, 'push', '-q', '-u', 'origin', 'HEAD');
   return { dir, remote };
 }
-const stop = (ws) => execFileSync('bash', [join(ws, 'acme-ops/.claude/hooks/session-end.sh')], {
+const stop = (ws) => execFileSync(process.execPath, [join(ws, 'acme-ops/.claude/hooks/session-end.mjs')], {
   input: '{}', env: { ...process.env, CLAUDE_PROJECT_DIR: ws }, encoding: 'utf8',
 });
 
@@ -132,7 +132,7 @@ test('session-end checks every repo of a workspace and names the ones left unsav
   assert.equal(out.decision, 'block');
   assert.match(out.reason, /changes in: sales\./);
   assert.doesNotMatch(out.reason, /notes/);
-  assert.match(out.reason, /git commit --only/);
+  assert.match(out.reason, /git diff --cached/);
 });
 
 test('workspace-start pulls what it can, names what it cannot, and flags a missing git identity', () => {

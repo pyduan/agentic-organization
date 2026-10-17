@@ -22,6 +22,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/own-changes.mjs\" --baseline"
+          },
+          {
+            "type": "command",
             "command": "bash \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/workspace-start.sh\" 2>/dev/null || true"
           }
         ]
@@ -43,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/session-end.sh\""
+            "command": "node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/session-end.mjs\""
           },
           {
             "type": "command",
