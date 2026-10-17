@@ -30,7 +30,9 @@
 // nothing. A sync also warns when git has no identity on this machine: commits then go out
 // signed <user>@<computer name>, tied to no account, and nobody notices until someone reads
 // the history. sync exits 1 when a repo could not be brought up to date for a reason other
-// than a choice (origin unreachable, git refused); status always exits 0.
+// than a choice (origin unreachable, git refused), except under --quiet, the session-start
+// mode: a hook's output reaches the agent only when it exits 0, and the failure is the part
+// the agent most needs to read. status always exits 0.
 //
 // Zero dependencies, Node built-ins and git. Every git call has a timeout, and a fetch
 // never waits on a password prompt.
@@ -226,7 +228,8 @@ export async function identityWarning(root) {
   const email = (await tryGit(root, ['config', 'user.email'])) || '';
   if (email && !/@[^@]*\.(local|home|lan|localdomain|internal)$/i.test(email)) return null;
   return '▲ Git has no identity on this machine: commits go out signed with the computer\'s name, tied to no account. ' +
-    'Set user.name and user.email once (docs/troubleshooting.md ▸ Commits signed with the computer\'s name).';
+    'Ask the owner for the name and address their GitHub account uses, then set them once: ' +
+    '`git config --global user.name "<name>"` and `git config --global user.email "<address>"`.';
 }
 
 const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
@@ -263,5 +266,6 @@ if (isMain) {
     const warning = command === 'sync' ? await identityWarning(root) : null;
     if (warning) console.log(warning);
   }
-  process.exit(command === 'sync' && result.repos.some((r) => FAILED.has(r.state)) ? 1 : 0);
+  const failed = command === 'sync' && result.repos.some((r) => FAILED.has(r.state));
+  process.exit(failed && !flags.has('--quiet') ? 1 : 0);
 }
