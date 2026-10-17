@@ -1,253 +1,281 @@
 #!/usr/bin/env node
-// Les mémoires affirment des choses sur le monde. Le monde change ; elles non.
+// Memories make claims about the world. The world changes; they do not.
 //
-// Une mémoire ne signale jamais qu'elle a vieilli : elle continue d'affirmer avec
-// la même assurance une URL morte, un dépôt devenu privé, un chemin qui n'existe
-// plus. Le cas qui a motivé ce script s'est trompé sur trois faits d'un coup —
-// visibilité du dépôt, architecture, et URL de déploiement — et rien ne le disait.
+// A memory never says it has aged: it keeps asserting a dead URL, a repo that went
+// private or a path that no longer exists with the same confidence. One memory was
+// wrong about three facts at once (the repo's visibility, the architecture and the
+// deployment URL) and nothing said so.
 //
-// Ce script ne relit pas la prose. Il extrait ce qui est VÉRIFIABLE et le confronte
-// au réel : dépôts, URLs, chemins locaux. Le reste reste au jugement d'un humain,
-// et le script le dit plutôt que de faire semblant.
+// This script does not reread the prose. It extracts what can be CHECKED and holds it
+// against reality: repos, URLs, local paths. The rest is left to a person's judgement,
+// and the script says so instead of pretending.
 //
-//   node scripts/check-memory.mjs                     le côté d'où on lance
-//   node scripts/check-memory.mjs --side=personal      un autre côté
-//   node scripts/check-memory.mjs --all                tous les côtés de la machine
+//   node scripts/check-memory.mjs                      the workspace folder it runs from
+//   node scripts/check-memory.mjs --folder=~/Projects  another folder (repeatable)
+//   node scripts/check-memory.mjs --all                every project on this machine
 //   node scripts/check-memory.mjs --json
 //
-// Zéro dépendance. `gh` est utilisé s'il est là, sinon les dépôts sont ignorés
-// avec une mention explicite plutôt que déclarés bons.
+// Zero dependencies. `gh` is used when present; without it repos are skipped, and the
+// report says they were not checked rather than calling them fine.
 
 import { readdir, readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const run = promisify(execFile);
-const BASE = join(homedir(), '.claude', 'projects');
+const HOME = homedir();
+const BASE = join(HOME, '.claude', 'projects');
 const args = process.argv.slice(2);
-// Par défaut on ne balaie QUE le côté d'où le script est lancé : le dossier de
-// frères qui contient ce dépôt. ~/.claude/projects tient les mémoires de tous les
-// projets de la machine, Bayes compris, et un balayage lancé depuis le côté
-// personnel n'a rien à aller lire chez le voisin (Paul, 2026-08-28). `--all`
-// élargit délibérément, `--side=<nom>` cible un autre côté.
-// Lancé depuis un dépôt, le côté est le dossier qui le contient ; lancé depuis ce
-// dossier lui-même (le dossier de travail, qui n'est pas un dépôt), c'est lui.
+
+// Claude Code keeps each project's memory under ~/.claude/projects/<key>, the key being
+// the absolute path of the folder the session opened on, with every character other than
+// a letter or a digit replaced by `-` and case kept: /Users/sam/Projects/site becomes
+// -Users-sam-Projects-site, /home/sam/.config becomes -home-sam--config.
+export const encode = (abs) => abs.replace(/[^A-Za-z0-9]/g, '-');
+
+// By default the sweep covers only the workspace folder it runs from: the folder that
+// holds this repo and its siblings, or that folder itself when run from it (it is not a
+// repo). ~/.claude/projects holds the memories of every project on the machine, and a
+// sweep started from one organization's folder has no business reading another's.
+// `--all` widens on purpose; `--folder=<path>` names another folder, and can be given
+// several times, for instance with a folder's old name after a rename, whose memories
+// stay under the old key.
 const CWD = resolve(process.cwd());
-const WORKSPACE_SIDE = existsSync(join(CWD, '.git')) ? basename(dirname(CWD)) : basename(CWD);
 const ALL = args.includes('--all');
-const SIDE = ALL ? '' : ((args.find((a) => a.startsWith('--side=')) || `--side=${WORKSPACE_SIDE}`).slice(7));
+// The on-disk spelling, so `~/projects` finds the keys of `~/Projects` on a Mac.
+const onDisk = (p) => { try { return realpathSync.native(p); } catch { return p; } };
+const expand = (p) => onDisk(resolve(p.replace(/^~(?=$|\/)/, HOME)));
+const named = args.filter((a) => a.startsWith('--folder=')).map((a) => expand(a.slice(9))).filter(Boolean);
+const FOLDERS = ALL ? [] : (named.length ? named : [onDisk(existsSync(join(CWD, '.git')) ? dirname(CWD) : CWD)]);
 const AS_JSON = args.includes('--json');
 
-// Ce qui compte comme date : ISO, jj/mm/aaaa, ou un mois en toutes lettres
-// (français ou anglais) accompagné de son année.
-const MOIS = 'janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre'
+/**
+ * Whether a memory key belongs to a folder: the folder itself or anything inside it.
+ * The encoding cannot tell /Projects/site-old from /Projects/site/old, so a key that
+ * matches a sibling folder existing on disk (site-old beside site) is the sibling's.
+ */
+export function keyFilter(folder) {
+  const own = encode(folder);
+  let siblings = [];
+  try {
+    siblings = readdirSync(dirname(folder))
+      .filter((n) => n !== basename(folder))
+      .map((n) => join(dirname(folder), n))
+      .filter((p) => { try { return statSync(p).isDirectory(); } catch { return false; } })
+      .map(encode)
+      .filter((e) => e.startsWith(`${own}-`));
+  } catch { /* the folder's parent is gone: no sibling to tell apart */ }
+  const under = (key, enc) => key === enc || key.startsWith(`${enc}-`);
+  return (key) => under(key, own) && !siblings.some((s) => under(key, s));
+}
+
+// What counts as a date: ISO, dd/mm/yyyy, or a month spelled out (French or English)
+// with its year. Memories are written in prose, in whatever language the team speaks.
+const MONTHS = 'janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre'
   + '|january|february|march|april|may|june|july|august|september|october|november|december';
 const DATE = new RegExp(
   String.raw`\b20\d{2}-\d{2}-\d{2}\b` + '|'
   + String.raw`\b\d{1,2}\/\d{1,2}\/20\d{2}\b` + '|'
-  + String.raw`\b(?:${MOIS})\s+20\d{2}\b` + '|'
-  + String.raw`\b\d{1,2}(?:er)?\s+(?:${MOIS})\s+20\d{2}\b`,
+  + String.raw`\b(?:${MONTHS})\s+20\d{2}\b` + '|'
+  + String.raw`\b\d{1,2}(?:er|st|nd|rd|th)?\s+(?:${MONTHS})\s+20\d{2}\b`,
   'i',
 );
 
-const findings = [];
-const add = (severity, where, what, detail) => findings.push({ severity, where, what, detail });
+// A path on this machine or another one: ~/…, /Users/<name>/… (macOS), /home/<name>/… (Linux).
+const LOCAL_PATH = /(?:~|\/Users\/[A-Za-z0-9._-]+|\/home\/[A-Za-z0-9._-]+)\/[A-Za-z0-9._\/-]+/g;
+// Words with which a memory says itself that a path is gone.
+const GONE = /quarantaine|quarantine|retir[ée]|removed|doublon|duplicate|archiv|n'existe plus|no longer exists|pas de clone|not cloned|renomm|renamed|déplac|moved|ancien(?:ne)? (?:nom|chemin)|old (?:name|path)/i;
 
-const hasGh = await run('gh', ['--version']).then(() => true).catch(() => false);
+const isMain = (() => {
+  try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
+})();
+if (isMain) await main();
 
-// --- les affirmations qu'on sait confronter ---------------------------------
+async function main() {
+  const findings = [];
+  const add = (severity, where, what, detail) => findings.push({ severity, where, what, detail });
 
-const repoState = new Map();
-async function checkRepo(slug) {
-  if (repoState.has(slug)) return repoState.get(slug);
-  let state = { unknown: true };
-  if (hasGh) {
-    try {
-      const { stdout } = await run('gh', ['repo', 'view', slug, '--json', 'isArchived,visibility']);
-      const j = JSON.parse(stdout);
-      state = { archived: j.isArchived, visibility: j.visibility.toLowerCase() };
-    } catch { state = { missing: true }; }
-  }
-  repoState.set(slug, state);
-  return state;
-}
+  const hasGh = await run('gh', ['--version']).then(() => true).catch(() => false);
 
-const urlState = new Map();
-async function checkUrl(url) {
-  if (urlState.has(url)) return urlState.get(url);
-  let s;
-  try {
-    const c = new AbortController();
-    const t = setTimeout(() => c.abort(), 8000);
-    const r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: c.signal });
-    clearTimeout(t);
-    s = { status: r.status };
-  } catch (e) { s = { error: e.name === 'AbortError' ? 'timeout' : String(e.message) }; }
-  urlState.set(url, s);
-  return s;
-}
+  // --- the claims that can be checked ------------------------------------------
 
-// --- le balayage -------------------------------------------------------------
-
-let keys = [];
-try {
-  keys = (await readdir(BASE, { withFileTypes: true }))
-    // Un chemin absolu encodé commence par un tiret, /Users/ sur Mac comme /home/ sur Linux.
-    .filter((e) => e.isDirectory() && e.name.startsWith('-'))
-    .map((e) => e.name);
-} catch { console.error(`Pas de ${BASE}`); process.exit(1); }
-
-// Le filtre accepte plusieurs côtés : `--side=personal,personnel`. C'est utile
-// parce qu'un dossier de travail renommé laisse derrière lui les clés de
-// ~/.claude/projects sous l'ancien nom, et un balayage qui les écarte en silence
-// dirait « rien à corriger » sur des mémoires qu'il n'a pas ouvertes.
-const sides = SIDE ? SIDE.split(',').map((x) => x.trim()).filter(Boolean) : [];
-const total = keys.length;
-// `-projects-<côté>-` attrape les sessions ouvertes dans un dépôt du côté, et la fin
-// `-projects-<côté>` celles ouvertes sur le dossier de travail lui-même, qu'on oubliait.
-if (sides.length) keys = keys.filter((k) => sides.some((sd) => k.includes(`-projects-${sd}-`) || k.endsWith(`-projects-${sd}`)));
-const skipped = total - keys.length;
-
-// Un côté qui ne désigne rien ne doit surtout pas sortir « ✓ 0 mémoire(s) ».
-// C'est arrivé : une tâche planifiée demandait `--side=personnel` là où le
-// dossier s'appelle `personal`, et le balayage a rendu un vert parfait pendant
-// des semaines sans jamais ouvrir un seul fichier. Un contrôle qui n'a rien
-// contrôlé doit le dire plus fort qu'un contrôle qui n'a rien trouvé.
-if (sides.length && keys.length === 0) {
-  const candidats = [...new Set(
-    (await readdir(BASE, { withFileTypes: true }).catch(() => []))
-      .filter((e) => e.isDirectory())
-      .map((e) => e.name.match(/-projects-([^-]+)-/))
-      .filter(Boolean)
-      .map((m) => m[1]),
-  )].sort();
-  console.error(`✗ --side=${sides.join(',')} ne désigne aucun projet : rien n'a été balayé.`);
-  console.error(candidats.length
-    ? `  Côtés possibles d'après ~/.claude/projects : ${candidats.join(', ')}`
-    : '  Aucun côté lisible sous ~/.claude/projects.');
-  process.exit(1);
-}
-
-let scanned = 0;
-for (const key of keys.sort()) {
-  const dir = join(BASE, key, 'memory');
-  let files = [];
-  try { files = (await readdir(dir)).filter((f) => f.endsWith('.md') && f !== 'MEMORY.md'); } catch { continue; }
-
-  for (const file of files) {
-    scanned++;
-    const where = `${key.replace('-Users-pyduan-projects-', '')} ▸ ${file}`;
-    const text = await readFile(join(dir, file), 'utf8');
-
-    // Dépôts : on ne devine pas ce que la mémoire voulait dire, on affiche l'état
-    // réel et on ne crie que sur une contradiction textuelle explicite.
-    for (const slug of new Set([...text.matchAll(/\b([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\b/g)]
-        .map((m) => m[1]).filter((s) => !s.includes('.md') && !s.startsWith('/') && s.split('/').length === 2))) {
-      const st = await checkRepo(slug);
-      if (st.unknown || st.missing) continue;
-      // La proximité compte, mais **une ligne n'est pas une unité de sens** : le
-      // markdown replie, donc « contributes to the public kit » et le nom du dépôt
-      // finissent sur deux lignes différentes et le contexte est perdu. On prend
-      // donc le BLOC — la puce ou le paragraphe — qui contient le dépôt.
-      const blocks = text.split(/\n(?=\s*[-*]\s|\n)/);
-      const own = blocks.filter((b) => b.includes(slug));
-      const near = own.join(' ').toLowerCase();
-      const whole = text.toLowerCase();
-
-      // Si le bloc nomme PLUSIEURS dépôts, un mot comme « public » ne peut plus être
-      // attribué à l'un d'eux par la seule lexique. Le contrôle refuse alors de
-      // deviner : une alerte fausse coûte plus cher qu'un manque, parce qu'elle
-      // apprend au lecteur à ignorer le rapport.
-      const others = new Set(own.join(' ').match(/\b[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\b/g) || []);
-      others.delete(slug);
-      const ambiguous = [...others].some((o) => !o.includes('.md') && o.split('/').length === 2);
-
-      if (st.archived && !/archiv/i.test(whole)) {
-        add('warn', where, slug, `est ARCHIVÉ sur GitHub et la mémoire ne le dit nulle part — une session peut le croire vivant`);
-      }
-      if (!ambiguous && st.visibility === 'private' && /\bpublic\b/.test(near) && !/priv/i.test(near)) {
-        add('warn', where, slug, `est PRIVÉ, et la ligne qui le nomme parle de « public »`);
-      }
-      if (!ambiguous && st.visibility === 'public' && /\bprivate\b|\bprivé\b/i.test(near) && !/public/i.test(near)) {
-        add('warn', where, slug, `est PUBLIC, et la ligne qui le nomme parle de « privé » — vérifier qu'aucune donnée sensible n'y est décrite`);
-      }
+  const repoState = new Map();
+  async function checkRepo(slug) {
+    if (repoState.has(slug)) return repoState.get(slug);
+    let state = { unknown: true };
+    if (hasGh) {
+      try {
+        const { stdout } = await run('gh', ['repo', 'view', slug, '--json', 'isArchived,visibility']);
+        const j = JSON.parse(stdout);
+        state = { archived: j.isArchived, visibility: j.visibility.toLowerCase() };
+      } catch { state = { missing: true }; }
     }
+    repoState.set(slug, state);
+    return state;
+  }
 
-    for (const url of new Set([...text.matchAll(/https?:\/\/[^\s)`>"'\]]+/g)].map((m) => m[1] ?? m[0]))) {
-      // Le markdown colle sa ponctuation aux URLs : **gras**, (parenthèses), fins de phrase.
-      const clean = url.replace(/[*_`)\]}>.,;:!?]+$/, '');
-      const st = await checkUrl(clean);
+  const urlState = new Map();
+  async function checkUrl(url) {
+    if (urlState.has(url)) return urlState.get(url);
+    let s;
+    try {
+      const c = new AbortController();
+      const t = setTimeout(() => c.abort(), 8000);
+      const r = await fetch(url, { method: 'HEAD', redirect: 'follow', signal: c.signal });
+      clearTimeout(t);
+      s = { status: r.status };
+    } catch (e) { s = { error: e.name === 'AbortError' ? 'timeout' : String(e.message) }; }
+    urlState.set(url, s);
+    return s;
+  }
 
-      // Un dépôt privé renvoie 404 à un robot anonyme sur toutes ses PRs et issues,
-      // qu'elles existent ou non. Le déclarer mort est faux deux fois : le lien
-      // marche pour qui a l'accès, et un rapport en permanence rouge cesse d'être
-      // lu — ce qui coûte plus cher que la chose qu'il signalait mal.
-      const ghRepo = clean.match(/^https:\/\/github\.com\/([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//);
-      if (ghRepo && (st.status === 404 || st.status === 410)) {
-        const r = await checkRepo(ghRepo[1]);
-        if (r.visibility === 'private') {
-          add('info', where, clean, `dépôt privé : invérifiable anonymement, le lien peut être parfaitement valide`);
-          continue;
+  // --- the sweep ---------------------------------------------------------------
+
+  let keys = [];
+  try {
+    keys = (await readdir(BASE, { withFileTypes: true }))
+      // An encoded absolute path starts with a dash, /Users/ on a Mac as /home/ on Linux.
+      .filter((e) => e.isDirectory() && e.name.startsWith('-'))
+      .map((e) => e.name);
+  } catch { console.error(`No ${BASE}: Claude Code has kept no memory on this machine.`); process.exit(1); }
+
+  const total = keys.length;
+  if (FOLDERS.length) {
+    const filters = FOLDERS.map(keyFilter);
+    keys = keys.filter((k) => filters.some((f) => f(k)));
+  }
+  const skipped = total - keys.length;
+
+  // A folder that matches nothing must never come out as "✓ 0 memories". A scheduled
+  // sweep once named a folder that did not exist under that name and reported a perfect
+  // green for weeks without opening a single file. A check that checked nothing has to
+  // say so louder than a check that found nothing.
+  if (FOLDERS.length && keys.length === 0) {
+    const shown = FOLDERS.join(', ');
+    if (named.length) {
+      console.error(`✗ No Claude Code project under ${shown}: nothing was swept.`);
+      console.error(`  ${BASE} holds ${total} project(s); --all sweeps every one of them.`);
+      process.exit(1);
+    }
+    console.log(`No Claude Code session has opened under ${shown} yet, so there is no memory to sweep (--all sweeps every project on this machine).`);
+    return;
+  }
+
+  const homeKey = `${encode(HOME)}-`;
+  let scanned = 0;
+  for (const key of keys.sort()) {
+    const dir = join(BASE, key, 'memory');
+    let files = [];
+    try { files = (await readdir(dir)).filter((f) => f.endsWith('.md') && f !== 'MEMORY.md'); } catch { continue; }
+
+    for (const file of files) {
+      scanned++;
+      const where = `${key.startsWith(homeKey) ? key.slice(homeKey.length) : key} ▸ ${file}`;
+      const text = await readFile(join(dir, file), 'utf8');
+      // A line is not a unit of meaning: markdown wraps, so a repo's name and the words
+      // about it can sit on two lines. Context is the BLOCK, the bullet or the paragraph.
+      const blocks = text.split(/\n(?=\s*[-*]\s|\n)/);
+
+      // Repos: do not guess what the memory meant. Show the real state, and only raise
+      // an explicit textual contradiction.
+      for (const slug of new Set([...text.matchAll(/\b([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\b/g)]
+          .map((m) => m[1]).filter((s) => !s.includes('.md') && !s.startsWith('/') && s.split('/').length === 2))) {
+        const st = await checkRepo(slug);
+        if (st.unknown || st.missing) continue;
+        const own = blocks.filter((b) => b.includes(slug));
+        const near = own.join(' ').toLowerCase();
+        const whole = text.toLowerCase();
+
+        // When the block names SEVERAL repos, a word like "public" can no longer be
+        // pinned on one of them by vocabulary alone, so the check declines to guess: a
+        // false alarm costs more than a miss, because it teaches the reader to skip it.
+        const others = new Set(own.join(' ').match(/\b[A-Za-z0-9-]+\/[A-Za-z0-9._-]+\b/g) || []);
+        others.delete(slug);
+        const ambiguous = [...others].some((o) => !o.includes('.md') && o.split('/').length === 2);
+
+        if (st.archived && !/archiv/i.test(whole)) {
+          add('warn', where, slug, 'is ARCHIVED on GitHub and the memory never says so: a session may think it is alive');
+        }
+        if (!ambiguous && st.visibility === 'private' && /\bpublic\b/.test(near) && !/priv/i.test(near)) {
+          add('warn', where, slug, 'is PRIVATE, and the line naming it says "public"');
+        }
+        if (!ambiguous && st.visibility === 'public' && /\bprivate\b|\bprivé\b/i.test(near) && !/public/i.test(near)) {
+          add('warn', where, slug, 'is PUBLIC, and the line naming it says "private": check that nothing sensitive is described in it');
         }
       }
 
-      // Une API qu'on appelle en POST (`…/v2/entries:list`) répond 404 à un HEAD
-      // alors qu'elle est bien vivante. On ne POSTe pas à sa place, un appel peut
-      // avoir des effets : si le bloc qui nomme l'URL dit POST, on se contente de
-      // l'indiquer.
-      const postBlock = text.split(/\n(?=\s*[-*]\s|\n)/).some((b) => b.includes(clean) && /\bPOST\b/.test(b));
-      if ((st.status === 404 || st.status === 405) && postBlock) {
-        add('info', where, clean, `endpoint appelé en POST : un HEAD anonyme ne prouve rien`);
-        continue;
+      for (const url of new Set([...text.matchAll(/https?:\/\/[^\s)`>"'\]]+/g)].map((m) => m[0]))) {
+        // Markdown glues its punctuation to URLs: **bold**, (parentheses), sentence ends.
+        const clean = url.replace(/[*_`)\]}>.,;:!?]+$/, '');
+        const st = await checkUrl(clean);
+
+        // A private repo answers 404 to an anonymous client on every PR and issue,
+        // whether they exist or not. Calling the link dead is wrong twice: it works for
+        // whoever has access, and a report that is always red stops being read.
+        const ghRepo = clean.match(/^https:\/\/github\.com\/([A-Za-z0-9-]+\/[A-Za-z0-9._-]+)\//);
+        if (ghRepo && (st.status === 404 || st.status === 410)) {
+          const r = await checkRepo(ghRepo[1]);
+          if (r.visibility === 'private') {
+            add('info', where, clean, 'private repo: cannot be checked anonymously, the link may be perfectly valid');
+            continue;
+          }
+        }
+
+        // An API called with POST (`…/v2/entries:list`) answers 404 to a HEAD while
+        // alive. The check never POSTs in its place, since a call can have effects: when
+        // the block naming the URL says POST, it only notes it.
+        const postBlock = blocks.some((b) => b.includes(clean) && /\bPOST\b/.test(b));
+        if ((st.status === 404 || st.status === 405) && postBlock) {
+          add('info', where, clean, 'endpoint called with POST: an anonymous HEAD proves nothing');
+          continue;
+        }
+
+        if (st.status === 404 || st.status === 410) add('fail', where, clean, `answers ${st.status}: the memory points to a dead page`);
+        else if (st.error) add('info', where, clean, `unreachable (${st.error}): may be normal behind restricted access`);
       }
 
-      if (st.status === 404 || st.status === 410) add('fail', where, clean, `répond ${st.status} — la mémoire pointe vers une page morte`);
-      else if (st.error) add('info', where, clean, `injoignable (${st.error}) — peut être normal derrière un accès restreint`);
-    }
+      for (const p of new Set([...text.matchAll(LOCAL_PATH)].map((m) => m[0]))) {
+        const abs = p.replace(/^~/, HOME).replace(/[.,;:`)]+$/, '');
+        if (existsSync(abs)) continue;
 
-    for (const p of new Set([...text.matchAll(/(?:~|\/Users\/[a-z]+)\/projects\/[A-Za-z0-9._\/-]+/g)].map((m) => m[0]))) {
-      const abs = p.replace(/^~/, homedir()).replace(/[.,;:`)]+$/, '');
-      if (existsSync(abs)) continue;
-
-      // Une mémoire qui DOCUMENTE un chemin mort ne doit pas être signalée pour
-      // le contenir : c'est le contraire d'une dérive, c'est la dérive déjà notée.
-      // Même principe que pour les liens privés — reconnaître que l'auteur sait.
-      const ctx = text.split(/\n(?=\s*[-*]\s|\n)/).filter((b) => b.includes(p)).join(' ');
-      if (/quarantaine|quarantine|retir[ée]|removed|doublon|archiv|n'existe plus|pas de clone|renomm|renamed|déplac|moved|ancien(?:ne)? (?:nom|chemin)/i.test(ctx)) {
-        add('info', where, p, `absent du disque, et la mémoire le dit — rien à corriger`);
-        continue;
+        // A memory that DOCUMENTS a dead path is not flagged for containing it: that is
+        // the drift already recorded, the opposite of drift.
+        const ctx = blocks.filter((b) => b.includes(p)).join(' ');
+        if (GONE.test(ctx)) {
+          add('info', where, p, 'not on disk, and the memory says so: nothing to fix');
+          continue;
+        }
+        add('warn', where, p, 'does not exist on this disk: a stale path, or another machine');
       }
-      add('warn', where, p, `n'existe pas sur ce disque — chemin périmé, ou une autre machine`);
-    }
 
-    // Une mémoire sans date est une mémoire qu'on ne peut pas suspecter.
-    // Compte aussi les dates en toutes lettres : ces mémoires sont écrites en
-    // prose (« mesuré le 25 août 2026 »), et ne reconnaître que l'ISO faisait
-    // signaler « aucune date » cinq mémoires sur six qui en portaient une. Un
-    // signal faux à ce taux-là n'apprend qu'une chose : à ne plus le lire.
-    if (!DATE.test(text)) {
-      add('info', where, '(aucune date)', `rien ne dit quand ceci a été vérifié, donc rien ne dira qu'elle a vieilli`);
+      // A memory with no date is a memory nobody can suspect. Dates written out in
+      // words count too: recognizing only ISO dates once flagged five memories out of
+      // six that carried one, and a signal that wrong only teaches people to skip it.
+      if (!DATE.test(text)) {
+        add('info', where, '(no date)', 'nothing says when this was checked, so nothing will say it has aged');
+      }
     }
   }
-}
 
-// --- rapport ---------------------------------------------------------------
+  // --- report ------------------------------------------------------------------
 
-const fails = findings.filter((f) => f.severity === 'fail');
-const warns = findings.filter((f) => f.severity === 'warn');
+  const fails = findings.filter((f) => f.severity === 'fail');
+  const warns = findings.filter((f) => f.severity === 'warn');
 
-if (AS_JSON) {
-  console.log(JSON.stringify({ scanned, findings }, null, 2));
-} else {
-  let last = '';
-  for (const f of [...fails, ...warns, ...findings.filter((x) => x.severity === 'info')]) {
-    if (f.where !== last) { console.log(`\n${f.where}`); last = f.where; }
-    console.log(`  ${f.severity === 'fail' ? '✗' : f.severity === 'warn' ? '▲' : '·'} ${f.what}\n      ${f.detail}`);
+  if (AS_JSON) {
+    console.log(JSON.stringify({ folders: FOLDERS, scanned, skipped, findings }, null, 2));
+  } else {
+    let last = '';
+    for (const f of [...fails, ...warns, ...findings.filter((x) => x.severity === 'info')]) {
+      if (f.where !== last) { console.log(`\n${f.where}`); last = f.where; }
+      console.log(`  ${f.severity === 'fail' ? '✗' : f.severity === 'warn' ? '▲' : '·'} ${f.what}\n      ${f.detail}`);
+    }
+    console.log(`\n${fails.length ? '✗' : '✓'} ${scanned} memory file(s) swept: ${fails.length} dead, ${warns.length} to fix${skipped ? `; ${skipped} project(s) outside ${FOLDERS.join(', ')} not swept (--all, or --folder=<path>)` : ''}`);
+    if (!hasGh) console.log('  (gh is not installed: repos were not checked, which is not the same as found fine)');
   }
-  console.log(`\n${fails.length ? '✗' : '✓'} ${scanned} mémoire(s) balayée(s) — ${fails.length} morte(s), ${warns.length} à corriger${skipped ? `, ${skipped} projet(s) d'un autre côté non balayé(s) (--all, ou --side=a,b)` : ''}`);
-  if (!hasGh) console.log('  (gh absent : les dépôts n\'ont pas été vérifiés, pas « trouvés bons »)');
+  process.exitCode = fails.length ? 1 : 0;
 }
-process.exitCode = fails.length ? 1 : 0;
