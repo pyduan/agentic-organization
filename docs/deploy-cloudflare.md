@@ -169,9 +169,12 @@ added later, so there is no list of URLs to remember to protect.
 
 Connecting a Worker to the repo (Workers Builds, step 1) installs Cloudflare's GitHub app, and that
 takes a browser. When the owner should not have to open one, a GitHub Actions workflow in the repo
-does the same job, and everything it needs can be set from the command line. A live organization's
-private app has deployed this way since its first day, and nobody opened the Cloudflare dashboard
-for it after the one Zero Trust step above.
+does the same job, and everything it needs can be set from the command line. After the one Zero
+Trust step above, nobody opens the Cloudflare dashboard for that Worker.
+
+A Worker deployed this way is the exception to step 1's "connect it through Workers Builds". If it
+was connected already, disconnect it (**Workers & Pages → the Worker → Settings → Build**), or every
+push deploys it twice, once from each side, with no telling which version ends up live.
 
 1. **A deploy token that can do one thing.** Account-owned, **Workers Scripts: Edit** and nothing
    else, with an expiry date. A Cloudflare CLI signed in with the owner's own approval (`cf auth
@@ -198,7 +201,12 @@ for it after the one Zero Trust step above.
 
 2. **The workflow**, `.github/workflows/<app>.yml`. It deploys only when something the app is built
    from changes, and its last step is the outside check from step 4, so a deploy that opened the
-   door fails in red instead of passing in silence:
+   door fails in red instead of passing in silence. Its order is the other safeguard: every step that
+   installs, tests or builds runs first, with no credential on the runner (`permissions: contents:
+   read`, and a checkout that does not keep its token), because those steps run code from
+   dependencies and from the content itself. The deploy token appears only in the step that ships
+   what was already built, and that step builds nothing. If the app's `wrangler.jsonc` declares a
+   `build` command, move it into the build step, or `wrangler deploy` runs it with the token in reach.
 
    ```yaml
    name: Deploy <app>
@@ -207,15 +215,21 @@ for it after the one Zero Trust step above.
        branches: [main]
        paths: ['apps/<app>/**', 'lib/**', 'package-lock.json', '.github/workflows/<app>.yml']
      workflow_dispatch:
+   permissions:
+     contents: read
    concurrency: { group: <app>, cancel-in-progress: false }
    jobs:
      deploy:
        runs-on: ubuntu-latest
        steps:
          - uses: actions/checkout@v5
+           with: { persist-credentials: false }
          - uses: actions/setup-node@v5
            with: { node-version: 24 }
+         # Everything that runs code from the repo or its dependencies: no credential yet.
          - run: npm ci && npm test
+         - run: npm run <app>:build
+         # The token appears here, for a step that only ships what is built.
          - run: npx wrangler deploy --config apps/<app>/wrangler.jsonc
            env:
              CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -230,9 +244,9 @@ for it after the one Zero Trust step above.
 
 3. **In this order, the first time:** deploy a Worker that refuses everybody while its `POLICY_AUD`
    is empty (`lib/access.mjs` does), check from outside that it answers anything but `200`, run
-   `protect-access.mjs --write-vars`, push, and only then give the Worker the token to its data. On
-   the live setup the app answered `500` for the three minutes between its first deploy and Access:
-   that is what failing closed looks like, and it is why the data token comes last.
+   `protect-access.mjs --write-vars`, push, and only then give the Worker the token to its data.
+   Between its first deploy and Access the app answers `500`: that is what failing closed looks
+   like, and it is why the data token comes last.
 
 On a fresh account the first `wrangler deploy` from a workflow can stop on a question it cannot
 answer: see *Wrangler asks to register a workers.dev subdomain* in `docs/troubleshooting.md`.
