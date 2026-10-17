@@ -28,6 +28,7 @@ import {
   exec, gitOut, ok, warn, fail, info, tools, github, identity, repos, conflicts, runChecks, report,
 } from '../lib/setup-checks.mjs';
 import { plan as workspacePlan, Stop } from './install-workspace.mjs';
+import * as workspaceSync from './workspace-sync.mjs';
 
 export { report };
 
@@ -46,12 +47,13 @@ async function map(root) {
   return ok(summary);
 }
 
-async function guards(root) {
+async function guards(root, { template }) {
   let steps;
   try { steps = workspacePlan({ routerDir: root }); }
-  catch (e) { if (e instanceof Stop) return warn(e.message); throw e; }
+  catch (e) { if (e instanceof Stop) return template ? info(`the template itself: ${e.message}`) : warn(e.message); throw e; }
   const off = steps.filter((s) => s.state !== 'current');
   if (!off.length) return ok('the folder beside this repo loads its guards (send guard, end-of-session check)');
+  if (template) return info('the template itself: the workspace folder takes its guards from an organization\'s own repo');
   if (off.some((s) => s.state === 'different')) {
     return warn(`${off.map((s) => s.target).join(' and ')} in the workspace folder was written by someone else, so a session opened there may skip this repo's guards`,
       'compare it with docs/workspace/, then node scripts/install-workspace.mjs --replace (moves it aside, never deletes)');
@@ -65,11 +67,13 @@ async function hooks(root, { template }) {
   const gitDir = await gitOut(root, ['rev-parse', '--absolute-git-dir']);
   let ran = null;
   try { ran = JSON.parse(readFileSync(join(gitDir, 'kit-news-ran'), 'utf8')); } catch { /* never ran */ }
+  const reopen = 'open the agent on this repo, or on the workspace folder after node scripts/install-workspace.mjs';
   if (!ran) {
-    return warn('the session-start hooks have never run on this clone, so sessions here may not be loading this repo\'s settings',
-      'open the agent on this repo, or on the workspace folder after node scripts/install-workspace.mjs');
+    return warn('the session-start hooks have never run on this clone, so sessions here may not be loading this repo\'s settings', reopen);
   }
-  if (Date.now() - ran.at > WEEK_MS) return warn(`the session-start hooks last ran on ${ran.day}`, 'if a session was opened since, it did not load this repo\'s settings');
+  if (Date.now() - ran.at > WEEK_MS) {
+    return warn(`the session-start hooks last ran on ${ran.day}, so any session opened here since did not load this repo's settings`, reopen);
+  }
   return ok(`the session-start hooks last ran on ${ran.day}`);
 }
 
@@ -111,9 +115,11 @@ export const CHECKS = [
   { id: 'conflicts', label: 'Outside instructions', run: conflicts },
 ];
 
-export async function setupStatus(root, { offline = false, only = null } = {}) {
-  const template = isTemplateSlug((await originSlug(root)) || '');
-  return runChecks(CHECKS.filter((c) => !only || only.includes(c.id)), root, { offline, template, scripts: 'scripts' });
+export async function setupStatus(root, { offline = false, only = null, template = null } = {}) {
+  const isTemplate = template ?? isTemplateSlug((await originSlug(root)) || '');
+  return runChecks(CHECKS.filter((c) => !only || only.includes(c.id)), root, {
+    offline, template: isTemplate, scripts: 'scripts', sync: workspaceSync, conflicts: join(HERE, 'check-conflicts.mjs'),
+  });
 }
 
 const isMain = (() => {
