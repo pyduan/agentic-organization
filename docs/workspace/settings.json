@@ -22,11 +22,34 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/own-changes.mjs\" --baseline"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/own-changes.mjs",
+              "--baseline"
+            ]
           },
           {
             "type": "command",
-            "command": "bash \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/workspace-start.sh\" 2>/dev/null || true"
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/workspace-sync.mjs",
+              "sync",
+              "--siblings"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/kit-news.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/open-decisions.mjs"
+            ]
           }
         ]
       }
@@ -37,7 +60,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "CLAUDE_PROJECT_DIR=\"$CLAUDE_PROJECT_DIR/{{ROUTER}}\" node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/send-guard.mjs\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/send-guard.mjs",
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}"
+            ]
           }
         ]
       }
@@ -47,11 +74,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/session-end.mjs\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/session-end.mjs"
+            ]
           },
           {
             "type": "command",
-            "command": "CLAUDE_PROJECT_DIR=\"$CLAUDE_PROJECT_DIR/{{ROUTER}}\" node \"$CLAUDE_PROJECT_DIR/{{ROUTER}}/.claude/hooks/turn-check.mjs\""
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/turn-check.mjs",
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}"
+            ]
           }
         ]
       }
