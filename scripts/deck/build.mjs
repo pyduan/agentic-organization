@@ -168,7 +168,7 @@ export async function buildDeck(deckFile, paths, opts = {}) {
     errors.push(`${where}: var(${token}) is read but never defined, so the browser drops that declaration. Define ${token} (in the brand's tokens or deck theme), or give it a fallback: var(${token}, …)`);
   }
   const avoid = (paths.voice || []).flatMap((f) => wordsToAvoid(readFileSync(f, 'utf8')));
-  const r = renderDeck(deck, { registry, asset, css, js, shareMode: share, avoid });
+  const r = renderDeck(deck, { registry, asset, css, js, defaultLang: paths.lang, shareMode: share, avoid });
   errors.push(...r.errors);
   warnings.push(...r.warnings);
   if (!errors.length) writeFileSync(outFile, r.html);
@@ -242,7 +242,7 @@ function cmdNew([slug], flags, paths) {
   writeFileSync(join(dir, 'deck.mdx'), `---
 title: "${flags.title || 'The deck title'}"
 date: ${today}
-lang: ${flags.lang || 'en'}
+lang: ${flags.lang || paths.lang || 'en'}
 audience: "Who will be in the room, and what they already know"
 takeaway: "The one thing they should remember"
 status: draft

@@ -80,6 +80,9 @@ test('a deck is in English unless its frontmatter says otherwise, and its quotes
   const fr = render('---\nlang: fr-FR\n---\n<Cover title="t" date="2026-10-01" />');
   assert.match(fr.html, /<html lang="fr-FR">/);
   assert.match(fr.html, /1er octobre 2026/);
+  const repoFr = render('<Cover title="t" date="2026-10-01" />', { defaultLang: 'fr' });
+  assert.match(repoFr.html, /<html lang="fr">/, 'a repo whose paths.mjs says fr gets French when the deck says nothing');
+  assert.match(render('---\nlang: en\n---\n<Slide title="t" />', { defaultLang: 'fr' }).html, /<html lang="en">/);
   const theme = readFileSync(join(HERE, 'theme.css'), 'utf8');
   assert.match(theme, /blockquote::before \{ content: open-quote/);
   assert.match(theme, /blockquote:lang\(fr\) \{ quotes: "\\00AB/);

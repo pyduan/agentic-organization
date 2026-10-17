@@ -44,11 +44,12 @@ const hasSource = (node) => Boolean(node.props?.source) || (node.children || [])
   || JSON.stringify(node.props || {}).includes('"source"');
 
 export function renderDeck(deck, opts) {
-  const { registry, asset, css, js, lang: langOpt, shareMode = false, avoid = [] } = opts;
+  const { registry, asset, css, js, lang: langOpt, defaultLang = 'en', shareMode = false, avoid = [] } = opts;
   const meta = deck.meta;
-  // The deck says its language in its frontmatter; English when it does not. `lang` is what the
+  // The deck says its language in its frontmatter; when it does not, the repo's default from
+  // paths.mjs, English unless that says otherwise. `lang` is what the
   // page declares (the theme's :lang() rules read it), `base` what typography and dates follow.
-  const lang = String(langOpt || meta.lang || 'en');
+  const lang = String(langOpt || meta.lang || defaultLang);
   const base = baseLang(lang);
   const strings = STRINGS[base] || STRINGS.en;
   const errors = [];
