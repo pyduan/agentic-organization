@@ -246,15 +246,24 @@ already exists, and it carries the logic of how the agent behaves there, so join
 connecting.
 
 What they need beforehand: a seat on the organization's plan, a GitHub account invited to the
-organization, and the desktop app with the settings above. Then this paste:
+organization, the name of its main repo, and the desktop app with the settings above. Then this
+paste:
 
 > I am joining an organization that already runs on the agentic-organization kit. Check what is on my
 > machine (git, Node, the GitHub CLI, whether I am logged into GitHub), install what is missing one
 > step at a time, explaining each step and checking it worked, and log me into GitHub with
-> `gh auth login --git-protocol ssh`. Then list the repos of my organization on GitHub that I can
-> access and clone them side by side in `~/Projects`, the same folder as everyone else, and run `node <main repo>/scripts/install-workspace.mjs`
-> from there. Then run `node <main repo>/scripts/setup-status.mjs` and fix what is red. Read the main repo's `CLAUDE.md` and `source/brief.md`, and tell me in plain words what
-> the organization already does with you. Then ask me what my job is, so we find my first use case.
+> `gh auth login --git-protocol ssh`. Then clone the organization's main repo, `<owner>/<repo>`, into
+> `~/Projects`, the same folder as everyone else, and run
+> `node <main repo>/scripts/install-workspace.mjs` from there. Read its `CLAUDE.md`,
+> `source/brief.md` and the repo map in `ORGANIGRAM.md`, ask me what my job is, and clone beside it
+> only the repos that job needs, skipping without a word any I cannot read. Then run
+> `node <main repo>/scripts/setup-status.mjs`, fix what is red, and tell me in plain words what the
+> organization already does with you, so we find my first use case.
+
+The main repo is the one everybody needs. The others come by role, from the repo map, and later one
+at a time as a task calls for one: an account that can see every repo of the organization would
+otherwise fill the folder with repos nobody touches. A repo someone cannot read is restricted on
+purpose, so the agent skips it and moves on.
 
 After that, they connect their own mailbox (one per login, section 3), and they describe their first
 use case to the agent, out loud if they like. What the first person built is already there for them
