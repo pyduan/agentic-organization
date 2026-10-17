@@ -238,9 +238,15 @@
 
 .dk-quote { margin: 0; display: flex; gap: 28px; align-items: center; }
 .dk-quote blockquote { margin: 0; font: 400 36px/1.28 var(--dk-font-display); text-wrap: pretty; }
-.dk-quote blockquote::before { content: "« "; color: var(--dk-accent); }
-.dk-quote blockquote::after { content: " »"; color: var(--dk-accent); }
+/* The marks follow the deck's language (its frontmatter `lang`, on <html>). */
+.dk-quote blockquote { quotes: "\201C" "\201D" "\2018" "\2019"; }
+.dk-quote blockquote:lang(fr) { quotes: "\00AB\00A0" "\00A0\00BB" "\2039\00A0" "\00A0\203A"; }
+.dk-quote blockquote:lang(de) { quotes: "\201E" "\201C" "\201A" "\2018"; }
+.dk-quote blockquote::before { content: open-quote; color: var(--dk-accent); }
+.dk-quote blockquote::after { content: close-quote; color: var(--dk-accent); }
 .dk-quote figcaption { display: grid; gap: 2px; margin-top: 16px; font-size: 19px; color: var(--dk-muted); }
+/* A quote alone on its slide keeps its measure and sits in the middle. */
+.dk-body > .dk-quote:only-child { justify-content: center; }
 .dk-quote-photo { width: 180px; height: 180px; border-radius: 50%; object-fit: cover; flex: none; }
 
 .dk-compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 20px; align-items: stretch; }

@@ -1,178 +1,200 @@
 ---
-title: "Le catalogue des composants"
+title: "The component catalogue"
 date: 2026-10-09
-lang: fr
-audience: "Quiconque compose un deck avec ce moteur"
-takeaway: "Chaque forme de slide existe déjà : on compose, on ne dessine pas"
+lang: en
+audience: "Anyone composing a deck with this engine"
+takeaway: "Every slide shape already exists: compose, never draw"
 status: final
-footer: "Catalogue des composants"
+footer: "Component catalogue"
 ---
 
-{/* Chaque composant du registre, dans un cas réaliste. Construire ce deck sert aussi de test :
+{/* Every component in the registry, in a realistic slide. Building this deck is also a test:
    node scripts/deck/build.mjs build scripts/deck/examples
-   Les organisations, les personnes et les chiffres sont inventés. */}
+   The organizations, the people and the figures are invented. The comment above each slide names
+   the components it shows. */}
 
+{/* Cover */}
 <Cover
-  kicker="Atelier Nord, comité de pilotage"
-  title="Rénover les écoles de la *vallée*"
-  subtitle="Bilan de la première année et feuille de route 2027"
+  kicker="North Valley Workshop, steering committee"
+  title="Renovating the *valley's* schools"
+  subtitle="The first year, and the plan for 2027"
   date="2026-10-09"
-  by="Camille Martin et Idriss Benali"
-  url="atelier-nord.example"
+  by="Sam Carter and Ana Reyes"
+  url="north-valley.example"
   image="assets/photo-1.svg"
   logos={["assets/logo-1.svg", "assets/logo-2.svg", "assets/logo-3.svg"]}
-  notes="On ouvre sur le bilan, la feuille de route vient en troisième partie."
+  notes="Open on the results; the plan comes in part three."
 />
 
+{/* Agenda, then the same Agenda with `active` opening part 1 */}
 <Agenda items={[
-  { title: "Ce que nous avons fait", items: ["Les chantiers", "Les chiffres"] },
-  { title: "Ce que nous avons appris", items: ["Les familles", "Les équipes"] },
-  { title: "Ce que nous proposons pour 2027" },
+  { title: "What we did", items: ["The sites", "The figures"] },
+  { title: "What we learned", items: ["Families", "Teams"] },
+  { title: "What we propose for 2027" },
 ]} />
 
 <Agenda active={1} items={[
-  { title: "Ce que nous avons fait", items: ["Les chantiers", "Les chiffres"] },
-  { title: "Ce que nous avons appris", items: ["Les familles", "Les équipes"] },
-  { title: "Ce que nous proposons pour 2027" },
+  { title: "What we did", items: ["The sites", "The figures"] },
+  { title: "What we learned", items: ["Families", "Teams"] },
+  { title: "What we propose for 2027" },
 ]} />
 
-<Slide chapter="Ce que nous avons fait" kicker="Bullets et Image dans un Split" title="Quatre écoles rénovées en une année scolaire" source="Registre des chantiers, septembre 2026">
+{/* Split of Bullets and Image, Callout. The kicker opens the part; the slides inside it go without. */}
+<Slide chapter="What we did" kicker="Year one" title="Four schools renovated in one school year" source="Site register, September 2026">
   <Split ratio="3 2">
     <Bullets groups={[
-      { head: "Pourquoi ces écoles", items: ["Les quatre bâtiments les plus anciens de la vallée", { text: "Des classes à **14 °C** en janvier", items: ["Mesuré par les enseignants, hiver 2025"] }] },
-      { head: "En pratique", items: ["Isolation par l'extérieur pendant les vacances", "Chauffage remplacé école par école"] },
+      { head: "Why these schools", items: ["The four oldest buildings in the valley", { text: "Classrooms at **14 °C** in January", items: ["Measured by the teachers, winter 2025"] }] },
+      { head: "In practice", items: ["External insulation during the holidays", "Heating replaced one school at a time"] },
     ]} />
-    <Image src="assets/photo-2.svg" caption="L'école des Prés, juin 2026" />
+    <Image src="assets/photo-2.svg" caption="Meadow School, June 2026" />
   </Split>
-  <Callout tone="next">Les deux dernières écoles de la liste suivent en 2027.</Callout>
+  <Callout tone="next">The last two schools on the list follow in 2027.</Callout>
 </Slide>
 
-<Slide kicker="Stats" title="Ce que la première année a changé" source="Relevés de l'atelier, octobre 2026">
+{/* Stats: figures side by side share a unit */}
+<Slide title="Heating use per school, before and after" source="Workshop meter readings, October 2026">
   <Stats items={[
-    { value: "4", label: "écoles rénovées" },
-    { value: "-38 %", label: "de chauffage consommé", sub: "sur l'hiver 2025-2026" },
-    { value: "21 °C", label: "dans les classes en janvier" },
+    { value: "-41%", label: "Meadow School" },
+    { value: "-38%", label: "Mill School" },
+    { value: "-35%", label: "Spring School" },
+    { value: "-29%", label: "Linden School", sub: "insulation only" },
   ]} />
-  <Callout>Le chantier n'a fermé aucune classe un seul jour.</Callout>
+  <Callout>The work did not close a single class for a single day.</Callout>
 </Slide>
 
-<Slide kicker="Stats en grille" title="Les chiffres du chantier" source="Comptabilité de l'atelier, octobre 2026">
+{/* Stats in a grid */}
+<Slide title="The project in counts" source="Workshop accounts, October 2026">
   <Stats size="grid" items={[
-    { value: "1 240", label: "élèves concernés" },
-    { value: "96", label: "classes" },
-    { value: "18", label: "entreprises locales" },
-    { value: "2,1 M€", label: "engagés" },
-    { value: "11", label: "semaines de travaux" },
-    { value: "0", label: "accident" },
+    { value: "1,240", label: "pupils" },
+    { value: "96", label: "classrooms" },
+    { value: "18", label: "local firms" },
+    { value: "11", label: "weeks of works" },
+    { value: "4", label: "schools" },
+    { value: "0", label: "accidents" },
   ]} />
 </Slide>
 
-<Slide kicker="Cards" title="Trois choses qui ont compté">
+{/* Cards */}
+<Slide title="What made the difference">
   <Cards items={[
-    { label: "Les familles", title: "Prévenues un mois avant", text: "Une réunion par école, avec le planning des travaux et un numéro à appeler.", tone: "soft" },
-    { label: "Les équipes", title: "Le chantier pendant les vacances", text: "Le gros œuvre tenait en huit semaines d'été, le reste se faisait le mercredi." },
-    { label: "Le suivi", title: "Une sonde par classe", text: "La température relevée toutes les heures, publiée chaque semaine aux parents.", tone: "accent" },
+    { label: "Families", title: "Told a month ahead", text: "One meeting per school, with the works schedule and a number to call.", tone: "soft" },
+    { label: "Teams", title: "Works during the holidays", text: "The structural work fit in eight summer weeks; the rest happened on Wednesdays." },
+    { label: "Follow-up", title: "A sensor in every classroom", text: "Temperature read every hour, published to parents every week.", tone: "accent" },
   ]} />
 </Slide>
 
-<Divider n={2} title="Ce que nous avons appris" lead="Ce que les familles et les équipes nous ont dit, et ce que nous changeons" />
+{/* Divider */}
+<Divider n={2} title="What we learned" lead="What families and teams told us, and what we change" />
 
-<Slide kicker="Timeline" title="Une année en cinq étapes">
+{/* Timeline */}
+<Slide title="A year in five milestones">
   <Timeline items={[
-    { date: "nov. 2025", title: "Diagnostic", text: "Les quatre bâtiments mesurés" },
-    { date: "fév. 2026", title: "Appel d'offres", text: "18 entreprises retenues" },
-    { date: "juil. 2026", title: "Gros œuvre", text: "Pendant les vacances" },
-    { date: "sept. 2026", title: "Rentrée", text: "Classes ouvertes à l'heure", accent: true },
-    { date: "janv. 2027", title: "Premier hiver", text: "Relevés publiés" },
+    { date: "Nov 2025", title: "Survey", text: "All four buildings measured" },
+    { date: "Feb 2026", title: "Tender", text: "18 firms selected" },
+    { date: "Jul 2026", title: "Structural work", text: "During the holidays" },
+    { date: "Sep 2026", title: "New term", text: "Classes opened on time", accent: true },
+    { date: "Jan 2027", title: "First winter", text: "Readings published" },
   ]} />
 </Slide>
 
-<Slide kicker="Steps" title="Comment une école est rénovée">
+{/* Steps */}
+<Slide title="How a school is renovated">
   <Steps items={[
-    { title: "Mesurer", text: "Une sonde par classe pendant un hiver", items: ["Température", "Humidité"] },
-    { title: "Prévoir", text: "Le chantier découpé en vacances scolaires", items: ["Planning partagé avec l'école"] },
-    { title: "Rénover", text: "Les entreprises locales, un lot chacune", items: ["Isolation", "Chauffage"] },
-    { title: "Vérifier", text: "Les mêmes sondes, l'hiver suivant", items: ["Relevés publiés"] },
+    { title: "Measure", text: "A sensor per classroom for one winter", items: ["Temperature", "Humidity"] },
+    { title: "Plan", text: "The works cut into school holidays", items: ["Schedule shared with the school"] },
+    { title: "Renovate", text: "Local firms, one lot each", items: ["Insulation", "Heating"] },
+    { title: "Check", text: "The same sensors, the next winter", items: ["Readings published"] },
   ]} />
 </Slide>
 
-<Slide kicker="Quote" title="Ce que disent les enseignants">
-  <Quote text="Pour la première fois depuis que j'enseigne ici, les enfants enlèvent leur manteau en classe." by="Nadia Roux" role="Professeure des écoles, école des Prés" photo="assets/person-2.svg" />
+{/* Quote */}
+<Slide title="What the teachers say">
+  <Quote text="For the first time since I started teaching here, the children take their coats off in class." by="Nora Hale" role="Teacher, Meadow School" photo="assets/person-2.svg" />
 </Slide>
 
-<Slide kicker="Compare" title="L'école des Prés avant et après">
+{/* Compare */}
+<Slide title="Meadow School before and after">
   <Compare
-    left={{ label: "Avant", image: "assets/photo-3.svg", items: ["Simple vitrage", "Chaudière de 1987"] }}
-    right={{ label: "Aujourd'hui", image: "assets/photo-1.svg", items: ["Isolation par l'extérieur", "Pompe à chaleur"] }}
+    left={{ label: "Before", image: "assets/photo-3.svg", items: ["Single glazing", "A 1987 boiler"] }}
+    right={{ label: "Today", image: "assets/photo-1.svg", items: ["External insulation", "Heat pump"] }}
   />
 </Slide>
 
-<Slide kicker="Table" title="Les quatre écoles" source="Registre des chantiers, septembre 2026">
-  <Table highlight={4} head={["École", "Élèves", "Travaux", "Livrée"]} rows={[
-    ["Les Prés", "310", "Isolation, chauffage", "août 2026"],
-    ["Le Moulin", "280", "Chauffage", "août 2026"],
-    ["La Source", "390", "Isolation, fenêtres", "sept. 2026"],
-    ["Les Tilleuls", "260", "Isolation", "sept. 2026"],
+{/* Table */}
+<Slide title="The four schools" source="Site register, September 2026">
+  <Table highlight={4} head={["School", "Pupils", "Works", "Delivered"]} rows={[
+    ["Meadow", "310", "Insulation, heating", "Aug 2026"],
+    ["Mill", "280", "Heating", "Aug 2026"],
+    ["Spring", "390", "Insulation, windows", "Sep 2026"],
+    ["Linden", "260", "Insulation", "Sep 2026"],
   ]} />
 </Slide>
 
-<Slide kicker="Bars et Donut" title="Où est allé le budget" source="Comptabilité de l'atelier, octobre 2026">
+{/* Bars and Donut in a Split */}
+<Slide title="Where the budget went" source="Workshop accounts, October 2026">
   <Split ratio="1 1" align="center">
-    <Bars unit=" k€" items={[
-      { label: "Isolation", value: 980, accent: true },
-      { label: "Chauffage", value: 640 },
-      { label: "Fenêtres", value: 310 },
-      { label: "Études", value: 170 },
+    <Bars unit="k€" items={[
+      { label: "Insulation", value: 980, accent: true },
+      { label: "Heating", value: 640 },
+      { label: "Windows", value: 310 },
+      { label: "Studies", value: 170 },
     ]} />
-    <Donut total="2,1 M€" label="engagés" items={[
-      { label: "Région", value: 50 },
-      { label: "Commune", value: 30 },
-      { label: "Fondation Lys", value: 20 },
+    <Donut total="€2.1M" label="committed" items={[
+      { label: "Region", value: 50 },
+      { label: "Town", value: 30 },
+      { label: "Lily Trust", value: 20 },
     ]} />
   </Split>
 </Slide>
 
-<Slide kicker="People" title="L'équipe du projet">
+{/* People */}
+<Slide title="The project team">
   <People items={[
-    { name: "Camille Martin", role: "Direction du projet", text: "Architecte, quinze ans de rénovation scolaire", photo: "assets/person-1.svg" },
-    { name: "Idriss Benali", role: "Chantiers", text: "Coordonne les entreprises", photo: "assets/person-3.svg" },
-    { name: "Léa Fontaine", role: "Familles et écoles", photo: "assets/person-4.svg" },
-    { name: "Hugo Perrin", role: "Mesures", text: "Ingénieur thermicien" },
+    { name: "Sam Carter", role: "Project lead", text: "Architect, fifteen years of school renovation", photo: "assets/person-1.svg" },
+    { name: "Ana Reyes", role: "Sites", text: "Coordinates the firms", photo: "assets/person-3.svg" },
+    { name: "Lee Park", role: "Families and schools", photo: "assets/person-4.svg" },
+    { name: "Max Hollis", role: "Measurements", text: "Heating engineer" },
   ]} />
 </Slide>
 
-<Slide kicker="Meta, Callout et Gallery" title="Le projet Sondes, en détail" source="Convention avec la Fondation Lys, 2025">
-  <Meta title="Sondes : mesurer chaque classe" by="Porté par Hugo Perrin depuis novembre 2025" items={[{ label: "Budget", value: "48 000 €, Fondation Lys" }, { label: "Livrable", value: "un relevé public chaque semaine" }]} />
-  <Callout tone="goal">Savoir, classe par classe, si la rénovation tient ses promesses.</Callout>
+{/* Meta, Callout and Gallery */}
+<Slide title="The Sensors project in detail" source="Agreement with the Lily Trust, 2025">
+  <Meta title="Sensors: measuring every classroom" by="Led by Max Hollis since November 2025" items={[{ label: "Budget", value: "€48,000, Lily Trust" }, { label: "Deliverable", value: "a public reading every week" }]} />
+  <Callout tone="goal">Know, classroom by classroom, whether the renovation keeps its promise.</Callout>
   <Gallery items={[
-    { src: "assets/photo-2.svg", caption: "La sonde, posée sous le tableau" },
-    { src: "assets/photo-4.svg", caption: "Le relevé affiché à l'entrée" },
-    { src: "assets/photo-3.svg", caption: "Les données, chaque lundi" },
+    { src: "assets/photo-2.svg", caption: "The sensor, under the board" },
+    { src: "assets/photo-4.svg", caption: "The reading, posted at the entrance" },
+    { src: "assets/photo-3.svg", caption: "The data, every Monday" },
   ]} height={200} />
 </Slide>
 
-<Slide kicker="Logos" title="Ceux qui ont rendu le projet possible">
+{/* Logos */}
+<Slide title="Who made the project possible">
   <Logos groups={[
-    { title: "Financeurs", items: ["assets/logo-2.svg", "assets/logo-3.svg"] },
-    { title: "Partenaires", items: ["assets/logo-1.svg", "assets/logo-4.svg"] },
+    { title: "Funders", items: ["assets/logo-2.svg", "assets/logo-3.svg"] },
+    { title: "Partners", items: ["assets/logo-1.svg", "assets/logo-4.svg"] },
   ]} />
 </Slide>
 
-<Statement kicker="Statement" text="Une école bien chauffée, c'est *une heure de cours en plus* par semaine." sub="Estimation des enseignants des quatre écoles, juin 2026" />
+{/* Statement */}
+<Statement text="A warm school gives back *an hour of teaching* a week." sub="Teachers' estimate across the four schools, June 2026" />
 
-<Divider n={3} title="Ce que nous proposons pour 2027" image="assets/photo-4.svg" />
+{/* Divider with an image */}
+<Divider n={3} title="What we propose for 2027" image="assets/photo-4.svg" />
 
-<Slide kicker="Text" title="Notre proposition">
+{/* Text */}
+<Slide title="Our proposal">
   <Text size="large">
-    Rénover les deux écoles restantes pendant l'été 2027, avec les mêmes entreprises et le même suivi.
+    Renovate the two remaining schools in summer 2027, with the same firms and the same follow-up.
 
-    - Un comité par trimestre
-    - Les relevés publiés chaque semaine
+    - A committee every quarter
+    - Readings published every week
   </Text>
 </Slide>
 
+{/* Closing: a partner deck ends on the next step */}
 <Closing
-  title="Valider le calendrier 2027 en novembre"
-  lead="Nous revenons vers vous avec le budget détaillé le 15 novembre."
-  contacts={[{ name: "Camille Martin", role: "Direction du projet", email: "camille@atelier-nord.example" }]}
+  title="Approve the 2027 schedule in November"
+  lead="We come back to you with the detailed budget on 15 November."
+  contacts={[{ name: "Sam Carter", role: "Project lead", email: "sam@north-valley.example" }]}
 />

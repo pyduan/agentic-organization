@@ -7,8 +7,8 @@
 // here on the laid-out page (?check puts every slide on screen at full size), so the verdict is
 // the same on any machine and for any reviewer.
 //
-//   defects   fail the check: overflow, margin, spill, overlap, clipped, small, image, grid, error,
-//             contrast
+//   defects   fail the check: overflow, margin, spill, overlap, cramped, clipped, small, image, grid,
+//             error, contrast
 //   warnings  are read: bunched, sparse, dense, blurry
 //
 // Thresholds come from the deck's own theme (--dk-min-font, --dk-max-words), so a brand whose
@@ -27,6 +27,7 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 /** Runs inside the page, in check mode. */
 function auditInPage() {
   const TOL = 2;
+  const MIN_GAP = 12;
   const px = Math.round;
   const out = [];
   const visible = (el) => {
@@ -70,13 +71,17 @@ function auditInPage() {
       const spill = Math.max(b.top - r.top, r.bottom - b.bottom, b.left - r.left, r.right - b.right);
       if (spill > TOL) add('defect', 'spill', el, `runs ${px(spill)}px out of its block, over what is next to it`);
     }
-    for (const parent of [s.querySelector(':scope > .dk-body'), ...s.querySelectorAll('.dk-col')].filter(Boolean)) {
+    // Two blocks closer than MIN_GAP read as one: a theme that took the gap away, or a margin that
+    // pulled a block up against the previous one.
+    for (const parent of [s.querySelector(':scope > .dk-body'), ...s.querySelectorAll('.dk-col, .dk-split')].filter(Boolean)) {
       const kids = [...parent.children].filter(visible).map((k) => ({ k, r: k.getBoundingClientRect() }));
       for (let x = 1; x < kids.length; x++) {
         const a = kids[x - 1], b = kids[x];
         const over = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
         const side = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
-        if (over > TOL && side > TOL) add('defect', 'overlap', b.k, `lies ${px(over)}px over the block above it`);
+        if (over > TOL && side > TOL) { add('defect', 'overlap', b.k, `lies ${px(over)}px over the block above it`); continue; }
+        const gap = side > TOL ? b.r.top - a.r.bottom : over > TOL ? b.r.left - a.r.right : Infinity;
+        if (gap < MIN_GAP) add('defect', 'cramped', b.k, `${px(Math.max(0, gap))}px from the block ${side > TOL ? 'above' : 'beside'} it (at least ${MIN_GAP}px)`);
       }
     }
 
@@ -144,9 +149,10 @@ function auditInPage() {
       const inner = leaves.filter((el) => body.contains(el)).map((el) => el.getBoundingClientRect());
       if (inner.length) {
         const u = inner.reduce((a, r) => ({ l: Math.min(a.l, r.left), t: Math.min(a.t, r.top), r: Math.max(a.r, r.right), b: Math.max(a.b, r.bottom) }), { l: Infinity, t: Infinity, r: -Infinity, b: -Infinity });
-        const below = br.bottom - u.b, above = u.t - br.top, right = br.right - u.r;
+        const below = br.bottom - u.b, above = u.t - br.top, right = br.right - u.r, left = u.l - br.left;
+        // Bunched is off-centre: a narrow block set in the middle of its slide (a lone quote) is not.
         if (u.b - u.t < 0.55 * br.height && below > 1.5 * above + 60) add('warning', 'bunched', body, `content sits at the top, ${px(below)}px empty under it`);
-        if (u.r - u.l < 0.62 * br.width && right > 220) add('warning', 'bunched', body, `content sits on the left, ${px(right)}px empty on the right: pair it with an image, a figure or a second column`);
+        if (u.r - u.l < 0.62 * br.width && right > 220 && right > 1.5 * left + 60) add('warning', 'bunched', body, `content sits on the left, ${px(right)}px empty on the right: pair it with an image, a figure or a second column`);
         if (((u.r - u.l) * (u.b - u.t)) / (br.width * br.height) < 0.28) add('warning', 'sparse', body, 'the content fills under a third of the slide');
       }
     }
@@ -231,7 +237,7 @@ export async function checkDeck(htmlFile, opts = {}) {
 export function printReport(r, { title = '', strict = false, log = console.log } = {}) {
   if (r.skipped) { log(`  ✘ not checked in a browser: ${r.skipped}. Overflow, contrast and grids are unverified.`); return 2; }
   const order = [...r.defects.map((f) => ({ ...f, mark: '✘' })), ...r.warnings.map((f) => ({ ...f, mark: '!' }))].sort((a, b) => a.n - b.n || (a.mark === '✘' ? -1 : 1));
-  for (const f of order) log(`  ${f.mark} ${f.n ? `slide ${f.n}` : 'deck'} · ${f.issue}${f.text ? ` «${f.text}»` : ''}: ${f.detail}`);
+  for (const f of order) log(`  ${f.mark} ${f.n ? `slide ${f.n}` : 'deck'} · ${f.issue}${f.text ? ` “${f.text}”` : ''}: ${f.detail}`);
   const c = r.contrast ? `, contrast measured on ${r.contrast.measured} texts` : ', contrast not measured (no check-contrast.mjs)';
   log(`${r.defects.length ? '✘' : '✓'} ${title}${r.slides} slides: ${r.defects.length} defect(s), ${r.warnings.length} warning(s)${c}`);
   if (r.sheet) log(`  Look at every slide: ${r.sheet}`);
