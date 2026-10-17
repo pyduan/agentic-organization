@@ -22,3 +22,8 @@ team/*
 # and the report scripts/error-report.mjs --email writes for attaching to a mail.
 .claude/settings.local.json
 error-report.md
+
+# A deck's build output that is rebuilt every time: the check's PNGs and contact sheet, and the
+# copies to send (--share, --pdf). Committing a deck folder commits its source and index.html only.
+decks/*/.check/
+decks/*/dist/
