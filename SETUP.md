@@ -45,7 +45,8 @@ Before anything else, decide where your repos live: **one folder at the root of 
 Code on that folder, not on a single repo: it is the agent's own kingdom, the one place where it can
 read a project, the brand and a client next to each other. Once the main repo is cloned there, run
 `node <main repo>/scripts/install-workspace.mjs`: the repo's guards load only in the folder the agent
-was opened on, and this gives the parent folder its copy of them. Then hand it the links and the accesses
+was opened on, and this gives the parent folder its copy of them, or adds the missing ones to a
+settings file already there. Then hand it the links and the accesses
 to your sources (your mail, your Drive, a WhatsApp conversation in the browser), one at a time.
 
 Do not ask it to tidy your Drive. It works, but it is the wrong problem: the Drive, the mailbox,

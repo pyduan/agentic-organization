@@ -255,7 +255,8 @@ if (isMain) {
   let transcript;
   try { transcript = readFileSync(event.transcript_path, 'utf8'); }
   catch (e) { console.error(`turn-check: could not read the transcript (${e.message}); nothing was checked.`); process.exit(1); }
-  const dir = process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
+  // A session opened on the workspace folder passes the router, whose tuning this reads.
+  const dir = process.argv[2] || process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
   const findings = check(currentTurn(transcript), loadProjectChecks(dir));
   if (findings.length) {
     const reason = ['Before ending this turn — your answer:', ...findings.map((f) => `• «${f.quote}» ${f.say}`),
