@@ -8,6 +8,7 @@
 //                             a kit update)
 //   decks/<slug>/deck.mdx     one folder per deck, with its images in assets/
 //   site/public/decks/        what `publish` copies to, only when the owner asks for it
+//   lang                      a deck's language when its frontmatter names none
 
 import { existsSync } from 'node:fs';
 import { join, resolve, dirname } from 'node:path';
@@ -24,5 +25,6 @@ export function locate() {
     decks: [join(ROOT, 'decks')],
     publish: join(ROOT, 'site', 'public', 'decks'),
     assetMode: 'link',
+    lang: 'en',
   };
 }
