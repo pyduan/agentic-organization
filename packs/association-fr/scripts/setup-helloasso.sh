@@ -16,7 +16,7 @@ ICI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ICI/../apps/admin"
 
 echo
-echo "Identifiants de l'API HelloAsso → secrets du Worker admin.huguescharnallet.org"
+echo "Identifiants de l'API HelloAsso → secrets du Worker admin.example.org"
 echo "Rien n'est enregistré sur cet ordinateur ni dans le dépôt."
 echo
 
@@ -39,6 +39,6 @@ echo
 echo "✓ Enregistrés. Le tableau de bord peut maintenant interroger HelloAsso directement,"
 echo "  pour toutes les personnes autorisées, sans qu'aucune d'elles n'ait le secret."
 echo
-echo "  Vérifier : ouvrir https://admin.huguescharnallet.org, onglet Cotisations,"
+echo "  Vérifier : ouvrir https://admin.example.org, onglet Cotisations,"
 echo "             puis « Actualiser depuis HelloAsso »."
 echo "  Voir aussi : docs/donnees.md"

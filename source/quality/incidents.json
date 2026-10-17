@@ -62,7 +62,7 @@
       "category": "numbers",
       "severity": "major",
       "inputs": "check-fleet.mjs, which answers how far behind the template each instance in a workspace is. The update-kit skill instructs the owner to run it from their own project, not from the template.",
-      "error": "Run from anywhere but the template, every 'N template commit(s) behind' is wrong, and the closing alert fires on it. `const templateHead = await git(ROOT, ['rev-parse','HEAD'])` with ROOT = process.cwd() takes the CALLING repo's head as the template's, so `sha..templateHead` counts the project's own commits since it last synced. Reproduced here: run from the template, huguescharnallet is 12 behind and personal-paul up to date; run from huguescharnallet, the same scan says 189 behind and 'no template HEAD to compare' for the up-to-date one — the second symptom the report had not seen, since an instance whose sha is not in the caller's history cannot be ranged at all.",
+      "error": "Run from anywhere but the template, every 'N template commit(s) behind' is wrong, and the closing alert fires on it. `const templateHead = await git(ROOT, ['rev-parse','HEAD'])` with ROOT = process.cwd() takes the CALLING repo's head as the template's, so `sha..templateHead` counts the project's own commits since it last synced. Reproduced here: run from the template, one project is 12 behind and another up to date; run from the first project, the same scan says 189 behind and 'no template HEAD to compare' for the up-to-date one — the second symptom the report had not seen, since an instance whose sha is not in the caller's history cannot be ranged at all.",
       "detected_by": "outside-user",
       "guard": {
         "kind": "test",

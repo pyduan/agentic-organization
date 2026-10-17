@@ -14,7 +14,7 @@
 // Trois façons de s'authentifier, essayées dans cet ordre :
 //   1. Les variables d'environnement HELLOASSO_CLIENT_ID et HELLOASSO_CLIENT_SECRET.
 //   2. Le relais du Worker via `cloudflared` : vous vous connectez avec votre propre email et ne
-//      détenez aucun secret. C'est la voie prévue pour Brigitte, Hervé et Louise.
+//      détenez aucun secret. C'est la voie prévue pour les membres du bureau.
 //   3. À défaut, le script demande les identifiants et les garde **en mémoire pour ce seul
 //      passage** : rien n'est écrit sur le disque, rien n'est exporté.
 import { readSettings } from './settings.mjs';
