@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import zlib from 'node:zlib';
 import { parseDeck, parseLiteral, frontmatter } from './parse.mjs';
 import { md } from './text.mjs';
+import { wordsToAvoid, unitOf } from './copy.mjs';
 import { renderDeck } from './render.mjs';
 import { components, validate, S } from './components.mjs';
 import { stripDark, buildDeck, undefinedTokens } from './build.mjs';
@@ -112,6 +113,43 @@ takeaway: b
   assert.equal(r.errors.length, 0);
   assert.equal(r.warnings.filter((w) => /without a source/.test(w)).length, 1);
   assert.match(r.warnings.join('\n'), /slide 4: second dark slide in a row/);
+});
+
+test('copy rules: titles, paragraphs, kickers, the voice, figures that compare, the close, said twice', () => {
+  const long = Array.from({ length: 45 }, (_, i) => `word${i}`).join(' ');
+  const r = render(`---
+title: x
+date: 2026-10-09
+audience: a
+takeaway: b
+---
+<Slide chapter="One" kicker="Part one" title="A label that ends like a sentence."><Text>${long}</Text></Slide>
+<Slide kicker="Again" title="A title that runs on well past the dozen words a title should ever need here"><Text>It is not just a tool. The result? A seamless journey.</Text></Slide>
+<Slide title="Figures" source="Accounts"><Stats items={[{ value: "4", label: "schools" }, { value: "-38%", label: "heating" }, { value: "21 °C", label: "in January" }]} /></Slide>
+<Slide title="Comparable" source="Accounts"><Stats items={[{ value: "-41%", label: "a" }, { value: "-38 %", label: "b" }]} /></Slide>
+<Slide title="Said"><Quote text="It is not just a tool, it is a seamless journey." by="Someone" /><Text>The sensors measure every classroom temperature hourly during winter.</Text></Slide>
+<Slide title="Again"><Text>Every classroom temperature is measured hourly by the sensors during winter.</Text></Slide>
+<Closing title="Thank you" />`, { avoid: ['seamless', 'journey'] });
+  const w = r.warnings.join('\n');
+  assert.match(w, /slide 1 .*drop its closing full stop/);
+  assert.match(w, /slide 1 .*45-word paragraph/);
+  assert.match(w, /slide 2 .*words in the title/);
+  assert.match(w, /slide 2 .*a kicker inside a part \(slide 1 opens it\)/);
+  assert.match(w, /slide 2 .*antithesis/);
+  assert.match(w, /slide 2 .*one-word question/);
+  assert.match(w, /slide 2 .*“seamless” is on the voice's list/);
+  assert.match(w, /slide 3 .*counted in plain numbers, “%”, “°c”/);
+  assert.ok(!/slide 4 .*counted in/.test(w), 'one unit, written two ways, compares');
+  assert.ok(!/slide 5 .*(antithesis|seamless)/.test(w), 'a quote is someone else\'s words');
+  assert.match(w, /slide 6 .*says again what slide 5 says/);
+  assert.match(w, /slide 7 .*closes on a thank-you/);
+  assert.equal(r.errors.length, 0);
+});
+
+test('copy rules: the words to avoid come from the voice, an entry with a qualifier is left to a reader', () => {
+  assert.deepEqual(wordsToAvoid('x\n\n**Words to avoid.** delve, landscape (as an abstract noun), robust, and genuinely / truly / actually used as intensifiers. **This list is meant to be edited.**'), ['delve', 'robust', 'genuinely', 'truly']);
+  assert.deepEqual(wordsToAvoid('# Voice\n\nNothing here.'), []);
+  assert.deepEqual(['€2.1M', '2,1 M€', '48,000 €', '1,240', '-38 %', '12k'].map(unitOf), ['€', '€', '€', '', '%', '']);
 });
 
 test('a shared copy carries no speaker notes', () => {

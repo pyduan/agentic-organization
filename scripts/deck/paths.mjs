@@ -2,6 +2,7 @@
 // layout of the repo it lives in.
 //
 //   source/brand/tokens.css   the brand's colours and fonts, read by the kit theme
+//   source/brand/voice.md     the brand's voice: its words to avoid are read over every deck
 //   source/brand/deck/        the brand's deck layer: theme.css, components.mjs, assets/, and
 //                             deck.md, the brand's own deck rules (owner files, never touched by
 //                             a kit update)
@@ -18,6 +19,7 @@ export function locate() {
   return {
     root: ROOT,
     tokens: [join(ROOT, 'source', 'brand', 'tokens.css')].filter(existsSync),
+    voice: [join(ROOT, 'source', 'brand', 'voice.md')].filter(existsSync),
     brand: join(ROOT, 'source', 'brand', 'deck'),
     decks: [join(ROOT, 'decks')],
     publish: join(ROOT, 'site', 'public', 'decks'),

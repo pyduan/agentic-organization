@@ -7,6 +7,7 @@
 
 import { S, validate, prose, frame } from './components.mjs';
 import { esc, md, plain, words, baseLang } from './text.mjs';
+import { copyWarnings, NOT_COPY } from './copy.mjs';
 
 const STRINGS = {
   fr: { source: 'Source\u00a0: ', part: 'Partie', agenda: 'Ordre du jour', colon: '\u00a0: ', percent: '\u00a0%', noNotes: 'Pas de note sur cette slide.', overview: 'Vue d’ensemble', notes: 'Notes', full: 'Plein écran', print: 'PDF', prev: 'Précédente', next: 'Suivante' },
@@ -30,7 +31,7 @@ const FIGURE = /(\d[\d\s\u202f.,]*\s?(%|€|k€|M€|Md€|\$|£|millions?|mill
 function texts(node, out = []) {
   if (node.type === 'text') { out.push(node.text); return out; }
   const walk = (v, key) => {
-    if (['notes', 'source', 'src', 'mark', 'image', 'photo', 'icon', 'id', 'url', 'email', 'phone', 'chapter', 'ground', 'tone', 'size', 'look', 'fit', 'ratio', 'align', 'focus', 'caption'].includes(key)) return;
+    if (NOT_COPY.includes(key)) return;
     if (typeof v === 'string') out.push(v);
     else if (Array.isArray(v)) v.forEach((x) => walk(x));
     else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(x, k);
@@ -43,7 +44,7 @@ const hasSource = (node) => Boolean(node.props?.source) || (node.children || [])
   || JSON.stringify(node.props || {}).includes('"source"');
 
 export function renderDeck(deck, opts) {
-  const { registry, asset, css, js, lang: langOpt, shareMode = false } = opts;
+  const { registry, asset, css, js, lang: langOpt, shareMode = false, avoid = [] } = opts;
   const meta = deck.meta;
   // The deck says its language in its frontmatter; English when it does not. `lang` is what the
   // page declares (the theme's :lang() rules read it), `base` what typography and dates follow.
@@ -124,6 +125,7 @@ export function renderDeck(deck, opts) {
     if (prev && ['dark', 'accent'].includes(prev.ground) && ['dark', 'accent'].includes(s.ground)) warnings.push(`slide ${s.n}: second dark slide in a row (slide ${prev.n} is dark too). A dark slide opens a part; merge them or lighten one.`);
     if (s.figure) warnings.push(`slide ${s.n} “${s.title}”: a figure without a source (“${s.figure.slice(0, 50)}”). Add source="…" to the slide, or say on the slide that it is an estimate.`);
   });
+  warnings.push(...copyWarnings(deck.slides, info, { lang, avoid }));
   for (const k of ['title', 'date']) if (!meta[k]) warnings.push(`frontmatter: no "${k}"`);
   for (const k of ['audience', 'takeaway']) if (!meta[k]) warnings.push(`frontmatter: no "${k}". Who is in the room, and the one thing they should remember, decide what goes on every slide.`);
 

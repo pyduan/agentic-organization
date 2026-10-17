@@ -26,6 +26,7 @@ import { findChrome } from './chrome.mjs';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { locate } from './paths.mjs';
+import { wordsToAvoid } from './copy.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MIME = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.gif': 'image/gif', '.svg': 'image/svg+xml', '.webp': 'image/webp', '.avif': 'image/avif' };
@@ -166,7 +167,8 @@ export async function buildDeck(deckFile, paths, opts = {}) {
   for (const { token, where } of undefinedTokens(layers, [js, ...inline])) {
     errors.push(`${where}: var(${token}) is read but never defined, so the browser drops that declaration. Define ${token} (in the brand's tokens or deck theme), or give it a fallback: var(${token}, …)`);
   }
-  const r = renderDeck(deck, { registry, asset, css, js, shareMode: share });
+  const avoid = (paths.voice || []).flatMap((f) => wordsToAvoid(readFileSync(f, 'utf8')));
+  const r = renderDeck(deck, { registry, asset, css, js, shareMode: share, avoid });
   errors.push(...r.errors);
   warnings.push(...r.warnings);
   if (!errors.length) writeFileSync(outFile, r.html);
