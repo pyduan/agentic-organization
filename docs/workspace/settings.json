@@ -34,7 +34,8 @@
             "args": [
               "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/workspace-sync.mjs",
               "sync",
-              "--siblings"
+              "--siblings",
+              "--quiet"
             ]
           },
           {
