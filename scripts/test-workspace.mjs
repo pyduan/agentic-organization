@@ -83,6 +83,25 @@ test('a kit project of another organization beside this one is mentioned, not al
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
 
+test('from a hook: --root names the router, --quiet says only what needs a look and never fails the start', () => {
+  const { ws, env } = workspace();
+  try {
+    const org = repo(join(ws, 'org'), 'https://github.com/acme/org.git', {
+      'ORGANIGRAM.md': map(['| `acme/org` **(this one)** | `router` | x |', '| `acme/shop` | `satellite` | y |']),
+    });
+    const shop = repo(join(ws, 'shop'), 'https://github.com/acme/shop.git', { 'CLAUDE.md': 'The shared guides live in org.' });
+    // Run from the satellite, as a session opened there does.
+    assert.equal(check(shop, env, '--quiet', '--root', org).stdout, '', 'nothing to say, so nothing said');
+    assert.match(check(shop, env, '--root', org).stdout, /2 repo\(s\) on the map, 2 found on this machine/);
+    writeFileSync(join(shop, 'CLAUDE.md'), 'A repo that never names its router.');
+    const r = check(shop, env, '--quiet', `--root=${org}`);
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /0 failure\(s\) and 1 warning\(s\)/);
+    assert.match(r.stdout, /▲ acme\/shop: its CLAUDE\.md never mentions org/);
+    assert.doesNotMatch(r.stdout, /·/, 'what is only information stays out of a session start');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
 test('the map reads the same with or without the legacy folder column', async () => {
   const { ws } = workspace();
   try {
