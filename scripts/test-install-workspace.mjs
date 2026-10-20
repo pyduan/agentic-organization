@@ -11,7 +11,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,7 +44,8 @@ function runHooks(ws, event, input = {}, env = {}) {
       const r = spawnSync(h.command === 'node' ? process.execPath : h.command, args, {
         input: JSON.stringify({ cwd: ws, ...input }), env: { ...process.env, CLAUDE_PROJECT_DIR: ws, ...env }, encoding: 'utf8',
       });
-      out += r.stdout;
+      // Claude Code hands a hook's output to the agent only when it exits 0.
+      if (r.status === 0) out += r.stdout;
     }
   }
   return out;
@@ -190,6 +191,9 @@ test('the session start pulls what it can, names what it cannot, and flags a mis
   apply(plan({ routerDir: router, home: home() }));
   const notes = cloneInto(ws, 'notes');
   const sales = cloneInto(ws, 'sales');
+  // gone's origin has disappeared: a sync that cannot reach it must still be read.
+  const gone = cloneInto(ws, 'gone');
+  rmSync(gone.remote, { recursive: true, force: true });
   // Someone pushes to notes from elsewhere: a plain fast-forward for this clone.
   const other = join(ws, '..', `other-${Date.now()}`);
   git(ws, 'clone', '-q', notes.remote, other);
@@ -207,9 +211,11 @@ test('the session start pulls what it can, names what it cannot, and flags a mis
   const noIdentity = join(ws, '..', `gitconfig-empty-${Date.now()}`);
   writeFileSync(noIdentity, '');
   const out = start({ GIT_CONFIG_GLOBAL: noIdentity });
-  assert.match(out, /Workspace: 1 repo\(s\) up to date \(1 pulled just now\)\./);
+  assert.match(out, /Workspace: some clones need a look/);
+  assert.doesNotMatch(out, /• notes/, 'a clone brought up to date needs nobody');
   assert.ok(existsSync(join(notes.dir, 'news.md')), 'notes was fast-forwarded');
   assert.match(out, /• sales: NOT updated/);
+  assert.match(out, /• gone: NOT updated, could not reach origin/);
   assert.match(out, /Git has no identity on this machine/);
 
   const withIdentity = join(ws, '..', `gitconfig-${Date.now()}`);
