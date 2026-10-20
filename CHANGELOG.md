@@ -10,6 +10,26 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-20 · MAJOR · A session opened in a satellite runs the router's guards, and the workspace sees every skill
+
+When your organization has a router and satellites, a person who opened the agent inside one
+satellite got none of the router's guards: no pull at the start, no send guard, no end-of-session
+check, and nothing said so. `node scripts/install-workspace.mjs --satellites` now gives each
+satellite of your map a small settings file that runs, from the router beside it, exactly what the
+workspace folder runs; if the router is not cloned there, the session says so in its first lines
+and nothing breaks. `check-fleet` names a satellite that lacks it.
+
+From the folder that holds your repos, your skills were not in the `/` menu and did not start on
+their own, because Claude Code does not look inside the repos for them. The installer now puts a
+relay to each skill of the router and of the repos beside it in that folder. The session start
+also checks your map against the disk, and says when the folder's own files are out of date
+instead of leaving the old hooks running. A pull that fails at the start now reaches your agent
+from the workspace folder too.
+
+**What you need to do:** ask your agent to run `node scripts/install-workspace.mjs` once. If you
+have satellites, ask it to run it with `--satellites` and to commit the `.claude/settings.json` it
+writes in each of them.
+
 ## 2026-10-17 · MAJOR · The end-of-session check sees moved and copied files, and the guards run on Windows
 
 The end-of-session check let a session stop with work unsaved when that work was a file moved or
