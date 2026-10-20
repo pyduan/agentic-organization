@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-20 · MINOR · A clone the session start could not update is named again in the folder that holds your repos
+
+Opened on the folder that holds your repos, a session start that could not reach one of them said
+nothing at all: the sync exited with an error, and Claude Code drops what a hook prints when it
+does. It now runs quiet there too, as it already did in your main repo: nothing when every clone is
+current, and the clones that need a look when one is not. `check-fleet` no longer calls a project
+synced before 2026-10-09 "161 commits behind": the kit's history was rewritten that day, and it now
+says so instead of printing a number.
+
+**What you need to do:** ask your agent to run `node scripts/install-workspace.mjs` once. If you
+edited that folder's `.claude/settings.json` yourself, add `--quiet` after `--siblings` in it by hand.
+
 ## 2026-10-17 · MAJOR · The end-of-session check sees moved and copied files, and the guards run on Windows
 
 The end-of-session check let a session stop with work unsaved when that work was a file moved or
