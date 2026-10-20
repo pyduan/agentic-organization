@@ -50,6 +50,17 @@
             "args": [
               "${CLAUDE_PROJECT_DIR}/scripts/open-decisions.mjs"
             ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/scripts/check-workspace.mjs",
+              "--offline",
+              "--quiet",
+              "--root",
+              "${CLAUDE_PROJECT_DIR}"
+            ]
           }
         ]
       }

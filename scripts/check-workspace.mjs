@@ -62,6 +62,10 @@ if (at) {
   process.exit(0);
 }
 
+// At a session start, the template itself has no organization to check: its map is a template and
+// every kit project on the disk names it.
+if (QUIET && isTemplateSlug((await originSlug(ROOT)) || '')) process.exit(0);
+
 const findings = [];
 const add = (severity, what, detail) => findings.push({ severity, what, detail });
 

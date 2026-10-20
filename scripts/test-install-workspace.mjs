@@ -393,7 +393,9 @@ test('a satellite\'s own settings keep what they hold and gain the relays; an ol
   assert.ok(settings.hooks.PreToolUse.some((g) => g.matcher === 'Edit' && g.hooks[0].command === 'echo mine'));
   assert.equal(settings.hooks.Stop[0].hooks[0].args[1], BOOT, 'the older relay is replaced, not doubled');
   assert.equal(settings.hooks.Stop.flatMap((g) => g.hooks).length, 1);
-  assert.deepEqual(added.sort(), ['PreToolUse mcp__.*|Bash', 'SessionStart']);
+  const expected = Object.entries(template.hooks).filter(([event]) => event !== 'Stop')
+    .flatMap(([event, groups]) => [...new Set(groups.map((g) => g.matcher ?? ''))].map((m) => `${event}${m ? ` ${m}` : ''}`));
+  assert.deepEqual(added.sort(), expected.sort(), 'every event and matcher it lacked, and only those');
 });
 
 test('the relay merges what the hooks say into one answer', () => {
