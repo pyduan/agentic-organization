@@ -51,7 +51,8 @@ async function guards(root, { template }) {
   let steps;
   try { steps = workspacePlan({ routerDir: root }); }
   catch (e) { if (e instanceof Stop) return template ? info(`the template itself: ${e.message}`) : warn(e.message); throw e; }
-  const off = steps.filter((s) => s.state !== 'current');
+  // A skill of the workspace's own, with the name of one of the repos', is someone's choice, not a fault.
+  const off = steps.filter((s) => s.state !== 'current' && !(s.kind === 'relay' && s.state === 'different'));
   if (!off.length) return ok('the folder beside this repo loads its guards (send guard, end-of-session check)');
   if (template) return info('the template itself: the workspace folder takes its guards from an organization\'s own repo');
   const theirs = off.filter((s) => s.state === 'different');
@@ -59,7 +60,8 @@ async function guards(root, { template }) {
     return warn(`${theirs.map((s) => `${s.target} in the workspace folder lacks ${s.lacks}`).join('; ')}, so a session opened there may skip this repo's guards. ` +
       'It is someone\'s own file, so the installer leaves it: add what it lacks by hand, from docs/workspace/');
   }
-  return warn(`a session opened on the workspace folder would run without this repo's guards (${off.map((s) => `${s.target} ${s.state}`).join(', ')})`,
+  const named = [...new Set(off.map((s) => (s.kind === 'relay' ? '.claude/skills out of date' : `${s.target} ${s.state}`)))];
+  return warn(`a session opened on the workspace folder would run without this repo's guards or skills (${named.join(', ')})`,
     'node scripts/install-workspace.mjs');
 }
 

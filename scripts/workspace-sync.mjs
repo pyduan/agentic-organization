@@ -27,7 +27,9 @@
 //   node scripts/workspace-sync.mjs sync   [--json] [--quiet]   [--siblings]
 //
 // --quiet prints only what needs a person, so a session start with nothing to say says
-// nothing. A sync also warns when git has no identity on this machine: commits then go out
+// nothing. With --siblings, the hook of a workspace or a satellite, the sync also says when the
+// workspace's own files (scripts/install-workspace.mjs) are missing or out of date: nothing else
+// tells a machine set up before a change that its hooks and skills lag behind the router. A sync also warns when git has no identity on this machine: commits then go out
 // signed <user>@<computer name>, tied to no account, and nobody notices until someone reads
 // the history. sync exits 1 when a repo could not be brought up to date for a reason other
 // than a choice (origin unreachable, git refused), except under --quiet, the session-start
@@ -38,9 +40,9 @@
 // never waits on a password prompt.
 
 import { execFile } from 'node:child_process';
-import { realpathSync } from 'node:fs';
-import { basename, dirname, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { existsSync, realpathSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gitOrigin, isRepoRoot, locatedRepos, originSlug, siblingRepos } from '../lib/workspace.mjs';
 
 const FETCH_TIMEOUT_MS = 20_000;
@@ -232,6 +234,23 @@ export async function identityWarning(root) {
     '`git config --global user.name "<name>"` and `git config --global user.email "<address>"`.';
 }
 
+/**
+ * The workspace's own files that install-workspace.mjs would write or refresh, as one line, or
+ * null. A copy of this script with no installer beside it says nothing.
+ */
+export async function workspaceNotice(root) {
+  const installer = join(dirname(fileURLToPath(import.meta.url)), 'install-workspace.mjs');
+  if (!existsSync(installer)) return null;
+  let steps;
+  try { steps = (await import(pathToFileURL(installer).href)).plan({ routerDir: root }); } catch { return null; }
+  const due = steps.filter((s) => ['missing', 'stale', 'partial', 'orphan'].includes(s.state));
+  if (!due.length) return null;
+  const what = [...new Set(due.map((s) => (s.kind === 'relay' ? '.claude/skills' : s.target)))];
+  return `▲ The workspace's own files are missing or out of date (${what.join(', ')}): run ` +
+    `\`node ${basename(root)}/scripts/install-workspace.mjs\` from ${dirname(root)}. It rewrites only what it wrote, ` +
+    'and a session started after it runs the router\'s current hooks and offers its current skills.';
+}
+
 const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
 
 export function statusReport(result) {
@@ -265,6 +284,8 @@ if (isMain) {
     if (text) console.log(text);
     const warning = command === 'sync' ? await identityWarning(root) : null;
     if (warning) console.log(warning);
+    const notice = command === 'sync' && flags.has('--siblings') ? await workspaceNotice(root) : null;
+    if (notice) console.log(notice);
   }
   const failed = command === 'sync' && result.repos.some((r) => FAILED.has(r.state));
   process.exit(failed && !flags.has('--quiet') ? 1 : 0);

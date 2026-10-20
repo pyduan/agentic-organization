@@ -7,15 +7,22 @@
 // hooks in exec form (node and its arguments, no shell, so Windows runs them too) with the
 // router's own tuning. At session start they must name a repo they could not update and a
 // machine with no git identity; at the end, session-end must check every repo of a workspace.
+//
+// From the workspace, every skill of the router and of the repos beside it must be reachable
+// through a relay, and a skill someone wrote there left alone. A satellite must run the same
+// hooks as the workspace through the relay --satellites writes, under the router's old folder
+// name too, and a session in a satellite whose router is not cloned must be told so at its start
+// and nothing else: no error on every tool call.
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { plan, apply, render, Stop, kitHooks, lacking } from './install-workspace.mjs';
+import { plan, apply, render, Stop, kitHooks, lacking, planSatellites, mergeSatellite, satelliteSettings, RELAY, BOOT } from './install-workspace.mjs';
+import { merge as mergeOutputs, chain } from '../.claude/hooks/satellite.mjs';
 
 const KIT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ID = ['-c', 'user.name=Sam', '-c', 'user.email=sam@example.com'];
@@ -29,7 +36,9 @@ function workspace() {
   cpSync(join(KIT, 'docs/workspace'), join(router, 'docs/workspace'), { recursive: true });
   cpSync(join(KIT, '.claude/hooks'), join(router, '.claude/hooks'), { recursive: true });
   // The start runs the router's sync, which reads the map through lib/workspace.mjs.
-  for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs']) cpSync(join(KIT, f), join(router, f));
+  for (const f of ['scripts/workspace-sync.mjs', 'scripts/check-workspace.mjs', 'scripts/install-workspace.mjs', 'lib/workspace.mjs']) {
+    cpSync(join(KIT, f), join(router, f));
+  }
   return { ws, router };
 }
 const home = () => mkdtempSync(join(tmpdir(), 'home-'));
@@ -207,12 +216,204 @@ test('the session start pulls what it can, names what it cannot, and flags a mis
   const noIdentity = join(ws, '..', `gitconfig-empty-${Date.now()}`);
   writeFileSync(noIdentity, '');
   const out = start({ GIT_CONFIG_GLOBAL: noIdentity });
-  assert.match(out, /Workspace: 1 repo\(s\) up to date \(1 pulled just now\)\./);
   assert.ok(existsSync(join(notes.dir, 'news.md')), 'notes was fast-forwarded');
+  assert.doesNotMatch(out, /• notes/, 'a clone brought up to date needs nobody, so the quiet start says nothing of it');
   assert.match(out, /• sales: NOT updated/);
   assert.match(out, /Git has no identity on this machine/);
 
   const withIdentity = join(ws, '..', `gitconfig-${Date.now()}`);
   writeFileSync(withIdentity, '[user]\n\tname = Sam\n\temail = sam@example.com\n');
   assert.doesNotMatch(start({ GIT_CONFIG_GLOBAL: withIdentity }), /no identity/);
+});
+
+// ------------------------------------------------------------------ skills, from the workspace
+
+const skill = (dir, name, description) => {
+  mkdirSync(join(dir, '.claude/skills', name), { recursive: true });
+  writeFileSync(join(dir, '.claude/skills', name, 'SKILL.md'), `---\nname: ${name}\ndescription: "${description}"\n---\n\n# ${name}\n\nThe steps.\n`);
+};
+
+test('from the workspace, every skill of the router and of the repos beside it is reachable through a relay', () => {
+  const { ws, router } = workspace();
+  skill(router, 'reflect', 'End-of-session pass.');
+  const sales = join(ws, 'sales');
+  mkdirSync(join(sales, '.git'), { recursive: true });
+  skill(sales, 'reflect', 'A second skill of that name: the router\'s wins.');
+  skill(sales, 'quote', 'Prepare a quote.');
+  skill(ws, 'mine', 'A skill someone put in the workspace by hand.');
+
+  const relays = () => plan({ routerDir: router, home: home() }).filter((s) => s.kind === 'relay');
+  const states = (steps) => steps.map((s) => [s.target.split('/')[2], s.state]).sort();
+  const steps = relays();
+  assert.deepEqual(states(steps), [['quote', 'missing'], ['reflect', 'missing']]);
+  apply(steps);
+  const reflect = readFileSync(join(ws, '.claude/skills/reflect/SKILL.md'), 'utf8');
+  assert.match(reflect, /^---\nname: reflect\ndescription: "End-of-session pass\."\n---\n/, 'the front matter is the skill\'s own');
+  assert.match(reflect, /`acme-ops\/\.claude\/skills\/reflect\/SKILL\.md`/);
+  assert.match(reflect, new RegExp(RELAY));
+  assert.match(readFileSync(join(ws, '.claude/skills/quote/SKILL.md'), 'utf8'), /relative to `sales\/`/);
+  assert.match(readFileSync(join(ws, '.claude/skills/mine/SKILL.md'), 'utf8'), /by hand/, 'a skill of its own is never touched');
+
+  // The skill changes: its relay is refreshed. The skill goes: its relay goes too.
+  skill(sales, 'quote', 'Prepare a quote, and say what it rests on.');
+  rmSync(join(router, '.claude/skills/reflect'), { recursive: true });
+  const again = relays();
+  assert.deepEqual(states(again), [['quote', 'stale'], ['reflect', 'stale']]);
+  assert.match(again.find((s) => s.target.includes('reflect')).want, /relative to `sales\/`/,
+    'the router no longer has reflect, so the one beside it is relayed');
+  rmSync(join(sales, '.claude/skills/reflect'), { recursive: true });
+  const third = relays();
+  assert.deepEqual(states(third), [['quote', 'stale'], ['reflect', 'orphan']]);
+  apply(third);
+  assert.ok(!existsSync(join(ws, '.claude/skills/reflect')), 'a relay to a skill that is gone is removed');
+  assert.match(readFileSync(join(ws, '.claude/skills/quote/SKILL.md'), 'utf8'), /say what it rests on/);
+  assert.ok(plan({ routerDir: router, home: home() }).every((s) => s.state === 'current' || s.kind !== 'relay'));
+});
+
+test('the session start says when the workspace\'s own files are out of date, and stops once they are not', () => {
+  const { ws, router } = workspace();
+  const sync = () => spawnSync(process.execPath, [join(router, 'scripts/workspace-sync.mjs'), 'sync', '--siblings', '--quiet'], { encoding: 'utf8' }).stdout;
+  assert.match(sync(), /workspace's own files are missing or out of date \(CLAUDE\.md, \.claude\/settings\.json\): run `node acme-ops\/scripts\/install-workspace\.mjs`/);
+  apply(plan({ routerDir: router, home: home() }));
+  assert.doesNotMatch(sync(), /out of date/);
+  skill(router, 'reflect', 'End-of-session pass.');
+  assert.match(sync(), /out of date \(\.claude\/skills\)/, 'a skill the router gained is a reason too');
+});
+
+// ------------------------------------------------------------------ satellites
+
+/** A router with a map declaring `members` a satellite, and that satellite cloned beside it. */
+function star() {
+  const { ws, router } = workspace();
+  git(router, 'init', '-q');
+  git(router, 'remote', 'add', 'origin', 'https://github.com/acme/acme-ops.git');
+  writeFileSync(join(router, 'ORGANIGRAM.md'), ['# Organigram', '', '| Repo | Kind | What it holds |', '|---|---|---|',
+    '| `acme/acme-ops` | `router` | the method |', '| `acme/members` | `satellite` | the members |', ''].join('\n'));
+  const sat = join(ws, 'members');
+  mkdirSync(sat);
+  git(sat, 'init', '-q');
+  git(sat, 'remote', 'add', 'origin', 'https://github.com/acme/members.git');
+  writeFileSync(join(sat, 'CLAUDE.md'), '# members\n\nThe router is acme-ops.\n');
+  git(sat, 'add', '-A'); git(sat, 'commit', '-q', '-m', 'first');
+  return { ws, router, sat };
+}
+
+/** Run a satellite's hooks for one event as Claude Code does: exec form, the project dir filled in. */
+function satHooks(sat, event, input = {}, env = {}) {
+  const settings = JSON.parse(readFileSync(join(sat, '.claude/settings.json'), 'utf8'));
+  let stdout = '';
+  let status = 0;
+  for (const g of settings.hooks[event]) {
+    for (const h of g.hooks) {
+      const r = spawnSync(process.execPath, h.args.map((a) => a.split('${CLAUDE_PROJECT_DIR}').join(sat)), {
+        input: JSON.stringify({ cwd: sat, hook_event_name: event, ...input }), cwd: sat,
+        env: { ...process.env, CLAUDE_PROJECT_DIR: sat, ...env }, encoding: 'utf8',
+      });
+      stdout += r.stdout;
+      status = Math.max(status, r.status ?? 0);
+    }
+  }
+  return { stdout, status };
+}
+
+test('a satellite runs the workspace\'s hooks through one relay per event, and the relay is all its settings hold', async () => {
+  const { router, sat } = star();
+  const steps = await planSatellites({ routerDir: router });
+  assert.deepEqual(steps.map((s) => [s.repo, s.state]), [['members', 'missing']]);
+  apply(steps);
+  const settings = JSON.parse(readFileSync(join(sat, '.claude/settings.json'), 'utf8'));
+  const template = JSON.parse(render(readFileSync(join(router, 'docs/workspace/settings.json'), 'utf8'), 'acme-ops'));
+  assert.deepEqual(Object.keys(settings.hooks), Object.keys(template.hooks), 'every event the workspace wires');
+  assert.deepEqual(settings.permissions, template.permissions);
+  for (const h of Object.values(settings.hooks).flat().flatMap((g) => g.hooks)) {
+    assert.equal(h.command, 'node');
+    assert.deepEqual(h.args.slice(0, 4).map((a, i) => (i === 1 ? a === BOOT : a)), ['-e', true, '${CLAUDE_PROJECT_DIR}', 'acme-ops']);
+    assert.doesNotMatch(h.args[1], /"/, 'no double quote, so Windows passes the code unchanged');
+  }
+  assert.deepEqual((await planSatellites({ routerDir: router })).map((s) => s.state), ['current']);
+
+  // The chain is the workspace template's, with the router's path filled in.
+  const pre = chain(router, 'PreToolUse', 'mcp__.*|Bash');
+  assert.equal(pre.length, 1);
+  assert.match(pre[0].args[0], /acme-ops\/\.claude\/hooks\/send-guard\.mjs$/);
+  assert.equal(pre[0].args[1], realpathSync(router));
+});
+
+test('in a satellite, the send guard asks, the end of session checks the satellite, and the start pulls', () => {
+  const { router, sat } = star();
+  return planSatellites({ routerDir: router }).then((steps) => {
+    apply(steps);
+    const ask = satHooks(sat, 'PreToolUse', { tool_name: 'Bash', tool_input: { command: 'bash scripts/send-newsletter.sh' } }, {});
+    assert.equal(JSON.parse(ask.stdout).hookSpecificOutput.permissionDecision, 'ask');
+    assert.equal(satHooks(sat, 'PreToolUse', { tool_name: 'Bash', tool_input: { command: 'ls' } }).stdout, '');
+
+    writeFileSync(join(sat, 'draft.md'), 'unsaved\n');
+    const end = JSON.parse(satHooks(sat, 'Stop', { session_id: 's-1' }).stdout);
+    assert.equal(end.decision, 'block');
+    assert.match(end.reason, /draft\.md/);
+
+    const start = satHooks(sat, 'SessionStart', { session_id: 's-1', source: 'startup' });
+    assert.equal(start.status, 0);
+    assert.match(start.stdout, /Could not reach origin|NOT updated/, 'the sync names the clones it could not bring up to date');
+  });
+});
+
+test('a satellite whose router is cloned under another name still runs it; without one, the start says so and nothing fails', async () => {
+  const { ws, router, sat } = star();
+  apply(await planSatellites({ routerDir: router }));
+  const renamed = join(ws, 'old-ops');
+  cpSync(router, renamed, { recursive: true });
+  rmSync(router, { recursive: true });
+  const ask = satHooks(sat, 'PreToolUse', { tool_name: 'Bash', tool_input: { command: 'bash scripts/send-newsletter.sh' } });
+  assert.equal(JSON.parse(ask.stdout).hookSpecificOutput.permissionDecision, 'ask', 'found by its relay file, not its name');
+
+  rmSync(renamed, { recursive: true });
+  // A router cloned before the relay existed: named as out of date, not as missing.
+  mkdirSync(join(router, '.git'), { recursive: true });
+  assert.match(satHooks(sat, 'SessionStart', { session_id: 's-2' }).stdout, /Router out of date: .*acme-ops has no .*satellite\.mjs yet[\s\S]*git pull in it/);
+  rmSync(router, { recursive: true });
+
+  const start = satHooks(sat, 'SessionStart', { session_id: 's-2' });
+  assert.equal(start.status, 0);
+  assert.match(start.stdout, /Router missing: acme-ops is not beside this repo/);
+  assert.match(start.stdout, /git clone https:\/\/github\.com\/acme\/acme-ops\)/);
+  for (const event of ['PreToolUse', 'Stop']) {
+    const r = satHooks(sat, event, { tool_name: 'Bash', tool_input: { command: 'bash scripts/send-newsletter.sh' } });
+    assert.deepEqual([r.stdout, r.status], ['', 0], `${event}: silent, and no error`);
+  }
+});
+
+test('a satellite\'s own settings keep what they hold and gain the relays; an older relay is brought up to date', () => {
+  const template = JSON.parse(render(readFileSync(join(KIT, 'docs/workspace/settings.json'), 'utf8'), 'acme-ops'));
+  const want = satelliteSettings(template, 'acme-ops');
+  const own = {
+    permissions: { allow: ['Bash(make:*)'] },
+    hooks: {
+      PreToolUse: [{ matcher: 'Edit', hooks: [{ type: 'command', command: 'echo mine' }] }],
+      Stop: [{ hooks: [{ type: 'command', command: 'node', args: ['-e', "require('satellite.mjs') // an older relay", '${CLAUDE_PROJECT_DIR}', 'acme-ops', 'Stop'] }] }],
+    },
+  };
+  const { settings, added } = mergeSatellite(own, want);
+  assert.deepEqual(settings.permissions, own.permissions);
+  assert.ok(settings.hooks.PreToolUse.some((g) => g.matcher === 'Edit' && g.hooks[0].command === 'echo mine'));
+  assert.equal(settings.hooks.Stop[0].hooks[0].args[1], BOOT, 'the older relay is replaced, not doubled');
+  assert.equal(settings.hooks.Stop.flatMap((g) => g.hooks).length, 1);
+  const expected = Object.entries(template.hooks).filter(([event]) => event !== 'Stop')
+    .flatMap(([event, groups]) => [...new Set(groups.map((g) => g.matcher ?? ''))].map((m) => `${event}${m ? ` ${m}` : ''}`));
+  assert.deepEqual(added.sort(), expected.sort(), 'every event and matcher it lacked, and only those');
+});
+
+test('the relay merges what the hooks say into one answer', () => {
+  const stop = JSON.parse(mergeOutputs('Stop', [
+    JSON.stringify({ decision: 'block', reason: 'Unsaved work.' }), '',
+    JSON.stringify({ decision: 'block', reason: 'An absence nobody searched for.' }),
+  ]));
+  assert.deepEqual(stop, { decision: 'block', reason: 'Unsaved work.\n\nAn absence nobody searched for.' });
+  const pre = JSON.parse(mergeOutputs('PreToolUse', [
+    JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'allow' } }),
+    JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'ask', permissionDecisionReason: 'A message.' } }),
+  ]));
+  assert.equal(pre.hookSpecificOutput.permissionDecision, 'ask', 'the strictest decision wins');
+  assert.equal(mergeOutputs('SessionStart', ['Workspace: one thing.', '', 'Kit news.']), 'Workspace: one thing.\nKit news.');
+  assert.equal(mergeOutputs('Stop', ['', '']), '');
 });

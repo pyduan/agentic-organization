@@ -17,8 +17,13 @@
 //
 // Zero dependencies, Node built-ins only. Docs: ORGANIGRAM.md ▸ One map.
 //
-// Usage:  node scripts/check-workspace.mjs [--offline] [--json]
+// Usage:  node scripts/check-workspace.mjs [--offline] [--json] [--quiet] [--root <repo>]
 //         node scripts/check-workspace.mjs --at=<owner/repo>=<path>   record where a repo sits here
+//
+// --root names the repo that holds the map when the check runs from somewhere else, as the
+// session-start hook of the workspace and of a satellite does. --quiet prints only failures and
+// warnings, nothing when there are none, and always exits 0: a hook's output reaches the agent
+// only when it exits 0, and what it found is the part the agent needs.
 
 import { readFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -31,7 +36,14 @@ import {
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
 const OFFLINE = args.includes('--offline');
-const ROOT = resolve(process.cwd());
+const QUIET = args.includes('--quiet');
+const rootFlag = (() => {
+  const i = args.indexOf('--root');
+  if (i >= 0 && args[i + 1]) return args[i + 1];
+  const eq = args.find((a) => a.startsWith('--root='));
+  return eq ? eq.slice('--root='.length) : null;
+})();
+const ROOT = resolve(rootFlag ? expand(rootFlag) : process.cwd());
 const WORKSPACE = dirname(ROOT); // the folder this repo sits in, i.e. where siblings live
 
 const at = (args.find((a) => a.startsWith('--at=')) || '').slice(5);
@@ -49,6 +61,10 @@ if (at) {
   console.log(`Recorded ${slug} → ${expand(path)} in ${rememberRepo(slug, path)}`);
   process.exit(0);
 }
+
+// At a session start, the template itself has no organization to check: its map is a template and
+// every kit project on the disk names it.
+if (QUIET && isTemplateSlug((await originSlug(ROOT)) || '')) process.exit(0);
 
 const findings = [];
 const add = (severity, what, detail) => findings.push({ severity, what, detail });
@@ -164,6 +180,13 @@ if (AS_JSON) {
     ok: fails.length === 0, fails: fails.length, warns: warns.length,
     repos: located.map(({ slug, dir, how, hintStale }) => ({ slug, dir, how, hintStale })), findings,
   }, null, 2));
+} else if (QUIET) {
+  const icon = { fail: '✘', warn: '▲' };
+  const shown = findings.filter((f) => icon[f.severity]);
+  if (shown.length) {
+    console.log(`Workspace map (${basename(ROOT)}/ORGANIGRAM.md) against this machine, ${fails.length} failure(s) and ${warns.length} warning(s):`);
+    for (const f of shown) console.log(`  ${icon[f.severity]} ${f.what}: ${f.detail}`);
+  }
 } else {
   const icon = { fail: '✘', warn: '▲', info: '·' };
   for (const f of findings) console.log(`  ${icon[f.severity]} ${f.what}\n      ${f.detail}`);
@@ -172,4 +195,4 @@ if (AS_JSON) {
     `${real.length} repo(s) on the map, ${found} found on this machine`);
 }
 
-process.exit(fails.length ? 1 : 0);
+process.exit(fails.length && !QUIET ? 1 : 0);
