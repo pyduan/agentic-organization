@@ -193,8 +193,15 @@ async function inspect(dir) {
     && (existsSync(join(dir, 'source/formats')) || existsSync(join(dir, 'scripts/kit-sync.mjs')));
 
   // A satellite holds no framework, so it has no sync point, no news hook and no
-  // business having any. Report who works in it and stop there.
+  // business having any. One thing it does need: a session opened in it should run the
+  // router's hooks, through the relay `install-workspace.mjs --satellites` writes, or it
+  // has no pull at the start and no guard, and nothing says so. Then who works in it.
   if (kind === 'satellite') {
+    let relays = false;
+    try {
+      const s = JSON.parse(await readFile(join(dir, '.claude/settings.json'), 'utf8'));
+      relays = JSON.stringify(s.hooks?.SessionStart || []).includes('satellite.mjs');
+    } catch { /* no settings, so a session there runs no hook */ }
     const sref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
     const slog = (await git(dir, ['log', sref, '--format=%an\t%ae\t%ad', '--date=short', '-500'])) || '';
     const speople = new Map();
@@ -204,7 +211,7 @@ async function inspect(dir) {
       speople.get(an).n++;
     }
     return {
-      name, origin, marker, kind, declaredKind, copiesMethod,
+      name, origin, marker, kind, declaredKind, copiesMethod, relays,
       lastCommit: [...speople.values()].map((p) => p.last).sort().pop() || null,
       people: [...speople.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
     };
@@ -399,7 +406,8 @@ for (const r of rows) {
 
 if (satellites.length) {
   console.log('SATELLITES — repos that consume the framework instead of carrying it, so there is');
-  console.log('nothing here to be behind and nothing to wire. Not a finding, and not a to-do.');
+  console.log('nothing here to be behind and no news to announce. What each one needs is that a session');
+  console.log('opened in it runs the router\'s hooks, through a relay in its .claude/settings.json.');
   for (const s of satellites) {
     console.log(`── ${s.name}   ${s.declaredKind
       ? 'declared satellite in ORGANIGRAM.md'
@@ -410,6 +418,12 @@ if (satellites.length) {
       console.log('     the one failure the shape prevents. Either delete the copy and point at the');
       console.log('     router, or declare this repo a `router` in the map and let it be held to the');
       console.log('     same requirements as the others. docs/one-repo-or-several.md ▸ the star, rule 3.');
+    }
+    if (s.relays) console.log('   hooks: runs the router\'s, through .claude/hooks/satellite.mjs');
+    else {
+      console.log('   ⚠ hooks: a session opened here runs none of the router\'s, so it has no pull at the');
+      console.log('     start, no send guard and no end-of-session check. From the router:');
+      console.log('     node scripts/install-workspace.mjs --satellites, then commit .claude/settings.json here.');
     }
     const q = daysSince(s.lastCommit);
     console.log(`   last push: ${s.lastCommit || 'unknown'}${q !== null ? ` (${q}d ago)` : ''}`);

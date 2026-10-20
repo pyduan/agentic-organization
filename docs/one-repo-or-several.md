@@ -79,6 +79,16 @@ Five rules, each of which exists because breaking it caused a real problem:
    is a copy, and the only way an upgrade can tell "the template changed this" from "the owner
    changed this" is a recorded baseline. See `.kit-sync` and `scripts/kit-sync.mjs`.
 
+**A satellite runs the router's hooks; it never holds a copy of them.** Claude Code loads hooks from
+the folder a session is opened on. A person whose work lives in one satellite opens the agent there,
+and that session used to run nothing: no pull at the start, no send guard, no end-of-session check,
+and no line saying so. `node scripts/install-workspace.mjs --satellites` gives each satellite of the
+map a `.claude/settings.json` holding one relay per event: it finds the router beside the satellite
+and runs, through `.claude/hooks/satellite.mjs`, exactly what a session opened on the workspace
+folder runs. A hook the router adds reaches every satellite with the next pull. If the router is not
+cloned beside it, the session is told so in its first lines and nothing fails. Commit the file in
+each satellite; `check-fleet` names a satellite without it (2026-10-20).
+
 **Tell the tools which repo is which, in `ORGANIGRAM.md`'s `Kind` column: `router` or `satellite`.**
 Otherwise they infer it, and one of them used to infer it badly. `check-fleet` counted every repo
 whose `CLAUDE.md` named the kit as a full instance and told the owner each one was missing the

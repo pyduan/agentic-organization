@@ -181,6 +181,24 @@ test('the map is believed over the derivation', () => {
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
 
+test('a satellite whose sessions would run none of the router\'s hooks is named, with the command that wires it', () => {
+  const { ws, tplDir } = fleet();
+  try {
+    satellite(join(ws, 'members'), { origin: 'https://github.com/someone/members.git' });
+    satellite(join(ws, 'sales'), { origin: 'https://github.com/someone/sales.git' });
+    mkdirSync(join(ws, 'sales/.claude'), { recursive: true });
+    writeFileSync(join(ws, 'sales/.claude/settings.json'), JSON.stringify({ hooks: { SessionStart: [{ hooks: [
+      { type: 'command', command: 'node', args: ['-e', "require('path').join('.claude', 'hooks', 'satellite.mjs')", '${CLAUDE_PROJECT_DIR}', 'proj', 'SessionStart'] },
+    ] }] } }));
+    const out = scan(tplDir, ws);
+    assert.match(out, /── members[\s\S]*?⚠ hooks: a session opened here runs none of the router's[\s\S]*?install-workspace\.mjs --satellites/);
+    assert.match(out, /── sales[\s\S]*?hooks: runs the router's/);
+    assert.doesNotMatch(out, /── sales[^─]*⚠ hooks/);
+    const alarm = out.slice(out.indexOf('will never announce an update to their own owner'));
+    assert.ok(!alarm.includes('members'), 'still never counted with the instances that cannot announce news');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
+
 test('a satellite that copies the router is a finding', () => {
   const { ws, tplDir } = fleet();
   try {

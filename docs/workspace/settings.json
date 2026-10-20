@@ -34,7 +34,8 @@
             "args": [
               "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/workspace-sync.mjs",
               "sync",
-              "--siblings"
+              "--siblings",
+              "--quiet"
             ]
           },
           {
@@ -49,6 +50,17 @@
             "command": "node",
             "args": [
               "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/open-decisions.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/check-workspace.mjs",
+              "--offline",
+              "--quiet",
+              "--root",
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}"
             ]
           }
         ]
