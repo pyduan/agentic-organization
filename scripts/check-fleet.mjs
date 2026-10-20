@@ -240,8 +240,14 @@ async function inspect(dir) {
     yardstick = y.from;
     if (!y.sha) behindWhy = 'no-yardstick';
     else {
+      // A sync point this clone still holds but the template's history no longer
+      // contains counts every commit since the first one the two disagree on. The
+      // kit's history was rewritten on 2026-10-09, and every instance synced before
+      // it read "161 behind" whatever its age, while a fresh clone of it could not
+      // read its base at all. Not a number, then: say so.
       const n = await git(y.repo, ['rev-list', '--count', `${sha}..${y.sha}`]);
       if (n === null) behindWhy = 'sync-point-unknown';
+      else if ((await git(y.repo, ['merge-base', '--is-ancestor', sha, y.sha])) === null) behindWhy = 'sync-point-off-history';
       else behind = Number(n);
     }
   }
@@ -363,6 +369,7 @@ const WHY = {
   'no-sync': 'NO .kit-sync — never upgraded through kit-sync',
   'no-yardstick': 'no template clone here and no `template` remote in it — nothing to compare against',
   'sync-point-unknown': 'its sync point is not in the template\u2019s history — fetch the template',
+  'sync-point-off-history': 'its sync point is a commit the template\u2019s history no longer holds, rewritten since: run update-kit there while that clone still has it',
 };
 
 for (const r of rows) {
@@ -478,6 +485,12 @@ if (silent.length) {
 }
 if (stale.length) {
   console.log(`${stale.length} instance(s) behind the template: ${stale.map((r) => `${r.name} (${r.behind})`).join(', ')}`);
+  console.log();
+}
+const offHistory = rows.filter((r) => r.behindWhy === 'sync-point-off-history');
+if (offHistory.length) {
+  console.log(`${offHistory.length} instance(s) synced at a commit the template no longer has: ${offHistory.map((r) => r.name).join(', ')}`);
+  console.log('  kit-sync reads its base from that commit, so it works only on a clone that kept it.');
   console.log();
 }
 if (stalecopy.length) {
