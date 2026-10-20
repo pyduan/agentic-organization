@@ -209,7 +209,7 @@ if (isMain) {
     else console.log(`  ▲ ${s.path} exists and lacks ${s.lacks}. It is someone's file: add that by hand, from ${s.template}.`);
   }
   if (written.length) {
-    console.log(`\nOpen the agent on ${dirname(real(routerDir))}. Its first lines should now read "Workspace: N repo(s) up to date."; if they do not, the guards are not loaded there.`);
+    console.log(`\nOpen the agent on ${dirname(real(routerDir))} and say "check my setup": the session-start hooks line turns green once they have run there. A start with every clone current says nothing about them, since the sync runs quiet.`);
   }
   // The same next step the bootstrap scripts and setup-status give, read from the files.
   console.log(`Next: ${setupStage(routerDir).next}.`);
