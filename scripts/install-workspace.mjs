@@ -286,7 +286,7 @@ export const BOOT = [
   '}',
   "const k = c.spawnSync(process.execPath, [p.join(r, h), ...a], { stdio: 'inherit' });",
   'process.exit(k.status === null ? 0 : k.status);',
-].join(' ');
+].map((l) => l.trim()).join(' ');
 
 const isBoot = (h) => h?.command === 'node' && Array.isArray(h.args) && h.args[0] === '-e' && String(h.args[1] ?? '').includes('satellite.mjs');
 const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
