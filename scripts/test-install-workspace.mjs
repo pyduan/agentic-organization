@@ -368,6 +368,11 @@ test('a satellite whose router is cloned under another name still runs it; witho
   assert.equal(JSON.parse(ask.stdout).hookSpecificOutput.permissionDecision, 'ask', 'found by its relay file, not its name');
 
   rmSync(renamed, { recursive: true });
+  // A router cloned before the relay existed: named as out of date, not as missing.
+  mkdirSync(join(router, '.git'), { recursive: true });
+  assert.match(satHooks(sat, 'SessionStart', { session_id: 's-2' }).stdout, /Router out of date: .*acme-ops has no .*satellite\.mjs yet[\s\S]*git pull in it/);
+  rmSync(router, { recursive: true });
+
   const start = satHooks(sat, 'SessionStart', { session_id: 's-2' });
   assert.equal(start.status, 0);
   assert.match(start.stdout, /Router missing: acme-ops is not beside this repo/);
