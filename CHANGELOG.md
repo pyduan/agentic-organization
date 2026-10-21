@@ -10,6 +10,25 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-21 · MINOR · Deck blocks for an organization run by agents, and a starter deck
+
+- Fourteen new deck components show how an organization run by agents works: a shared base that
+  learns in a loop (`Cycle`), the views rebuilt from one source (`Regen`), a correction that redraws
+  a plan and writes its rule (`Redraw`), the chain of intermediaries before and the agents now
+  (`Hub`), the levels of working with AI (`Levels`), what people see and what runs under it
+  (`Iceberg`), the rules that learn as cases arrive (`LearnTree`), and `Point`, `Phrases`, `Layers`,
+  `Survey`, `Room`, `FolderTree` and `FeedbackLoop`. `node scripts/deck/build.mjs components` lists
+  their props.
+- `node scripts/deck/build.mjs new <slug> --from=agentic-organization` starts a deck from a starter
+  in four parts (the opening, the client and its stakes, our support, the next steps), with an
+  invented client for you to replace.
+- The blocks that tell a story play when their slide opens, and R or ↻ in the viewer plays them
+  again. The PDF, the check and a reader who asked for less motion get the finished picture.
+- The viewer's bar and overview no longer show the `*` of a part title written with an accent.
+
+**What you need to do:** nothing. If your brand has its own deck theme, build
+`scripts/deck/examples/agentic-organization` once to see the new blocks in it.
+
 ## 2026-10-17 · MAJOR · The end-of-session check sees moved and copied files, and the guards run on Windows
 
 The end-of-session check let a session stop with work unsaved when that work was a file moved or

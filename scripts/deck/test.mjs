@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, writeFileSync, mkdirSync, readFileSync, existsSync, cpSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import zlib from 'node:zlib';
 import { parseDeck, parseLiteral, frontmatter } from './parse.mjs';
 import { md } from './text.mjs';
@@ -181,12 +181,41 @@ test('a token read with no fallback and never defined stops the build', async ()
   assert.equal(r.out, null);
 });
 
-test('the component catalogue builds without an error', async () => {
+test('the component catalogue and the agentic-organization starter build without an error, and show every component', async () => {
   const paths = { tokens: [], brand: join(HERE, 'no-brand'), decks: [], assetMode: 'link' };
-  const r = await buildDeck(join(HERE, 'examples', 'deck.mdx'), paths, { outFile: join(mkdtempSync(join(tmpdir(), 'deck-')), 'index.html'), log: () => {} });
+  const examples = [join(HERE, 'examples', 'deck.mdx'), join(HERE, 'examples', 'agentic-organization', 'deck.mdx')];
+  for (const f of examples) {
+    const r = await buildDeck(f, paths, { outFile: join(mkdtempSync(join(tmpdir(), 'deck-')), 'index.html'), log: () => {} });
+    assert.deepEqual(r.errors, [], f);
+    assert.ok(r.slides.length >= 18, f);
+  }
+  const shown = examples.map((f) => readFileSync(f, 'utf8')).join('\n');
+  assert.deepEqual(Object.keys(components).filter((name) => !shown.includes(`<${name}`)), [], 'every component appears in an example deck');
+});
+
+test('agentic blocks: the markup is the finished state, what plays is marked, the impossible is refused', () => {
+  const r = render(`<Slide title="t"><Redraw
+    chat={[{ who: "Agent", text: "Here is the plan." }, { who: "You", me: true, text: "The dimensions overlap." }, { who: "Agent", text: "Redrawn, and the rule is written." }]}
+    plan={{ title: "Frame", w: "1,200", wi: "1,080", h: "1,500", hi: "1,380" }}
+    rule={{ name: "rules/plans.md", lines: ["## Legibility"], add: "+ two dimensions never overlap" }} /></Slide>
+<Slide title="t"><Regen inputs={[{ title: "A meeting", file: "pilot.md", add: "+ start: 15 Dec" }]} slide={{ before: "Before", after: "After", by: 0 }} /></Slide>
+<Slide title="t"><FolderTree items={[{ name: "a/" }, { name: "b.md", depth: 1 }, { name: "c/", depth: 1 }, { name: "d.md", depth: 2 }, { name: "e.md" }]} /></Slide>`);
   assert.deepEqual(r.errors, []);
-  assert.ok(r.slides.length >= 20);
-  assert.ok(Object.keys(components).every((name) => readFileSync(join(HERE, 'examples', 'deck.mdx'), 'utf8').includes(`<${name}`)), 'every component appears in the catalogue');
+  assert.ok(!/is-playing|class="[^"]*\b(on|hit)\b/.test(r.html), 'nothing is mid-story in the markup');
+  assert.match(r.html, /class="dk-block dk-redraw" data-play="[\d ]+"/);
+  assert.match(r.html, /dk-redraw-num is-move-x[^>]*>1,080</);
+  assert.match(r.html, /dk-file-add" data-at="4">\+ two dimensions never overlap/);
+  assert.match(r.html, /dk-regen-slide" data-at="3"/);
+  const pre = [...r.html.matchAll(/dk-tree-pre" aria-hidden="true">([^<]*)<\/span>[\s\S]*?dk-tree-name">([^<]*)</g)].map((m) => `${m[1]}${m[2]}`);
+  assert.deepEqual(pre, ['├─ b.md', '└─ c/', '   └─ d.md']);
+  const bad = render(`<Slide title="t"><Cycle center={{ title: "c" }} steps={[{ title: "1" }, { title: "2" }, { title: "3" }, { title: "4" }, { title: "5" }, { title: "6" }, { title: "7" }]} /></Slide>
+<Slide title="t"><Redraw chat={[{ text: "a" }, { text: "b" }]} rule={{ name: "r.md" }} /></Slide>
+<Slide title="t"><Regen inputs={[{ title: "a", file: "f.md", add: "+" }]} demo={{ ask: "q", answer: "a", by: 2 }} /></Slide>
+<Slide title="t"><Survey total={5} levels={{ items: [{ n: 4, title: "a" }, { n: 3, title: "b" }] }} /></Slide>`).errors.join('\n');
+  assert.match(bad, /Cycle takes three to six steps/);
+  assert.match(bad, /Redraw draws one figure/);
+  assert.match(bad, /by=2 names no input/);
+  assert.match(bad, /count 7 people in a room of 5/);
 });
 
 // A minimal .pptx, written here so the reader is tested without a binary fixture.
@@ -244,6 +273,36 @@ test('read-pptx: text in order with its style, the header band, the theme fonts'
 });
 
 const chrome = findChrome();
+test('a block that plays empties when its slide opens and settles on its markup; with less motion it never moves', { skip: !chrome && 'no Chrome on this machine' }, async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'deck-play-'));
+  writeFileSync(join(dir, 'deck.mdx'), `<Slide title="One"><Text>Nothing moves here.</Text></Slide>
+<Slide title="Two"><Redraw chat={[{ who: "Agent", text: "Here is the plan." }, { who: "You", me: true, text: "The dimensions overlap." }]}
+  plan={{ w: "1,200", wi: "1,080", h: "1,500", hi: "1,380" }} rule={{ name: "rules/plans.md", add: "+ never overlap" }} /></Slide>`);
+  const b = await buildDeck(join(dir, 'deck.mdx'), { tokens: [], brand: join(dir, 'brand'), decks: [dir] }, { log: () => {} });
+  assert.deepEqual(b.errors, []);
+  const { withChrome, openTab } = await import('./chrome.mjs');
+  const state = `(() => { const r = document.querySelector('.dk-slide[data-active] .dk-redraw'); const btn = document.querySelector('[data-act="replay"]');
+    return { live: document.documentElement.classList.contains('dk-live'), playing: !!r?.classList.contains('is-playing'), step: r?.dataset.step ?? null,
+      marked: r ? r.querySelectorAll('.on, .hit').length : -1, replay: !btn.hidden }; })()`;
+  await withChrome(async (port) => {
+    const tab = await openTab(port);
+    await tab.navigate(`${pathToFileURL(b.out).href}#2`);
+    const opened = await tab.evaluate(state);
+    assert.deepEqual([opened.live, opened.playing, opened.replay], [true, true, true], JSON.stringify(opened));
+    await tab.evaluate("window.dispatchEvent(new Event('beforeprint'))");
+    assert.deepEqual(await tab.evaluate(state), { live: true, playing: false, step: null, marked: 0, replay: true }, 'printing settles it on its markup');
+    await tab.evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'r' }))");
+    assert.equal((await tab.evaluate(state)).playing, true, 'R plays it again');
+    await tab.evaluate("document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft' }))");
+    assert.equal(await tab.evaluate("document.querySelector('.dk-slide[data-n=\\'2\\'] .dk-redraw').classList.contains('is-playing')"), false, 'leaving the slide settles it');
+    assert.equal(await tab.evaluate("document.querySelector('[data-act=\\'replay\\']').hidden"), true, 'no replay on a slide with nothing to play');
+    await tab.send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: 'reduce' }] });
+    await tab.navigate('about:blank');
+    await tab.navigate(`${pathToFileURL(b.out).href}#2`);
+    assert.deepEqual(await tab.evaluate(state), { live: false, playing: false, step: null, marked: 0, replay: false }, 'less motion: the finished state, and nothing to replay');
+    tab.close();
+  });
+});
 test('the browser check finds what overflows, what lies over its neighbour, what is unequal or cramped, what is bunched', { skip: !chrome && 'no Chrome on this machine' }, async () => {
   const dir = mkdtempSync(join(tmpdir(), 'deck-check-'));
   mkdirSync(join(dir, 'brand'));

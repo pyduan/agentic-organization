@@ -2,6 +2,7 @@
 // Builds decks: a deck.mdx in, one self-contained HTML page out, measured in a browser.
 //
 //   node scripts/deck/build.mjs new <slug>             a deck folder with its frontmatter and a plan
+//   node scripts/deck/build.mjs new <slug> --from=agentic-organization   the same, from a starter deck
 //   node scripts/deck/build.mjs components             every component a deck can use, with its props
 //   node scripts/deck/build.mjs build <slug|folder>    → <deck>/index.html, then the check
 //   node scripts/deck/build.mjs build <slug> --share   → <deck>/dist/<slug>.html: one file, images inside, no notes
@@ -14,7 +15,7 @@
 //
 // Exit: 0 built and clean · 1 an error or a defect · 2 nothing to build.
 
-import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, copyFileSync, realpathSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync, copyFileSync, cpSync, realpathSync, mkdtempSync, rmSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative, extname, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -232,13 +233,31 @@ async function cmdBuild(targets, flags, paths) {
   return code;
 }
 
+/** The starters a deck can begin from: each folder of scripts/deck/examples that holds a deck.mdx. */
+export const starters = () => readdirSync(join(HERE, 'examples'), { withFileTypes: true })
+  .filter((d) => d.isDirectory() && existsSync(join(HERE, 'examples', d.name, 'deck.mdx'))).map((d) => d.name);
+
 function cmdNew([slug], flags, paths) {
   if (!slug || !/^[a-z0-9][a-z0-9-]*$/.test(slug)) { console.error('A slug in lowercase with dashes: new copil-2026-10'); return 2; }
   const dir = join(paths.decks[0], slug);
   if (existsSync(join(dir, 'deck.mdx'))) { console.error(`${rel(dir)} already has a deck.`); return 2; }
+  const from = flags.from ? join(HERE, 'examples', String(flags.from)) : null;
+  if (from && (flags.from === true || !starters().includes(String(flags.from)))) { console.error(`No starter "${flags.from === true ? '' : flags.from}". Starters: ${starters().join(', ')}`); return 2; }
   mkdirSync(join(dir, 'assets'), { recursive: true });
   writeFileSync(join(dir, 'assets', '.gitkeep'), '');
   const today = new Date().toISOString().slice(0, 10);
+  if (from) {
+    // The starter's own date, wherever it is written, becomes today's; its status, a draft.
+    let src = readFileSync(join(from, 'deck.mdx'), 'utf8');
+    const was = parseDeck(src).meta.date;
+    if (was) src = src.split(String(was)).join(today);
+    src = src.replace(/^status: .*$/m, 'status: draft');
+    if (flags.title) src = src.replace(/^title: .*$/m, `title: "${String(flags.title).replace(/"/g, "'")}"`);
+    if (existsSync(join(from, 'assets'))) cpSync(join(from, 'assets'), join(dir, 'assets'), { recursive: true });
+    writeFileSync(join(dir, 'deck.mdx'), src);
+    console.log(`New deck from the ${flags.from} starter: ${rel(join(dir, 'deck.mdx'))}\nEvery organization, person and figure in it is invented. Next: write the plan for this audience in its comment, replace the content with facts from the content files, keep only the slides that serve, then build it.`);
+    return 0;
+  }
   writeFileSync(join(dir, 'deck.mdx'), `---
 title: "${flags.title || 'The deck title'}"
 date: ${today}
@@ -329,7 +348,7 @@ if (isMain) {
   const paths = await locate();
   const run = { build: () => cmdBuild(args, flags, paths), new: () => cmdNew(args, flags, paths), components: () => cmdComponents(paths), list: () => cmdList(paths), publish: () => cmdPublish(args, flags, paths) }[cmd];
   if (!run) {
-    console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 16).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+    console.log(readFileSync(fileURLToPath(import.meta.url), 'utf8').split('\n').slice(1, 17).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
     process.exit(cmd ? 2 : 0);
   }
   try { process.exit(await run()); } catch (e) { console.error(`✘ ${e.message}`); process.exit(e instanceof DeckError ? 1 : 2); }

@@ -1,0 +1,336 @@
+---
+title: "What agents could change at Larkfield Joinery"
+date: 2026-11-04
+lang: en
+audience: "Larkfield's managing director and two heads of department, meeting us for the first time"
+takeaway: "Larkfield's rules are what it owns, and agents that carry them out learn from every correction"
+status: example
+footer: "Larkfield Joinery, first conversation, 4 November 2026"
+---
+
+{/* A starter for a deck about becoming an agentic organization: the first conversation with a
+   client, in four parts. A deck starts from it with
+   node scripts/deck/build.mjs new <slug> --from=agentic-organization
+   then replaces the client, keeps only the slides that serve, and is built like any other. This one
+   builds with: node scripts/deck/build.mjs build scripts/deck/examples/agentic-organization
+
+   Larkfield Joinery, Fernhill Advisory, the people, the orders and every figure are invented.
+
+   The plan, one line per slide: its title, then what it proves.
+   Opening
+   1. Cover: what the hour is about, and who is speaking.
+   2. The two people you will work with: who we are, in two minutes.
+   The client and its stakes (a quarter of an hour at most; the client corrects what we read)
+   3. Larkfield and its trades: we have read the company from the outside.
+   4. Six sentences heard in every company: the pain, in words the room has heard this week.
+   5. Where your teams start from: the room, from its own cards.
+   Our support
+   6. The agentic organization in one loop: a shared base that learns from each correction.
+   7. Four ways of working with AI: levels one and two can be skipped.
+   8. Your teams take back their tools: the chain of intermediaries, then the agents.
+   9. What your teams see and what runs under it: the complexity is ours to carry.
+   10. One source and the views rebuilt from it: every deliverable is a view of the source.
+   11. A system that keeps learning: one correction redraws a plan and writes a rule.
+   12. A rule base for a joinery: the rules grow as the orders arrive.
+   13. A common base and its variants: one base for the company, a variant per site.
+   14. A remark becomes a rule and the tracking says so: nothing is lost between review and rule.
+   Next steps
+   15. How we would start together: four steps, each decided on the last.
+   16. The tables for the directors' day: who works on what.
+   17. Your rule base installed before the day: what is ready when they arrive.
+   18. Closing: the next concrete step. */}
+
+<Cover
+  kicker="First conversation"
+  title="What agents could change for *Larkfield Joinery*"
+  lead="Agents that carry out your teams' rules, and what that changes for the people who write them."
+  by="Robin Hale and Jo Marsh, Fernhill Advisory"
+  date="2026-11-04"
+  notes="One hour: two minutes of opening, the client until slide 5, our support until slide 14, then questions and the next step."
+/>
+
+<Slide chapter="Who we are" title="The two people you will work with">
+  <People items={[
+    { name: "Robin Hale", role: "Fernhill Advisory", text: "Ran operations in a furniture group for twelve years, then the move to shared rule bases" },
+    { name: "Jo Marsh", role: "Fernhill Advisory", text: "Builds the agents and the rule bases, from the first case to the roll-out" },
+  ]} />
+  <Callout tone="note">We work with a small number of manufacturers at a time, from the first case to the roll-out.</Callout>
+</Slide>
+
+<Divider n={1} title="Larkfield and its *stakes*" lead="What we understood of your business from the outside, for you to correct." />
+
+<Slide title="Larkfield and its trades" source="Invented for this example">
+  <Stats size="grid" cols={4} items={[
+    { value: "140", label: "people on three sites" },
+    { value: "9,000", label: "windows and doors a year" },
+    { value: "60", label: "years of drawings in the archive" },
+    { value: "4", label: "trades from drawing to fitting" },
+  ]} />
+  <Cards cols={4} items={[
+    { label: "Design office", title: "Draws every frame", text: "Plans to measure, from the survey to the fabrication drawing." },
+    { label: "Workshop", title: "Cuts and assembles", text: "Two lines, one for timber and one for aluminium." },
+    { label: "Installation", title: "Fits on site", text: "Six teams, booked a week ahead." },
+    { label: "Sales", title: "Quotes and follows up", text: "Each client keeps its own terms and its own exceptions." },
+  ]} />
+  <Point>We read this from the outside: tell us which rule today lives in a single head.</Point>
+</Slide>
+
+<Slide title="Six sentences heard in every company">
+  <Phrases items={[
+    { tag: "The latest version", quote: "Which is the latest drawing? The one from Tuesday.", text: "Nobody is lying: both files really exist." },
+    { tag: "Two right figures", quote: "The quote says twelve and the spreadsheet says nine.", text: "Both true, on two dates. Neither gets corrected." },
+    { tag: "The context", quote: "Hold on, let me explain the order from the start.", text: "Told to every newcomer, and now to every AI session." },
+    { tag: "The thread", quote: "It was in the group chat, I think.", text: "It exists. Nobody can find it any more." },
+    { tag: "The attachment", quote: "I'll send you the reference procedure again.", text: "Six copies already. This one makes seven." },
+    { tag: "The departure", quote: "Ask the person who used to handle it. He retired.", text: "Part of the company left with him." },
+  ]} />
+</Slide>
+
+<Slide title="Where your teams start from" lead="From the twelve cards your participants filled in before today." source="Participant cards, invented for this example">
+  <Survey total={12}
+    levels={{ title: "AI maturity, as declared", items: [
+      { n: 3, title: "Build", text: "design agents or automations" },
+      { n: 4, title: "Use", text: "a regular use and one useful case" },
+      { n: 5, title: "Try", text: "an assistant now and then" },
+    ] }}
+    share={{ title: "Name a tool they use every week", n: 5, note: "The design office leads, with its own scripts for cutting lists." }}
+    bars={{ title: "The obstacles named", items: [
+      { label: "Confidential client data", n: 6 },
+      { label: "The time to get started", n: 3 },
+      { label: "Answers judged unreliable", n: 2 },
+    ] }}
+  />
+  <Point>Seven of twelve already use AI every week: that is the momentum to build on.</Point>
+</Slide>
+
+<Divider n={2} title="Our *support*" lead="A method, the tools that carry it, and what it changes for each team." />
+
+<Slide title="The agentic organization in one loop" lead="Expertise moves from silos to a shared base, and every use improves it.">
+  <Cycle
+    center={{ title: "A shared brain", text: "the company's rule base" }}
+    steps={[
+      { title: "Try", text: "a request on a real document" },
+      { title: "Generate", text: "the agent produces and cites its rules" },
+      { title: "Review", text: "the trade corrects in its own words" },
+      { title: "Learn", text: "each correction is written as a rule" },
+    ]}
+    around={["Design office", "Workshop", "Installation", "Sales"]}
+  />
+</Slide>
+
+<Slide title="Four ways of working with AI" notes="Levels one and two go faster on the same files, and the gain stops there. Level three changes the question: there is no need to go through one and two. Ask where they would place their company.">
+  <Levels items={[
+    { n: "0", title: "The starting point", text: "Files copied to travel, from mailbox to mailbox.", need: "finding the right version", where: "everywhere, in copies" },
+    { n: "1", title: "AI as a chat", text: "Everyone pastes the context and copies the answer back.", need: "prompting", where: "in the same files as before" },
+    { n: "2", title: "AI that searches your files", text: "It digs through the server, with recipes to follow.", need: "prompting and trusting the search", where: "still in the clutter" },
+    { n: "3", title: "The agentic organization", text: "The agent keeps one source of truth, and the rest derives from it.", need: "saying what you want", where: "in one place that holds", here: "From the first case" },
+  ]} />
+</Slide>
+
+<Slide title="Your teams take back their tools">
+  <Hub
+    before={{ loop: "That is not how it should have been done", nodes: [
+      { title: "The trade", text: "its need" },
+      { title: "The software vendor", text: "its roadmap" },
+      { title: "The integrator", text: "the specification" },
+      { title: "The contractor", text: "billed by the day" },
+      { title: "The tool", text: "months later" },
+    ] }}
+    now={{
+      who: { title: "The trade", text: "asks in plain words and corrects the agent" },
+      head: "The agents carry out its requests",
+      agents: [
+        { tag: "Design office", ask: "Check the dimensions on plan C12" },
+        { tag: "Sales", ask: "Draft the quote for the Hollins order" },
+        { tag: "Workshop", ask: "Plan next week's cutting list" },
+      ],
+      base: { title: "The shared brain", text: "your rules", caption: "reads the rules and learns from every correction" },
+      system: { title: "The ERP", text: "accounts and stock", caption: "the brain plugs into it" },
+    }}
+  />
+  <Point>How you work is worth more than any software a vendor can sell you.</Point>
+</Slide>
+
+<Slide title="What your teams see and what runs under it">
+  <Iceberg
+    chat={[
+      { me: true, text: "A quote for the Hollins order, with their usual terms." },
+      { text: "Here it is, each line with the rule it comes from." },
+    ]}
+    claim="A rule base where every rule is sorted, routed and checked"
+    columns={[
+      { title: "The rules", items: [
+        { k: "rules/base.md", text: "what holds everywhere" },
+        { k: "rules/design-office/", text: "dimensions and tolerances" },
+        { k: "rules/clients/", text: "one file per client" },
+      ] },
+      { title: "The agents' instructions", items: [
+        { k: "CLAUDE.md", text: "where the agent looks" },
+        { k: "skills/quote/", text: "how a quote is written" },
+        { k: "skills/plan-review/", text: "how a plan is checked" },
+      ] },
+      { title: "The checks", items: [
+        { k: "checks/dimensions.mjs", text: "each dimension against the drawing" },
+        { k: "checks/prices.mjs", text: "each price against the list" },
+        { k: "evals/", text: "the cases an agent must pass" },
+      ] },
+      { title: "The governance", items: [
+        { k: "decisions.md", text: "each decision and its reason" },
+        { k: "journal.md", text: "what happened, dated" },
+        { k: "access.md", text: "who changes which rule" },
+      ] },
+    ]}
+  />
+</Slide>
+
+<Slide title="One source and the views rebuilt from it" notes="Built for the example: the watch, the meeting and the message are invented. Each view follows an input; a view that depends on none has no place here. This deck is a view too.">
+  <Regen
+    inputs={[
+      { kind: "AI watch, 14 October", title: "A lighter open model is released", text: "Same quality for a quarter of the computing", file: "watch/models.md", lines: ["## Models in use"], add: "+ quotes: light model" },
+      { kind: "Meeting, 15 October", title: "The pilot moves by two weeks", text: "Fitters trained by late November", file: "projects/pilot.md", lines: ["## Schedule"], add: "+ start: 15 December" },
+      { kind: "Message, 16 October", title: "An instruction in passing", text: "Every answer cites its source", file: "rules/agent.md", lines: ["## Answers"], add: "+ always cite the source" },
+    ]}
+    plan={{ cols: ["Nov", "Dec", "Jan", "Feb"], rows: [
+      { title: "Scoping", from: 0, to: 1 },
+      { title: "Light model", from: 0.5, to: 1.5, by: 0, added: true },
+      { title: "Pilot", from: 1, to: 2.5, from2: 1.5, to2: 3, by: 1 },
+      { title: "Roll-out", from: 2.5, to: 4, from2: 3, to2: 4, by: 1 },
+    ] }}
+    slide={{ kicker: "Steering committee", before: "Where the pilot stands", after: "The pilot starts on 15 December", text: "Two fitting teams first", by: 1 }}
+    demo={{ ask: "Which finish does the Hollins order take?", answer: "Oiled oak, as on their last order.", cite: "Source: rules/clients/hollins.md", by: 2 }}
+  />
+</Slide>
+
+<Slide title="A system that keeps learning" source="Plan drawn for the example" notes="The slide that speaks most to engineers. The rule is one a joinery workshop would write: when two dimension texts overlap, move the dimension line, never the value. The animation plays when the slide opens; R plays it again.">
+  <Redraw
+    chat={[
+      { who: "The agent", text: "Here is the fabrication plan for frame C12." },
+      { who: "You", me: true, text: "The dimensions overlap: the workshop cannot read them." },
+      { who: "The agent", text: "I move the second dimension line, redraw the plan and add the rule." },
+    ]}
+    plan={{ title: "Fabrication plan, frame C12", w: "1,200", wi: "1,080", h: "1,500", hi: "1,380" }}
+    rule={{ name: "rules/dimensions.md", lines: ["## Legibility", "- one dimension per measure to make"], add: "+ two dimension texts never overlap: move the line, never the value" }}
+  />
+  <Point>Corrected once in conversation, the plan is redrawn and the rule holds for every plan after it.</Point>
+</Slide>
+
+<Slide title="A rule base for a joinery" notes="Built for the example. Each order brings a document or a correction, and the agent writes the rule at the right level of the tree. At the bottom, the rule as written: the rule in bold, then when it applies, its source and its status.">
+  <LearnTree
+    heads={["The orders coming in", "The rules that learn"]}
+    counts={[{ from: 212, to: 216, label: "documents" }, { from: 47, to: 51, label: "rules" }]}
+    items={[
+      { meta: "September", text: "Order 1: dimensioned plans received, one dimension missing" },
+      { meta: "September", text: "Order 2: narrow access for the crane" },
+      { meta: "October", text: "Order 3: a long-standing client" },
+      { meta: "October", text: "Order 4: the project lead corrects a quote" },
+    ]}
+    tree={[
+      { name: "rules/", depth: 0 },
+      { name: "base.md", depth: 1 },
+      { name: "design-office/", depth: 1 },
+      { name: "reading-plans.md", depth: 2 },
+      { name: "dimensions.md", depth: 2, at: [0] },
+      { name: "sites/", depth: 1 },
+      { name: "access-and-lifting.md", depth: 2, at: [1], added: true },
+      { name: "quotes/", depth: 1 },
+      { name: "quotes.md", depth: 2, at: [3] },
+      { name: "clients/", depth: 2, at: [2] },
+      { name: "long-standing-client.md", depth: 3, at: [2], added: true },
+    ]}
+    file={{ name: "rules/quotes/clients/long-standing-client.md", lines: ["## This client", "- **The quote always includes fitting.**", "  when: on every quote", "  source: order 3, account manager"], add: "  status: confirmed by the design office" }}
+  />
+</Slide>
+
+<Slide title="A common base and its variants">
+  <Layers
+    items={[
+      { title: "A client project", text: "its own requirements, written where they serve" },
+      { title: "A site", text: "what differs there, and only that" },
+      { title: "A product line", text: "its standards and its tests" },
+      { title: "The company base", text: "a few practices for everyone: how a rule is written, filed and approved", tone: "accent" },
+    ]}
+    side={{ title: "What each level inherits", items: [
+      "Each level takes on the ones below it",
+      "A variant says what it changes and why",
+      "A project inherits what the earlier ones learned",
+    ], text: "Each team keeps its way of working, and the whole company shares one base." }}
+  />
+</Slide>
+
+<Slide title="A remark becomes a rule and the tracking says so" notes="Built for the example. A comment pinned on a sentence, the agent writes it as a line of the source file, the tracking board reads the file and moves on its own.">
+  <FeedbackLoop
+    doc={{ title: "The monthly project update", hl: 1, lines: [
+      "The pilot opened in September in two workshops.",
+      "The next phase reaches every site on 15 Jan.",
+      "The teams reviewed every answer the agent gave.",
+    ] }}
+    comment={{ who: "A colleague", text: "Say which year: a date carries its year." }}
+    file={{ name: "rules/voice.md", lines: ["## Dates", "- months in full", "- a weekday comes with its date"], add: "+ a date carries its year: 15 January 2027" }}
+    board={{ title: "Feedback tracking", rows: [
+      { title: "A date without its year", state: "running", to: "done" },
+      { title: "Quote lines without units", state: "done" },
+    ], count: { label: "remarks applied this month", from: 11, to: 12 } }}
+  />
+  <Point>Nobody types the remark twice: the rule and the tracking both follow from it.</Point>
+</Slide>
+
+<Divider n={3} title="Next *steps*" lead="How we would start, and what we would like to understand from you today." />
+
+<Slide title="How we would start together" lead="Each step is decided on what the one before it showed.">
+  <Steps items={[
+    { title: "This conversation", text: "Your priorities, the function to start with and who carries it." },
+    { title: "A directors' day", text: "Your directors write their first rules and watch an agent work on one of your files." },
+    { title: "A first case", text: "A few weeks on one function, with agents on your real orders." },
+    { title: "The roll-out", text: "Function by function, at the pace of what works." },
+  ]} />
+  <Point>The first deliverable is a trial on a real case, before any recommendation.</Point>
+</Slide>
+
+<Slide title="The tables for the directors' day" notes="The names stay here and in the tables document; the slide shows the groups. Robin and Jo each lead a table.">
+  <Room
+    tables={[
+      { title: "Quotes", text: "From the request to the signed quote", people: [
+        { name: "Robin Hale", role: "lead" }, { name: "Dana Price", role: "ai" }, { name: "Owen Clarke" }, { name: "Mia Turner" }, { name: "Leo Grant" },
+      ] },
+      { title: "Plans", text: "Reading and checking a drawing", people: [
+        { name: "Jo Marsh", role: "lead" }, { name: "Priya Shah", role: "ai" }, { name: "Tom Reed" }, { name: "Ella Ward" },
+      ] },
+      { title: "Fitting", text: "Planning a week of installation", people: [
+        { name: "Sam Ford", role: "both" }, { name: "Nina Cole" }, { name: "Ray Moss" }, { name: "Kim Lowe" },
+      ] },
+    ]}
+    note="The managing director moves between tables and decides at the end."
+  />
+</Slide>
+
+<Slide title="Your rule base installed before the day" source="Invented for this example">
+  <Split ratio="3 2">
+    <FolderTree title="larkfield/agentic-organization" items={[
+      { name: "CLAUDE.md", kind: "file", note: "the instructions the agent reads" },
+      { name: "START.md", kind: "file", note: "how each person gets started" },
+      { name: "base/", note: "what holds for the whole company" },
+      { name: "rules.md", depth: 1, kind: "file", note: "drawn from the preparation call", hot: true },
+      { name: "cases/", note: "one folder per use case" },
+      { name: "quotes/", depth: 1 },
+      { name: "rules/", depth: 2, note: "the trade's rules, to confirm" },
+      { name: "documents/", depth: 2, note: "what you drop in" },
+      { name: "outputs/", depth: 2, note: "what the agent produces" },
+      { name: "your-case/", depth: 1, note: "yours, chosen around the table", hot: true },
+    ]} />
+    <Stats size="grid" cols={1} items={[
+      { value: "12", label: "participant cards read one by one" },
+      { value: "3", label: "use cases prepared with their folder" },
+      { value: "38", label: "default rules for you to confirm" },
+    ]} />
+  </Split>
+</Slide>
+
+<Closing
+  title="A first day with your *directors*"
+  lead="We come back to you within a week with a written proposal."
+  contacts={[
+    { name: "Robin Hale", role: "Fernhill Advisory", email: "robin@fernhill.example" },
+    { name: "Jo Marsh", role: "Fernhill Advisory", email: "jo@fernhill.example" },
+  ]}
+  notes="The concrete next step, adapted live. The follow-up note leaves after the conversation, never without the presenter's yes."
+/>
