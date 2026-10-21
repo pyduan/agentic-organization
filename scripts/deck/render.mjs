@@ -10,8 +10,17 @@ import { esc, md, plain, words, baseLang } from './text.mjs';
 import { copyWarnings, NOT_COPY } from './copy.mjs';
 
 const STRINGS = {
-  fr: { source: 'Source\u00a0: ', part: 'Partie', agenda: 'Ordre du jour', colon: '\u00a0: ', percent: '\u00a0%', noNotes: 'Pas de note sur cette slide.', overview: 'Vue d’ensemble', notes: 'Notes', full: 'Plein écran', print: 'PDF', prev: 'Précédente', next: 'Suivante' },
-  en: { source: 'Source: ', part: 'Part', agenda: 'Agenda', colon: ': ', percent: '%', noNotes: 'No notes on this slide.', overview: 'Overview', notes: 'Notes', full: 'Fullscreen', print: 'PDF', prev: 'Previous', next: 'Next' },
+  fr: { source: 'Source\u00a0: ', part: 'Partie', agenda: 'Ordre du jour', colon: '\u00a0: ', percent: '\u00a0%', noNotes: 'Pas de note sur cette slide.', overview: 'Vue d’ensemble', notes: 'Notes', full: 'Plein écran', print: 'PDF', prev: 'Précédente', next: 'Suivante', replay: 'Rejouer',
+    // The words the agentic blocks print themselves (agentic.mjs); a prop replaces most of them.
+    point: 'Le point', levelNeed: 'Il faut savoir', levelWhere: 'L’information vit', sourceOfTruth: 'La source de vérité', plan: 'Le plan', slideView: 'La slide', demo: 'La démo',
+    rebuilt: 'régénéré', redrawn: 'redessiné', rule: 'La règle', conversation: 'La conversation', above: 'Ce que voient les gens', below: 'Ce qui tourne en dessous',
+    before: 'Avant', now: 'Maintenant', outOf: 'sur', table: 'Table', people: 'personnes', tableLead: 'anime la table', tableAi: 'référent IA de la table',
+    loopDoc: 'Le commentaire', loopFile: 'La règle écrite', loopBoard: 'Le suivi', 'state-done': 'Fait', 'state-running': 'En cours', 'state-blocked': 'Bloqué', 'state-todo': 'À faire' },
+  en: { source: 'Source: ', part: 'Part', agenda: 'Agenda', colon: ': ', percent: '%', noNotes: 'No notes on this slide.', overview: 'Overview', notes: 'Notes', full: 'Fullscreen', print: 'PDF', prev: 'Previous', next: 'Next', replay: 'Replay',
+    point: 'The point', levelNeed: 'It asks for', levelWhere: 'Information lives', sourceOfTruth: 'The source of truth', plan: 'The plan', slideView: 'The slide', demo: 'The demo',
+    rebuilt: 'rebuilt', redrawn: 'redrawn', rule: 'The rule', conversation: 'The conversation', above: 'What people see', below: 'What runs underneath',
+    before: 'Before', now: 'Now', outOf: 'out of', table: 'Table', people: 'people', tableLead: 'leads the table', tableAi: 'the table’s AI lead',
+    loopDoc: 'The comment', loopFile: 'The rule written', loopBoard: 'The tracking', 'state-done': 'Done', 'state-running': 'In progress', 'state-blocked': 'Blocked', 'state-todo': 'To do' },
 };
 const MONTHS = {
   fr: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
@@ -133,6 +142,7 @@ export function renderDeck(deck, opts) {
   const bar = `<nav class="dk-chrome" aria-label="deck">
     <button data-act="prev" title="${esc(strings.prev)} (←)">←</button><span class="dk-count">1 / ${info.length}</span><button data-act="next" title="${esc(strings.next)} (→)">→</button>
     <span class="dk-chrome-chapter"></span>
+    <button data-act="replay" title="${esc(strings.replay)} (R)" hidden>↻</button>
     <button data-act="overview" data-toggles="data-overview" title="${esc(strings.overview)} (O)">▦</button>
     ${shareMode ? '' : `<button data-act="notes" data-toggles="data-notes" title="${esc(strings.notes)} (N)">${esc(strings.notes)}</button>`}
     <button data-act="full" title="${esc(strings.full)} (F)">⛶</button>

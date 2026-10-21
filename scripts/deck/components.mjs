@@ -13,7 +13,8 @@
 //   children  'none', 'text' or 'blocks'
 //   render(p, ctx, kids) → HTML; p is validated, kids the rendered children
 
-import { esc } from './text.mjs';
+import { esc, plain } from './text.mjs';
+import agentic from './agentic.mjs';
 
 // ── Schema ────────────────────────────────────────────────────────────────────────────────────
 // text: prose with marks · str: a plain string · src: an image path · int · num · bool
@@ -117,7 +118,7 @@ export function frame(ctx, p, kind, inner, { head = '', ground, attrs = '' } = {
   const g = p.ground || ground || 'paper';
   const chapter = ctx.chapter || '';
   return `<section class="${cls('dk-slide', `dk-${kind}`, `dk-ground-${g}`, chapter && 'has-chapter', p.id && 'has-id')}" `
-    + `data-n="${ctx.n}" data-kind="${kind}" data-ground="${g}" data-title="${esc(ctx.title)}" data-chapter="${esc(ctx.group ?? chapter)}"${p.id ? ` id="${esc(p.id)}"` : ''}${attrs}>`
+    + `data-n="${ctx.n}" data-kind="${kind}" data-ground="${g}" data-title="${esc(ctx.title)}" data-chapter="${esc(plain(ctx.group ?? chapter))}"${p.id ? ` id="${esc(p.id)}"` : ''}${attrs}>`
     + head + inner
     + `<footer class="dk-foot"><span class="dk-foot-l">${esc(ctx.meta.footer || '')}</span>`
     + `<span class="dk-src">${when(p.source, (s) => `${ctx.t('source')}${ctx.md(s)}`)}</span>`
@@ -457,3 +458,8 @@ export const components = {
 
 /** What a brand's components.mjs receives, so it never imports the kit by path. */
 export const helpers = { S, frame, head, prose, esc, when, cls, img, ul, logoRow };
+
+// The blocks of a deck about an agentic organization (Cycle, Regen, Redraw, Hub…), kept in their
+// own file and written against the same helpers a brand gets. Shown in
+// examples/agentic-organization/deck.mdx.
+Object.assign(components, agentic(helpers));

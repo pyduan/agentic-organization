@@ -50,7 +50,9 @@ footer: "Organization, steering committee, 9 October 2026"
 
 - **A slide is a component, and its content goes in its props.** `node scripts/deck/build.mjs
   components` lists every one with its props, the brand's included. `scripts/deck/examples/deck.mdx`
-  shows each in a realistic slide.
+  shows each in a realistic slide, and `scripts/deck/examples/agentic-organization/deck.mdx` the
+  blocks of a deck about an organization run by agents (`Cycle`, `Regen`, `Redraw`, `Hub`, `Levels`,
+  `Iceberg`, `LearnTree` and the smaller ones), in the arc of a first conversation with a client.
 - **The build refuses what would let a deck carry its own layout**: raw HTML, a style, an import, an
   expression, an unknown component or prop. It also refuses a theme that reads a CSS token nothing
   defines (`var(--x)` with no fallback), which the browser would drop without a word. A shape that is missing becomes a component in
@@ -75,7 +77,8 @@ This is the procedure; the `new-deck` skill runs it.
    frontmatter carries them, and the build warns when `audience` or `takeaway` is missing, because
    they decide what goes on every slide. Ask only what the brief and the conversation do not say.
    `node scripts/deck/build.mjs new <slug>` starts the folder with its frontmatter and the plan's
-   skeleton.
+   skeleton; `--from=agentic-organization` starts it from that starter instead, whose organization,
+   people and figures are all invented and all to be replaced.
 2. **Gather the facts before the slides.** Facts come from `source/content/` and `source/facts/`,
    each with its source. Old decks are evidence, read with `read-pptx` (below), and what they say is
    folded into the content files first: a deck built straight from a pile of old decks inherits
@@ -201,6 +204,11 @@ list, then the deck aloud.
 
 - **Present** from `decks/<slug>/index.html` in a browser: F fullscreen, arrows to move, O the
   overview, N the notes. `#7` opens slide 7, `#<id>` the slide with that `id`.
+- **What moves** moves only in the viewer: a block that tells a story (a correction redrawing a plan,
+  inputs rebuilding the views) plays when its slide opens and holds its end, R or ↻ plays it again,
+  and a loop (a pulse going round) runs while the slide is shown. The markup is always the finished
+  state: the check measures it, the PDF prints it, and a reader who asked for less motion sees only
+  it. An animation is a component's, never a deck's.
 - **PDF:** `build <slug> --pdf` writes `decks/<slug>/dist/<slug>.pdf`, one slide per page at the size
   it was designed. Printing from the browser gives the same.
 - **A copy to send:** `build <slug> --share` writes `decks/<slug>/dist/<slug>.html`, one file with its

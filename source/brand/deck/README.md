@@ -46,8 +46,8 @@ A `url()` in this file is relative to this folder. Mark anything meant to touch 
 `--dk-bleed: 1` so the margin check leaves it alone.
 
 Check a theme by building every component on it: `node scripts/deck/build.mjs build
-scripts/deck/examples`. A text whose measured colour fails the contrast check keeps its colour in
-graphics and takes a darker shade as text.
+scripts/deck/examples`, then `scripts/deck/examples/agentic-organization`. A text whose measured
+colour fails the contrast check keeps its colour in graphics and takes a darker shade as text.
 
 ## `components.mjs`
 
