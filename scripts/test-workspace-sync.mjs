@@ -233,7 +233,7 @@ test('a clone git cannot compare with origin is named, never reported up to date
 test('from the command line: JSON out, and exit 1 only when a sync failed for a reason nobody chose, never under --quiet', () => {
   const area = scratch(['| `acme/shop` | | |']);
   try {
-    for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs']) cpSync(join(KIT, f), join(area.org, f));
+    for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs', 'lib/neighbour.mjs']) cpSync(join(KIT, f), join(area.org, f));
     const shop = repoFor(area, 'shop');
     pushFromElsewhere(shop, 'price.md', '12\n');
     const cli = (...a) => spawnSync('node', [join(area.org, 'scripts/workspace-sync.mjs'), ...a], {

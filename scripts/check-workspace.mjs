@@ -21,12 +21,12 @@
 //         node scripts/check-workspace.mjs --at=<owner/repo>=<path>   record where a repo sits here
 
 import { readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import {
   TEMPLATE_SLUG, expand, isRepoRoot, gitOrigin, originSlug, isTemplateSlug, readMap, locateRows,
   siblingRepos, machineMapPath, rememberRepo, sameSlug,
 } from '../lib/workspace.mjs';
+import { neighbour, CONSENT_FILE } from '../lib/neighbour.mjs';
 
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
@@ -109,13 +109,21 @@ for (const r of located) {
   }
 
   // A sibling kit repo must point home. The map is here; over there we only want a pointer.
-  if (r.how !== 'self' && existsSync(join(r.dir, 'CLAUDE.md'))) {
-    const guide = await readFile(join(r.dir, 'CLAUDE.md'), 'utf8');
+  // Read within what it declares (lib/neighbour.mjs): two yes-or-no answers are all we need.
+  const n = r.how === 'self' ? null : neighbour(r.dir);
+  if (n?.problem) add('warn', id, n.problem);
+  if (n?.level === 'none') {
+    add('info', id, `declares none in ${CONSENT_FILE}, so its CLAUDE.md is not read from here and its pointer home is not checked`);
+  } else if (n && n.exists('CLAUDE.md')) {
     const homeName = ((await originSlug(ROOT)) || basename(ROOT)).split('/').pop();
-    if (!new RegExp(`(where this repo sits|${homeName})`, 'i').test(guide)) {
+    const guide = n.measure('CLAUDE.md', (text) => ({
+      pointsHome: new RegExp(`(where this repo sits|${homeName})`, 'i').test(text),
+      ownTable: /^\|\s*Repo\s*\|/im.test(text),
+    }));
+    if (!guide.pointsHome) {
       add('warn', id, `its CLAUDE.md never mentions ${homeName} — add a "Where this repo sits" pointer so a session starting there knows which repo holds the shared guides and the map`);
     }
-    if (/^\|\s*Repo\s*\|/im.test(guide)) {
+    if (guide.ownTable) {
       add('warn', id, 'its CLAUDE.md contains its own repo table — that is a second copy of the map and will drift. Keep a pointer, delete the copy.');
     }
   }
@@ -142,11 +150,14 @@ const declared = new Set([ROOT, ...located.map((r) => r.dir).filter(Boolean)]);
 const homeName = ((await originSlug(ROOT)) || basename(ROOT)).split('/').pop();
 for (const s of await siblingRepos(WORKSPACE)) {
   if (declared.has(s.dir)) continue;
-  const looksLikeKit = existsSync(join(s.dir, 'CLAUDE.md')) && existsSync(join(s.dir, 'source', 'brief.md'));
+  // Not on the map and declaring none: it asked not to be read, and it is not ours to list.
+  const n = neighbour(s.dir);
+  if (n.level === 'none') continue;
+  const looksLikeKit = n.exists('CLAUDE.md') && n.exists(join('source', 'brief.md'));
   if (!looksLikeKit || isTemplateSlug(s.slug || '')) continue;
-  let guide = '';
-  try { guide = await readFile(join(s.dir, 'CLAUDE.md'), 'utf8'); } catch { /* unreadable */ }
-  if (new RegExp(`\\b${homeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(guide)) {
+  const pointsHere = n.measure('CLAUDE.md', (guide) =>
+    new RegExp(`\\b${homeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(guide));
+  if (pointsHere) {
     add('warn', basename(s.dir), `its CLAUDE.md points at ${homeName}, but ORGANIGRAM.md has no row for it — no session here will know it exists`);
   } else {
     add('info', basename(s.dir), `another kit project sits beside this one (${s.slug || s.dir}); if it belongs to this organization, give it a row`);

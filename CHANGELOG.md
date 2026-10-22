@@ -10,6 +10,29 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-22 · MAJOR · A repo says how much of it the others may read
+
+A repo can now hold a `.read-consent` file at its root with one word in it. `full` is the default
+and changes nothing. With `counts`, the tools that read beside their own repo get numbers and dates
+only: the dashboard shows it as one line of summed counts with no project named, the to-do app
+leaves its lists out, the fleet check counts its authors without naming them, and the sync pulls it
+without reading its commit messages. With `none`, they name it and leave it alone. Any other word
+counts as `none`, so a typo never opens a repo.
+
+The limit is held in one place, `lib/neighbour.mjs`, which every read of another repo now goes
+through and which refuses what the level does not allow: a tool added later cannot forget it. A
+`dashboard: counts-only` line in a project's charter keeps working. The format and when to use it:
+`source/formats/read-consent.md`.
+
+- `CONTRIBUTING.md` says how an organization sends back what it learned (an error report, a pack,
+  or a pull request) and how each one is triaged.
+
+**What you need to do:** nothing, if your repos may all read each other. If one of them holds a
+client's material or anything restricted, ask your agent to give it a `.read-consent` with `counts`
+or `none`, and to say the same in that repo's `CLAUDE.md`, which is what holds an agent session
+there. Your `package.json` is reported rather than updated: add `scripts/test-neighbour.mjs` to its
+`test` line when the update says so.
+
 ## 2026-10-21 · MINOR · Deck blocks for an organization run by agents, and a starter deck
 
 - Fourteen new deck components show how an organization run by agents works: a shared base that

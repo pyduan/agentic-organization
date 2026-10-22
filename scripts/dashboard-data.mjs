@@ -16,6 +16,10 @@
 // A project that should not expose its wording writes `dashboard: counts-only` in its
 // charter: it then appears with its stage and its counts, and no titles travel.
 //
+// Another repo is read within what it declares in its `.read-consent` (lib/neighbour.mjs):
+// at `counts` it appears as one line, its counts summed and no project named; at `none`
+// it is not opened, and the page says it keeps to itself.
+//
 // Zero dependencies, Node built-ins only.
 //
 // Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist]
@@ -23,6 +27,7 @@
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { parse as parseTodos } from '../lib/todo.mjs';
 import { locatedRepos } from '../lib/workspace.mjs';
+import { neighbour } from '../lib/neighbour.mjs';
 import { existsSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 
@@ -92,20 +97,55 @@ function entries(log) {
   return out.sort((a, b) => (a.date < b.date ? 1 : -1));
 }
 
+// Another repo at `counts` shows as one line: how many projects, items open and done.
+// Its project names are its own wording, so they stay with it too.
+function countedRepo(repo, n) {
+  const each = n.measureEach('projects', 'next-steps.md', (md) => {
+    const { open, done } = items(md);
+    return { open: open.length, done: done.length };
+  });
+  return {
+    slug: null,
+    title: repo.slug,
+    stage: null,
+    repo: repo.slug,
+    countsOnly: true,
+    consent: 'counts',
+    counts: {
+      projects: each.length,
+      open: each.reduce((t, c) => t + c.open, 0),
+      done: each.reduce((t, c) => t + c.done, 0),
+    },
+    open: [],
+    latest: [],
+  };
+}
+
 async function projectsIn(repo) {
-  const base = join(repo.dir, 'projects');
-  let dirs = [];
-  try { dirs = (await readdir(base, { withFileTypes: true })).filter((e) => e.isDirectory()); } catch { return []; }
+  // This repo reads itself freely; any other is read through what it declares.
+  let folders = async () => {
+    try { return (await readdir(join(repo.dir, 'projects'), { withFileTypes: true })).filter((e) => e.isDirectory()).map((e) => e.name); }
+    catch { return []; }
+  };
+  let text = (rel) => read(join(repo.dir, rel));
+  if (!repo.self) {
+    const n = neighbour(repo.dir);
+    repo.consent = n.level;
+    repo.consentProblem = n.problem;
+    if (n.level === 'none') return [];
+    if (n.level === 'counts') return [countedRepo(repo, n)];
+    folders = async () => n.folders('projects');
+    text = async (rel) => n.text(rel);
+  }
   const out = [];
-  for (const d of dirs) {
-    const dir = join(base, d.name);
-    const charter = await read(join(dir, 'charter.md'));
+  for (const name of await folders()) {
+    const charter = await text(`projects/${name}/charter.md`);
     const countsOnly = /^\s*dashboard:\s*counts-only\s*$/im.test(charter);
-    const { open, done } = items(await read(join(dir, 'next-steps.md')));
-    const log = entries(await read(join(dir, 'log.md')));
+    const { open, done } = items(await text(`projects/${name}/next-steps.md`));
+    const log = entries(await text(`projects/${name}/log.md`));
     out.push({
-      slug: d.name,
-      title: firstHeading(charter, d.name),
+      slug: name,
+      title: firstHeading(charter, name),
       stage: stageOf(charter),
       repo: repo.self ? null : repo.slug,
       countsOnly,
@@ -139,6 +179,8 @@ const data = {
   generated: new Date().toISOString(),
   org: orgName,
   repos: found.map((r) => r.slug),
+  // The repos that keep to themselves, named by the map rather than by anything read in them.
+  private: found.filter((r) => r.consent === 'none').map((r) => r.slug),
   projects,
   recap,
 };
@@ -151,3 +193,6 @@ if (existsSync(tokens)) await copyFile(tokens, join(OUT, 'tokens.css'));
 
 const totalOpen = projects.reduce((n, p) => n + p.counts.open, 0);
 console.log(`dashboard: ${projects.length} project(s) from ${found.length} repo(s), ${totalOpen} open item(s) → ${OUT.replace(ROOT + '/', '')}`);
+for (const r of found.filter((x) => x.consent && x.consent !== 'full')) {
+  console.log(`  ${r.slug}: ${r.consent === 'none' ? 'declares none, not read' : 'declares counts, summed without names'}${r.consentProblem ? ` (${r.consentProblem})` : ''}`);
+}

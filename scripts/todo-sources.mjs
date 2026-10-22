@@ -19,13 +19,13 @@
 //
 // Zero dependencies. Run it before deploying the app.
 
-import { readFile, readdir, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
-import { existsSync } from 'node:fs';
 import { promisify } from 'node:util';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { locatedRepos } from '../lib/workspace.mjs';
+import { neighbour, CONSENT_FILE } from '../lib/neighbour.mjs';
 
 const run = promisify(execFile);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -68,33 +68,36 @@ async function branchOf(dir) {
 const titleCase = (s) => s.replace(/[-_]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 async function sourcesIn(repo) {
+  // The app shows and edits every line of a list it is given, which is all wording, so a
+  // neighbour below `full` in its .read-consent keeps its lists out of it (lib/neighbour.mjs).
+  const n = neighbour(repo.dir, { self: repo.dir === ROOT });
+  if (n.level !== 'full') return { withheld: `${repo.slug} (declares ${n.level} in ${CONSENT_FILE}${n.problem ? `: ${n.problem}` : ''})` };
   const gh = await ghSlug(repo.dir);
   if (!gh) return { skipped: repo.slug, reason: 'no GitHub origin' };
   const branch = await branchOf(repo.dir);
   const found = [];
 
   // A list at the root is the person's own, not a project's.
-  if (existsSync(join(repo.dir, 'next-steps.md'))) {
+  if (n.exists('next-steps.md')) {
     found.push({ id: repo.slug, label: titleCase(repo.slug), repo: gh, path: 'next-steps.md', branch, dir: repo.dir });
   }
 
-  let dirs = [];
-  try { dirs = (await readdir(join(repo.dir, 'projects'), { withFileTypes: true })).filter((e) => e.isDirectory()); } catch {}
-  for (const d of dirs) {
-    if (d.name.startsWith('_')) continue; // _template, _unclaimed and friends are not projects
-    const path = `projects/${d.name}/next-steps.md`;
-    if (!existsSync(join(repo.dir, path))) continue;
+  for (const name of n.folders('projects')) {
+    if (name.startsWith('_')) continue; // _template, _unclaimed and friends are not projects
+    const path = `projects/${name}/next-steps.md`;
+    if (!n.exists(path)) continue;
     // The label names the project. Which repo it lives in is plumbing, and the
     // slug is only prefixed when two repos genuinely use the same project name.
-    found.push({ id: `${repo.slug}-${d.name}`, label: titleCase(d.name), repo: gh, path, branch, dir: repo.dir });
+    found.push({ id: `${repo.slug}-${name}`, label: titleCase(name), repo: gh, path, branch, dir: repo.dir });
   }
   return { found };
 }
 
 const { repos: list, rows, skipped: unreadable } = await repos();
-const all = [], noRemote = [];
+const all = [], noRemote = [], withheld = [];
 for (const repo of list) {
-  const { found, skipped: s, reason } = await sourcesIn(repo);
+  const { found, skipped: s, reason, withheld: w } = await sourcesIn(repo);
+  if (w) { withheld.push(w); continue; }
   if (s) { noRemote.push(`${s} (${reason})`); continue; }
   all.push(...found);
 }
@@ -108,6 +111,7 @@ await writeFile(OUT, `${JSON.stringify(all, null, 2)}\n`);
 console.log(`todo sources: ${all.length} project(s) across ${list.length} repo(s) → apps/todos/sources.json`);
 for (const s of all) console.log(`  ${s.label.padEnd(24)} ${s.repo}/${s.path}`);
 if (noRemote.length) console.log(`no GitHub origin: ${noRemote.join(', ')}`);
+if (withheld.length) console.log(`kept in their own repo: ${withheld.join(', ')}`);
 
 // A bare zero is the failure this script is most likely to produce and the least
 // likely to be understood: it reads as "there is nothing to find" when it usually

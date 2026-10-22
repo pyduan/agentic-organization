@@ -68,6 +68,11 @@ It then shows its stage and its counts and nothing else — enough to see it exi
 moving, with no sentence leaving its repo. That is the honest default for anything confidential;
 turning it up to full is a deliberate, dated line in `source/decisions.md`, not a quiet edit.
 
+A whole repo says it for itself in a `.read-consent` file at its root: `counts`, and the dashboard
+shows it as one line of summed counts with no project named; `none`, and it only says the repo is
+there. That one binds every tool that reads beside its repo, not only this page:
+[`read-consent.md`](read-consent.md).
+
 **Per-repo exception:** a tool that only makes sense inside one project (a calculator for one
 client, a simulator for one dataset) stays in that repo under `apps/<slug>/` per `webapp.md`. The
 dashboard links to it. What must not happen is a second dashboard.

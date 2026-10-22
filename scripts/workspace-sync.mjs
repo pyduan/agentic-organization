@@ -21,7 +21,9 @@
 // Which repos: the ones on the map (ORGANIGRAM.md) that sit on this machine, found by
 // their origin (lib/workspace.mjs), this repo included. With --siblings, also every repo
 // beside this one, which is what the workspace hook wants: that folder is the
-// organization's.
+// organization's. A repo that declares `none` in its .read-consent is left alone, and one
+// that declares `counts` is fast-forwarded without its commit messages being read here, so
+// its trailers wait for a session of its own (lib/neighbour.mjs).
 //
 //   node scripts/workspace-sync.mjs status [--json] [--offline] [--siblings]
 //   node scripts/workspace-sync.mjs sync   [--json] [--quiet]   [--siblings]
@@ -42,6 +44,7 @@ import { realpathSync } from 'node:fs';
 import { basename, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gitOrigin, isRepoRoot, locatedRepos, originSlug, siblingRepos } from '../lib/workspace.mjs';
+import { neighbour, ReadRefused, CONSENT_FILE } from '../lib/neighbour.mjs';
 
 const FETCH_TIMEOUT_MS = 20_000;
 const LOCAL_TIMEOUT_MS = 10_000;
@@ -120,29 +123,37 @@ export async function inspect(dir, { fetch = false } = {}) {
   return { branch, defaultBranch, dirty, ahead, behind, ...decide({ branch, defaultBranch, dirty, ahead, behind }) };
 }
 
-/** The `Retroactive:` trailers of the commits in a range, oldest first, `none` left out. */
-export async function retroactive(dir, range) {
-  const log = (await tryGit(dir, ['log', '--reverse', '--format=%H%x1f%s%x1f%B%x1e', range])) ?? '';
-  const out = [];
-  for (const entry of log.split('\x1e').map((e) => e.trim()).filter(Boolean)) {
-    const [sha, subject, body = ''] = entry.split('\x1f');
-    for (const m of body.matchAll(/^\s*Retroactive:\s*(.+)$/gim)) {
-      if (!/^none\b/i.test(m[1].trim())) out.push({ sha, subject, sweep: m[1].trim() });
+/**
+ * The `Retroactive:` trailers of the commits in a range, oldest first, `none` left out.
+ * Commit messages are a repo's own words, so they are read through what it declares:
+ * null when it keeps them home.
+ */
+export async function retroactive(dir, range, n = neighbour(dir, { self: true })) {
+  const parse = (log) => {
+    const out = [];
+    for (const entry of log.split('\x1e').map((e) => e.trim()).filter(Boolean)) {
+      const [sha, subject, body = ''] = entry.split('\x1f');
+      for (const m of body.matchAll(/^\s*Retroactive:\s*(.+)$/gim)) {
+        if (!/^none\b/i.test(m[1].trim())) out.push({ sha, subject, sweep: m[1].trim() });
+      }
     }
-  }
-  return out;
+    return out;
+  };
+  try { return await n.history(['--reverse', '--format=%H%x1f%s%x1f%B%x1e', range], parse); }
+  catch (e) { return e instanceof ReadRefused ? null : []; }
 }
 
 /** Fetches, and fast-forwards when decide() allows it. Says where the clone stands after. */
-export async function syncRepo(dir) {
+export async function syncRepo(dir, n = neighbour(dir, { self: true })) {
   const found = await inspect(dir, { fetch: true });
   if (!found.merge) return found;
   try {
     const before = await git(dir, ['rev-parse', 'HEAD']);
     await git(dir, ['merge', '--quiet', '--ff-only', `origin/${found.defaultBranch}`]);
+    const trailers = await retroactive(dir, `${before}..HEAD`, n);
     return {
       ...found, state: 'updated', merge: false, detail: `pulled ${commits(found.behind, 'new ')}`,
-      retroactive: await retroactive(dir, `${before}..HEAD`),
+      retroactive: trailers ?? [], trailersWithheld: trailers === null,
     };
   } catch (e) {
     // An untracked file where a new commit adds one, or another session's git holding the
@@ -177,9 +188,13 @@ export async function targets(root, { siblings = false } = {}) {
 /** One status or sync over every target, in parallel. */
 export async function run(root, { command = 'status', fetch = true, siblings = false } = {}) {
   const { repos, missing } = await targets(root, { siblings });
-  const results = await Promise.all(repos.map(async (r) => ({
-    ...r, ...(command === 'sync' ? await syncRepo(r.dir) : await inspect(r.dir, { fetch })),
-  })));
+  const results = await Promise.all(repos.map(async (r) => {
+    const n = neighbour(r.dir, { self: r.dir === root });
+    if (n.level === 'none') {
+      return { ...r, consent: 'none', state: 'not-read', merge: false, detail: `declares none in ${CONSENT_FILE}, so it is not touched from here` };
+    }
+    return { ...r, consent: n.level, ...(command === 'sync' ? await syncRepo(r.dir, n) : await inspect(r.dir, { fetch })) };
+  }));
   return { root, command, fetched: command === 'sync' || fetch, at: new Date().toISOString(), repos: results, missing };
 }
 
@@ -197,7 +212,7 @@ const line = (r) => {
 /** The sync report: the summary line the workspace hook has always printed, then what needs a person. */
 export function syncReport(result, { quiet = false } = {}) {
   const out = [];
-  const current = result.repos.filter((r) => !ATTENTION.has(r.state));
+  const current = result.repos.filter((r) => !ATTENTION.has(r.state) && r.state !== 'not-read');
   const pulled = result.repos.filter((r) => r.state === 'updated');
   let attention = result.repos.filter((r) => ATTENTION.has(r.state));
   const unreachable = attention.filter((r) => r.state === 'unreachable');
@@ -213,6 +228,11 @@ export function syncReport(result, { quiet = false } = {}) {
   if (quiet && out.length) {
     out.unshift('Workspace: some clones need a look before anyone writes in them.');
     out.push('Never discard changes or commits to bring one up to date: they may be another session\'s.');
+  }
+  // A repo at `counts` was pulled without its messages being read: its trailers, if any,
+  // can only be seen from a session opened in it.
+  for (const r of result.repos.filter((x) => x.trailersWithheld)) {
+    out.push(`• ${r.name}: pulled, and it declares counts in ${CONSENT_FILE}, so its Retroactive: trailers are not read from here. A session opened in it applies them.`);
   }
   const sweeps = result.repos.flatMap((r) => (r.retroactive || []).map((x) => ({ name: r.name, ...x })));
   if (sweeps.length) {
@@ -232,7 +252,7 @@ export async function identityWarning(root) {
     '`git config --global user.name "<name>"` and `git config --global user.email "<address>"`.';
 }
 
-const MARK = { 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
+const MARK = { 'not-read': '·', 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
 
 export function statusReport(result) {
   const width = Math.max(4, ...result.repos.map((r) => r.name.length));

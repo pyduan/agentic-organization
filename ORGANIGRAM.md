@@ -75,7 +75,8 @@ exactly how a map starts lying: a repo gains a remote, a project is renamed, a f
 the other copies keep describing last month. So the kit deliberately keeps **one** map:
 
 - **This table is the only list of repos.** Nothing else enumerates them. Not a second file, not a
-  per-repo manifest, not a paragraph in another guide.
+  per-repo manifest, not a paragraph in another guide. A repo's own `.read-consent` is not one: it
+  names no other repo and only says how far the others may read it (below).
 - **Every other repo carries a pointer, never a copy.** Each project repo's `CLAUDE.md` opens with a
   short *Where this repo sits* block: which organization it belongs to, which repo holds the shared
   guides and this map, and the one or two siblings it actually reads from or writes to. A pointer
@@ -94,6 +95,13 @@ the other copies keep describing last month. So the kit deliberately keeps **one
   row, a project repo whose `CLAUDE.md` has no pointer home, a published URL that no longer answers,
   and an `origin` still pointing at the template (the one mistake that pushes your content into
   someone else's repo). Run it with the `freshness` sweep.
+
+### What a neighbour may read of a repo
+
+A repo that holds material the others should not show, a client's repo or a restricted area, says
+so itself in a one-word `.read-consent` file at its root: `full` (the default), `counts` or `none`.
+Every tool that reads beside its own repo respects it. The format:
+[`source/formats/read-consent.md`](source/formats/read-consent.md).
 
 ### Signposting: a rule lives where the work happens
 
