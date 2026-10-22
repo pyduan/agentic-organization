@@ -14,7 +14,7 @@ a URL, a document name and date, or who told you.
 ```
 | Figure | Context | Source |
 |---|---|---|
-| 40% | of small galleries in France now sell online, per a 2026 CGA survey | cga.fr, survey PDF, p.3 |
+| 40% | of small galleries in France now sell online, per a 2026 survey by the Small Galleries Guild | galleries-guild.example, survey PDF, p.3 |
 ```
 
 ## Rules

@@ -9,7 +9,7 @@ import { cn } from '../lib/utils.js';
  * session. Not "from a phone": the app and the agent are both used from a desk
  * too, and what separates them is form versus conversation.
  * Ticking a box records that something ended; it loses why, and why is usually
- * the part worth keeping — "found her on rue de l'Arbre Sec, poster no longer
+ * the part worth keeping: "found her on rue des Tilleuls, poster no longer
  * needed" is worth more later than a checked box.
  */
 export function AddComment({ item, onPost }) {

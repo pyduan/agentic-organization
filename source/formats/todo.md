@@ -96,9 +96,9 @@ item without one is not incomplete; a date is a commitment and most items have n
 A continuation line that opens with an ISO date is an **update**, not context:
 
 ```markdown
-- [ ] Imprimer l'affiche et la poser dans les commerces @paul due:2026-08-30 #shah ^foy3
+- [ ] Imprimer l'affiche et la poser dans les commerces @paul due:2026-08-30 #pistache ^foy3
       Les commerces valent mieux que les poteaux : l'affiche y reste des semaines.
-      2026-08-26 @paul · Shah a été retrouvée rue de l'Arbre Sec. Affiche inutile.
+      2026-08-26 @paul · Pistache a été retrouvée rue des Tilleuls. Affiche inutile.
 ```
 
 The distinction is the point. **Context describes the task and is rewritten freely. An update is
@@ -106,7 +106,7 @@ something that happened, and is append-only** — a new one goes after the last 
 block, never displacing what was there, never landing under the next item.
 
 **Why the app needs this at all.** Ticking a box records that something ended and loses *why*, which
-is usually the part worth keeping. "Found her on rue de l'Arbre Sec, poster no longer needed" is
+is usually the part worth keeping. "Found her on rue des Tilleuls, poster no longer needed" is
 worth more six months later than a checked box, and it is the only way information travels back into
 the repo **without an agent session**, which is the distinction that matters rather than the device.
 The app and the agent are both driven from a phone and from a desk; what separates them is that one

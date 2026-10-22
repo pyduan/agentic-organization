@@ -50,8 +50,8 @@ const git = async (cwd, a, timeout = 15_000) => {
 // ------------------------------------------------------- find the instances
 // The workspace is this repo's parent folder, and ONLY that. It used to scan the
 // grandparent too, to catch repos grouped by owner (~/projects/personal/…,
-// ~/projects/bayesimpact/…) — and that reached into a neighbouring organization:
-// on this machine it reported a Bayes repo as a kit instance "never upgraded",
+// ~/projects/work/…), and that reached into a neighbouring organization:
+// on this machine it reported an employer's repo as a kit instance "never upgraded",
 // on the strength of its CLAUDE.md merely naming the kit. A survey of your own
 // fleet must not walk into someone else's (Paul, 2026-08-28).
 //

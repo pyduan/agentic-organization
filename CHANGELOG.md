@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-22 · MINOR · The association pack and the kit's examples name nobody real
+
+The `association-fr` pack had kept the name, the admin address and three members' first names of
+the association it was extracted from, and a few examples elsewhere came from real life: a lost cat
+and its street in the to-do format, a survey figure credited to a real company's website in the
+research skill. All of them are invented now, and nothing a script does changes.
+
+**What you need to do:** if you copied the `association-fr` pack into your project, its
+`scripts/setup-helloasso.sh` names another association's admin address: ask your agent to put your
+own there, and to check that the footnote of `formats/visuel-template.html` carries your
+association's name.
+
 ## 2026-10-22 · MAJOR · A repo says how much of it the others may read
 
 A repo can now hold a `.read-consent` file at its root with one word in it. `full` is the default
@@ -1020,8 +1032,8 @@ in, and lands in the markdown file next to the task — so it reaches whoever re
 including your agent.
 
 This is what makes the app worth opening when you are not at a computer. Ticking a box says
-something ended; it loses why, and why is usually what you needed later. "Found her on rue de
-l'Arbre Sec, poster no longer needed" is worth more in six months than a checked box.
+something ended; it loses why, and why is usually what you needed later. "Found her on rue des
+Tilleuls, poster no longer needed" is worth more in six months than a checked box.
 
 ## 2026-08-26 · MINOR · Internal apps have a default now
 

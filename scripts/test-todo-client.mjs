@@ -139,8 +139,8 @@ const fakeStore = (fail = false) => {
 
 test('a send is recorded once and found again on the item', () => {
   const log = createSentLog({ store: fakeStore() });
-  log.add('k3f9', 'Found her on rue de l’Arbre Sec.');
-  log.add('k3f9', 'Found her   on rue de l’Arbre Sec.'); // same text, looser spacing
+  log.add('k3f9', 'Found her on rue des Tilleuls.');
+  log.add('k3f9', 'Found her   on rue des Tilleuls.'); // same text, looser spacing
   assert.equal(log.for('k3f9').length, 1, 'the same update twice is one receipt');
   assert.equal(log.for('other').length, 0);
 });
