@@ -14,7 +14,7 @@ documents de séance s'y impriment.
 
 ## La règle qui passe avant tout le reste
 
-**Les adhérents oui, les bénéficiaires jamais.** Position changée le 24 août 2026 (décision de Paul,
+**Les adhérents oui, les bénéficiaires jamais.** Position changée le 24 août 2026 (décision du bureau,
 `source/decisions.md`) :
 
 - **Le registre des adhérents est versionné** dans `members/adherents.csv` : nom, email, adhésions et
@@ -60,7 +60,7 @@ pouvoir transcrits, ordre du jour, état de chaque document, brouillons des deux
 
 Les quatre modèles restent dans `admin/assemblee-generale/modeles/`. Le rapport financier **ne
 recalcule rien** : il reprend `finance/`, où `comptes-2025.md` et `achats.md` existent désormais,
-reconstitués depuis les relevés CIC. ⚠️ Il n'existe **aucun relevé de 2026** : le dire plutôt que de
+reconstitués depuis les relevés bancaires. ⚠️ Il n'existe **aucun relevé de 2026** : le dire plutôt que de
 reconstituer.
 
 **La feuille de présence, le registre des pouvoirs et le pouvoir vierge** s'impriment depuis l'onglet

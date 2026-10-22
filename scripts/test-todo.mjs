@@ -212,10 +212,10 @@ test('a comment on an item with no context still lands in the right place', () =
 });
 
 test('comments parse back, separately from context', () => {
-  const { markdown } = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'Shah a été retrouvée.', on: '2026-08-26', by: 'paul' });
+  const { markdown } = apply(WITH_NOTES, { op: 'comment', id: 'aaaa', text: 'Pistache a été retrouvée.', on: '2026-08-26', by: 'paul' });
   const item = parse(markdown).find((i) => i.id === 'aaaa');
   assert.deepEqual(item.notes, ['An indented line of context.']);
-  assert.deepEqual(item.comments, [{ on: '2026-08-26', by: 'paul', text: 'Shah a été retrouvée.' }]);
+  assert.deepEqual(item.comments, [{ on: '2026-08-26', by: 'paul', text: 'Pistache a été retrouvée.' }]);
 });
 
 test('comments accumulate in order and never overwrite', () => {

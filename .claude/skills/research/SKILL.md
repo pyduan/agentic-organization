@@ -47,7 +47,7 @@ One file per topic or source in `source/facts/`, e.g. `2026-sector-report.md`,
 ```
 | Figure | Context | Source |
 |---|---|---|
-| 40% | of small galleries in France now sell online, per a 2026 CGA survey | cga.fr, survey PDF, p.3 |
+| 40% | of small galleries in France now sell online, per a 2026 survey by the Small Galleries Guild | galleries-guild.example, survey PDF, p.3 |
 ```
 
 Flag anything needing a check before it goes public with `<!-- verify before use -->`. Never blend
