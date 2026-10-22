@@ -144,7 +144,9 @@ if (!data.projects.length) {
         total ? el('div', { className: 'meter' }, el('i', { style: `width:${pct}%` })) : null,
         el('small', {}, total ? `${p.counts.open} open · ${p.counts.done} done` : 'nothing listed yet'),
         p.open.length ? el('ul', { className: 'todo' }, p.open.slice(0, 4).map(todoLi)) : null,
-        p.countsOnly ? el('small', {}, 'details kept in its own repo') : null,
+        p.consent === 'counts'
+          ? el('small', {}, `${p.counts.projects} ${p.counts.projects === 1 ? 'project' : 'projects'}, details kept in its own repo`)
+          : p.countsOnly ? el('small', {}, 'details kept in its own repo') : null,
       );
     })),
   );
@@ -156,6 +158,11 @@ if (!data.projects.length) {
         el('div', {}, el('small', {}, day(r.date)), el('span', {}, el('b', {}, r.project + ' — '), r.text)))),
     );
   }
+}
+
+// A repo that declares `none` is not read at all: the page only says it is there.
+if (data.private?.length) {
+  body.append(el('small', { className: 'empty' }, `Not read here, by their own choice: ${data.private.join(', ')}.`));
 }
 </script>
 </body>

@@ -166,6 +166,11 @@ The kit is tuned for one owner working solo on `main`. When a second regular con
 
 Every rule in these guides was learned by shipping: a multi-contributor organization site with a full design system and deck engine, an artist's gallery and shop that gets updated weekly through an inbox folder, a brand built from scratch where the source documents came before any website, and a couple of deliberately tiny personal sites. The kit keeps what survived contact with real, mostly non-technical users and drops the rest.
 
+## Contributing
+
+An error report, a pack your project already runs, or a pull request on the kit: the three ways,
+and how each is triaged, are in [`CONTRIBUTING.md`](CONTRIBUTING.md).
+
 ## Status
 
 Beta, and open to more than friends now. If you're using it and something in the flow confused you or your AI, that's a bug in the kit: tell me.

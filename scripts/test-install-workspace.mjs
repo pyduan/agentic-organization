@@ -29,7 +29,7 @@ function workspace() {
   cpSync(join(KIT, 'docs/workspace'), join(router, 'docs/workspace'), { recursive: true });
   cpSync(join(KIT, '.claude/hooks'), join(router, '.claude/hooks'), { recursive: true });
   // The start runs the router's sync, which reads the map through lib/workspace.mjs.
-  for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs']) cpSync(join(KIT, f), join(router, f));
+  for (const f of ['scripts/workspace-sync.mjs', 'lib/workspace.mjs', 'lib/neighbour.mjs']) cpSync(join(KIT, f), join(router, f));
   return { ws, router };
 }
 const home = () => mkdtempSync(join(tmpdir(), 'home-'));

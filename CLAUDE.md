@@ -219,6 +219,7 @@ lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfi
 lib/provenance.mjs           what a tool read, which version, and what each figure rests on
 lib/register.mjs             the incident register: find it, read it, and the schema it must keep
 lib/workspace.mjs            the repo map in ORGANIGRAM.md, and where each repo sits on this machine
+lib/neighbour.mjs            what another repo lets a script read of it (.read-consent), held in one place
 lib/setup-checks.mjs         the setup checks any layout can run: git, GitHub, identity, clones, outside instructions
 source/formats/deck.md       deck playbook: decks are composed, built and measured
 scripts/deck/                the deck engine: build.mjs (new · components · build · list · publish), read-pptx.mjs, the checks

@@ -23,13 +23,12 @@
 //   node scripts/check-fleet.mjs --json
 //   node scripts/check-fleet.mjs --workspace=~/projects/other   # another folder of siblings
 
-import { readFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
 import { execFile } from 'node:child_process';
 import { homedir } from 'node:os';
-import { dirname, join, resolve, basename } from 'node:path';
+import { dirname, join, relative, resolve, basename } from 'node:path';
 import { promisify } from 'node:util';
 import { slugOf, isTemplateSlug, readMap, locateRows, siblingRepos } from '../lib/workspace.mjs';
+import { neighbour, CONSENT_FILE } from '../lib/neighbour.mjs';
 
 const run = promisify(execFile);
 const args = process.argv.slice(2);
@@ -68,16 +67,38 @@ const candidateDirs = async () => (await siblingRepos(WORKSPACE)).map((r) => r.d
 // A kit instance is a repo carrying the kit's own furniture. `.kit-sync` is the
 // modern marker; the other two catch instances that predate it, which are exactly
 // the ones this script exists to surface.
-async function kitMarker(dir) {
-  if (existsSync(join(dir, '.kit-sync'))) return 'kit-sync';
-  if (existsSync(join(dir, 'source/formats')) && existsSync(join(dir, 'CLAUDE.md'))) return 'structure';
-  if (existsSync(join(dir, 'CLAUDE.md'))) {
-    try {
-      if ((await readFile(join(dir, 'CLAUDE.md'), 'utf8')).includes('agentic-organization')) return 'claude-md';
-    } catch { /* unreadable */ }
-  }
+async function kitMarker(n) {
+  if (n.exists('.kit-sync')) return 'kit-sync';
+  if (n.exists('source/formats') && n.exists('CLAUDE.md')) return 'structure';
+  if (n.exists('CLAUDE.md') && n.measure('CLAUDE.md', (t) => t.includes('agentic-organization'))) return 'claude-md';
   return null;
 }
+
+// Who works in a repo, from its history. At `counts` the repo's own consent keeps the
+// names and addresses home, and only how many and the last date come back.
+async function peopleIn(n, ref) {
+  const tally = (log) => {
+    const people = new Map();
+    for (const line of log.split('\n').filter(Boolean)) {
+      const [an, ae, ad] = line.split('\t');
+      if (!people.has(an)) people.set(an, { name: an, email: ae, last: ad, n: 0 });
+      people.get(an).n++;
+    }
+    return [...people.values()].sort((a, b) => (a.last < b.last ? 1 : -1));
+  };
+  try {
+    return await n.history([ref, '--format=%an\t%ae\t%ad', '--date=short', '-500'], (log) => {
+      const people = tally(log);
+      const lastCommit = people.map((p) => p.last).sort().pop() || null;
+      return { people: n.level === 'full' ? people : [], peopleCount: people.length, lastCommit };
+    });
+  } catch {
+    return { people: [], peopleCount: 0, lastCommit: null };
+  }
+}
+
+// A repo's own small files, read within its consent; a missing or broken file is null.
+const fieldOf = (n, rel, pick) => n.measure(rel, (t) => { try { return t ? pick(JSON.parse(t)) : null; } catch { return null; } });
 
 // ------------------------------------------------------- router or satellite
 
@@ -180,7 +201,12 @@ async function inspect(dir) {
   const origin = (await git(dir, ['remote', 'get-url', 'origin'])) || '';
   if (isTemplateSlug(slugOf(origin) || '')) return null; // the template is not an instance
 
-  const marker = await kitMarker(dir);
+  // The scan reads a neighbour within what it declares (lib/neighbour.mjs). At `none`
+  // it is named, since the map or the folder already names it, and nothing else.
+  const n = neighbour(dir, { self: dir === ROOT });
+  if (n.level === 'none') return { name, origin, consent: 'none', problem: n.problem };
+
+  const marker = await kitMarker(n);
   if (!marker) return null;
 
   const declaredKind = KIND_MAP.get(dir) || null;
@@ -190,24 +216,14 @@ async function inspect(dir) {
   // does, the copy drifts and nothing notices, which is the single failure the
   // shape exists to prevent. Invisible from the map, so it is checked here.
   const copiesMethod = kind === 'satellite'
-    && (existsSync(join(dir, 'source/formats')) || existsSync(join(dir, 'scripts/kit-sync.mjs')));
+    && (n.exists('source/formats') || n.exists('scripts/kit-sync.mjs'));
+  const consent = n.level;
 
   // A satellite holds no framework, so it has no sync point, no news hook and no
   // business having any. Report who works in it and stop there.
   if (kind === 'satellite') {
     const sref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
-    const slog = (await git(dir, ['log', sref, '--format=%an\t%ae\t%ad', '--date=short', '-500'])) || '';
-    const speople = new Map();
-    for (const line of slog.split('\n').filter(Boolean)) {
-      const [an, ae, ad] = line.split('\t');
-      if (!speople.has(an)) speople.set(an, { name: an, email: ae, last: ad, n: 0 });
-      speople.get(an).n++;
-    }
-    return {
-      name, origin, marker, kind, declaredKind, copiesMethod,
-      lastCommit: [...speople.values()].map((p) => p.last).sort().pop() || null,
-      people: [...speople.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
-    };
+    return { name, origin, marker, kind, declaredKind, copiesMethod, consent, problem: n.problem, ...(await peopleIn(n, sref)) };
   }
 
   // 0 · how fresh is this checkout? Everything below is read off the working copy,
@@ -229,8 +245,7 @@ async function inspect(dir) {
 
   // 1 · kit age, measured inside the template's repo — the only one that holds
   // both the sync point and the template's history.
-  let sha = null;
-  try { sha = JSON.parse(await readFile(join(dir, '.kit-sync'), 'utf8')).sha || null; } catch { /* none */ }
+  const sha = fieldOf(n, '.kit-sync', (j) => j.sha || null);
   let behind = null;
   let behindWhy = null;
   let yardstick = 'none';
@@ -253,35 +268,20 @@ async function inspect(dir) {
   // exits zero — an owner ran a month of sessions being told he was wired while
   // kit-news had never once executed. So the hook now leaves a receipt in .git/
   // when it runs, and this reads it: configured is intent, ran is evidence.
-  let configured = false;
-  try {
-    const s = JSON.parse(await readFile(join(dir, '.claude/settings.json'), 'utf8'));
-    configured = JSON.stringify(s.hooks?.SessionStart || []).includes('kit-news');
-  } catch { /* no settings, so not configured */ }
+  const configured = Boolean(fieldOf(n, '.claude/settings.json', (j) => JSON.stringify(j.hooks?.SessionStart || []).includes('kit-news')));
 
-  let lastRan = null;
+  // Never ran here, or ran before the receipt existed: null either way.
   const gitDir = await git(dir, ['rev-parse', '--absolute-git-dir']);
-  if (gitDir) {
-    try { lastRan = JSON.parse(await readFile(join(gitDir, 'kit-news-ran'), 'utf8')).at || null; }
-    catch { /* never ran here, or ran before the receipt existed */ }
-  }
+  const lastRan = gitDir ? fieldOf(n, relative(dir, join(gitDir, 'kit-news-ran')), (j) => j.at || null) : null;
   const wired = configured && Boolean(lastRan);
 
   // 3 · who is still working in it
   const ref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
-  const log = (await git(dir, ['log', ref, '--format=%an\t%ae\t%ad', '--date=short', '-500'])) || '';
-  const people = new Map();
-  for (const line of log.split('\n').filter(Boolean)) {
-    const [an, ae, ad] = line.split('\t');
-    if (!people.has(an)) people.set(an, { name: an, email: ae, last: ad, n: 0 });
-    people.get(an).n++;
-  }
 
   return {
-    name, origin, marker, kind, declaredKind, copiesMethod,
+    name, origin, marker, kind, declaredKind, copiesMethod, consent, problem: n.problem,
     sha, behind, behindWhy, yardstick, wired, configured, lastRan, copyBehind,
-    lastCommit: [...people.values()].map((p) => p.last).sort().pop() || null,
-    people: [...people.values()].sort((a, b) => (a.last < b.last ? 1 : -1)),
+    ...(await peopleIn(n, ref)),
   };
 }
 
@@ -322,11 +322,13 @@ const found = (await Promise.all(dirs.map(inspect))).filter(Boolean)
 // and are never counted in a verdict about the fleet.
 const rows = found.filter((r) => CARRIES_FRAMEWORK.has(r.kind));
 const satellites = found.filter((r) => r.kind === 'satellite');
+// A repo that declares `none` in its .read-consent is named and left alone.
+const declined = found.filter((r) => r.consent === 'none');
 
 // ------------------------------------------------------- render
 
 if (AS_JSON) {
-  console.log(JSON.stringify({ templateHead, instances: rows, satellites }, null, 2));
+  console.log(JSON.stringify({ templateHead, instances: rows, satellites, declined }, null, 2));
   process.exit(0);
 }
 
@@ -390,6 +392,7 @@ for (const r of rows) {
     console.log('           hook ends in `2>/dev/null || true` and fails silently. Check `node --version`.');
   }
   console.log(`   last push: ${r.lastCommit || 'unknown'}${quiet !== null ? ` (${quiet}d ago)` : ''}`);
+  if (r.consent === 'counts') console.log(`     ${r.peopleCount} author(s); it declares counts in ${CONSENT_FILE}, so their names stay there`);
   for (const p of r.people.slice(0, 6)) {
     const flag = unroutable(p.email) ? '  ⚠ unroutable author, GitHub credits nobody' : '';
     console.log(`     ${p.last}  ${String(p.n).padStart(4)}  ${p.name} <${p.email}>${flag}`);
@@ -413,6 +416,7 @@ if (satellites.length) {
     }
     const q = daysSince(s.lastCommit);
     console.log(`   last push: ${s.lastCommit || 'unknown'}${q !== null ? ` (${q}d ago)` : ''}`);
+    if (s.consent === 'counts') console.log(`     ${s.peopleCount} author(s); it declares counts in ${CONSENT_FILE}, so their names stay there`);
     for (const p of s.people.slice(0, 3)) {
       const flag = unroutable(p.email) ? '  ⚠ unroutable author, GitHub credits nobody' : '';
       console.log(`     ${p.last}  ${String(p.n).padStart(4)}  ${p.name} <${p.email}>${flag}`);
@@ -425,6 +429,13 @@ if (satellites.length) {
     console.log('the repo table in ORGANIGRAM.md (`router` or `satellite`) and it will be believed.');
     console.log();
   }
+}
+
+if (declined.length) {
+  console.log(`NOT INSPECTED — ${declined.map((r) => r.name).join(', ')}: ${declined.length === 1 ? 'it declares' : 'they declare'} none in ${CONSENT_FILE},`);
+  console.log('so nothing in it is read from here. Not a finding.');
+  for (const r of declined) if (r.problem) console.log(`   ⚠ ${r.name}: ${r.problem}`);
+  console.log();
 }
 
 const unwired = rows.filter((r) => !r.configured);
