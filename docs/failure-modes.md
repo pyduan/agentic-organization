@@ -135,6 +135,12 @@ and its absence cost hours, and once, files.
   one had dropped the figures about to be quoted. Reading in full says nothing about whether it is
   the right document.
 
+- **Open a document before citing its method, not only its numbers.** A wrong number gets
+  challenged, because numbers invite checking; a wrong method gets adopted, because it reads as
+  craft. A technique attributed to a document nobody opened can be built on before anyone checks.
+  And when the source is reachable, read it rather than asking its owner to confirm your
+  reconstruction: a flagged guess travels with the text for as long as nobody answers the flag.
+
 ## 2 · Status of information *(no check can catch this)*
 
 **The mechanism.** Something gains rank without gaining evidence. A "to verify" becomes a fact by
@@ -325,6 +331,10 @@ and the second copies only the number.
   corrected out loud.** A "what it would have cost without the cache" figure, four times the real
   cost, stayed on screen after an interrupted turn and was quoted back days later as the estimate.
 
+- **A pass is not a measurement.** Everything green says the gate opened, not by how much. When
+  all you have is a pass, write "passed, unmeasured" and name the case that was actually measured;
+  an invented margin written next to a real one reads as evidence.
+
 ## 4 · Silent expiry *(no check can catch most of this)*
 
 **The mechanism.** The sentence was true when written. Nobody touched it. It is false now. This
@@ -360,6 +370,37 @@ wrong.
 - **A retracted claim stays retracted across every project.** Corrections are remembered where they
   were made; the person you are talking to is the same person in all of them. Fix the thing that
   produced the claim, rather than commenting on it.
+- **A retired file does not know it is retired, and its contents read as instructions.** An old
+  export left in a folder still carries its `<script>` tags, its README, its "the brand lives in
+  repo X": a session that opens it follows them to a repo that is dead. When something on disk says
+  where to go or what to load, check the destination against `CLAUDE.md` and `source/decisions.md`
+  before following it. The hygiene half: clear the working folder of what no repo owns, inventory
+  first, deletions to the trash and never `rm`, and what has no live counterpart into a dated
+  quarantine folder with an index saying what each item was.
+- **A design is not a fact until it ships.** A plan, a pull request description, a commit message
+  and a colleague's summary are claims about the future until the merge. Ask the system instead: the
+  merged file for a mechanism, the host for a repo's visibility, the run for a deploy. A guide
+  written from the plan describes a world that does not exist, and it is read first by every session.
+- **Look at the deployed thing once. Never poll it.** Wait on the build (the workflow run, the
+  deploy log), then load the URL once with a cache-buster. Requesting a production host in a loop
+  trips its bot protection, and the refusal looks exactly like a bug in your own work: pages served
+  unstyled, stylesheets empty. Before debugging, diff the served bytes against the local build, and
+  load a page you did not touch on the same host: when the control is broken the same way, the host
+  is refusing you, not your work.
+- **To sweep, grep the shortest distinctive word, never the phrase.** Prose is wrapped by hand, so
+  any phrase eventually straddles a line break and a phrase search reports it absent. When a route
+  or a name is retired, add its old wording to a list a check fails on, so the next session that
+  writes it back is stopped.
+- **An artifact that expires soon does not earn the sweep, and saying so is the decision.** Check
+  how long a stale copy will live before costing someone a correction: a one-off deck that dies
+  next week is not worth a fix, a page a partner keeps is. When a sweep is declined, write the
+  choice down, or the next session proposes the same fix.
+- **A file labelled "generated" needs a generator, and a checker alone is half a fix.** A table
+  someone retypes every week from its sources fails the week they skip, and one date at the top
+  hides rows weeks apart in age: carry each row's own date, taken from its source. A check that only
+  reports leaves every fix to a hand edit, sits red, and stops being read. When the fix is one
+  command with no judgement in it, let CI run the generator itself; keep the failure for what needs
+  a person.
 
 - **"Follow up if nothing arrives" is closed by looking, not by its date.** Two answers sat in the
   inbox for a week while the file said "awaiting reply". Before touching a matter that waits on
@@ -413,6 +454,15 @@ list here, so it is split by the moment each rule applies.
   authorise, while an identical manual probe was succeeding the whole time. When two supposedly
   identical runs give opposite results, the difference between them is the cause. An observation
   that contradicts your explanation is the lead, not a curiosity to note in the margin.
+
+- **A check and the code that renders or loads the file share one parser.** A check carrying its
+  own copy of the statuses, the fields or the grammar passes files the site then renders wrong, or
+  that the service refuses at start. Import the renderer's parsing and the config's vocabulary into
+  the check, and test a generated file against the loader of the service that will read it.
+- **A gate the author cannot run fails everyone.** Every rule the deploy enforces runs in the
+  author's own checks and in CI too, so a refusal is seen before the push and not as a 404 after it.
+  And a gate refuses the item at fault, never the whole publication: one bad page should not take
+  the others down with it.
 
 ### Before you destroy
 
@@ -535,6 +585,16 @@ list here, so it is split by the moment each rule applies.
   then found thirty more texts below the threshold. Measure every element, not the component you
   suspect.
 
+- **Suspect the instrument first.** When a check disagrees with something that just worked, reproduce
+  the result a second way before fixing the code. Assert that each scripted substitution matched
+  exactly once, since a pattern that matched nothing is a silent no-op that ships. And a check's
+  conclusion is computed from what it checked: a reassurance a script prints unconditionally is
+  not a result.
+- **An exemption is held to the rule written above it.** An exemption list is where a check stops
+  looking, and a false positive filed there becomes "someone's decision" nobody can trace. Read each
+  exemption against its criterion when you touch the list, and before acting on a recorded debt,
+  open the thing it names: the note may be the stale part.
+
 ## 6 · Handover and the relationship
 
 **The mechanism.** The work is right and arrives in a form, a place, or a vocabulary that makes it
@@ -645,6 +705,14 @@ useless — or it spends the owner's time on something that was yours to do.
 - **A document signed on screen leaves with its signatures flattened into the page.** A viewer stored
   them as form fields some readers do not display, and the recipient saw an unsigned page in a file
   identical, byte for byte, to the one that had been checked.
+
+- **Find a scripted message by an id it carries, and check a send in the sent log.** A subject line
+  is edited, trimmed and translated on its way, so a lookup by subject finds nothing and the
+  automation sends again. Put an id in the message, search by it, and read "sent or not" from the
+  sent folder, never from the screen that was supposed to send it.
+- **A field another tool parses is an interface.** When a neighbour repo reads a page's `<title>`, a
+  date in a file name or a frontmatter key, changing it is changing an API: change the reader in the
+  same commit, or leave the field alone.
 
 ## 7 · Parallel sessions
 

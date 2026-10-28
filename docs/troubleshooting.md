@@ -132,6 +132,38 @@ Ask the agent to sort it out; it does the git. Whatever the case, nothing gets d
 line go away: the changes may be another session's, or another person's.
 `node scripts/workspace-sync.mjs status` shows where every clone stands.
 
+## One site stopped publishing while the others still do
+
+Workers Builds deploys with a build token. When that token is deleted or rolled (someone tidying
+API tokens, an account owner leaving), the Worker that used it stops publishing and nothing turns
+red: pushes still land on GitHub, the live site simply stays at the last good build. Deploy once by
+hand (`npm run deploy`) so the page is current, then have the account owner open the Worker's
+*Settings ▸ Build* and set a new token. While there, check that the Worker's name in the dashboard
+equals `name` in the `wrangler.jsonc` of the folder it builds from: when they differ, the build runs
+and deploys somewhere else.
+
+## A page I moved or deleted still answers
+
+The edge cache keeps a URL that visitors already opened for up to several days, and a redeploy does
+not purge it. Load it with a cache-buster (`?cb=<random>`) to see what the site really serves; if
+that answers correctly, the rest will follow on its own. Tell whoever waits on the link, and record
+the expected answer in the freshness check (`source/formats/website.md`).
+
+## Mail sent from the domain started bouncing after setting up Email Routing
+
+Turning Email Routing on, or reconfiguring it, rewrites the domain's SPF record with Cloudflare's own
+include and drops the one your sending provider needs. With a strict DMARC policy, your outgoing mail
+is then rejected. Put the provider's `include:` back into the same record (one `v=spf1` record per
+domain, never two), and if the dashboard refuses to edit it, `npx wrangler email routing dns unlock`
+releases it. Then send yourself a test from outside and read its headers. A routing setup started and
+not finished leaves inbound mail dead with no error anywhere, so finish it or remove it.
+
+## "Port already in use", or a dev server is already running
+
+Another session on this machine probably started it. Open the address it already serves rather than
+starting a second one, and never kill a process you did not start: `lsof -i :<port>` says who holds
+the port, and the session that owns it is the one to stop it.
+
 ## Still stuck?
 
 Paste the exact error message to Claude and ask it to diagnose step by step. And if your problem

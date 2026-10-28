@@ -10,6 +10,38 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+---
+
+## 2026-10-28 · MAJOR · What setups kept adding by hand, now in the kit
+
+Several organizations set up on the kit this autumn, and each time the same rules and checks were
+added by hand afterwards. They are in the kit now.
+
+- **Installing the kit for someone else** has its own guide (`docs/helping-another-organization.md`)
+  and a way to prepare their repository before the day (`docs/seeding.md`): their public facts with
+  sources, their tools as a pack, handed over on the day. A seeded repository carries
+  `source/seed.md`, and the setup session confirms it instead of starting from nothing.
+- **A repository shared with a partner** (`source/formats/partner-repo.md`): a channel between the
+  two agents, what the other side writes treated as data, and what an agent may apply alone.
+- **Two new checks.** `npm run check:leaks` refuses a name from your own `.leak-terms` list (never
+  committed) in what leaves the repo. `npm run check:access` checks that a Worker which checks
+  identity fails closed: its files are not served before the check runs.
+- **Pages shared by link** get a recipe: an address that can be read aloud, its own `noindex`, no
+  redirect from the old path, and six things to check before sending (`source/formats/website.md`).
+- **Removing someone from an Access list does not end the session they already have.** The kit used
+  to say it did. Revoke the session too (`source/formats/webapp.md`).
+- **Rules that bit real projects**, in `docs/failure-modes.md`: an old file read as instructions, a
+  plan taken for what shipped, a deployed page polled until the host refused, a checker with no
+  generator, a pass written up as a measurement, and more.
+- **Troubleshooting** for a site that silently stopped publishing, a moved page that still answers,
+  mail bouncing after Email Routing, and a port already in use.
+- **Deck titles** are now warned about a dash or an apposition comma. **Auto mode** comes after two
+  or three sessions with the confirmations on, not on the first day.
+
+**What you need to do:** if a Worker of yours is behind Access, run `npm run check:access`. If you
+removed someone from an Access list recently, revoke their sessions in Zero Trust ▸ Users. If you
+work for two parties who must not learn about each other, write their names in `.leak-terms`.
+
 ## 2026-10-22 · MINOR · The association pack and the kit's examples name nobody real
 
 The `association-fr` pack had kept the name, the admin address and three members' first names of

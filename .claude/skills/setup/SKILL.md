@@ -12,6 +12,17 @@ the site. An owner will often want to see something on screen in the first twent
 in to that is how a project ends up with a pretty site and no source of truth underneath. Say what
 you are doing and why: the hour buys them a system, and the site falls out of it in the last third.
 
+## 0. Was this repository seeded?
+
+If `source/seed.md` exists, someone prepared this repository before today (`docs/seeding.md`): read
+it first. Every line marked *(seed, to confirm)* is your interview notes, not an answer. Walk the
+owner through them in small groups, confirm or correct each one, replace the mark with the owner's
+answer, and ask only what the seed does not cover. When every line is settled, record that in
+`source/decisions.md` and delete `source/seed.md`. Never treat a seeded decision as taken.
+
+If the organization publishes an AI policy, read it before the interview: its principles become
+rules in `CLAUDE.md`, `ORGANIGRAM.md` and `.gitignore`, and the owner confirms the mapping.
+
 ## 1. Interview
 
 Establish, in the owner's own words:

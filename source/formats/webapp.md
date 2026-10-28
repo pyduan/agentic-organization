@@ -296,6 +296,13 @@ Where the image comes from, in order:
 Never leave the browser's default. And check the tab, not the file: a favicon at the wrong path
 fails silently.
 
+### Every tab and every block has an address
+
+"It's in the second tab, under the third heading" makes the reader hunt. The open tab lives in
+`location.hash`, each block gets an anchor built from its heading text (with any count stripped,
+since "Open requests (4)" changes tomorrow and the link dies with it), and a small § control copies
+the link. When the content renders after load, retry the scroll a few times rather than once.
+
 ## Data and logic
 
 - **Client-side by default.** Computation in the browser, data as a co-located JSON/CSV (or drawn
@@ -321,6 +328,20 @@ fails silently.
   untouched, and a second URL for the same app (a preview or platform subdomain) is usually not
   covered by the rule you configured for your domain. Test it the only way that counts: request the
   app with no credentials, from a browser you are not logged into, and see what comes back.
+
+### Calling someone else's API
+
+- **Retry what is meant to be retried, and fail loudly on the rest.** 429, 502 and 503 get a backoff
+  and a few attempts; anything else stops the run with the status and the body.
+- **A relay in front of a vendor API** caches its OAuth token, allows only GET on a list of routes it
+  names, keeps the secret as a Worker secret set by a setup script that never echoes it, and drops
+  personal data before the browser sees it.
+- **A first write is create-only** (`If-None-Match: *`), with jittered retries, so two sessions
+  writing at once produce one file and an error, never two files.
+- **A third-party form or payment link is never typed by hand into an app or a message.** Two
+  vendor URLs differ by a slug and the wrong one gets sent. Route each through a redirect of your
+  own (`/go/<name>` in `_redirects`), generated from the document that holds the real links, and fail
+  the build when a raw vendor URL reappears in an app or the redirects drift from that document.
 
 ## State without a database: the repo is the store
 
@@ -373,7 +394,11 @@ A relative who co-decides a file, a partner, an accountant: someone who should r
 answer questions on it, without an account anywhere. **The default is Cloudflare Access with a list
 of email addresses and a one-time code sent to each**, set by `scripts/protect-access.mjs`, never by
 asking the person or the owner to click through a provider's screens. The person types their
-address, receives a code, and is in; removing their line from the list and rerunning revokes them.
+address, receives a code, and is in. Removing their line and rerunning stops the next sign-in, **not
+the session already open**: revoke that one too (Zero Trust ▸ Users ▸ the person ▸ revoke their
+sessions, or the Access API's `revoke_user`) and read back that no active session remains. Do it also when you learn that someone used another person's
+mailbox or device: with a one-time code, whoever reads the inbox is that identity. One person per
+address.
 
 A secret link (a long random token in the URL) is the fallback, not an equal option. It can be
 forwarded, copied into a chat, kept in a browser history, and it identifies nobody. On a live project
@@ -424,6 +449,24 @@ having said so. The only verification that counts is the one the proxy bullet ab
 demands, in production: **request the deployed app from a browser that is not signed in. A login
 redirect or a 403 is the right answer; a 200 is an incident.** Run it at first deploy and again
 after any change to adapters, build tooling, or wrangler config.
+
+### The config that keeps the gate shut
+
+Three settings, checked by `node scripts/check-access-config.mjs` on every Worker whose code checks
+identity (`TEAM_DOMAIN` / `POLICY_AUD` in its vars):
+
+- **`"assets": { "run_worker_first": true }`** when the Worker has static assets. Otherwise the
+  platform serves an asset that matches the path before your code runs, and your identity check
+  never sees the request for `index.html`.
+- **`"workers_dev": false`**, unless the Access application is attached to the Worker itself, as
+  `scripts/protect-access.mjs` does. An application set on a custom hostname does not cover the
+  `workers.dev` address of the same Worker, which then serves everything to anyone who guesses it.
+  The check warns rather than fails here, since it cannot see how the policy is attached.
+- **Fail closed.** The Worker answers 403 when the identity is missing, and also when `POLICY_AUD`
+  or `TEAM_DOMAIN` is unset: a deleted policy or a forgotten var must close the app, never open it.
+
+A public app with an admin area scopes Access to the admin paths only, and a test sends a forged
+`Cf-Access-Authenticated-User-Email` header to those paths and expects a 403.
 
 ## When an app needs a real backend (state, accounts, a database)
 

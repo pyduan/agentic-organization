@@ -70,6 +70,12 @@ not paragraphs, so it re-breaks each one and leaves orphan words, splits a hyphe
 lines, and folds a two-line sign-off into one. Done twice in one session on two different drafts,
 both of which had to be rewritten by hand. Compose at the target width from the first keystroke.
 
+### A bulk send uses a list refreshed the same day
+
+Before a mailing, a reminder campaign or any message to more than a handful of people, sync the list
+from its live source, write its as-of date at the top of the batch, and only then build the send. A
+snapshot from last week misses exactly the newest people, who are often the most motivated.
+
 ## Every ask passes two tests
 
 Before an ask survives into any message:

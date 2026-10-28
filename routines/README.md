@@ -112,6 +112,18 @@ is not personal: nobody's departure breaks it, so it lives with the work.
 The test is the pack test (`source/formats/pack.md`): if you cannot hand it to a stranger running
 this kit and have it make sense, it is not a kit routine.
 
+## A routine that fails quietly
+
+A scheduled job that fails stays silent unless something makes it loud. Three shapes to watch:
+
+- **A job whose only output is a pull request** fails by producing no pull request, which looks
+  exactly like a quiet week. Give it a run log or a line in a report that says it ran.
+- **A degraded success is worse than a failure**: a run that skipped half its sources and said "done"
+  is trusted. Make the run count what it read and say what it skipped.
+- **On an unprotected `main`, red is advisory**: it blocks nothing, so somebody has to look. Before
+  fixing a red `main`, check the open pull requests and the other sessions: someone may already be
+  on it, and two fixes collide.
+
 ## Retiring one
 
 **Deregister it and delete its file in the same change.** Removing the folder does not deregister the

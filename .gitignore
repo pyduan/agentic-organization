@@ -27,3 +27,7 @@ error-report.md
 # copies to send (--share, --pdf). Committing a deck folder commits its source and index.html only.
 decks/*/.check/
 decks/*/dist/
+
+# The list of names that must never leave this repo (scripts/check-leaks.mjs). The list
+# is itself the leak, so it stays on each machine and is never committed.
+.leak-terms
