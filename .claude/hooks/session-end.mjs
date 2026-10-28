@@ -65,7 +65,7 @@ export function endCheck(event, dir) {
   if (router.startsWith('..') || isAbsolute(router)) router = real(ROUTER);
   const at = (p) => (router ? `${router.split('\\').join('/')}/${p}` : p);
   const reflect = existsSync(join(HOOKS, '..', 'skills', 'reflect', 'SKILL.md'))
-    ? `from ${at('.claude/skills/reflect/SKILL.md')}` : `at the end of ${at('CLAUDE.md')}`;
+    ? `from ${at('.claude/skills/reflect/SKILL.md')}` : `at the end of ${at('AGENTS.md')}`;
 
   return `End-of-session check: there are unsaved or unpublished changes ${where}. ${whose}${neighbours}. ` +
     'Before finishing: (1) stage the files you touched by name and read the body of git diff --cached, so ' +

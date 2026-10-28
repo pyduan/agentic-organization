@@ -14,12 +14,12 @@ apply them on your own. This skill is the "yes" path. It pulls the improvements 
 **without clobbering the owner's own content** — their `source/`, their `site/`, their pages are
 theirs; the *framework scaffolding* (`.claude/`, `docs/`, `scripts/`, the format playbooks in
 `source/formats/`, the root deploy config `wrangler.jsonc`/`package.json`, and the root
-`CLAUDE.md`/`SETUP.md`/`README.md`) is what gets refreshed.
+`AGENTS.md`/`SETUP.md`/`README.md`) is what gets refreshed.
 
 **The golden distinction.** Two kinds of files live here:
 - **Framework** (comes from the template, safe to update): `.claude/skills/`, `.claude/hooks/`,
   `docs/`, `scripts/`, `lib/`, `source/formats/*.md`, the root deploy config (`package.json`,
-  `wrangler.jsonc`), and the root `CLAUDE.md` / `SETUP.md` / `README.md`.
+  `wrangler.jsonc`), and the root `AGENTS.md` / `SETUP.md` / `README.md`.
 - **The owner's** (never overwrite): everything under `source/` *except* `source/formats/`
   (so `brief.md`, `content/`, `facts/`, `brand/`, `inbox/`, and `quality/incidents.json` — the
   register of what went wrong on *their* project), all of `site/`, `apps/` **except
@@ -92,7 +92,7 @@ matters, and getting it wrong silently reverts the owner's work.
    node scripts/kit-sync.mjs apply
    ```
 
-   Nothing colliding is ever written. `CLAUDE.md`, `package.json` and `wrangler.jsonc` are
+   Nothing colliding is ever written. `AGENTS.md`, `package.json` and `wrangler.jsonc` are
    report-only: they always carry local values, so they are listed and never replaced.
 
 6. **Resolve the collisions with the owner, one at a time.** For each file, `git diff <baseline>

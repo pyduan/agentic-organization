@@ -22,7 +22,7 @@ only for you. Keep the diff narrow, and before opening it:
 - invent every example, because this repo is public: no real person, client, project or amount
   from your own repos;
 - add the `CHANGELOG.md` entry when other organizations have to know or do something, and end the
-  commit with a `Retroactive:` trailer when it changes a rule (`CLAUDE.md` ▸ *Working rules*);
+  commit with a `Retroactive:` trailer when it changes a rule (`AGENTS.md` ▸ *Working rules*);
 - run `npm test`.
 
 Triage reads each contribution for one question: is it true for organizations that aren't yours?

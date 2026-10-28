@@ -69,8 +69,9 @@ const candidateDirs = async () => (await siblingRepos(WORKSPACE)).map((r) => r.d
 // the ones this script exists to surface.
 async function kitMarker(n) {
   if (n.exists('.kit-sync')) return 'kit-sync';
-  if (n.exists('source/formats') && n.exists('CLAUDE.md')) return 'structure';
-  if (n.exists('CLAUDE.md') && n.measure('CLAUDE.md', (t) => t.includes('agentic-organization'))) return 'claude-md';
+  const manual = n.exists('AGENTS.md') ? 'AGENTS.md' : n.exists('CLAUDE.md') ? 'CLAUDE.md' : null;
+  if (n.exists('source/formats') && manual) return 'structure';
+  if (manual && n.measure(manual, (t) => t.includes('agentic-organization'))) return 'claude-md';
   return null;
 }
 

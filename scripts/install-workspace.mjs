@@ -10,7 +10,7 @@
 // to give its parent folder a hand-made copy.
 //
 // This script gives the parent folder, from docs/workspace/ with this repo's folder name filled in:
-//   <parent>/CLAUDE.md               sends the agent to this repo's CLAUDE.md (an @import)
+//   <parent>/CLAUDE.md               sends the agent to this repo's AGENTS.md (an @import)
 //   <parent>/.claude/settings.json   runs this repo's hooks from the parent folder:
 //                                    SessionStart  own-changes (baseline), workspace-sync (clones,
 //                                                  git identity), kit-news, open-decisions
@@ -155,8 +155,9 @@ export function plan({ routerDir, home = homedir() }) {
     if (have === want) return { ...step, state: 'current' };
     if (pastVersions(routerDir, template).some((t) => render(t, router) === have)) return { ...step, state: 'stale' };
     if (target === 'CLAUDE.md') {
-      return have.includes(`@${router}/CLAUDE.md`) ? { ...step, state: 'current' }
-        : { ...step, state: 'different', lacks: `a line @${router}/CLAUDE.md, which imports this repo's manual` };
+      // Importing the manual directly, or the CLAUDE.md that points at it, both reach it.
+      return have.includes(`@${router}/AGENTS.md`) || have.includes(`@${router}/CLAUDE.md`) ? { ...step, state: 'current' }
+        : { ...step, state: 'different', lacks: `a line @${router}/AGENTS.md, which imports this repo's manual` };
     }
     let parsed = null;
     try { parsed = JSON.parse(have); } catch { /* reported below */ }

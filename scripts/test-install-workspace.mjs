@@ -58,7 +58,7 @@ test('a fresh workspace gets both files, with the router named in them and every
   assert.deepEqual(steps.map((s) => s.state), ['missing', 'missing']);
   apply(steps);
   const md = readFileSync(join(ws, 'CLAUDE.md'), 'utf8');
-  assert.match(md, /^@acme-ops\/CLAUDE\.md$/m);
+  assert.match(md, /^@acme-ops\/AGENTS\.md$/m);
   assert.doesNotMatch(md, /\{\{ROUTER\}\}/);
   const settings = JSON.parse(readFileSync(join(ws, '.claude/settings.json'), 'utf8'));
   const hooks = Object.values(settings.hooks).flat().flatMap((g) => g.hooks);
@@ -77,7 +77,7 @@ test('a CLAUDE.md someone wrote is left alone, and one that imports the router c
   writeFileSync(join(ws, 'CLAUDE.md'), '# my own notes\n');
   const steps = plan({ routerDir: router, home: home() });
   assert.equal(steps[0].state, 'different');
-  assert.match(steps[0].lacks, /@acme-ops\/CLAUDE\.md/);
+  assert.match(steps[0].lacks, /@acme-ops\/AGENTS\.md/);
   apply(steps);
   assert.equal(readFileSync(join(ws, 'CLAUDE.md'), 'utf8'), '# my own notes\n');
   writeFileSync(join(ws, 'CLAUDE.md'), '# my own notes\n\n@acme-ops/CLAUDE.md\n');

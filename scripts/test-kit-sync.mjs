@@ -81,3 +81,19 @@ test('a collision found by apply keeps the kit change visible after the baseline
   assert.deepEqual(sync.setAside, [{ file: 'docs/guide.md', at: v1 }]);
   assert.match(status(proj), /kit has changed them since you last reconciled \(1\)/);
 });
+
+test('a manual new to the kit is taken whole where it is absent, and only reported once it is the project\'s', () => {
+  const { tpl, proj } = setup({ legacy: false });
+  write(tpl, 'AGENTS.md', '# the manual v1\n');
+  commit(tpl, 'the manual moves to AGENTS.md');
+  git(proj, 'fetch', '-q', 'template');
+  execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
+  assert.equal(readFileSync(join(proj, 'AGENTS.md'), 'utf8'), '# the manual v1\n', 'absent here: taken whole');
+  write(proj, 'AGENTS.md', '# the manual v1\nour own rule\n');
+  commit(proj, 'our rule');
+  write(tpl, 'AGENTS.md', '# the manual v2\n');
+  commit(tpl, 'v2 of the manual');
+  git(proj, 'fetch', '-q', 'template');
+  execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
+  assert.match(readFileSync(join(proj, 'AGENTS.md'), 'utf8'), /our own rule/, 'the project\'s manual is never overwritten');
+});

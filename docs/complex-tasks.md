@@ -55,7 +55,7 @@ A subtask is cut properly when it has all four of these:
 
 - **One question** it answers, written as a question.
 - **One output** someone can judge without holding the rest of the task in their head.
-- **The guide that governs it**, from the routing table in `CLAUDE.md`. A subtask that writes words
+- **The guide that governs it**, from the routing table in `AGENTS.md`. A subtask that writes words
   answers to `voice.md`; one that touches a to-do answers to `todo.md`; one that publishes a figure
   answers to `source/facts/`. Different subtasks of the same task obey different registers, and that
   is the point of splitting them.

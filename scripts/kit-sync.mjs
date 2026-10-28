@@ -31,13 +31,15 @@ const BRANCH = process.env.KIT_BRANCH || 'main';
 const REF = `${REMOTE}/${BRANCH}`;
 
 // Framework paths: what the template owns and may replace. Everything else in the
-// project belongs to the owner and is never touched. CLAUDE.md is deliberately NOT
-// here -- it always carries local rules, so it is reported and never auto-applied.
+// project belongs to the owner and is never touched. The agent's manual (AGENTS.md, and
+// CLAUDE.md, now a one-line pointer to it) and FEATURES.md are deliberately NOT here -- they carry
+// local rules and local features, so a change to them is reported and never auto-applied. A
+// project that does not have one yet receives it whole, since there is nothing of its own to lose.
 const FRAMEWORK = [
   '.claude', 'docs', 'scripts', 'lib', 'source/formats',
   'apps/dashboard', 'apps/todos', 'SETUP.md', 'README.md', 'CHANGELOG.md',
 ];
-const REPORT_ONLY = ['CLAUDE.md', 'package.json', 'wrangler.jsonc'];
+const REPORT_ONLY = ['AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'package.json', 'wrangler.jsonc'];
 
 const git = (args, opts = {}) =>
   execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
@@ -152,7 +154,8 @@ function plan(base) {
 
     if (same(baseContent, theirs)) { out.localOnly.push(file); continue; }  // only we changed it
     if (same(baseContent, ours)) {
-      (isReportOnly ? out.reportOnly : out.apply).push(file);               // only they changed it
+      // A report-only file new to the kit and absent here is taken whole: nothing local to keep.
+      (isReportOnly && !(ours === null && baseContent === null) ? out.reportOnly : out.apply).push(file);               // only they changed it
       continue;
     }
     out.collide.push(file);                                                 // both changed it

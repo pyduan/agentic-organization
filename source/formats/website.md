@@ -56,7 +56,7 @@ A private draft, a page for one client, a board only they should see. Build it l
 then keep it out of the deploy: put it in `site/src/pages/internal/<slug>/`, which is gitignored, so
 it never gets committed and Cloudflare never sees it. Share it as a local preview or a PDF they print
 from the browser. `noindex` and an unlisted URL are obscurity, not access control: anything genuinely
-confidential stays local-only per the sensitive-content rule in `CLAUDE.md`.
+confidential stays local-only per the sensitive-content rule in `AGENTS.md`.
 
 ### A page reachable only by its address
 

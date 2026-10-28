@@ -70,7 +70,7 @@ Add both `yourdomain.com` and `www.yourdomain.com` so either one works; Cloudfla
 - `https://` works and `http://` redirects to it (automatic with Cloudflare).
 - Record the final URLs in `source/brief.md`.
 - **Check that your private files are not public** (see below):
-  `curl -s -o /dev/null -w '%{http_code}' https://yourdomain.com/CLAUDE.md` must print `404`.
+  `curl -s -o /dev/null -w '%{http_code}' https://yourdomain.com/AGENTS.md` must print `404`.
 
 ## A host serves *everything* in the folder you point it at
 
@@ -79,13 +79,13 @@ decide what the world can read. A host serves every file in the folder it is giv
 of which ones you considered private.
 
 The settings in step 1 are safe on purpose: the host is pointed at the built site, so your
-`CLAUDE.md`, your `source/` folder and your notes are never served. **The risk appears the moment
+`AGENTS.md`, your `source/` folder and your notes are never served. **The risk appears the moment
 something is hosted straight from a folder you also write notes in** — a plain HTML page with no
 build step, or an app published from `apps/<slug>/` per `source/formats/webapp.md`. Then the
 folder's own README and working files are on the public internet.
 
 This is not hypothetical. A private repo of ours was hosted from its repo root, which put its
-`CLAUDE.md`, its bio notes and its style guide on the open web for weeks. Nothing warned anyone: the
+`AGENTS.md`, its bio notes and its style guide on the open web for weeks. Nothing warned anyone: the
 site looked perfect, and the repo was correctly marked private.
 
 Two rules, and the second matters more than the first:

@@ -22,7 +22,7 @@ const add = (severity, pack, detail) => findings.push({ severity, pack, detail }
 
 // The paths the kit owns. A pack that writes here is not a pack.
 const FRAMEWORK = ['.claude/', 'docs/', 'scripts/', 'lib/', 'source/formats/', 'apps/dashboard/',
-  'apps/todos/', 'CLAUDE.md', 'SETUP.md', 'README.md', 'CHANGELOG.md', 'package.json', 'wrangler.jsonc'];
+  'apps/todos/', 'AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'SETUP.md', 'README.md', 'CHANGELOG.md', 'package.json', 'wrangler.jsonc'];
 
 const KNOWN = ['skills', 'scripts', 'apps', 'formats', 'files'];
 

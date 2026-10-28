@@ -23,7 +23,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LIST = join(ROOT, 'source', 'quality', 'retired-claims.json');
-const GUIDES = ['CLAUDE.md', 'README.md', 'QUICKSTART.md', 'SETUP.md', 'ORGANIGRAM.md', 'STACK.md', 'docs', 'source/formats',
+const GUIDES = ['AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'README.md', 'QUICKSTART.md', 'SETUP.md', 'ORGANIGRAM.md', 'STACK.md', 'docs', 'source/formats',
   'source/brand', 'source/brief.md', '.claude/skills', 'routines', 'projects'];
 const HISTORY = /(?:^|\/)(?:CHANGELOG|decisions|journal|DECISIONS|JOURNAL)\.md$/;
 const SKIP = new Set(['node_modules', 'dist', '.git', 'assets']);

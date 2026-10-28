@@ -21,7 +21,7 @@ through and which refuses what the level does not allow. A `dashboard: counts-on
 project's charter still works, for one project inside a repo that is otherwise `full`.
 
 It binds scripts. An agent session that opens the files by hand is held by that repo's
-`CLAUDE.md`, so a repo at `counts` or `none` says the same thing there, in its *Where this repo
+`AGENTS.md`, so a repo at `counts` or `none` says the same thing there, in its *Where this repo
 sits* block.
 
 ## When to write one
@@ -29,7 +29,7 @@ sits* block.
 When a repo holds wording that should not appear in another repo's dashboard, to-do app or session
 report. A client's own repo usually wants `counts`, so the organization still sees that it moves;
 a repo of private material wants `none`. Write it in the same commit that
-makes the repo sensitive, and say the same in its `CLAUDE.md`. A repo that has nothing to hide
+makes the repo sensitive, and say the same in its `AGENTS.md`. A repo that has nothing to hide
 needs no file.
 
 ### A copy another repo generated

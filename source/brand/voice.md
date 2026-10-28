@@ -204,7 +204,7 @@ TODO: list the site's languages. The first is the default.
 If the site has more than one language, every language is written natively. Before publishing copy in a non-default language, do a dedicated pass reading it on its own, as a native speaker would, and fix anglicisms, calques, and literal constructions. A page that reads like a translation fails this guide even if every word is technically correct.
 
 **All of the above governs what a person reads. What a *model* reads is a different artifact, and it
-is written in English** — prompts, skill files, scheduled-task instructions, the rules in `CLAUDE.md`,
+is written in English** — prompts, skill files, scheduled-task instructions, the rules in `AGENTS.md`,
 comments in scripts. Not out of preference: technical terms have canonical English forms, and
 translating them (connector, hook, fallback, register) adds ambiguity and buys nothing. The mistake
 to avoid is matching the language of the file you happen to be editing: a task written in French for
@@ -216,7 +216,7 @@ task produces for its owner follows the owner's language, as ever.
 TODO: how the project's name is written, exactly, including capitalization and any punctuation that is part of the mark. Add other named things (product names, series titles) as they appear. These notations are non-negotiable; the AI applies them everywhere without exception.
 
 **A path is always written with the repo that holds it.** `routines/` is not an address once an
-organization spans more than one repo: `scripts/`, `source/`, `recipes/`, `CLAUDE.md` and
+organization spans more than one repo: `scripts/`, `source/`, `recipes/`, `AGENTS.md` and
 `ORGANIGRAM.md` exist in several of them, so a bare path makes the reader guess, and they guess
 wrong. Write `pyduan/agentic-organization ▸ routines/` — the repo as its `owner/name` slug, then the
 path inside it. The same holds when speaking: "the routines folder in the kit", never "the routines
