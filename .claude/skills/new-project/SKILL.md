@@ -117,7 +117,7 @@ sensitivity, and a new repo is only the far end of it:
 - **Not sensitive** → a **subfolder in this repo** (material under `source/`, a tool under `apps/`).
   It shares the brand and the cascade like any other variant, and is the default: prefer it.
 - **Private to you, but worth versioning** → a **git-ignored** subfolder, or a separate
-  **local-only** repo on your machine (CLAUDE.md's sensitive-content rule). It never enters the
+  **local-only** repo on your machine (AGENTS.md's sensitive-content rule). It never enters the
   shared public repo, but it's still versioned and backed up.
 - **Sensitive or gated to specific people** (legal documents, HR and payroll data, finances,
   private client records) → its **own access-restricted repo**, with a short, **fact-free signpost**
@@ -130,7 +130,7 @@ sensitivity, and a new repo is only the far end of it:
 Register whichever it is in [`ORGANIGRAM.md`](../../../ORGANIGRAM.md) so the area, and any access
 boundary, is written down once. That table is the **only** list of repos, so registering means:
 add its row (repo slug and kind in backticks, so the scripts can read them; where it sits on a
-machine is found by its origin, never written in the map), and — for a new repo — open its `CLAUDE.md` with a short *Where this repo sits* block naming
+machine is found by its origin, never written in the map), and — for a new repo — open its `AGENTS.md` with a short *Where this repo sits* block naming
 the organization and the repo that holds the shared guides and the map. A pointer, never a second
 copy of the table. Then run `node scripts/check-workspace.mjs` from the org repo: it should be
 silent about the repo you just created.

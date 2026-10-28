@@ -28,6 +28,9 @@ import {
 } from '../lib/workspace.mjs';
 import { neighbour, CONSENT_FILE } from '../lib/neighbour.mjs';
 
+// A repo's manual: AGENTS.md, or CLAUDE.md in a repo not moved yet. null when it has neither.
+const manualOf = (n) => (n.exists('AGENTS.md') ? 'AGENTS.md' : n.exists('CLAUDE.md') ? 'CLAUDE.md' : null);
+
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
 const OFFLINE = args.includes('--offline');
@@ -114,9 +117,9 @@ for (const r of located) {
   if (n?.problem) add('warn', id, n.problem);
   if (n?.level === 'none') {
     add('info', id, `declares none in ${CONSENT_FILE}, so its CLAUDE.md is not read from here and its pointer home is not checked`);
-  } else if (n && n.exists('CLAUDE.md')) {
+  } else if (n && manualOf(n)) {
     const homeName = ((await originSlug(ROOT)) || basename(ROOT)).split('/').pop();
-    const guide = n.measure('CLAUDE.md', (text) => ({
+    const guide = n.measure(manualOf(n), (text) => ({
       pointsHome: new RegExp(`(where this repo sits|${homeName})`, 'i').test(text),
       ownTable: /^\|\s*Repo\s*\|/im.test(text),
     }));
@@ -153,9 +156,9 @@ for (const s of await siblingRepos(WORKSPACE)) {
   // Not on the map and declaring none: it asked not to be read, and it is not ours to list.
   const n = neighbour(s.dir);
   if (n.level === 'none') continue;
-  const looksLikeKit = n.exists('CLAUDE.md') && n.exists(join('source', 'brief.md'));
+  const looksLikeKit = !!manualOf(n) && n.exists(join('source', 'brief.md'));
   if (!looksLikeKit || isTemplateSlug(s.slug || '')) continue;
-  const pointsHere = n.measure('CLAUDE.md', (guide) =>
+  const pointsHere = n.measure(manualOf(n), (guide) =>
     new RegExp(`\\b${homeName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i').test(guide));
   if (pointsHere) {
     add('warn', basename(s.dir), `its CLAUDE.md points at ${homeName}, but ORGANIGRAM.md has no row for it — no session here will know it exists`);

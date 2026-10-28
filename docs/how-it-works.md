@@ -1,6 +1,6 @@
 # How this works
 
-The mental model behind the kit, for humans. The AI's version of this is `CLAUDE.md` at the repo root.
+The mental model behind the kit, for humans. The AI's version of this is `AGENTS.md` at the repo root.
 
 ## One source of truth, many derivatives
 
@@ -14,7 +14,7 @@ Why Git specifically? Because it's not a technical detail, it's decades of devel
 
 ## The AI is the operator, the repo is its manual
 
-`CLAUDE.md` tells the AI, for every kind of task, exactly which guide to read first. You never need to say "remember, we don't use exclamation points": the voice guide says it, the AI reads the voice guide before writing, so it applies. When you give feedback in a session, the AI folds it into the right guide before it signs off, so the correction sticks for every future session, on any machine.
+`AGENTS.md` tells the AI, for every kind of task, exactly which guide to read first. You never need to say "remember, we don't use exclamation points": the voice guide says it, the AI reads the voice guide before writing, so it applies. When you give feedback in a session, the AI folds it into the right guide before it signs off, so the correction sticks for every future session, on any machine.
 
 ## Git, invisibly
 

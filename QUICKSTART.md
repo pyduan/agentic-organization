@@ -21,7 +21,7 @@ volunteer's or a founder's personal account, open the organization's own and mov
 a site whose only login belongs to one person is held by that person.
 
 **If your organization publishes an AI policy, it comes first.** Each principle lands in the file
-that enforces it: who answers for an output in `CLAUDE.md`, who may change or publish what in
+that enforces it: who answers for an output in `AGENTS.md`, who may change or publish what in
 `ORGANIGRAM.md`, what data must not travel in `.gitignore` and a restricted repository. A line
 against training models on your data is answered by an organization plan under the vendor's
 commercial terms, read on their page the day you sign.
@@ -77,7 +77,7 @@ only touches your own machine (`node scripts/setup-status.mjs` underneath).
 ### If this machine has been used with Claude before
 
 The kit works because one repo holds the instructions. Anything installed outside it and still
-loaded on every session competes with that, silently: a `CLAUDE.md` in your home folder written for
+loaded on every session competes with that, silently: a `AGENTS.md` in your home folder written for
 something else, plugins and skills installed for an earlier experiment and frozen at that day's
 version, MCP servers declared globally, a scheduled task nobody remembers registering. You cannot
 see any of it, and what you get is an agent that ignores an instruction it plainly reads. The first
@@ -267,7 +267,7 @@ paste:
 > step at a time, explaining each step and checking it worked, and log me into GitHub with
 > `gh auth login --git-protocol ssh`. Then clone the organization's main repo, `<owner>/<repo>`, into
 > `~/Projects`, the same folder as everyone else, and run
-> `node <main repo>/scripts/install-workspace.mjs` from there. Read its `CLAUDE.md`,
+> `node <main repo>/scripts/install-workspace.mjs` from there. Read its `AGENTS.md`,
 > `source/brief.md` and the repo map in `ORGANIGRAM.md`, ask me what my job is, and clone beside it
 > only the repos that job needs, skipping without a word any I cannot read. Then run
 > `node <main repo>/scripts/setup-status.mjs`, fix what is red, and tell me in plain words what the

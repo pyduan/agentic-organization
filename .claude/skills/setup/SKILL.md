@@ -21,7 +21,7 @@ answer, and ask only what the seed does not cover. When every line is settled, r
 `source/decisions.md` and delete `source/seed.md`. Never treat a seeded decision as taken.
 
 If the organization publishes an AI policy, read it before the interview: its principles become
-rules in `CLAUDE.md`, `ORGANIGRAM.md` and `.gitignore`, and the owner confirms the mapping.
+rules in `AGENTS.md`, `ORGANIGRAM.md` and `.gitignore`, and the owner confirms the mapping.
 
 ## 1. Interview
 
@@ -31,7 +31,7 @@ Establish, in the owner's own words:
 - **How you'll handle their code — ask this early, in plain terms.** It sets how every future session publishes. Two modes:
   - **Simplified (the default; right for most, especially non-technical owners):** you have full code-management rights — you commit, push, publish, and merge on your own, pausing only for destructive or irreversible actions. They never touch git or a command line; you never hand them one.
   - **Review mode (for owners comfortable with git who want to stay in the loop):** you still do all the git yourself, but you pause for a yes before each push or merge.
-  Ask it simply — *"Once a change looks good, should I just publish it, or check with you first each time?"* — with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `CLAUDE.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
+  Ask it simply — *"Once a change looks good, should I just publish it, or check with you first each time?"* — with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `AGENTS.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
 - **One repo or several?** Default to one, with folders. Only reach for a second when someone
   should see one and not the other, or when one of them serves a public surface and the other holds
   private material. `docs/one-repo-or-several.md` has the three questions and, if a split is real,
@@ -148,6 +148,10 @@ How to run it:
 
 The failure this prevents: a system that works only when its owner is available to authorise
 something. Judge the pass by asking whether you could now do a month of work without them.
+
+**Start `FEATURES.md` ▸ *This organization's own*** with what the interview decided this
+repository will do beyond the kit (a module turned on, an app, a pack), each with its **Why:**.
+Every later session keeps it current in the same commit as the change.
 
 ## 3. Structure and facts, before anything is built
 

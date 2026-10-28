@@ -77,7 +77,7 @@ the other copies keep describing last month. So the kit deliberately keeps **one
 - **This table is the only list of repos.** Nothing else enumerates them. Not a second file, not a
   per-repo manifest, not a paragraph in another guide. A repo's own `.read-consent` is not one: it
   names no other repo and only says how far the others may read it (below).
-- **Every other repo carries a pointer, never a copy.** Each project repo's `CLAUDE.md` opens with a
+- **Every other repo carries a pointer, never a copy.** Each project repo's `AGENTS.md` opens with a
   short *Where this repo sits* block: which organization it belongs to, which repo holds the shared
   guides and this map, and the one or two siblings it actually reads from or writes to. A pointer
   cannot drift out of sync with the map, because it does not restate it.
@@ -91,8 +91,8 @@ the other copies keep describing last month. So the kit deliberately keeps **one
 
   It reads this table, finds each repo on this machine by its `origin`, and reports the
   disagreements: a repo listed but not on this machine, a legacy folder column that names a repo
-  with another origin, a kit project beside this one whose `CLAUDE.md` points here but which has no
-  row, a project repo whose `CLAUDE.md` has no pointer home, a published URL that no longer answers,
+  with another origin, a kit project beside this one whose `AGENTS.md` points here but which has no
+  row, a project repo whose `AGENTS.md` has no pointer home, a published URL that no longer answers,
   and an `origin` still pointing at the template (the one mistake that pushes your content into
   someone else's repo). Run it with the `freshness` sweep.
 
@@ -108,7 +108,7 @@ Every tool that reads beside its own repo respects it. The format:
 Two rules that only bite once the organization spans repos, both learned the hard way:
 
 - **A rule that governs work done in another repo has to be written in that repo's guide too**, in
-  the same change. The session doing that work opens *that* repo's `CLAUDE.md` and nothing else, so a
+  the same change. The session doing that work opens *that* repo's `AGENTS.md` and nothing else, so a
   rule recorded only here does not exist for it.
 - **When you do mirror something, mirror the whole operational path, not its headline** — the folder
   to write in, the command to run, the file to create if it is missing. A mirrored rule that names a
@@ -206,7 +206,7 @@ disagree, one of them is lying, and it's usually this file.
    lacks access, say so and stop rather than improvise around it.
 3. **Route** the change by the rights above: the owner (or the area's named owner) may commit and
    merge; anyone else lands a pull request for the owner to review. Governance — this file and the
-   rules in `CLAUDE.md` — is the owner's alone to change.
+   rules in `AGENTS.md` — is the owner's alone to change.
 4. **Check pending work against today's guides before merging it.** A branch can be up to date with
    `main` and still miss a rule that landed after it was written, with no git conflict to warn you.
    Fix that on top of their commit, so their authorship survives, and say what you changed. If the

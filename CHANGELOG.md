@@ -12,6 +12,21 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-28 · MAJOR · The manual is AGENTS.md, and FEATURES.md says what the repo does and why
+
+- **`AGENTS.md` is the agent's manual now**, the name coding agents read whatever their vendor.
+  `CLAUDE.md` keeps one line, `@AGENTS.md`, so Claude Code still loads it.
+- **`FEATURES.md`**, at the root: what the repository does, one feature at a time, each with the
+  decision behind it. Every change that adds or changes a feature updates its entry in the same
+  commit, so a design choice is not re-argued by the next session and a feature is not rebuilt
+  beside the one that exists.
+
+**What you need to do:** ask your agent to update the kit. `AGENTS.md` and `FEATURES.md` arrive
+whole. Your `CLAUDE.md` is then reported as changed on both sides: move the rules your organization
+added there into `AGENTS.md`, leave `CLAUDE.md` as the single line `@AGENTS.md`, run
+`node scripts/kit-sync.mjs reconciled CLAUDE.md`, and fill the last part of `FEATURES.md` with what
+your repository does beyond the kit.
+
 ## 2026-10-28 · MAJOR · Documents on real A4 pages, shared code, and three more checks
 
 - **Documents.** A proposal, a one-pager, minutes: `node scripts/doc/build.mjs new <name>` starts

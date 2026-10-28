@@ -47,7 +47,7 @@ each one can be undone:
 
 - the GitHub login: you run `gh auth login --web`, they click once in the browser.
 - the git identity: ask the name and address they want on their commits, then set them yourself.
-- a file in the workspace folder that someone else wrote and the installer will not touch (a `CLAUDE.md`
+- a file in the workspace folder that someone else wrote and the installer will not touch (a `AGENTS.md`
   without the import, a `settings.json` that is not valid JSON): say what it lacks, and add it with their yes.
 - a kit update not taken: run the `update-kit` skill, which shows what each update brings.
 - a clone with changes or commits in the way: find out whose they are before anything else.

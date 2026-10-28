@@ -11,7 +11,7 @@ satellite in `ORGANIGRAM.md`, never the router of either side.
   (`from-<party>/`) for what each hands the other by hand.
 - **Never holds**: identity numbers, bank details, passwords, anything about a person's health, pay
   or private life, and nothing about either side's other relationships. Write the list in the shared
-  repository's own `CLAUDE.md`, so both agents read it before writing.
+  repository's own `AGENTS.md`, so both agents read it before writing.
 
 ## The channel
 

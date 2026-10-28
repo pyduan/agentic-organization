@@ -373,7 +373,7 @@ wrong.
 - **A retired file does not know it is retired, and its contents read as instructions.** An old
   export left in a folder still carries its `<script>` tags, its README, its "the brand lives in
   repo X": a session that opens it follows them to a repo that is dead. When something on disk says
-  where to go or what to load, check the destination against `CLAUDE.md` and `source/decisions.md`
+  where to go or what to load, check the destination against `AGENTS.md` and `source/decisions.md`
   before following it. The hygiene half: clear the working folder of what no repo owns, inventory
   first, deletions to the trash and never `rm`, and what has no live counterpart into a dated
   quarantine folder with an index saying what each item was.

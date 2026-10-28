@@ -43,7 +43,7 @@ setup skill treats the seed as its interview notes, not as answers.
    interview from scratch.
 3. **Fill what is public**, with sources: `source/brief.md` (the parts that are not governance),
    `source/content/` and `source/facts/`, and their AI policy mapped onto the files that enforce it
-   (`CLAUDE.md`, `ORGANIGRAM.md`, `.gitignore`, a restricted repository).
+   (`AGENTS.md`, `ORGANIGRAM.md`, `.gitignore`, a restricted repository).
 4. **Their tools as a pack** under `packs/<slug>/` (`source/formats/pack.md`): the recipes around
    the tool, and an import step their own agent runs to bring the content in.
 5. **Hand it over at the workshop**: transfer the repository to their GitHub organization

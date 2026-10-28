@@ -157,7 +157,7 @@ test('session-end names only the repos holding this session\'s work, and stays q
   const out = JSON.parse(stop(ws, { transcript_path: path }));
   assert.match(out.reason, /changes in: sales\. Yours: sales\/lead\.md \(1 change\(s\) by other sessions left alone\)/);
   assert.doesNotMatch(out.reason, /in: notes|their-draft/);
-  assert.match(out.reason, /reflection pass from acme-ops\/\.claude\/skills\/reflect\/SKILL\.md|at the end of acme-ops\/CLAUDE\.md/,
+  assert.match(out.reason, /reflection pass from acme-ops\/\.claude\/skills\/reflect\/SKILL\.md|at the end of acme-ops\/AGENTS\.md/,
     'the reflection pass is named from the folder the agent was opened on');
 
   unlinkSync(join(ws, 'sales/lead.md'));

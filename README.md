@@ -46,7 +46,8 @@ That third one updates your voice guide, so every future page and deck inherits 
 ## What's in the box
 
 ```
-CLAUDE.md            the AI's operating manual: rules + a map of every guide
+AGENTS.md            the AI's operating manual: rules + a map of every guide (CLAUDE.md is a one-line pointer to it)
+FEATURES.md          what the repo does, feature by feature, and the design decision behind each
 ORGANIGRAM.md        your org's repos + who may use/change/approve what (solo by default)
 QUICKSTART.md        the one-pager to hand someone before the setup hour
 SETUP.md             the one-hour setup checklist, three ways to install
@@ -154,7 +155,7 @@ This kit keeps improving. Your project is your own copy, so it doesn't change on
 
 **If you set up before the `update-kit` skill existed** (early adopter — you won't see it in `.claude/skills/`), do the first refresh by pasting this once, and you'll have the skill for every update after:
 
-> Pull the latest framework files from the `pyduan/agentic-organization` template into this project — the scaffolding only (`.claude/`, `docs/`, `scripts/`, `source/formats/`, and the root `CLAUDE.md`/`SETUP.md`/`README.md`), never my own content under `source/`, `site/` or `apps/`. Add the template as a git remote if needed, bring those paths over, reconcile `CLAUDE.md` by merging rather than overwriting, then commit and publish.
+> Pull the latest framework files from the `pyduan/agentic-organization` template into this project — the scaffolding only (`.claude/`, `docs/`, `scripts/`, `source/formats/`, and the root `AGENTS.md`/`SETUP.md`/`README.md`), never my own content under `source/`, `site/` or `apps/`. Add the template as a git remote if needed, bring those paths over, reconcile `AGENTS.md` by merging rather than overwriting, then commit and publish.
 
 That's not a git rebase and it won't touch your work: the framework files are updated in place, your content carries forward as-is. Claude flags anything a change implies you should redo.
 
