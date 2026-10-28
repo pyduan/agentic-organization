@@ -134,6 +134,9 @@ const writeSync = (sha, setAside) =>
     setAside: [...setAside].sort((a, b) => (a.file < b.file ? -1 : 1)),
   }, null, 2)}\n`);
 
+/** Whether this repo's own history ever held the file. */
+const everCommitted = (file) => Boolean((tryGit(['log', '--format=%H', '-1', '--', file]) || '').trim());
+
 /** Classify every framework file the template knows about. */
 function plan(base) {
   const listed = git(['ls-tree', '-r', '--name-only', REF, '--', ...FRAMEWORK, ...REPORT_ONLY])
@@ -152,6 +155,10 @@ function plan(base) {
 
     const baseContent = show(base, file);
 
+    // Absent here though the baseline had it reads as a deletion, unless this repo never had the
+    // file at all: then the sync that moved the baseline past it was run by an older kit-sync that
+    // did not know the file, and it is simply new here.
+    if (isReportOnly && ours === null && !everCommitted(file)) { out.apply.push(file); continue; }
     if (same(baseContent, theirs)) { out.localOnly.push(file); continue; }  // only we changed it
     if (same(baseContent, ours)) {
       // A report-only file new to the kit and absent here is taken whole: nothing local to keep.
