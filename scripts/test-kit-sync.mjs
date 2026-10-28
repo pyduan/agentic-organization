@@ -97,3 +97,19 @@ test('a manual new to the kit is taken whole where it is absent, and only report
   execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
   assert.match(readFileSync(join(proj, 'AGENTS.md'), 'utf8'), /our own rule/, 'the project\'s manual is never overwritten');
 });
+
+test('a manual an older kit-sync stepped over is still delivered, since this repo never had it', () => {
+  const { tpl, proj } = setup({ legacy: false });
+  write(tpl, 'AGENTS.md', '# the manual\n');
+  const v2 = commit(tpl, 'the manual moves to AGENTS.md');
+  git(proj, 'fetch', '-q', 'template');
+  // What an older kit-sync leaves behind: the baseline moved past the manual, and no manual here.
+  const sync = JSON.parse(readFileSync(join(proj, '.kit-sync'), 'utf8'));
+  write(proj, '.kit-sync', JSON.stringify({ ...sync, sha: v2 }));
+  commit(proj, 'an older sync moved the baseline');
+  write(tpl, 'docs/guide.md', 'kit v3\n');
+  commit(tpl, 'v3');
+  git(proj, 'fetch', '-q', 'template');
+  execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
+  assert.equal(readFileSync(join(proj, 'AGENTS.md'), 'utf8'), '# the manual\n');
+});
