@@ -1,0 +1,127 @@
+/* The document layer: real A4 pages, built from the brand's tokens (source/brand/tokens.css).
+   A brand changes tokens only, never this file: a second brand is a [data-brand="x"] block of
+   tokens in tokens.css, selected by `brand:` in a document's frontmatter. */
+
+.doc-paged {
+  --doc-surface: var(--color-surface, #fff); --doc-bg: var(--color-bg, #f4f4f2); --doc-ink: var(--color-ink, #1c1c1c);
+  --doc-muted: var(--color-muted, #5b5b5b); --doc-line: var(--color-line, #dcdcd8); --doc-accent: var(--color-accent, #2f6f5e);
+  --doc-accent-soft: color-mix(in srgb, var(--doc-accent) 10%, var(--doc-surface));
+  --doc-sunken: color-mix(in srgb, var(--doc-ink) 5%, var(--doc-surface));
+  --doc-mark: color-mix(in srgb, #f2c94c 45%, var(--doc-surface));
+  --doc-serif: var(--font-display, Georgia, serif); --doc-sans: var(--font-text, system-ui, sans-serif);
+  counter-reset: band; font-family: var(--doc-sans); color: var(--doc-ink);
+}
+html, body { margin: 0; background: var(--color-bg, #f4f4f2); }
+.doc-shell { padding: 24px 16px 48px; }
+.doc-flow { position: absolute; left: -10000px; top: 0; width: 176mm; visibility: hidden; }
+
+/* What still has to be filled: shown on screen, never printed. */
+.doc-todo { max-width: 210mm; margin: 0 auto 16px; padding: 10px 14px; border: 1px dashed var(--doc-accent);
+  border-radius: 8px; background: var(--doc-surface); font-size: 13px; }
+.doc-todo b { display: block; margin-bottom: 4px; }
+.doc-todo ul { margin: 0; padding-left: 18px; }
+.doc-blank { background: var(--doc-mark); color: inherit; padding: 0 2px; border-radius: 3px; }
+
+/* ------------------------------------------------------------------ the pages */
+.doc-pages { display: flex; flex-direction: column; align-items: center; gap: 24px; }
+.doc-page { box-sizing: border-box; width: 210mm; height: 297mm; background: var(--doc-surface); border: 1px solid var(--doc-line);
+  padding: 13mm 17mm 11mm; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+.doc-page-run { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex: none;
+  font-size: 9.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--doc-muted);
+  padding-bottom: 3mm; border-bottom: 1px solid var(--doc-line); margin-bottom: 7mm; }
+.doc-page-mark { display: inline-flex; align-items: center; gap: 7px; font-family: var(--doc-serif); font-size: 13px;
+  font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--doc-ink); }
+.doc-page-mark i { width: 7px; height: 7px; background: var(--doc-accent); display: inline-block; }
+.doc-page-body { flex: 1; min-height: 0; overflow: hidden; }
+.doc-page-foot { flex: none; display: flex; justify-content: space-between; gap: 12px; margin-top: 5mm; padding-top: 3mm;
+  border-top: 1px solid var(--doc-line); font-size: 9.5px; color: var(--doc-muted); font-variant-numeric: tabular-nums; }
+
+/* A one-pager: two columns filled one after the other; the title block runs across both. */
+.doc-page.is-onepager .doc-page-body { column-count: 2; column-gap: 9mm; column-fill: auto; font-size: 12px; line-height: 1.5; }
+.doc-page.is-onepager .doc-hero { column-span: all; margin-bottom: 5mm; padding-bottom: 4mm; }
+
+/* ------------------------------------------------------------------ the title block */
+.doc-hero { margin-bottom: 7mm; padding-bottom: 6mm; border-bottom: 1px solid var(--doc-ink); }
+.doc-kicker { font-size: 10.5px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--doc-accent); margin-bottom: 8px; }
+.doc-hero h1 { font-family: var(--doc-serif); font-weight: 400; font-size: 30px; line-height: 1.12; margin: 0; text-wrap: balance; }
+.doc-hero-dek { font-size: 15px; line-height: 1.5; color: var(--doc-muted); margin: 10px 0 0; max-width: 62ch; }
+.doc-hero-meta { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 12px; font-size: 11.5px; color: var(--doc-muted); }
+
+/* ------------------------------------------------------------------ prose */
+.doc-prose { font-size: 13px; line-height: 1.55; }
+.doc-prose > :first-child { margin-top: 0; }
+.doc-prose p { margin: 0 0 8px; }
+.doc-prose ul, .doc-prose ol { margin: 4px 0 10px; padding-left: 20px; }
+.doc-prose li { margin: 2px 0; }
+.doc-prose table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 6px 0 12px; }
+.doc-prose th { text-align: left; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1.5px solid var(--doc-ink); padding: 4px 6px; }
+.doc-prose td { border-bottom: 1px solid var(--doc-line); padding: 5px 6px; vertical-align: top; }
+.doc-prose blockquote { margin: 0 0 12px; padding-left: 12px; border-left: 2px solid var(--doc-line); color: var(--doc-muted); }
+.doc-prose code { font-size: .9em; background: var(--doc-sunken); padding: 0 3px; border-radius: 3px; }
+.doc-prose pre { background: var(--doc-sunken); padding: 8px 10px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; }
+.doc-prose a { color: var(--doc-accent); }
+.doc-check { margin-right: 6px; }
+/* Numbered bands: a section heading, its number in the accent. */
+.doc-prose h2 { counter-increment: band; display: flex; align-items: baseline; gap: 10px; font-family: var(--doc-serif); font-weight: 400;
+  font-size: 19px; line-height: 1.25; margin: 18px 0 8px; padding-top: 8px; border-top: 1px solid var(--doc-line); }
+.doc-prose h2::before { content: counter(band, decimal-leading-zero); font-family: var(--doc-sans); font-size: 10.5px; font-weight: 700;
+  letter-spacing: .08em; color: var(--doc-accent); flex: none; }
+/* A band right under the title block, or at the top of a page, needs no rule of its own. */
+.doc-hero + h2, .doc-page-body > h2:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+.doc-prose h3 { font-size: 13.5px; font-weight: 650; margin: 12px 0 4px; }
+.doc-prose h4 { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; margin: 0 0 4px; }
+
+/* ------------------------------------------------------------------ the directives */
+.doc-rows { margin: 6px 0 12px; }
+.doc-rows > div { display: grid; grid-template-columns: 34% 1fr; gap: 4px 16px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--doc-line); }
+.doc-rows > div:last-child { border-bottom: 1px solid var(--doc-line); }
+.doc-rows dt { font-size: 10.5px; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; }
+.doc-rows dd { margin: 0; color: var(--doc-muted); }
+.doc-cols { display: grid; grid-template-columns: repeat(var(--n, 2), minmax(0, 1fr)); gap: 12px 18px; margin: 8px 0 12px; }
+.doc-cols > div { border-top: 1.5px solid var(--doc-ink); padding-top: 7px; min-width: 0; }
+.doc-cols p, .doc-cols li { font-size: 12px; color: var(--doc-muted); }
+.doc-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); grid-auto-flow: column; gap: 12px; margin: 8px 0 12px; }
+.doc-compare > div { border: 1px solid var(--doc-line); border-radius: 8px; padding: 10px 12px; }
+.doc-compare > div.ours { border-color: var(--doc-accent); background: var(--doc-accent-soft); }
+.doc-compare h4 { font-family: var(--doc-serif); font-weight: 400; font-size: 15px; letter-spacing: 0; text-transform: none; }
+.doc-compare p, .doc-compare li { font-size: 12px; }
+.doc-steps { list-style: none; margin: 8px 0 12px; padding: 0 !important; display: grid; gap: 7px; }
+.doc-steps li { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; margin: 0; }
+.doc-steps-n { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--doc-accent); color: var(--doc-accent);
+  display: grid; place-items: center; font-size: 11px; font-weight: 700; box-sizing: border-box; }
+.doc-steps b { display: block; }
+.doc-steps p { margin: 1px 0 0 !important; color: var(--doc-muted); font-size: 12px; }
+.doc-timeline { list-style: none; margin: 8px 0 12px; padding: 0 0 0 2px !important; border-left: 1.5px solid var(--doc-line); }
+.doc-timeline li { display: grid; grid-template-columns: 72px 1fr; gap: 10px; align-items: baseline; padding: 4px 0 4px 12px; position: relative; margin: 0; }
+.doc-timeline li::before { content: ""; position: absolute; left: -5px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--doc-accent); }
+.doc-timeline-t { font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--doc-accent); }
+.doc-callout { margin: 10px 0 12px; padding: 10px 12px; border-radius: 8px; background: var(--doc-accent-soft); border-left: 3px solid var(--doc-accent); }
+.doc-callout p:last-child { margin-bottom: 0; }
+.doc-label { font-size: 10.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--doc-accent); margin-bottom: 4px; }
+.doc-pull { margin: 8px 0 14px; padding: 2px 0 2px 14px; border-left: 3px solid var(--doc-accent); }
+.doc-pull blockquote { margin: 0; padding: 0; border: 0; color: var(--doc-ink); font-family: var(--doc-serif); font-size: 16px; line-height: 1.45; }
+.doc-pull figcaption { margin-top: 5px; font-size: 10.5px; color: var(--doc-muted); text-transform: uppercase; letter-spacing: .06em; }
+.doc-facts { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 12px; padding: 0 !important; list-style: none; }
+.doc-facts li { margin: 0; font-size: 11px; padding: 4px 9px; border-radius: 999px; background: var(--doc-sunken); }
+.doc-facts b { color: var(--doc-accent); margin-right: 3px; }
+.doc-fold summary { cursor: pointer; font-weight: 600; }
+.doc-pagebreak { display: none; }
+
+/* Blocks never cut in two, across pages or columns. */
+.doc-compare, .doc-cols, .doc-pull, .doc-callout, .doc-hero, figure, tr, .doc-steps li, .doc-timeline li, .doc-rows > div { break-inside: avoid; }
+[data-overflow] { outline: 2px dashed #c0392b; outline-offset: 2px; }
+
+/* ------------------------------------------------------------------ print */
+@media print {
+  @page { size: A4; margin: 0; }
+  html, body { background: #fff !important; }
+  .doc-shell { padding: 0; }
+  .doc-todo { display: none; }
+  .doc-pages { gap: 0; zoom: 1 !important; }
+  .doc-page { border: 0; break-after: page; }
+  .doc-page:last-child { break-after: auto; }
+  .doc-blank { background: none; }
+  [data-overflow] { outline: 0; }
+  /* An office printer may render a gradient or a transparency as a dark block: paper prints flat. */
+  .doc-page * { box-shadow: none !important; background-image: none !important; }
+}

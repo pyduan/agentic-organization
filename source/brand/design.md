@@ -12,6 +12,15 @@ TODO: one paragraph naming the feel in plain words (examples from real projects:
 
 Current palette and type: see `tokens.css` and keep a one-line rationale here per token group once personalized. TODO.
 
+### More than one brand
+
+When the organization produces under two names (a partner's house style on a joint document, a
+programme with its own identity), the second brand is a block of tokens, `[data-brand="x"] { ... }`
+in `tokens.css`, selected by `brand:` in a deck's or a document's frontmatter. A brand changes
+tokens only (colours, fonts, the mark), never a component or a layout, so each house can produce in
+the other's format. Its footer and signature default to its own house, and a short style note sits
+beside its tokens, with what was inferred rather than given marked *to confirm*.
+
 ## Type
 
 - TODO: display face, text face, and where each is used. The kit starts on system fonts; if the owner picks webfonts, self-host them (put files in `site/public/fonts/`, declare with `font-display: optional`) so the site never flashes or jumps on load.
