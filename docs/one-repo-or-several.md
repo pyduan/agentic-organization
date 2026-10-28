@@ -88,6 +88,20 @@ breaking rule 3 above. An owner refused it, and she was right: she had followed 
 tool was arguing with it. It now asks of a satellite only what a satellite can have, and it says out
 loud when it is guessing rather than reading the column (2026-08-31).
 
+## Code two organizations both own
+
+Sometimes the shared thing is not content but code: a component library, a paginator, a set of
+tokens that you and a partner both render with, and both improve. A template upgrade does not fit
+(it flows one way), and neither does a pack (it only adds files). Copied by hand, it forks the first
+week: the same brand renders differently in two places, and a fix made in one never reaches the
+other.
+
+Give it a repo of its own, and let each host embed it byte for byte with `scripts/vendor-sync.mjs`:
+the host lists in `vendor/<kit>.json` which paths it takes and where, `pull` copies them and records
+the kit's commit and a sha256 per file, `push-back` sends an edit made in the host up to the kit,
+and `verify` fails the host's tests on any file that drifted. A host never keeps its own variant: a
+change goes up, is checked against every host, and comes back down.
+
 ## Three questions, in order
 
 1. **Is there a reader who should see one and not the other?** Yes → separate repos.

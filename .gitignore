@@ -31,3 +31,6 @@ decks/*/dist/
 # The list of names that must never leave this repo (scripts/check-leaks.mjs). The list
 # is itself the leak, so it stays on each machine and is never committed.
 .leak-terms
+
+# A document's PDF is rebuilt every time; the source and index.html are what is committed.
+documents/*/dist/

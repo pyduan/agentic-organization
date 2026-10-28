@@ -12,6 +12,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-28 · MAJOR · Documents on real A4 pages, shared code, and three more checks
+
+- **Documents.** A proposal, a one-pager, minutes: `node scripts/doc/build.mjs new <name>` starts
+  one in `documents/<name>/document.md`, and building it gives real A4 pages on screen, checked in
+  Chrome, and a PDF with `--pdf`. Tables and lists break cleanly across pages, a heading never ends
+  a page, and a one-pager that runs onto a second page fails the check. A value nobody gave you is
+  written `[what goes here]` and stays highlighted until it is filled (`source/formats/document.md`).
+- **Code you share with a partner**, kept identical in both repos: `scripts/vendor-sync.mjs`
+  (`docs/one-repo-or-several.md` ▸ *Code two organizations both own*).
+- **`npm run check:ai-tics`** reads a draft, a page or a deck and names what reads as written by a
+  machine, using the words your own `voice.md` lists.
+- **`STACK.md`**: what runs on what, and the way out of each piece. The setup fills it.
+- **`npm run check:retired`** stops a guide from giving again a route a decision retired.
+- A second brand is now a set of tokens (`source/brand/design.md` ▸ *More than one brand*).
+
+**What you need to do:** nothing, unless you want them. Ask your agent to fill `STACK.md` with you,
+and to run `npm run check:ai-tics` on the next thing you send.
+
 ## 2026-10-28 · MAJOR · What setups kept adding by hand, now in the kit
 
 Several organizations set up on the kit this autumn, and each time the same rules and checks were

@@ -1,0 +1,4 @@
+{
+  "_doc": "The wording of routes this organization retired, read by scripts/check-retired.mjs in every guide. When a decision retires a route (source/decisions.md), the same change sweeps the guides and adds the old wording here. pattern: the instruction, case-insensitive. unless: a line that mentions it as history. say: what the guide should say instead. allow: files that quote it on purpose. Example: { \"id\": \"drafts-in-shared-drive\", \"since\": \"2026-11-02\", \"decision\": \"source/decisions.md 2026-11-02\", \"pattern\": \"drafts? (?:live|go) in the shared drive\", \"unless\": \"until 2026-|used to\", \"say\": \"drafts are files in the repo; the drive only receives what is sent\" }",
+  "claims": []
+}

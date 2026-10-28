@@ -389,8 +389,8 @@ wrong.
   is refusing you, not your work.
 - **To sweep, grep the shortest distinctive word, never the phrase.** Prose is wrapped by hand, so
   any phrase eventually straddles a line break and a phrase search reports it absent. When a route
-  or a name is retired, add its old wording to a list a check fails on, so the next session that
-  writes it back is stopped.
+  or a name is retired, add its old wording to `source/quality/retired-claims.json`, so
+  `scripts/check-retired.mjs` stops the next session that writes it back.
 - **An artifact that expires soon does not earn the sweep, and saying so is the decision.** Check
   how long a stale copy will live before costing someone a correction: a one-off deck that dies
   next week is not worth a fix, a page a partner keeps is. When a sweep is declined, write the
