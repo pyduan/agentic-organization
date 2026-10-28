@@ -96,6 +96,14 @@ Two rules, and the second matters more than the first:
 2. **Verify, don't assume.** After any hosting change, request a file that should be secret and
    confirm it 404s. It is one command, it takes a second, and it is the only way you find out.
 
+## Write every credential down where its failure will be debugged
+
+For each token the setup created (the build token, an API token for Access, a token a Worker uses
+to read GitHub), write one line in the project's credentials table: which token, how it was made
+(a copy of `gh auth token`, a fine-grained token, a Cloudflare custom token and its permissions),
+whose account, and when it expires. Never the value. When a deploy or an app fails six months
+later, the first question is which token it was, and if nobody wrote it down, that is the bug.
+
 ## Day-to-day
 
 There is no day-to-day **once the repo is connected**. Pushing is publishing: a push to `main` deploys to production; a push to any other branch (or a pull request) gets its own **preview URL** so a change can be checked before it goes live.

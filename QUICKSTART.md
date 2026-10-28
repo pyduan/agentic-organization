@@ -15,6 +15,17 @@ Four, and two of them are free.
 | **Cloudflare** | Publishing. Every push rebuilds the site, in about a minute. Skip it if your organization already has a build system: the source is the repo, the host is repluggable. | Free |
 | **A domain name** | When you want a real address. Not needed on day one. | A few euros a year |
 
+**For an organization, every account is in its name, not a person's.** The hosting account gets
+two administrators, one of whom is not the person who set it up. If the domain sits on a
+volunteer's or a founder's personal account, open the organization's own and move the domain first:
+a site whose only login belongs to one person is held by that person.
+
+**If your organization publishes an AI policy, it comes first.** Each principle lands in the file
+that enforces it: who answers for an output in `CLAUDE.md`, who may change or publish what in
+`ORGANIGRAM.md`, what data must not travel in `.gitignore` and a restricted repository. A line
+against training models on your data is answered by an organization plan under the vendor's
+commercial terms, read on their page the day you sign.
+
 No account for a CMS, a page builder or a project tool. Those are the middlemen this removes.
 
 **Which plan, for whom.** Size it by what the person does, not by their rank. Whoever runs the setup
@@ -172,8 +183,10 @@ about them.
   guard, the end-of-session check) do not load from that folder on their own: once the main repo is
   cloned, have the agent run `node <main repo>/scripts/install-workspace.mjs`, which gives the folder
   the copy it needs.
-- **Auto mode, including if you are not technical.** Approving every single read teaches you to
-  approve without reading, which is worse than not being asked. What makes it safe is that the
+- **Auto mode, including if you are not technical, after two or three sessions.** For the first
+  sessions, leave the confirmations on and read what you are asked to approve, or refuse it and ask
+  why: that is how a newcomer learns what the agent actually does. Then switch: approving every
+  single read teaches you to approve without reading, which is worse than not being asked. What makes it safe is that the
   ground is bounded: everything is versioned and one commit away from being undone, the confidential
   is git-ignored and cannot be published, and as soon as there are two of you, work that is not
   yours leaves as a pull request. Keep the confirmations for the irreversible and for what goes out

@@ -149,6 +149,22 @@ takeaway: b
   assert.equal(r.errors.length, 0);
 });
 
+test('copy rules: a dash or an apposition comma in a title, a list is fine', () => {
+  const r = render(`---
+title: x
+date: 2026-10-09
+audience: a
+takeaway: b
+---
+<Slide title="Our schools — warmer this winter"><Text>One.</Text></Slide>
+<Slide title="Our schools, warmer this winter"><Text>Two.</Text></Slide>
+<Slide title="Schools, clinics and libraries"><Text>Three.</Text></Slide>`);
+  const w = r.warnings.join('\n');
+  assert.match(w, /slide 1 .*a dash in a title/);
+  assert.match(w, /slide 2 .*a comma in a title outside a list/);
+  assert.ok(!/slide 3 .*comma/.test(w), 'a list of three is not an apposition');
+});
+
 test('copy rules: the words to avoid come from the voice, an entry with a qualifier is left to a reader', () => {
   assert.deepEqual(wordsToAvoid('x\n\n**Words to avoid.** delve, landscape (as an abstract noun), robust, and genuinely / truly / actually used as intensifiers. **This list is meant to be edited.**'), ['delve', 'robust', 'genuinely', 'truly']);
   assert.deepEqual(wordsToAvoid('# Voice\n\nNothing here.'), []);

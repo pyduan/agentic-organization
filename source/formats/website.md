@@ -58,6 +58,37 @@ it never gets committed and Cloudflare never sees it. Share it as a local previe
 from the browser. `noindex` and an unlisted URL are obscurity, not access control: anything genuinely
 confidential stays local-only per the sensitive-content rule in `CLAUDE.md`.
 
+### A page reachable only by its address
+
+When a page is shared by link with no login (a proposal for one reader, a draft for a partner):
+
+- **The path**: a readable word and six random characters from an alphabet without `l`, `i`, `o`
+  and `0`, so it can be read aloud. Move the page there, never copy it. The old path must answer
+  404, recorded as expected in the freshness check: a redirect from it undoes the whole point.
+- **Its own `noindex`**, in the page itself (`<meta name="robots" content="noindex">`), never only a
+  site-wide header someone will remove later. Do not list the path in `robots.txt` either: a crawler
+  that may not fetch the page never reads its `noindex`, and robots.txt is public.
+- **`<meta name="referrer" content="no-referrer">`**, so its address does not travel to the sites it
+  links to.
+- **Before sending the link, check six things**: the page's outbound links, the addresses written
+  in its text, the links inside any PDF it offers (`/URI`), directory listing, `sitemap.xml`, and the
+  page in the other language. A "confidential" banner is not a barrier.
+
+This is obscurity with care, not access control: what must stay confidential goes behind Access
+(`source/formats/webapp.md`).
+
+### Moved and deleted pages stay in the edge cache
+
+A URL visitors already opened can keep being served for days after the page moved or was deleted:
+a redeploy does not purge it. Check with a cache-buster (`?cb=<random>`), record the expected 404 in
+the freshness check with its reason, and tell whoever is waiting on the link.
+
+### What sits in a served folder is served
+
+Discarded variants and drafts go in a subfolder the build skips, never beside the page: a host
+serves every file in the folder it is pointed at (`docs/deploy-cloudflare.md`). A hand-kept index of
+pages is checked both ways: every served page is listed, and every listed link answers.
+
 ## Quality bar before publishing
 
 - Check the change at ~390px and desktop width; large screens too if the design has wide layouts.

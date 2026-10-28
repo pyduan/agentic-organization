@@ -100,6 +100,8 @@ export function copyWarnings(slides, info, { lang = 'en', avoid = [] } = {}) {
       if (/[^.]\.$/.test(title)) out.push(`${at(s)}: a title is a label, drop its closing full stop`);
       if (words(title) > LIMITS.titleWords) out.push(`${at(s)}: ${words(title)} words in the title (over ${LIMITS.titleWords}): a title names what the slide shows, the slide makes the point`);
       if (/^\d+[.)]\s/.test(title)) out.push(`${at(s)}: a numbered title tells a sequence that one Steps or Agenda shows better`);
+      if (/[—–]/.test(title)) out.push(`${at(s)}: a dash in a title splits it in two: keep the label, move the rest to the lead`);
+      if (/,/.test(title) && !/,[^,]+\s(?:and|or|et|ou|und|y|e)\s/i.test(title)) out.push(`${at(s)}: a comma in a title outside a list (“A, B and C”) is an apposition: keep the label, move the rest to the lead`);
     }
     if (node.name === 'Slide' && p.kicker) {
       const first = kickers.get(s.chapter);

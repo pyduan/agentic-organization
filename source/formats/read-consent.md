@@ -32,6 +32,13 @@ a repo of private material wants `none`. Write it in the same commit that
 makes the repo sensitive, and say the same in its `CLAUDE.md`. A repo that has nothing to hide
 needs no file.
 
+### A copy another repo generated
+
+When a folder here is written by another organization's or another repo's sync, mark it
+`.read-consent: none` so the origin's own tools never read their export back as a new source, and
+never correct it by hand: the next sync overwrites it. Corrections go to an inbound folder the sync
+does not touch (`source/formats/partner-repo.md`).
+
 ## For a script that reads another repo
 
 Go through `neighbour(dir)` in `lib/neighbour.mjs`, never `readFile` on a path in another repo.

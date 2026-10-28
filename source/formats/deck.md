@@ -134,6 +134,14 @@ the text, or a companion image, before it gets a bigger font.
 A brand whose decks are dense by design raises `--dk-max-words` in its theme once, rather than
 arguing with the warning on every slide.
 
+### Printing is not displaying
+
+A deck that looks right on screen can print badly: an office laser printer has rendered a cream
+slide black, from a gradient no screen check looked at. Under `@media print`, replace gradients,
+transparency and shadows with their opaque equivalents, computed rather than guessed. Before calling
+a PDF ready to print, search it for `/Shading` and `/PatternType`: either one is a fill a printer may
+not render.
+
 ## Old decks as references
 
 ```bash
