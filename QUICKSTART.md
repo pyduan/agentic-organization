@@ -33,10 +33,10 @@ and later writes recipes needs a larger plan: the setup is the heaviest session 
 (it installs, imports history and builds the structure in parallel). Someone who asks rather than
 builds is fine on the standard plan. For a team, take an organization plan with one seat each rather than
 everyone paying personally, so the larger seats go to the builders. A nonprofit should look at
-Anthropic's nonprofit offer before paying the public price: on 2026-10-09 its team plan was listed
-at $8 per user per month
-([Claude for Nonprofits](https://academy.claude.com/tutorials/getting-started-with-claude-for-nonprofits)),
-with eligibility checked by a form.
+Anthropic's nonprofit offer before paying the public price: on 2026-10-29 its team plan was listed
+at $8 per user per month, and $3 for a nonprofit based in a low- or middle-income country, two seats
+minimum ([Claude for Nonprofits](https://claude.com/solutions/nonprofits)), with eligibility checked
+by a form.
 
 ## 2. Install, in one paste
 
@@ -337,3 +337,67 @@ what it learned into your guides at the end of each session.
 - Once in a while, at the end of a week with quota left, ask for a clean-up pass: *"go over
   everything, find what drifted or got duplicated, and propose the clean-up"*. The more you use the
   system the more it knows, and this is the small hygiene that keeps it that way
+
+## 10. Frequent questions
+
+The ones every organization asks before the setup hour. What runs on what, and why, is
+[STACK.md](STACK.md) ▸ *The defaults the setup starts from*.
+
+**Does this tie us to Claude Code, or to Anthropic?** What you build is a repository of plain text:
+the manual in `AGENTS.md`, the skills as folders of files, the facts and the data beside them. Other
+code agents read those formats, open-source ones included, and the repository moves to any Git host
+with its history. Claude Code is the default because the kit is tested on it every day. Switching
+means testing the guards and hooks on the new agent; your knowledge stays as it is.
+
+**Can we use our own model, or our own cloud?** With Claude models in your own cloud, yes: Claude
+Code runs on Amazon Bedrock, Google Cloud and Microsoft Foundry, billed by that cloud account
+([deployment options](https://code.claude.com/docs/en/third-party-integrations), read 2026-10-29).
+With another model (an open one, or a regional provider's), take a harness built for it, since
+Anthropic does not support Claude Code on other models. OpenCode is one: it runs local and hosted
+models and reads `AGENTS.md` and the skills in `.claude/skills`
+([OpenCode rules](https://opencode.ai/docs/rules/), read 2026-10-29). It is the same repository in
+both cases. Try the harness on one real task before moving a team to it.
+
+**Where does our data go?** To three places, each of them a choice. The repository lives on your
+Git host, under your organization's account. What the agent reads during a session is sent to the
+model provider to be processed. On an organization plan or the API, that happens under commercial terms
+with no training on your content and a 30-day standard retention
+([data usage](https://code.claude.com/docs/en/data-usage), read 2026-10-29), and on your own cloud
+it stays in that cloud. What must not travel at all is git-ignored: the documents and the outputs of
+a confidential task stay on the machine, and only the rule learned from them is shared. Personal
+plans (Free, Pro, Max) can train on what you send when their setting is on, which is one more reason
+to give an organization an organization plan.
+
+**Can people who do not code use it?** Yes, and the system is for them, since the rules are theirs.
+They open the team's folder in the desktop app's Code tab, drop their files into it and talk, out
+loud if they like. The agent runs the git. Their first sessions with confirmations on (section 4)
+teach them what the agent actually does.
+
+**What does it cost?** A seat per person on an AI plan, sized by what each person does (section 1).
+Publishing is free on Cloudflare: static pages are served free and without limit, and the free
+Workers plan covers 100,000 requests a day, with the paid plan from $5 a month per account
+([Workers pricing](https://developers.cloudflare.com/workers/platform/pricing/), read 2026-10-29).
+Private repositories are free on GitHub. On your own cloud you pay per token instead, which for the
+same work costs far more than a plan today (section 4).
+
+**What if a rule is wrong, or written by someone junior?** A rule counts once the owner of its area
+has approved it. `ORGANIGRAM.md` says who owns what, and a change from anyone else arrives as a
+pull request that owner accepts or refuses. A learned rule carries its date and who gave it, so a
+wrong one is found, corrected once, and the correction reaches every session at the next pull.
+
+**Who sees what?** Two levels, described in section 8: a repository someone cannot open is closed to
+them by the Git host, whatever the agent does; inside a repository, `ORGANIGRAM.md` says who changes
+what directly.
+
+**Why not Copilot, ChatGPT, or a no-code tool?** The models are often the same, and the harness is
+what differs. A chat window or an assistant inside office software works on one conversation or one
+file, cannot be set to read your rule base, and keeps nothing it was taught for the next person. A
+no-code tool keeps your logic in its own screens, where no agent reads it and nothing versions it.
+A developer who stays on GitHub Copilot still follows your rules: it reads `AGENTS.md`
+([changelog](https://github.blog/changelog/2025-08-28-copilot-coding-agent-now-supports-agents-md-custom-instructions))
+and the skills in `.claude/skills`
+([changelog](https://github.blog/changelog/2025-12-18-github-copilot-now-supports-agent-skills/)).
+
+**What happens if we stop?** You keep everything, because the repository, its history, the site
+and the accounts are in your name. The files stay readable text and the site keeps serving. Another
+agent can open the same repository tomorrow. There is nothing to export.

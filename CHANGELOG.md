@@ -12,6 +12,11 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-29 · MINOR · The stack's defaults, and the questions every organization asks
+
+- `STACK.md` lists the default choices the setup fills it from, each with its reason and its way out: a code agent for everyone, knowledge in Git, files in object storage, a database only for state, a static front with the logic in back-office pipelines, a build on every push.
+- `QUICKSTART.md` ends on the frequent questions: depending on Claude Code, using your own model, where the data goes, the cost, a wrong rule, stopping.
+
 ## 2026-10-29 · MINOR · Navigation: one row of tabs, then a sidebar
 
 - A section with several pages lists them in a sidebar beside the page, never in a second row of tabs; on a phone the sidebar folds into one control above the title (`source/formats/webapp.md`).
