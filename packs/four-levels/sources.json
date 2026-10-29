@@ -1,0 +1,60 @@
+{
+  "//": "What scripts/import-upstream.mjs brings into upstream/. Each source is pinned to a commit, so an import is reproducible and an update is a reviewed diff. 'commit' says whether the imported copy may be committed to this repository: true only when the licence allows redistribution, or when the installing organization owns the source. Licences read on 2026-10-29.",
+  "sources": [
+    {
+      "id": "playbook-guide",
+      "title": "AI Evaluation Playbook guide (Claude skill)",
+      "publisher": "IDinsight, for the playbook's steering committee (The Agency Fund, IDinsight, Center for Global Development)",
+      "repo": "IDinsight/ai-eval-playbook",
+      "ref": "cdd7f54880180a3d9679662a4dc95c0db0f5819f",
+      "branch": "introduction",
+      "paths": ["skills/ai-eval-playbook-guide.skill.md"],
+      "licence": "none stated: the repository has no licence file and no playbook page states terms",
+      "commit": false,
+      "note": "Its cached summaries have drifted from the live pages in places; its own rule says the live page wins, and the skills of this pack fetch the live page for every substantive answer."
+    },
+    {
+      "id": "playbook-index",
+      "title": "AI Evaluation Playbook index (llms.txt)",
+      "publisher": "The playbook's steering committee",
+      "url": "https://eval.playbook.org.ai/llms.txt",
+      "licence": "none stated",
+      "commit": false,
+      "note": "Not pinned: it is the live table of contents. Every page it lists is also served as Markdown by appending .md to its URL."
+    },
+    {
+      "id": "besci-skills",
+      "title": "Behavioral Science Skills Library",
+      "publisher": "The Agency Fund and Irrational Labs",
+      "repo": "agency-fund/besci-skills",
+      "ref": "85d8c0e15947d67171d72778972fc84592908b89",
+      "branch": "main",
+      "paths": [
+        "skills/choose-ai-eval-level/",
+        "skills/design-golden-dataset/",
+        "skills/build-user-funnel/",
+        "skills/diagnose-funnel-weak-link/",
+        "skills/design-evidential-experiment/",
+        "skills/plan-evaluation-design/",
+        "skills/write-pre-analysis-plan/",
+        "skills/estimate-sample-size/",
+        "LICENSE",
+        "LICENSE-CONTENT.md"
+      ],
+      "licence": "skill content CC BY 4.0, code MIT (LICENSE, LICENSE-CONTENT.md)",
+      "commit": true,
+      "attribution": "<Skill title> (version x.y.z) by <authors>, from the Behavioral Science Skills Library, The Agency Fund and Irrational Labs. CC BY 4.0. https://github.com/agency-fund/besci-skills/tree/main/skills/<skill-name>"
+    },
+    {
+      "id": "taf-skills",
+      "title": "The Agency Fund skills: agency measurement and rater calibration",
+      "publisher": "The Agency Fund",
+      "repo": "agency-fund/taf-skills",
+      "ref": "a92d67f0c4896f31d316231b7dfa21db1508d8e1",
+      "branch": "main",
+      "paths": ["ask-agency-measurement/", "calibrate-workshop/"],
+      "licence": "none stated: the repository has no licence file",
+      "commit": false
+    }
+  ]
+}
