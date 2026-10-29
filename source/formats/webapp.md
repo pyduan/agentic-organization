@@ -296,6 +296,16 @@ Where the image comes from, in order:
 Never leave the browser's default. And check the tab, not the file: a favicon at the wrong path
 fails silently.
 
+### One row of tabs, then a sidebar
+
+Navigation has one horizontal level: the sections, in the header. When a section holds several pages,
+they go in a sidebar beside the page, never in a second row of tabs under the first. Two stacked rows
+read as one, push the title down the screen, and leave the reader unsure which row they are in. A
+section of a single page gets no sidebar. On a phone the sidebar folds into one control above the
+title that names the section and the page (« Clients · Invoices ▾ ») and opens the list; it does not
+become a scrolling strip of tabs. Tabs inside a page that switch between views of the same thing are
+content, not navigation, and stay.
+
 ### Every tab and every block has an address
 
 "It's in the second tab, under the third heading" makes the reader hunt. The open tab lives in

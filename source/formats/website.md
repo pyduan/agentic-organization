@@ -14,6 +14,7 @@ The site is a minimal [Astro](https://astro.build) app in `site/`, fully static,
 - Before adding a page, check whether the content belongs on an existing one. Fewer, stronger pages beat a sprawling menu.
 - Every page defines a real `<title>` and meta description, drawn from the page's actual content and the voice guide.
 - Navigation lives in `Base.astro` only. Adding a page means updating nav in exactly one place.
+- One row of tabs at the top; a section with several pages lists them in a sidebar, never in a second row of tabs (`webapp.md` ▸ *One row of tabs, then a sidebar*).
 - **Email addresses are obfuscated**, not hand-written as a `mailto:` in the HTML, or they get
   scraped. Build it once as a small shared snippet: the parts sit in the markup as data, JS assembles
   the address on load, and it renders as selectable text so it works even without a mail client. Reuse
