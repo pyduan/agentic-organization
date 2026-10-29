@@ -12,6 +12,10 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-29 · MINOR · Navigation: one row of tabs, then a sidebar
+
+- A section with several pages lists them in a sidebar beside the page, never in a second row of tabs; on a phone the sidebar folds into one control above the title (`source/formats/webapp.md`).
+
 ## 2026-10-28 · MAJOR · The manual is AGENTS.md, and FEATURES.md says what the repo does and why
 
 - **`AGENTS.md` is the agent's manual now**, the name coding agents read whatever their vendor.
