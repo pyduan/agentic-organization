@@ -1,0 +1,6 @@
+{
+  "productsPath": "products/",
+  "clustersPath": "clusters/",
+  "reportsPath": "reports/four-levels/",
+  "dataPath": "local/eval-data/"
+}
