@@ -1,0 +1,38 @@
+{
+  "id": "pk-a4ff18",
+  "name": "four-levels",
+  "title": "Four-level AI evaluation, as a routine",
+  "description": "Runs the four-level AI evaluation framework (model, product, user, impact) of the AI Evaluation Playbook as a routine over a portfolio: a status file per product with its evidence, a readiness gate before each level, an eval-dataset and an engagement-funnel recipe, outcome data joined to the agent version each person used, and a report by level per cluster. It is an operating layer over the playbook and the skills its authors publish, which it imports and never rewrites.",
+  "suits": "An organization that builds, funds or supports AI products for social outcomes and wants to know, product by product, which level of evidence each one has and what it is ready for next. A funder following a portfolio, or a single nonprofit with one product.",
+  "status": "experimental",
+  "requires": {
+    "kit": "2026-10-28",
+    "services": []
+  },
+  "adds": {
+    "skills": ["four-levels", "eval-dataset", "engagement-funnel", "outcome-join", "level-report"],
+    "scripts": ["levels.mjs", "join-versions.mjs", "import-upstream.mjs"],
+    "formats": ["status.md", "by-level.md"],
+    "files": ["sources.json", "upstream/"]
+  },
+  "settings": {
+    "productsPath": {
+      "description": "The folder holding one status file per product or per organization (an organization with two products gets two files, or one file per product in its own folder).",
+      "default": "products/"
+    },
+    "clustersPath": {
+      "description": "The folder holding one file per cluster: a set of products doing the same thing in the same area, reported on together. Leave as is if you have no clusters.",
+      "default": "clusters/"
+    },
+    "reportsPath": {
+      "description": "Where the report by level is written, one dated file per run.",
+      "default": "reports/four-levels/"
+    },
+    "dataPath": {
+      "description": "A folder for person-level data (exposure logs, outcome exports). It must be gitignored: the scripts refuse to write person-level rows anywhere Git tracks.",
+      "default": "local/eval-data/"
+    }
+  },
+  "credits": "The four-level framework is by Han Sheng Chia (Center for Global Development), Samantha Carter (J-PAL), Farhan Abrol, Temina Madon, Robert On, James Walsh and Zezhen Wu (The Agency Fund), first published 2025-04-15. The AI Evaluation Playbook (eval.playbook.org.ai) is stewarded by The Agency Fund, IDinsight and the Center for Global Development. The upstream skills this pack calls are listed in sources.json with their authors and licences.",
+  "extractedFrom": "Written on 2026-10-29 to run the framework across a portfolio of AI products, and kept generic: nothing in it names an organization, a product or a figure."
+}
