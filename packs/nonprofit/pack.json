@@ -1,0 +1,48 @@
+{
+  "id": "pk-92dd3a",
+  "name": "nonprofit",
+  "title": "Nonprofit base",
+  "description": "The work every nonprofit does around its programmes, as recipes over its own files: funder and donor relations (one file per funder, a verbatim log of every figure sent, talking points, open calls), grant reporting checked against that log, meeting notes into dated journals, communications in the organization's voice with a story bank where every line carries its fact, an events and editorial calendar, and a programme or cohort run from its handbook.",
+  "suits": "A nonprofit or a funder of any size that raises money, reports to funders, meets partners, communicates, and runs a programme (an accelerator, a fellowship, a cohort). Two people or two hundred; the files are the same.",
+  "status": "experimental",
+  "requires": {
+    "kit": "2026-10-28",
+    "services": []
+  },
+  "adds": {
+    "skills": ["funders", "grant-reporting", "meeting-notes", "communications", "calendar", "programme"],
+    "scripts": ["nonprofit.mjs"],
+    "formats": ["funder.md", "talking-points.md", "event.md", "story-bank.md", "editorial-calendar.md", "participant.md"]
+  },
+  "settings": {
+    "fundersPath": {
+      "description": "One file per funder, donor or prospect that funds this organization, plus TALKING-POINTS.md.",
+      "default": "funders/"
+    },
+    "participantsPath": {
+      "description": "One file per organization or person a programme serves (grantees, cohort members, portfolio organizations), each with its journal.",
+      "default": "participants/"
+    },
+    "programmePath": {
+      "description": "The programme the organization runs (an accelerator, a fellowship): its handbook, its cohorts, its sessions.",
+      "default": "programme/"
+    },
+    "eventsPath": {
+      "description": "One file per event the organization watches, attends or speaks at.",
+      "default": "events/"
+    },
+    "newsletterPath": {
+      "description": "The newsletters: one folder per newsletter, with its format and its issues.",
+      "default": "newsletter/"
+    },
+    "storyBankPath": {
+      "description": "The story bank: formulations and anecdotes ready to reuse, each with the fact behind it.",
+      "default": "source/content/story-bank.md"
+    },
+    "editorialCalendarPath": {
+      "description": "The editorial calendar: one row per planned piece.",
+      "default": "source/content/editorial-calendar.md"
+    }
+  },
+  "extractedFrom": "Distilled on 2026-10-29 from the recipes a nonprofit running this kit has used for a year (funder reporting, a relationship journal, meeting recaps, messages, a story bank, an events base, a fact bank), written generic: every example is invented."
+}

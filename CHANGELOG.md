@@ -12,6 +12,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-29 · MINOR · Two packs: the nonprofit base, and the four-level AI evaluation
+
+- **`packs/nonprofit/`**: the work every nonprofit does around its programmes, as recipes over its
+  own files. One file per funder with every figure sent to them logged verbatim, grant reports
+  checked against that log, meeting notes into the journals of the people met, posts and a
+  newsletter with a story bank where every line carries its fact, an events and editorial calendar,
+  and a programme (an accelerator, a fellowship) run from its handbook.
+  `node packs/nonprofit/scripts/nonprofit.mjs` checks the files and prints the pipeline and the calendar.
+- **`packs/four-levels/`**: for an organization that builds, funds or supports AI products for
+  social outcomes. Each product gets a status file on the four levels of the AI Evaluation Playbook
+  (model, product, user, impact) with its evidence; a check refuses an impact evaluation started
+  before the first three levels met their minimum; outcome data is joined to the agent version each
+  person used. The method stays the playbook's and its authors' skills, imported at a pinned commit.
+
+**What you need to do:** nothing, unless you want one. Ask your agent to *"install the nonprofit
+pack"* or *"install the four-levels pack"*: it copies the folder into your repository, sets the
+folder names you use in `settings.json`, and for `four-levels` adds `local/` to your `.gitignore`.
+
 ## 2026-10-29 · MINOR · Navigation: one row of tabs, then a sidebar
 
 - A section with several pages lists them in a sidebar beside the page, never in a second row of tabs; on a phone the sidebar folds into one control above the title (`source/formats/webapp.md`).

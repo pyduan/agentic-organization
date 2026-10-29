@@ -1,0 +1,9 @@
+{
+  "fundersPath": "funders/",
+  "participantsPath": "participants/",
+  "programmePath": "programme/",
+  "eventsPath": "events/",
+  "newsletterPath": "newsletter/",
+  "storyBankPath": "source/content/story-bank.md",
+  "editorialCalendarPath": "source/content/editorial-calendar.md"
+}
