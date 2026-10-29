@@ -109,9 +109,13 @@ a format for a repository shared with a partner (`source/formats/partner-repo.md
 seeded draft spends its first hour correcting rather than dictating.
 
 ### The infrastructure, written down
-`STACK.md`: one row per brick, its state and its way out.
+`STACK.md`: one row per brick, its state and its way out, filled from the defaults it lists (a code
+agent for everyone, knowledge in Git, files in object storage, a database only for state, a static
+front with the logic in back-office pipelines, a build on every push).
 **Why:** a brick nobody knows how to leave is a brick nobody chose, and another project's stack is
-never this one's.
+never this one's. The defaults keep everything as light as possible, so an organization runs it
+without an engineer; each says its reason and its way out, so moving away from one is a written
+choice (2026-10-29).
 
 ## This organization's own
 
