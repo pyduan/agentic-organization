@@ -13,6 +13,11 @@
 // Navigation follows source/formats/webapp.md ▸ One row of tabs, then a sidebar: the sections are
 // tabs in the header; a section with several pages (Projects) lists them in a sidebar, which folds
 // into one control above the title on a phone.
+//
+// An instance adds its own tabs, pages, home sections and styles through the extension point
+// (apps/dashboard/extend.mjs, documented in source/formats/dashboard.md ▸ Adding your own views),
+// never by editing this file: `renderIntranet({ ..., extension })` takes what it registered, and
+// the shell, the sidebar and the small pieces below are exported so its pages are the kit's.
 
 import { renderMarkdown, inline, esc, slugify } from '../../scripts/doc/markdown.mjs';
 import { isOverdue } from '../../lib/todo.mjs';
@@ -53,14 +58,50 @@ export const STRINGS = {
   'foot.signout': 'Sign out',
 };
 
-const t = (key, ...args) => {
-  const v = STRINGS[key];
-  return typeof v === 'function' ? v(...args) : v;
-};
-const plural = (key, n) => STRINGS[key][n === 1 ? 0 : 1];
-
 /** The sections, as [path from the root, label key]. One row of tabs, never two. */
 export const TABS = [['', 'nav.home'], ['projects/', 'nav.projects']];
+
+// What an extension adds to the chrome, for the length of one renderIntranet() call: its tabs placed
+// among the kit's, and its words over the kit's. Null renders exactly the kit's own.
+let chrome = null;
+
+/** A word of the chrome: the extension's translation if it gave one, else the kit's. */
+export const t = (key, ...args) => {
+  const v = chrome?.strings && key in chrome.strings ? chrome.strings[key] : STRINGS[key];
+  return typeof v === 'function' ? v(...args) : v;
+};
+const plural = (key, n) => {
+  const v = chrome?.strings && key in chrome.strings ? chrome.strings[key] : STRINGS[key];
+  return v[n === 1 ? 0 : 1];
+};
+
+/**
+ * The tabs as they render now: the kit's, with an extension's placed among them. A tab goes before
+ * the one its `before` names, or after its `after`, and by default before Projects; several placed
+ * at one spot keep the order they were added in.
+ */
+export function tabs() {
+  const out = TABS.map(([to, key]) => ({ to, key, after: null }));
+  for (const x of chrome?.tabs || []) {
+    if (out.some((o) => o.to === x.path)) continue;
+    let at;
+    if (x.after != null) {
+      at = out.findIndex((o) => o.to === x.after);
+      if (at < 0) at = out.length;
+      else { at += 1; while (at < out.length && out[at].after === x.after) at += 1; }
+    } else {
+      at = out.findIndex((o) => o.to === (x.before ?? 'projects/'));
+      if (at < 0) at = out.length;
+    }
+    out.splice(at, 0, { to: x.path, key: x.label, after: x.after ?? null });
+  }
+  return out.map((o) => [o.to, o.key]);
+}
+
+const label = (key) => {
+  const v = t(key);
+  return v === undefined ? key : v;
+};
 
 // ---------------------------------------------------------------- the owner's words
 
@@ -164,7 +205,7 @@ export function stats(projects, today) {
 
 const day = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
 
-function todoRow(item, today, { project = null, base = '', notes = false } = {}) {
+export function todoRow(item, today, { project = null, base = '', notes = false } = {}) {
   const bits = [`<span class="todo-text">${esc(item.text)}</span>`];
   if (project) bits.push(item.page
     ? `<a class="todo-project" href="${base}${esc(item.page)}">${esc(project)}</a>`
@@ -179,7 +220,7 @@ function todoRow(item, today, { project = null, base = '', notes = false } = {})
   return `<li>${bits.join(' ')}${note}</li>`;
 }
 
-function projectCard(p, base, today) {
+export function projectCard(p, base, today) {
   const total = p.counts.open + p.counts.done;
   const pct = total ? Math.round((p.counts.done / total) * 100) : 0;
   const title = p.page ? `<a href="${base}${esc(p.page)}">${esc(p.title)}</a>` : esc(p.title);
@@ -194,12 +235,15 @@ function projectCard(p, base, today) {
 </article>`;
 }
 
+/** One number tile: the figure, what it counts, and an optional line under it. The label is HTML. */
+export const tile = (n, text, note = '') => `<div class="tile"><b>${n}</b><span>${text}</span>${note ? `<small>${note}</small>` : ''}</div>`;
+
 function tiles(s) {
-  const tile = (n, key) => `<div class="tile"><b>${n}</b><span>${plural(key, n)}</span></div>`;
-  return `<div class="tiles">${tile(s.running, 'tiles.running')}${tile(s.open, 'tiles.open')}${tile(s.late, 'tiles.late')}${tile(s.decide, 'tiles.decide')}</div>`;
+  const one = (n, key) => tile(n, plural(key, n));
+  return `<div class="tiles">${one(s.running, 'tiles.running')}${one(s.open, 'tiles.open')}${one(s.late, 'tiles.late')}${one(s.decide, 'tiles.decide')}</div>`;
 }
 
-function feed(entries, base) {
+export function feed(entries, base) {
   return `<div class="feed">${entries.map((r) => `<div><small>${day(r.date)}</small><span>${r.project
     ? `<b>${r.page ? `<a href="${base}${esc(r.page)}">${esc(r.project)}</a>` : esc(r.project)}</b> · ` : ''}${esc(r.text)}</span></div>`).join('')}</div>`;
 }
@@ -237,9 +281,19 @@ function toolCards(tools, base) {
 
 // ---------------------------------------------------------------- the shell
 
-function shell({ data, depth, tab, title, body, before = '' }) {
+/**
+ * A whole page in the kit's chrome: the head, the one row of tabs, then `before` (the home page's
+ * banner) and `body`, then the footer. `depth` is how many folders below the root the page sits,
+ * and `tab` the path of the tab it belongs to ('' for Home).
+ *
+ * Past two tabs the row scrolls sideways inside the header on a phone instead of widening the page,
+ * and a line of script brings the current tab into view; with the kit's own two, neither is there.
+ */
+export function shell({ data, depth, tab, title, body, before = '' }) {
   const base = '../'.repeat(depth);
-  const tabs = TABS.map(([to, key]) => `<a href="${base}${to}"${to === tab ? ' aria-current="page" class="on"' : ''}>${t(key)}</a>`).join('');
+  const all = tabs();
+  const many = all.length > 2;
+  const row = all.map(([to, key]) => `<a href="${base}${to}"${to === tab ? ' aria-current="page" class="on"' : ''}>${label(key)}</a>`).join('');
   const when = new Date(data.generated).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' });
   return `<!doctype html>
 <html lang="${LOCALE.slice(0, 2)}">
@@ -252,11 +306,18 @@ function shell({ data, depth, tab, title, body, before = '' }) {
 <link rel="stylesheet" href="${base}intranet.css">
 </head>
 <body>
-<header class="top"><div class="wrap top-in">
+<header class="top${many ? ' many' : ''}"><div class="wrap top-in">
   <a class="mark" href="${base}">${esc(data.org)}</a>
-  <nav class="tabs" aria-label="Sections">${tabs}</nav>
+  <nav class="tabs" aria-label="Sections">${row}</nav>
 </div></header>
-${before}
+${many ? `<script>
+  // The row of tabs scrolls sideways on a phone: start it with the current tab in view.
+  (() => {
+    const n = document.querySelector('.top .tabs'), a = n && n.querySelector('[aria-current]');
+    if (a && n.scrollWidth > n.clientWidth) n.scrollLeft = a.offsetLeft - (n.clientWidth - a.offsetWidth) / 2;
+  })();
+</script>
+` : ''}${before}
 ${body}
 <footer class="wrap foot">
   <p>${esc(t('foot.built', when))}</p>
@@ -267,12 +328,36 @@ ${body}
 `;
 }
 
+/**
+ * A section's pages beside the page: a sidebar on a wide screen, one folded control above the title
+ * on a phone (webapp.md ▸ One row of tabs, then a sidebar). `links` are { to, label } with `to` a
+ * path from the root; `sub: true` indents a link under the one before it, and `group: true` makes
+ * the entry a heading rather than a link. `current` is the path of the page shown; `fold` names the
+ * folded control when it should differ from `label`.
+ */
+export function withSide({ label: name, fold = name, links, current }, base, inner) {
+  const nav = links.map((l) => (l.group
+    ? `<span class="side-group">${esc(l.label)}</span>`
+    : `<a href="${base}${esc(l.to)}"${l.to === current ? ' aria-current="page"' : ''}${l.sub ? ' class="sub"' : ''}>${esc(l.label)}</a>`)).join('');
+  const here = links.find((l) => !l.group && l.to === current)?.label ?? name;
+  return `<div class="wrap with-side"><aside class="side" aria-label="${esc(name)}"><nav>${nav}</nav></aside><main><details class="side-fold"><summary>${esc(fold)} · ${esc(here)}</summary><nav>${nav}</nav></details>${inner}</main></div>`;
+}
+
 // ---------------------------------------------------------------- pages
 
-export function homePage({ data, home, tools, today }) {
+/** Where an extension may place sections on the home page, top to bottom. */
+export const HOME_SLOTS = ['top', 'before-tools', 'end'];
+
+/**
+ * The home page. `slots` holds an extension's sections as HTML, by slot: `top` under the banner and
+ * above the numbers, `before-tools` after the kit's dashboards, `end` last in the page.
+ */
+export function homePage({ data, home, tools, today, slots = {} }) {
   const base = '';
   const s = stats(data.projects, today);
   const parts = [];
+  const slot = (name) => { for (const html of slots[name] || []) if (html) parts.push(html); };
+  slot('top');
   if (!data.projects.length) {
     parts.push(`<p class="empty">${esc(t('home.empty'))}</p>`);
   } else {
@@ -289,26 +374,21 @@ export function homePage({ data, home, tools, today }) {
     parts.push(`<h2 id="projects">${t('home.projects')}</h2><div class="cards">${data.projects.map((p) => projectCard(p, base, today)).join('')}</div>`);
     if (data.recap.length) parts.push(`<h2 id="moved">${t('home.moved')}</h2>${feed(data.recap, base)}`);
   }
+  slot('before-tools');
   parts.push(toolCards(tools, base));
   if (data.private?.length) parts.push(`<p class="empty">${esc(t('projects.private', data.private.join(', ')))}</p>`);
+  slot('end');
   return shell({ data, depth: 0, tab: '', title: null, before: banner(home), body: `<main class="wrap">${parts.join('\n')}</main>` });
 }
 
-function sideNav(data, current, base) {
-  const pages = data.projects.filter((p) => p.page);
-  const links = [`<a href="${base}projects/"${current ? '' : ' aria-current="page"'}>${t('projects.all')}</a>`]
-    .concat(pages.map((p) => `<a href="${base}${esc(p.page)}"${current === p.page ? ' aria-current="page"' : ''}>${esc(p.title)}</a>`))
-    .join('');
-  const here = current ? data.projects.find((p) => p.page === current)?.title : t('projects.all');
+function projectsSide(data, current) {
   return {
-    aside: `<aside class="side" aria-label="${t('projects.title')}"><nav>${links}</nav></aside>`,
-    fold: `<details class="side-fold"><summary>${t('nav.projects')} · ${esc(here)}</summary><nav>${links}</nav></details>`,
+    label: t('projects.title'),
+    fold: t('nav.projects'),
+    current: current || 'projects/',
+    links: [{ to: 'projects/', label: t('projects.all') }]
+      .concat(data.projects.filter((p) => p.page).map((p) => ({ to: p.page, label: p.title }))),
   };
-}
-
-function withSide(data, current, base, inner) {
-  const nav = sideNav(data, current, base);
-  return `<div class="wrap with-side">${nav.aside}<main>${nav.fold}${inner}</main></div>`;
 }
 
 export function projectsPage({ data, today }) {
@@ -316,7 +396,7 @@ export function projectsPage({ data, today }) {
   const inner = `<h1>${t('projects.title')}</h1>
 ${data.projects.length ? `<div class="cards">${data.projects.map((p) => projectCard(p, base, today)).join('')}</div>` : `<p class="empty">${esc(t('home.empty'))}</p>`}
 ${data.private?.length ? `<p class="empty">${esc(t('projects.private', data.private.join(', ')))}</p>` : ''}`;
-  return shell({ data, depth: 1, tab: 'projects/', title: t('projects.title'), body: withSide(data, null, base, inner) });
+  return shell({ data, depth: 1, tab: 'projects/', title: t('projects.title'), body: withSide(projectsSide(data, null), base, inner) });
 }
 
 export function projectPage({ data, project: p, today }) {
@@ -330,16 +410,47 @@ ${p.countsOnly ? `<p class="empty">${t('card.private')}</p>` : `
 <h2>${t('projects.open')}</h2>
 ${p.open.length ? `<ul class="todo big">${p.open.map((i) => todoRow(i, today, { notes: true })).join('')}</ul>` : `<p class="note">${t('projects.noOpen')}</p>`}
 ${(p.log || []).length ? `<h2>${t('projects.moved')}</h2>${feed(p.log, base)}` : ''}`}`;
-  return shell({ data, depth: 2, tab: 'projects/', title: p.title, body: withSide(data, p.page, base, inner) });
+  return shell({ data, depth: 2, tab: 'projects/', title: p.title, body: withSide(projectsSide(data, p.page), base, inner) });
 }
 
-/** Every file of the built intranet, as { path: contents }. */
-export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10) }) {
-  const files = {
-    'index.html': homePage({ data, home, tools, today }),
-    'projects/index.html': projectsPage({ data, today }),
-    'intranet.css': css,
-  };
-  for (const p of data.projects.filter((x) => x.page)) files[`${p.page}index.html`] = projectPage({ data, project: p, today });
-  return files;
+/**
+ * Every file of the built intranet, as { path: contents }. `extension` is what an instance's
+ * extension registered (apps/dashboard/extend.mjs ▸ loadExtension); without one the output is the
+ * kit's own, byte for byte.
+ */
+export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10), extension = null }) {
+  chrome = extension ? { tabs: extension.tabs, strings: extension.strings } : null;
+  try {
+    const ctx = (path) => extension.context({ data, today, path });
+    const slots = {};
+    for (const [name, renders] of Object.entries(extension?.home || {})) slots[name] = renders.map((render) => render(ctx('')));
+    const files = {
+      'index.html': homePage({ data, home, tools, today, slots }),
+      'projects/index.html': projectsPage({ data, today }),
+      'intranet.css': extension?.css.length ? `${css}${extension.css.map((c) => `\n/* ---- ${c.from} ---- */\n${c.text}`).join('')}` : css,
+    };
+    for (const p of data.projects.filter((x) => x.page)) files[`${p.page}index.html`] = projectPage({ data, project: p, today });
+    for (const pg of extension?.pages || []) {
+      const file = pg.path.endsWith('/') || pg.path === '' ? `${pg.path}index.html` : pg.path;
+      if (file in files) throw new Error(`intranet extension: ${file} is already a page of the kit's; give yours another path`);
+      files[file] = pageFrom(pg, file, ctx(pg.path), data);
+    }
+    return files;
+  } finally {
+    chrome = null;
+  }
+}
+
+/** An extension's page: its render gives a whole file (a string) or { title, body, side, tab }. */
+function pageFrom(pg, file, c, data) {
+  const out = pg.render(c);
+  if (typeof out === 'string') return out;
+  if (!out || typeof out.body !== 'string') throw new Error(`intranet extension: the page ${pg.path} rendered no body`);
+  const depth = file.split('/').length - 1;
+  const base = '../'.repeat(depth);
+  const tab = out.tab ?? tabs().map(([to]) => to).filter((to) => to && pg.path.startsWith(to)).sort((a, b) => b.length - a.length)[0] ?? null;
+  const body = out.side
+    ? withSide({ current: pg.path, ...out.side }, base, out.body)
+    : `<main class="wrap">${out.body}</main>`;
+  return shell({ data, depth, tab, title: out.title ?? null, body });
 }

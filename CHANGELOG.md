@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · Your own tabs and pages on the intranet, without touching the kit
+
+- Your intranet can now carry views of your own (your grantees, a rota, a pipeline) as extra tabs,
+  pages with a sidebar, and sections on the home page, from one file your agent keeps at
+  `apps/intranet-extend/index.mjs`. Kit updates never touch it, and the pages look like the rest
+  of the intranet.
+- With more tabs than fit on a phone, the row of tabs scrolls sideways and opens on the page you
+  are on.
+- Your agent's tests for those views run with the kit's, and the build checks that every page they
+  link to exists.
+
+**What to do:** if your agent patched the intranet to add your own views (a second build after the
+kit's, a copy of the page layout, HTML spliced into the home page), ask it to move those views to
+the extension point (`source/formats/dashboard.md` ▸ *Adding your own views*) and remove the patch.
+Otherwise nothing: without the file the intranet is unchanged.
+
 ## 2026-10-30 · MAJOR · Setup starts with your stack and your intranet
 
 - **A new setup now begins with two steps, in this order.** The agent walks `STACK.md` with you one

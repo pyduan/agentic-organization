@@ -23,12 +23,18 @@
 // at `counts` it appears as one line, its counts summed and no project named; at `none`
 // it is not opened, and the page says it keeps to itself.
 //
+// An instance's own tabs, pages and home sections come from apps/intranet-extend/index.mjs when it
+// exists (apps/dashboard/extend.mjs, source/formats/dashboard.md ▸ Adding your own views); without
+// it, the pages are the kit's own.
+//
 // Zero dependencies, Node built-ins only.
 //
-// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist]   (npm run intranet)
+// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist] [--extend=<file> | --no-extend]
+//         (npm run intranet)
 
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { renderIntranet, parseHome, parseTools } from '../apps/dashboard/intranet.mjs';
+import { loadExtension, EXTENSION } from '../apps/dashboard/extend.mjs';
 import { parse as parseTodos } from '../lib/todo.mjs';
 import { locatedRepos } from '../lib/workspace.mjs';
 import { neighbour } from '../lib/neighbour.mjs';
@@ -39,6 +45,8 @@ import { basename, dirname, join, resolve } from 'node:path';
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const OUT = resolve((args.find((a) => a.startsWith('--out=')) || '').slice(6) || 'apps/dashboard/dist');
+const EXTEND = args.includes('--no-extend') ? null
+  : resolve((args.find((a) => a.startsWith('--extend=')) || '').slice(9) || join(ROOT, EXTENSION));
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return ''; } };
 
 // ---------------------------------------------------------------- the workspace
@@ -207,11 +215,18 @@ const data = {
 // welcome text is editing a file, never the app; a missing file means no banner, or no tools.
 const home = parseHome(await read(join(ROOT, 'source', 'content', 'intranet-home.md')));
 const tools = parseTools(await read(join(ROOT, 'source', 'content', 'intranet-tools.md')));
-const css = await readFile(fileURLToPath(new URL('../apps/dashboard/intranet.css', import.meta.url)), 'utf8');
+
+// The instance's own views, registered by its extension before anything renders, so the kit's pages
+// carry its tabs too.
+const today = new Date().toISOString().slice(0, 10);
+const extension = await loadExtension({ root: ROOT, data, today, file: EXTEND });
+const kitCss = (name) => readFile(fileURLToPath(new URL(`../apps/dashboard/${name}`, import.meta.url)), 'utf8');
+// The pieces an extension's views use (many tabs, a sidebar's groups) only when there is one.
+const css = extension ? `${await kitCss('intranet.css')}\n${await kitCss('extension.css')}` : await kitCss('intranet.css');
 
 await mkdir(OUT, { recursive: true });
 await writeFile(join(OUT, 'data.json'), JSON.stringify(data, null, 2));
-for (const [rel, text] of Object.entries(renderIntranet({ data, home, tools, css }))) {
+for (const [rel, text] of Object.entries(renderIntranet({ data, home, tools, css, today, extension }))) {
   await mkdir(dirname(join(OUT, rel)), { recursive: true });
   await writeFile(join(OUT, rel), text);
 }
@@ -223,6 +238,10 @@ if (existsSync(packs)) { await mkdir(join(OUT, 'packs'), { recursive: true }); a
 
 const totalOpen = projects.reduce((n, p) => n + p.counts.open, 0);
 console.log(`intranet: ${home ? 'banner' : 'no banner'}, ${tools.length} tool(s), ${projects.length} project(s) from ${found.length} repo(s), ${totalOpen} open item(s) → ${OUT.replace(ROOT + '/', '')}`);
+if (extension) {
+  const sections = Object.values(extension.home).reduce((n, l) => n + l.length, 0);
+  console.log(`  + ${extension.file}: ${extension.tabs.length} tab(s), ${extension.pages.length} page(s), ${sections} home section(s)${extension.css.length ? ', its styles' : ''}`);
+}
 for (const r of found.filter((x) => x.consent && x.consent !== 'full')) {
   console.log(`  ${r.slug}: ${r.consent === 'none' ? 'declares none, not read' : 'declares counts, summed without names'}${r.consentProblem ? ` (${r.consentProblem})` : ''}`);
 }

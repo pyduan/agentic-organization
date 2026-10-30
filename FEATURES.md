@@ -67,6 +67,25 @@ was the reference for the shape (one header row of tabs, the chrome's words in o
 sign-out link, "nothing is edited here"); its code was not reused because it is an Astro app built
 over five repos.
 
+### An instance's own views on the intranet
+An instance adds tabs, pages, home-page sections and styles to the intranet from one file of its
+own, `apps/intranet-extend/index.mjs`, which `npm run intranet` loads when it exists
+(`apps/dashboard/extend.mjs`; the contract is `source/formats/dashboard.md` ▸ *Adding your own
+views*). Its pages are rendered in the kit's shell with the kit's sidebar, the home page has three
+named slots (`top`, `before-tools`, `end`), its stylesheet is appended after the kit's and refused
+if it writes a colour instead of a token, and a `test.mjs` beside it runs inside the kit's
+`scripts/test-intranet.mjs`, which also builds the instance's intranet and fails on a link to a page
+nobody built. Past two tabs, the one row of tabs scrolls sideways on a phone and opens with the
+current tab in view. Without the file the build writes the kit's pages byte for byte.
+**Why:** 2026-10-30, after two instances had each built an adapter that patched the kit at run time:
+pushing into the exported `TABS`, re-rendering the kit's pages from `dist/data.json`, splicing HTML
+after `<main class="wrap">`, copying the page shell and testing that the copy still matched, and
+chaining a second build in `package.json`. Every joint was one kit change away from breaking, and
+the copied shell was exactly the duplicate `AGENTS.md` warns about. The file sits outside every path
+`kit-sync` owns, so no update can overwrite it; the kit ships only an invented example
+(`apps/dashboard/example-extension/`), built in its tests and never by default. Renders are plain
+functions returning HTML, like the kit's own pages, so the intranet still builds with Node alone.
+
 ### Setup starts with the stack, then the intranet
 The setup skill's first step with the owner walks `STACK.md` row by row, each row approved or
 changed with the date and who said yes; the second builds and publishes the intranet behind Access.

@@ -35,6 +35,8 @@ const REF = `${REMOTE}/${BRANCH}`;
 // CLAUDE.md, now a one-line pointer to it) and FEATURES.md are deliberately NOT here -- they carry
 // local rules and local features, so a change to them is reported and never auto-applied. A
 // project that does not have one yet receives it whole, since there is nothing of its own to lose.
+// `apps/intranet-extend/` is deliberately outside these paths: it holds an instance's own views on
+// the intranet (apps/dashboard/extend.mjs), and the kit never ships a file there.
 const FRAMEWORK = [
   '.claude', 'docs', 'scripts', 'lib', 'source/formats',
   'apps/dashboard', 'apps/todos', 'SETUP.md', 'README.md', 'CHANGELOG.md',

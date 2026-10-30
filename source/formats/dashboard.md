@@ -26,7 +26,8 @@ is not finished.** Writing it into a repo file is not enough on its own.
 
 Built by `npm run intranet` (`scripts/dashboard-data.mjs`, which renders the pages in
 `apps/dashboard/intranet.mjs` into `apps/dashboard/dist/`). It walks every repo on
-`ORGANIGRAM.md`'s map and reads each `projects/<slug>/`. Two tabs, **Home** and **Projects**.
+`ORGANIGRAM.md`'s map and reads each `projects/<slug>/`. Two tabs, **Home** and **Projects**, plus
+the organization's own (*Adding your own views*).
 
 **Home**, top to bottom:
 
@@ -50,10 +51,83 @@ Built by `npm run intranet` (`scripts/dashboard-data.mjs`, which renders the pag
 projects are listed in a sidebar, which folds into one control above the title on a phone
 (`webapp.md` ▸ *One row of tabs, then a sidebar*).
 
-**Changing it.** New words go in the two files above. A new section is a tab in `TABS` in
-`apps/dashboard/intranet.mjs` and a page rendered beside the others; the labels of the chrome are
-its `STRINGS`, translated in one place. The pages are static HTML built with Node alone, so the
-setup can publish the intranet before anything has been installed.
+**Changing it.** New words go in the two files above. A view of this organization's own (a tab, a
+page, a section on the home page) goes in its extension, below, never in `apps/dashboard/`: that
+folder is the kit's, and the next update replaces it. A change every organization would want goes
+to the kit itself (`apps/dashboard/intranet.mjs`, its `TABS` and its `STRINGS`). The pages are
+static HTML built with Node alone, so the setup can publish the intranet before anything has been
+installed.
+
+## Adding your own views
+
+An organization that needs more than the kit's two tabs (its grantees, its rota, its pipeline)
+writes them in **`apps/intranet-extend/index.mjs`**. `npm run intranet` loads that file when it
+exists; it sits outside every path `kit-sync` owns, so no kit update touches it. Without it, the
+build writes the kit's pages byte for byte. The machinery is `apps/dashboard/extend.mjs`, and an
+invented, working example is `apps/dashboard/example-extension/` (built with
+`node scripts/dashboard-data.mjs --extend=apps/dashboard/example-extension/index.mjs`).
+
+```js
+// apps/intranet-extend/index.mjs
+export default async function extend(intranet) {
+  const shifts = intranet.read('rota.md');            // a missing file reads as ''
+
+  intranet.strings({ 'nav.rota': 'Rota' });          // words for the chrome, or the kit's translated
+  intranet.tab('rota/', 'nav.rota');                 // before Projects; { before } or { after } to place it
+  intranet.page('rota/', (c) => ({
+    title: 'Rota',
+    side: { label: 'Rota', links: [{ to: 'rota/', label: 'Coming shifts' }, { to: 'rota/swaps/', label: 'To fill' }] },
+    body: `<h1>Coming shifts</h1>…`,
+  }));
+  intranet.home('top', (c) => `<h2>This week</h2><div class="tiles">${c.tile(3, 'shifts coming')}</div>`);
+  intranet.css(new URL('./rota.css', import.meta.url));
+}
+```
+
+**What the extension receives** (`intranet`), while it registers:
+
+- `read(rel)`, `exists(rel)`, `list(rel, { ext, dirs })` and `todos(rel)` (a to-do file parsed by
+  `lib/todo.mjs`), all from the repository's root; `root`, `today`, and `data`, what the kit's build
+  gathered (`projects`, `recap`, `org`).
+- `esc`, `inline`, `renderMarkdown` and `slugify` from `scripts/doc/markdown.mjs`.
+- `strings(words)`, `tab(path, label, { before, after })`, `page(path, render)`,
+  `home(slot, render)` and `css(source)`, below. The function may be `async`; the renders may not.
+
+**A tab** is a folder path (`'rota/'`) and a label, a key of the strings or the text itself. Tabs
+go before the kit's Projects in the order they were added, unless `before` or `after` names another
+tab. There is still one row: past two tabs, on a phone, the organization's name takes its own line
+and the row scrolls sideways inside the header, opening with the current tab in view.
+
+**A page** is a path (`'rota/'` or `'rota/swaps/'` for a page, `'rota/feed.json'` for a file) and
+a render. The render gets `c`, the helpers above plus the pieces bound to where the page sits:
+`c.href('rooms/')` for a link that works at any depth, `c.base`, `c.path`, `c.t(key)`,
+`c.tile(n, label, note)`, `c.todoRow(item)`, `c.projectCard(project)`, `c.feed(entries)`,
+`c.withSide(side, html)` and `c.shell({ title, body, tab })`. It returns `{ title, body }`, and the
+kit puts the body in its shell inside `<main class="wrap">`; with `side`, in the kit's sidebar
+instead (`{ label, links: [{ to, label, sub, group }] }`: `sub` indents a link under the one above,
+`group` makes a heading; the page's own path is the current link), folded into one control on a
+phone. `tab` names the tab to light when it is not the one the path starts with (`''` for Home). A
+render that returns a string writes that file as it is. A path the kit already uses is refused.
+
+**A home section** goes at one of three slots: **`top`**, under the banner and above the numbers;
+**`before-tools`**, after the kit's dashboards; **`end`**, last on the page. The render gets the same
+`c` as a page at the root, and returns HTML.
+
+**Styles** (`css(new URL('./x.css', import.meta.url))`, or the text) are appended after the kit's,
+each under a comment naming its file. Tokens only: a stylesheet that writes a colour as a value
+(`#c00`, `rgb(…)`) stops the build. The kit's classes are there to use (`cards`, `card`, `tiles`,
+`pill`, `badge`, `todo`, `feed`, `empty`, `note`, `page-head`); add a class only for what they do
+not cover.
+
+**Tests.** A `test.mjs` beside the extension runs inside `scripts/test-intranet.mjs`, so `npm test`
+runs it with no change to `package.json`. The kit's test also builds this instance's intranet with
+its extension and fails on a page that prints `undefined` or links to a page nobody built
+(`brokenLinks` in `extend.mjs`, there for your own tests too).
+
+Never reach into the kit from the extension: no pushing into the exported `TABS`, no rewriting a
+built page, no copy of the shell, no second build chained in `package.json`. Each of those breaks
+silently at the next kit update, which is why this contract exists; when it lacks something you
+need, ask for it in the kit rather than patching around it.
 
 ## Rules that come from getting this wrong
 

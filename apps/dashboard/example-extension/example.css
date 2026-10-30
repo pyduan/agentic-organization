@@ -1,0 +1,4 @@
+/* The invented co-op's few styles. Tokens only: the build refuses a colour written as a value. */
+.coop-week .tiles { margin-top: var(--space-2); }
+.coop-notice { margin-bottom: var(--space-2); }
+.coop-notice p { margin: 0; font-size: var(--text-sm); }
