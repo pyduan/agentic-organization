@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MAJOR · Everything is built from the design system, the components and the stack
+
+- **One rule in `AGENTS.md`**: whatever your agent builds (a page, a deck, an app, a document, a
+  script that stores something) is assembled from three libraries your repository already holds:
+  your design system (colors, type, spacing), your components (deck blocks, app components, page
+  patterns) and your stack. No parallel system, and no new brick without your yes.
+- **`STACK.md` now proposes the data and access rows** every organization ends up needing: records
+  kept as files in your repository by default, a relational database when files are not enough,
+  file storage for uploads, a sign-in in front of every private page, and where secrets go. Each one
+  is a Cloudflare default with its way out.
+- **If you already run on another provider**, a new table in `STACK.md` gives the usual
+  equivalents (AWS, Google Cloud, Azure, Vercel, Supabase…), so the row names your provider instead.
+
+**What you need to do:** ask your agent to walk the new rows of `STACK.md` with you and approve or
+change each one, the way it did for the first rows.
+
 ## 2026-10-30 · MINOR · One install prompt, and installs that open on the stack walk
 
 - **One prompt to paste for an install**, in `QUICKSTART.md` ▸ *Install, in one paste*. The README

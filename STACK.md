@@ -20,9 +20,30 @@ gets a new date and handle, and the reason goes in `source/decisions.md`.
 | Operator | Claude Code, on the repositories cloned locally | in place | any agent that reads a repository | |
 | Private pages (the intranet first) | Cloudflare Access in front of a Worker, `apps/dashboard` | TODO | Access on a hostname once a domain arrives; any host with a sign-in gate | |
 | Website | Cloudflare Workers, built from `site/` | TODO | any static host | |
+| Records and documents (the default store) | Markdown and JSON files in the Git repository: the repo is the store, every change a commit (`source/formats/webapp.md` ▸ *State without a database*) | in place | any Git host | |
+| Relational data, when files are not enough | Cloudflare D1 (SQLite), read and written only by a Worker | TODO | any SQLite or Postgres; D1 exports to SQL | |
+| Large files and uploads | Cloudflare R2, private by default, served through a Worker | TODO | any S3-compatible bucket | |
+| Identity and access | Cloudflare Access in front of every private page, roles in the app, denied by default (`webapp.md` ▸ *Access and identity*) | TODO | any identity-aware proxy or the provider's sign-in | |
+| Secrets and keys | Worker secrets and the git-ignored `private/` folder, never a committed file | TODO | the other provider's secret store | |
 | Domain and DNS | TODO | | | |
 | Mail | TODO | | | |
 | Accounts in the organization's name | TODO (two administrators each) | | | |
+
+## On another provider
+
+The roles in the table do not change when the organization already runs elsewhere; the bricks do,
+and the row says so. Typical equivalents, to propose rather than impose:
+
+| Role | Cloudflare default | Elsewhere |
+|---|---|---|
+| Pages and apps | Workers | Vercel, Netlify, AWS Amplify or Lambda, Google Cloud Run, Azure Static Web Apps |
+| Relational data | D1 | Postgres (Supabase, Neon, AWS RDS, Cloud SQL, Azure Database) |
+| Files | R2 | AWS S3, Google Cloud Storage, Azure Blob Storage |
+| Identity and access | Access | Google Workspace or Microsoft Entra sign-in, AWS Cognito, Auth0, an identity-aware proxy |
+| Secrets | Worker secrets | AWS Secrets Manager, Google Secret Manager, Azure Key Vault, Vercel environment variables |
+
+Git on a hosted service stays the source of truth whatever the provider: that is what lets a person
+and an agent edit the same records.
 
 ## What does not exist yet
 
