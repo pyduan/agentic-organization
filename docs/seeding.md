@@ -24,7 +24,7 @@ an empty brief.
 | Goes in | Never goes in |
 |---|---|
 | Facts the organization publishes, each with its URL and the date read | Anything the helper learned in confidence, or from a third party |
-| Their own published tools, as a pack whose content they import themselves | Another organization's material, even reworded |
+| Their own published tools, as a pack holding that content verbatim, each file with its URL and the date read | Another organization's material, even reworded |
 | A draft brief and a first `decisions.md` entry, marked *proposed* | A decision taken on their behalf |
 | The history-takeover table: their documents, and what each becomes | Their documents themselves, unless they sent them for this |
 | The first use cases as recipes, with leads drawn from what they publish | Secrets, tokens, or any account of theirs |

@@ -23,7 +23,11 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
   backlog, typed decisions, a customer workshop, and onboarding a customer.
 - `check-ai-tics` reads another voice guide when `AI_TICS_VOICE` names one; the freshness sweep no
   longer reports a link built from a `__PLACEHOLDER__` as dead; `check-access-config` leaves a pack's
-  `templates/` to the repo they are copied into.
+  `templates/` to the repo they are copied into. `npm test` now runs the tests of whichever packs the
+  repo holds (`scripts/test-packs.mjs`), so deleting a pack you do not want leaves the suite green.
+- **Seeding for someone else** (`docs/seeding.md`): their own published tools now go into the seed
+  with their content, verbatim, each file naming its page and the day it was read, so the pack runs
+  on the day instead of waiting on an import nobody has time for.
 
 **What you need to do:** nothing. The pack is optional and does nothing until you ask your agent to
 set the company up; one repo stays the right shape for most organizations.
