@@ -347,6 +347,9 @@ if (wants('ignored')) {
       if (!path) continue;
       const parts = where.split(':');
       const rule = parts.slice(2).join(':') || where;
+      // -v also names the rule that decided a path when that rule is a negation (`!team/README.md`),
+      // which un-ignores it: a tracked file there is exactly what the rule asks for.
+      if (rule.startsWith('!')) continue;
       const src = `${parts[0]}:${parts[1]}`;
       const key = `${src}  ${rule}`;
       if (!byRule.has(key)) byRule.set(key, []);
