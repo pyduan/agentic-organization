@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · A private view of material on your machine, which can never be published
+
+- `npm run intranet -- --local` builds the intranet with what you keep in `local/` on your own
+  computer (applications under review, drafts, an export), for you to read there. Your views reach
+  that folder only in such a build, and `npm run deploy:intranet` refuses to publish it, or a build
+  with nothing in it.
+- Every build of the intranet starts from an empty folder, so nothing from a local build is left
+  behind in the next one.
+
+**What to do:** ask your agent to update the kit, then to add `local/` to your `.gitignore` and to
+check that the `deploy:intranet` line of your `package.json` runs `node scripts/intranet-guard.mjs`
+before `wrangler deploy` (the update reports that file rather than changing it). If your agent had
+built this guard by hand (a `build.mjs` and a `guard-deploy.mjs` in `apps/intranet-extend/`), ask it
+to remove them, point `npm run intranet` back at `node scripts/dashboard-data.mjs`, and read
+`local/` through `intranet.local` instead of checking for `--local` itself.
+
 ## 2026-10-30 · MINOR · Your own tabs and pages on the intranet, without touching the kit
 
 - Your intranet can now carry views of your own (your grantees, a rota, a pipeline) as extra tabs,

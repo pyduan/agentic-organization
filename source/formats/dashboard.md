@@ -87,7 +87,8 @@ export default async function extend(intranet) {
 **What the extension receives** (`intranet`), while it registers:
 
 - `read(rel)`, `exists(rel)`, `list(rel, { ext, dirs })` and `todos(rel)` (a to-do file parsed by
-  `lib/todo.mjs`), all from the repository's root; `root`, `today`, and `data`, what the kit's build
+  `lib/todo.mjs`), all from the repository's root, `local/` excepted; `local`, the same four on
+  `local/` in a `--local` build and `null` in every other (below); `root`, `today`, and `data`, what the kit's build
   gathered (`projects`, `recap`, `org`).
 - `esc`, `inline`, `renderMarkdown` and `slugify` from `scripts/doc/markdown.mjs`.
 - `strings(words)`, `tab(path, label, { before, after })`, `page(path, render)`,
@@ -123,6 +124,17 @@ not cover.
 runs it with no change to `package.json`. The kit's test also builds this instance's intranet with
 its extension and fails on a page that prints `undefined` or links to a page nobody built
 (`brokenLinks` in `extend.mjs`, there for your own tests too).
+
+**Material kept on one machine** (applications under review, a draft, an analytics export) goes in
+`local/` at the repository's root, which `.gitignore` keeps out of git. `npm run intranet -- --local`
+lets the extension read it, through `intranet.local` (also `c.local` in a render): the same `read`,
+`exists`, `list` and `todos`, rooted at `local/`. In every other build `intranet.local` is `null`, and
+the repository reader refuses a path inside `local/`, so a view tests `if (intranet.local)` and shows
+something else otherwise. A `--local` build is for reading on that machine: it leaves a
+`.local-build` file in `dist/`, and `npm run deploy:intranet` refuses to publish a marked build, or
+an empty one (`scripts/intranet-guard.mjs`). Every build wipes `dist/` first, so nothing a `--local`
+build wrote survives into the next one. What the shared intranet must show to only some people
+comes from a restricted repository on the map, never from one person's `local/`.
 
 Never reach into the kit from the extension: no pushing into the exported `TABS`, no rewriting a
 built page, no copy of the shell, no second build chained in `package.json`. Each of those breaks

@@ -18,6 +18,7 @@
 //     intranet.page('rota/', (c) => ({ title: 'Rota', body: `<h1>Rota</h1>…` }));
 //     intranet.home('top', (c) => `<h2>This week</h2>…`);   // top · before-tools · end
 //     intranet.css(new URL('./rota.css', import.meta.url)); // tokens only
+//     const drafts = intranet.local?.list('drafts/');       // local/: a --local build only, never deployed
 //   }
 //
 // The full contract is source/formats/dashboard.md ▸ Adding your own views.
@@ -50,20 +51,34 @@ function checkPath(kind, path) {
 /** A path as a log or a comment shows it: from the repository's root when it is inside it. */
 const shownPath = (root, file) => { const r = relative(root, file); return r.startsWith('..') ? file : r; };
 
-/** The repository, read the way the kit's build reads it: a missing file is empty, never an error. */
-export function repoReader(root) {
-  const abs = (rel) => join(root, rel);
-  const read = (rel) => { try { return readFileSync(abs(rel), 'utf8'); } catch { return ''; } };
+/** The folder of material kept on one machine only, git-ignored, read with `--local` alone. */
+export const LOCAL_DIR = 'local';
+
+/** Is this path inside local/? The repository reader refuses it, so only `intranet.local` reads there. */
+const inLocal = (rel) => String(rel).replace(/^\.\//, '').split('/')[0] === LOCAL_DIR;
+
+/**
+ * The repository, read the way the kit's build reads it: a missing file is empty, never an error.
+ * `local/` is refused: what is in it may only reach a page through `intranet.local`, which exists
+ * only in a `--local` build, the one `npm run deploy:intranet` refuses to publish.
+ */
+export function repoReader(root, { refuseLocal = true } = {}) {
+  const abs = (rel) => {
+    if (refuseLocal && inLocal(rel)) fail(`${rel} is in ${LOCAL_DIR}/, which is read through intranet.local only (null unless the build runs with --local)`);
+    return join(root, rel);
+  };
+  const read = (rel) => { const file = abs(rel); try { return readFileSync(file, 'utf8'); } catch { return ''; } };
   return {
     root,
     read,
     exists: (rel) => existsSync(abs(rel)),
     /** The entries of a folder, sorted; `ext: '.md'` keeps those files, `dirs: true` the folders. */
     list: (rel, { ext = null, dirs = false } = {}) => {
+      const dir = abs(rel);
       try {
-        return readdirSync(abs(rel)).filter((n) => {
+        return readdirSync(dir).filter((n) => {
           if (n.startsWith('.')) return false;
-          const isDir = statSync(join(abs(rel), n)).isDirectory();
+          const isDir = statSync(join(dir, n)).isDirectory();
           return dirs ? isDir : !isDir && (!ext || n.endsWith(ext));
         }).sort();
       } catch { return []; }
@@ -77,7 +92,7 @@ export function repoReader(root) {
  * Load the instance's extension and run it, collecting what it registers. Returns null when there
  * is none. `data` is what the kit's build gathered (projects, recap, org), so a view can use it.
  */
-export async function loadExtension({ root, data, today, file = join(root, EXTENSION) }) {
+export async function loadExtension({ root, data, today, file = join(root, EXTENSION), local = false }) {
   if (!file || !existsSync(file)) return null;
   const mod = await import(pathToFileURL(resolve(file)).href);
   const extend = mod.default;
@@ -85,6 +100,8 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
 
   const reg = { file: shownPath(root, file), strings: {}, tabs: [], home: {}, pages: [], css: [] };
   const repo = repoReader(root);
+  // local/ on this machine, only in a --local build: null otherwise, so a view tests `if (intranet.local)`.
+  const localReader = local ? repoReader(join(root, LOCAL_DIR), { refuseLocal: false }) : null;
   const html = { esc, inline, renderMarkdown, slugify };
 
   const api = {
@@ -93,6 +110,8 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
     today,
     html,
     ...html,
+    /** local/, read only in a `--local` build (never deployed); null in every other build. */
+    local: localReader,
     /** Words for the chrome: new keys for your tabs, or the kit's own keys translated. */
     strings(words) { Object.assign(reg.strings, words); },
     /** A tab in the one row: `label` is a key of the strings or the text itself. */
@@ -139,6 +158,7 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
       html,
       data: d,
       today: day,
+      local: localReader,
       path,
       base,
       LOCALE,

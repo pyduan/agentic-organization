@@ -27,10 +27,14 @@
 // exists (apps/dashboard/extend.mjs, source/formats/dashboard.md ▸ Adding your own views); without
 // it, the pages are the kit's own.
 //
+// Every build wipes its folder first. With --local, the extension may read local/ (a git-ignored
+// folder of material kept on this machine) through `intranet.local`, and the build is marked so that
+// `npm run deploy:intranet` refuses it (scripts/intranet-guard.mjs).
+//
 // Zero dependencies, Node built-ins only.
 //
-// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist] [--extend=<file> | --no-extend]
-//         (npm run intranet)
+// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist] [--extend=<file> | --no-extend] [--local]
+//         (npm run intranet, npm run intranet -- --local)
 
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
 import { renderIntranet, parseHome, parseTools } from '../apps/dashboard/intranet.mjs';
@@ -38,6 +42,7 @@ import { loadExtension, EXTENSION } from '../apps/dashboard/extend.mjs';
 import { parse as parseTodos } from '../lib/todo.mjs';
 import { locatedRepos } from '../lib/workspace.mjs';
 import { neighbour } from '../lib/neighbour.mjs';
+import { prepareOut, markLocal } from './intranet-guard.mjs';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -47,6 +52,7 @@ const args = process.argv.slice(2);
 const OUT = resolve((args.find((a) => a.startsWith('--out=')) || '').slice(6) || 'apps/dashboard/dist');
 const EXTEND = args.includes('--no-extend') ? null
   : resolve((args.find((a) => a.startsWith('--extend=')) || '').slice(9) || join(ROOT, EXTENSION));
+const LOCAL = args.includes('--local');
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return ''; } };
 
 // ---------------------------------------------------------------- the workspace
@@ -219,14 +225,16 @@ const tools = parseTools(await read(join(ROOT, 'source', 'content', 'intranet-to
 // The instance's own views, registered by its extension before anything renders, so the kit's pages
 // carry its tabs too.
 const today = new Date().toISOString().slice(0, 10);
-const extension = await loadExtension({ root: ROOT, data, today, file: EXTEND });
+const extension = await loadExtension({ root: ROOT, data, today, file: EXTEND, local: LOCAL });
 const kitCss = (name) => readFile(fileURLToPath(new URL(`../apps/dashboard/${name}`, import.meta.url)), 'utf8');
 // The pieces an extension's views use (many tabs, a sidebar's groups) only when there is one.
 const css = extension ? `${await kitCss('intranet.css')}\n${await kitCss('extension.css')}` : await kitCss('intranet.css');
 
-await mkdir(OUT, { recursive: true });
+// Rendered before the folder is wiped, so a page that fails leaves the last build in place.
+const files = renderIntranet({ data, home, tools, css, today, extension });
+prepareOut(OUT);
 await writeFile(join(OUT, 'data.json'), JSON.stringify(data, null, 2));
-for (const [rel, text] of Object.entries(renderIntranet({ data, home, tools, css, today, extension }))) {
+for (const [rel, text] of Object.entries(files)) {
   await mkdir(dirname(join(OUT, rel)), { recursive: true });
   await writeFile(join(OUT, rel), text);
 }
@@ -236,8 +244,11 @@ if (existsSync(tokens)) await copyFile(tokens, join(OUT, 'tokens.css'));
 const packs = join(ROOT, 'apps', 'packs', 'index.html');
 if (existsSync(packs)) { await mkdir(join(OUT, 'packs'), { recursive: true }); await copyFile(packs, join(OUT, 'packs', 'index.html')); }
 
+if (LOCAL) markLocal(OUT);
+
 const totalOpen = projects.reduce((n, p) => n + p.counts.open, 0);
 console.log(`intranet: ${home ? 'banner' : 'no banner'}, ${tools.length} tool(s), ${projects.length} project(s) from ${found.length} repo(s), ${totalOpen} open item(s) → ${OUT.replace(ROOT + '/', '')}`);
+if (LOCAL) console.log(`  built with --local: ${extension ? 'local/ readable by the extension' : 'no extension to read local/'}; marked, so deploy:intranet refuses it`);
 if (extension) {
   const sections = Object.values(extension.home).reduce((n, l) => n + l.length, 0);
   console.log(`  + ${extension.file}: ${extension.tabs.length} tab(s), ${extension.pages.length} page(s), ${sections} home section(s)${extension.css.length ? ', its styles' : ''}`);

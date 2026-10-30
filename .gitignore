@@ -34,3 +34,7 @@ decks/*/dist/
 
 # A document's PDF is rebuilt every time; the source and index.html are what is committed.
 documents/*/dist/
+
+# Material kept on this machine only (applications, drafts, an analytics export), read by the
+# intranet's extension in a `npm run intranet -- --local` build, which deploy:intranet refuses.
+local/

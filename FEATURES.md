@@ -86,6 +86,20 @@ the copied shell was exactly the duplicate `AGENTS.md` warns about. The file sit
 (`apps/dashboard/example-extension/`), built in its tests and never by default. Renders are plain
 functions returning HTML, like the kit's own pages, so the intranet still builds with Node alone.
 
+### A local-only intranet that cannot be deployed
+`npm run intranet -- --local` lets the extension read `local/`, a git-ignored folder of material
+kept on one machine, through `intranet.local`, which is `null` in every other build; the repository
+reader refuses `local/` paths. Such a build leaves `.local-build` in `dist/`, every build wipes
+`dist/` first (and refuses to wipe a folder that holds no earlier build), and `npm run
+deploy:intranet` runs `scripts/intranet-guard.mjs`, which refuses a marked or an empty build.
+**Why:** 2026-10-30, after two instances had built the same guard by hand around the kit's build: a
+person wants to look at applications or drafts beside the organization's pages, on their own
+machine, and the one failure that matters is that view going online. The mark is checked at deploy
+time rather than trusted to memory, the wipe is what stops a page from a `--local` build surviving
+into the next build, and the reader's refusal makes `intranet.local` the only door, so a view cannot
+read `local/` in a build that will be published. Restricted material for the shared intranet comes
+from a restricted repository instead.
+
 ### Setup starts with the stack, then the intranet
 The setup skill's first step with the owner walks `STACK.md` row by row, each row approved or
 changed with the date and who said yes; the second builds and publishes the intranet behind Access.
