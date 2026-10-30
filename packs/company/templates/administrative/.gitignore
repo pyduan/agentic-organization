@@ -1,0 +1,4 @@
+# The team folder is local-only by design: 1:1 notes and what they produce stay on the machine of the
+# cofounder who manages. Only its README is versioned (central .claude/skills/team/).
+team/*
+!team/README.md

@@ -1,0 +1,116 @@
+---
+// One functional part of the product: what it does, its spec, and what is not settled about it.
+//
+// Its own page rather than an expandable card, because the useful half of each of these files is
+// the "what is not decided" section, and that is the half a card would hide.
+import Base from "../../layouts/Base.astro";
+import Separator from "../../components/ui/Separator.astro";
+import Badge from "../../components/ui/Badge.astro";
+import OwnerTags from "../../components/OwnerTags.astro";
+
+export async function getStaticPaths() {
+  const { features } = await import("../../lib/content.mjs");
+  const all = features();
+  return all.map((f) => ({
+    params: { feature: f.slug },
+    props: { f, all },
+  }));
+}
+
+const { f, all } = Astro.props;
+
+const FSTATE = {
+  poc: { label: "On the prototype", note: "Runs today on the test rig." },
+  spec: { label: "Specified", note: "Written, not built yet." },
+  build: { label: "Being built", note: "" },
+  shipped: { label: "Shipped", note: "" },
+  idea: { label: "Intention", note: "Not a feature yet, and not to be sold as one." },
+};
+const state = FSTATE[f.status] ?? { label: f.status, note: "" };
+
+const bySlug = Object.fromEntries(all.map((x) => [x.slug, x]));
+const deps = (f.depends_on ?? []).map((s) => bySlug[s]).filter(Boolean);
+const needed = all.filter((x) => (x.depends_on ?? []).includes(f.slug));
+---
+<Base docTitle={f.name}>
+  <p class="crumb"><a href={"/product"}>← Produit</a></p>
+
+  <header class="fhead">
+    <div class="fhead-main">
+      <div class="fhead-tags">
+        <Badge plain label={state.label} />
+        <OwnerTags owner={f.owner} />
+      </div>
+      <h1 class="display fhead-name">{f.name}</h1>
+      <p class="fhead-sum">{f.summary}</p>
+      {state.note && <p class="muted fhead-note">{state.note}</p>}
+    </div>
+
+    <div class="fhead-mock">
+      {f.mockup
+        ? <img src={f.mockup} alt={`Maquette : ${f.name}`} loading="lazy" />
+        : <span class="fhead-nomock">Mock-up to import</span>}
+    </div>
+  </header>
+
+  <Separator />
+
+  <div class="flayout">
+    <article class="prose" set:html={f.bodyHtml} />
+
+    <aside class="fside">
+      {deps.length > 0 && (
+        <section class="fbox">
+          <h2 class="label">Needs first</h2>
+          <ul class="flist">{deps.map((d) => <li><a href={`/product/${d.slug}`}>{d.name}</a></li>)}</ul>
+        </section>
+      )}
+      {needed.length > 0 && (
+        <section class="fbox">
+          <h2 class="label">Used for</h2>
+          <ul class="flist">{needed.map((d) => <li><a href={`/product/${d.slug}`}>{d.name}</a></li>)}</ul>
+        </section>
+      )}
+      <section class="fbox">
+        <h2 class="label">Source</h2>
+        <p class="faint fsrc">strategy/product/features/{f.slug}.md</p>
+      </section>
+    </aside>
+  </div>
+
+  <style is:global>
+    .crumb { font-size: 13px; margin-bottom: var(--space-4); }
+    .fhead {
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+      gap: var(--space-6);
+      align-items: start;
+    }
+    .fhead-main { min-width: 0; }
+    .fhead-tags { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; margin-bottom: var(--space-3); }
+    .fhead-name { font-size: 30px; line-height: 1.1; margin: 0 0 var(--space-3); overflow-wrap: anywhere; }
+    .fhead-sum { font-size: 16px; max-width: 54ch; margin: 0; }
+    .fhead-note { font-size: 13.5px; margin-top: var(--space-2); }
+    .fhead-mock {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      aspect-ratio: 16 / 10;
+      background: var(--surface);
+      border: 1px dashed var(--hairline);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+    }
+    .fhead-mock img { width: 100%; height: 100%; object-fit: cover; }
+    .fhead-nomock { font-size: 12px; color: var(--ink-faint); letter-spacing: 0.04em; text-transform: uppercase; }
+    .flayout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 250px); gap: var(--space-8); }
+    .fside { display: grid; gap: var(--space-5); align-content: start; min-width: 0; }
+    .fbox { display: grid; gap: var(--space-2); }
+    .flist { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; font-size: 14px; }
+    .fsrc { font-size: 12px; overflow-wrap: anywhere; }
+    @media (max-width: 760px) {
+      .fhead, .flayout { grid-template-columns: minmax(0, 1fr); }
+      .fhead-mock { order: -1; }
+    }
+  </style>
+</Base>

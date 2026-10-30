@@ -1,0 +1,125 @@
+---
+// What we send out. Its own tab because it is the page people open to find a link, and a link that
+// takes two clicks to find gets pasted from memory instead.
+//
+// Each card carries a preview. Our own decks can be framed and are shown live; GitHub refuses to be
+// framed, so those cards use the preview image GitHub itself publishes rather than a blank box.
+import Base from "../layouts/Base.astro";
+import { resources, decks } from "../lib/content.mjs";
+import { t } from "../lib/i18n.mjs";
+
+const list = resources();
+// Decks first: they are what people open this page for most. A refused deck stays listed with its
+// reasons, so the person who wrote it finds out here rather than in a deploy log.
+const deckList = decks();
+const host = (url) => { try { return new URL(url).host.replace(/^www\./, ""); } catch { return url; } };
+---
+<Base title={t("res.title")} lead={t("res.lead")}>
+  <h2 class="res-section">{t("res.decks")}</h2>
+  {deckList === null && <p class="muted">{t("res.decksNotBuilt")}</p>}
+  {deckList && deckList.length === 0 && <p class="muted">{t("res.decksNone")}</p>}
+  {deckList && deckList.length > 0 && (
+    <div class="deck-list">
+      {deckList.map((d) => (
+        <article class:list={["deckrow", d.refused.length && "is-refused"]}>
+          <div class="deckrow-main">
+            {d.url
+              ? <a class="deckrow-title" href={d.url} target="_blank" rel="noreferrer">{d.title} ↗</a>
+              : <span class="deckrow-title">{d.title}</span>}
+            <span class="faint">{[d.date, d.slides && `${d.slides} ${t("res.deckSlides")}`, d.audience].filter(Boolean).join(", ")}</span>
+          </div>
+          {d.unchecked && !d.refused.length && <span class="deckrow-flag">{t("res.deckUnchecked")}</span>}
+          {d.refused.length > 0 && (
+            <details class="deckrow-why">
+              <summary>{t("res.deckRefused")} ({d.refused.length})</summary>
+              <ul>{d.refused.map((r) => <li>{r}</li>)}</ul>
+            </details>
+          )}
+        </article>
+      ))}
+    </div>
+  )}
+
+  <h2 class="res-section">{t("res.links")}</h2>
+  <div class="res-grid">
+    {list.map((r) => (
+      <article class="rescard">
+        <div class="rescard-embed">
+          {r.image
+            ? <img src={r.image} alt="" />
+            : <span class="rescard-mark">{r.name}</span>}
+        </div>
+
+        <div class="rescard-body">
+          <div class="rescard-head">
+            <h2 class="rescard-name">{r.name}</h2>
+            <span class="faint rescard-host">{host(r.url)}</span>
+          </div>
+          <p class="muted rescard-note">{r.note}</p>
+          <a class="rescard-open" href={r.url} target="_blank" rel="noreferrer">
+            {t("res.open")} ↗
+          </a>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  <style is:global>
+    .res-section { font-family: var(--font-display); font-size: 24px; margin: var(--space-6) 0 var(--space-4); }
+    .res-section:first-of-type { margin-top: 0; }
+    .deck-list { display: grid; gap: var(--space-2); margin-bottom: var(--space-6); }
+    .deckrow { display: flex; flex-wrap: wrap; gap: var(--space-2) var(--space-4); align-items: baseline; justify-content: space-between; padding: var(--space-3) var(--space-4); background: var(--surface); border: 1px solid var(--hairline); border-radius: var(--radius-card); }
+    .deckrow-main { display: grid; gap: 2px; }
+    .deckrow-title { font-weight: 600; }
+    .deckrow-flag { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--warn); }
+    .deckrow.is-refused .deckrow-title { color: var(--ink-muted); }
+    .deckrow-why { flex-basis: 100%; font-size: 14px; color: var(--ink-muted); }
+    .deckrow-why summary { cursor: pointer; color: var(--bad); font-weight: 600; }
+    .deckrow-why ul { margin: var(--space-2) 0 0; padding-left: var(--space-4); display: grid; gap: 2px; }
+    .res-grid { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr)); }
+
+    .rescard {
+      display: flex;
+      flex-direction: column;
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+      overflow: hidden;
+    }
+
+    /* 1200x630 is what og:image and GitHub both publish, so the card band is that shape and the
+       image fills it without a crop. */
+    .rescard-embed {
+      position: relative;
+      aspect-ratio: 1200 / 630;
+      background: var(--surface-sunken);
+      border-bottom: 1px solid var(--hairline);
+      overflow: hidden;
+    }
+    /* The deck is rendered at desktop width and scaled down, so the preview shows the real layout
+       rather than the deck's own narrow-viewport fallback. */
+    .rescard-embed img { width: 100%; height: 100%; object-fit: cover; }
+    /* For a private repo or anything else with no usable preview. GitHub's endpoint answers for a
+       private repo with a generic octocat, which reads as a broken image; a name reads as a name. */
+    .rescard-mark {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: var(--space-6);
+      font-family: var(--font-display);
+      font-size: 30px;
+      letter-spacing: -0.01em;
+      color: var(--ink-faint);
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .rescard-body { padding: var(--space-4); display: grid; gap: var(--space-2); flex: 1; align-content: start; }
+    .rescard-head { display: flex; gap: var(--space-3); align-items: baseline; justify-content: space-between; }
+    .rescard-name { font-family: var(--font-display); font-size: 21px; line-height: 1.2; }
+    .rescard-host { font-size: 11.5px; white-space: nowrap; }
+    .rescard-note { font-size: 13.5px; line-height: 1.5; margin: 0; }
+    .rescard-open { font-size: 13px; font-weight: 500; margin-top: var(--space-2); }
+  </style>
+</Base>

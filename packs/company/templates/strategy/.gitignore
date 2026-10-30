@@ -1,0 +1,6 @@
+# A deck's output, rebuilt on every build: the check's PNGs and contact sheet, and the copies to
+# send (--share, --pdf). The intranet serves the built deck; this repo keeps its source.
+decks/*/.check/
+decks/*/dist/
+# A document's PDF (--pdf), printed from its source on demand. The intranet serves the built page.
+documents/*/dist/

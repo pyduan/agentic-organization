@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.DS_Store
+public/images/
+public/decks/
+src/data/decks.json
+public/documents/

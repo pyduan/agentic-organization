@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "__WORKER__",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-16",
+
+  // Deployed on a generic workers.dev subdomain. A custom domain is one line here plus a DNS
+  // record, and is worth waiting for until the company has a settled name.
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+
+    // Without this the static assets are served before the worker ever runs, and the password
+    // check in worker.js would never execute on the pages it exists to protect.
+    "run_worker_first": true
+  },
+
+  // Preview URLs run this worker too, so they are gated, but there is no use for a second
+  // guessable hostname in front of the pipeline. One address, one gate.
+  "preview_urls": false,
+
+  // Tick state and notes on the org-wide todo list. The questions themselves stay in each repo's
+  // INDEX.md, which is the source of truth; this holds only what a person did to one on the site.
+  // Losing it would lose ticks and notes, and no question.
+  "kv_namespaces": [{ "binding": "TODOS", "id": "__KV_ID__" }],
+
+  // TEAM_DOMAIN and POLICY_AUD are written here by scripts/protect-access.mjs --write-vars once Access
+  // is in front of this Worker. Until then they are empty and worker.js serves nothing.
+  "vars": { "TEAM_DOMAIN": "", "POLICY_AUD": "" },
+
+  "observability": { "enabled": true }
+}

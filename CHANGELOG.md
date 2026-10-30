@@ -12,6 +12,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · An optional company pack: five repos and an intranet that steers the company
+
+- **`packs/company/`**, for a company that wants to run sales, product and strategy from files where
+  different people read different areas. This repo becomes the central one, and one command puts
+  `customers`, `strategy`, `administrative` and `intranet` beside it: a pipeline of named accounts
+  (B2B) or population segments (B2C), accounts and projects, product, strategy, a decisions journal,
+  and decks and documents the intranet refuses to serve when they fail their checks. Eight skills come
+  with it: setting the company up, a customer file, a meeting log, prospect research, consolidating a
+  backlog, typed decisions, a customer workshop, and onboarding a customer.
+- `check-ai-tics` reads another voice guide when `AI_TICS_VOICE` names one; the freshness sweep no
+  longer reports a link built from a `__PLACEHOLDER__` as dead; `check-access-config` leaves a pack's
+  `templates/` to the repo they are copied into.
+
+**What you need to do:** nothing. The pack is optional and does nothing until you ask your agent to
+set the company up; one repo stays the right shape for most organizations.
+
 ## 2026-10-29 · MINOR · Navigation: one row of tabs, then a sidebar
 
 - A section with several pages lists them in a sidebar beside the page, never in a second row of tabs; on a phone the sidebar folds into one control above the title (`source/formats/webapp.md`).

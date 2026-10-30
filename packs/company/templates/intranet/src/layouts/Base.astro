@@ -1,0 +1,224 @@
+---
+import "../styles/global.css";
+import HoverTip from "../components/ui/HoverTip.astro";
+import NoteBubble from "../components/NoteBubble.astro";
+import {t, LOCALE} from "../lib/i18n.mjs";
+import { company, tabs } from "../../config.mjs";
+
+const { title, lead, docTitle } = Astro.props;
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const active = (to) => (to === "/" ? path === "/" : path === to || path.startsWith(to + "/"));
+---
+<!doctype html>
+<html lang={LOCALE.slice(0, 2)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>{title || docTitle ? `${title ?? docTitle} · ${company.name}` : company.name}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&family=JetBrains+Mono:wght@400&display=swap"
+    />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  </head>
+  <body>
+    <header class="site-head" data-nav>
+      <div class="shell site-head-inner">
+        <a href={"/"} class="wordmark">{company.name}</a>
+
+        <nav class="tabs" id="site-nav">
+          {tabs.map(([to, label]) => (
+            <a href={to} class={active(to) ? "tab tab-on" : "tab"}>{label}</a>
+          ))}
+        </nav>
+
+        {/* Below 860px the nine tabs no longer fit, and a scrolling strip hides half of them
+            behind a gesture nobody guesses. The button takes over there and the same <nav> is
+            what it opens, so there is one list of tabs rather than two. */}
+        <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false"
+                aria-label={t("chrome.menu")} data-nav-toggle>
+          <span class="nav-bars" aria-hidden="true"></span>
+        </button>
+      </div>
+    </header>
+
+    {title && (
+      <div class="shell page-head">
+        <h1 class="display page-title">{title}</h1>
+        {lead && <p class="muted measure page-lead">{lead}</p>}
+      </div>
+    )}
+
+    <main class="shell" style="padding-bottom: var(--space-16);">
+      <slot />
+    </main>
+
+    {/* One per page, for every [data-tip-title] on it. See the component for why it cannot live
+        inside the charts that use it. */}
+    <HoverTip />
+
+    <NoteBubble />
+
+    <footer class="shell site-foot">
+      <p class="faint site-foot-note">{t("chrome.footer")}</p>
+      <p class="faint site-identity">
+        {/* worker.js fills this in from the verified Access assertion and unhides it. It stays
+            hidden in dev and in any build served without Access in front, rather than showing a
+            placeholder address that nobody is actually signed in as. */}
+        {t("chrome.signedIn")} <strong data-identity hidden></strong>
+        <a href="/cdn-cgi/access/logout">{t("chrome.signOut")}</a>
+      </p>
+    </footer>
+
+    <style is:global>
+      .site-head {
+        border-bottom: 1px solid var(--hairline);
+        background: color-mix(in srgb, var(--canvas) 88%, transparent);
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+      .site-head-inner {
+        display: flex;
+        align-items: center;
+        gap: var(--space-4);
+        height: 56px;
+      }
+      .wordmark {
+        font-family: var(--font-display);
+        font-size: 21px;
+        letter-spacing: 0.04em;
+        color: var(--ink);
+        flex: none;
+      }
+      .wordmark:hover { text-decoration: none; }
+
+      .tabs {
+        display: flex;
+        gap: var(--space-1);
+        /* Pushed right against the wordmark when the row fits. justify-content only bites once the
+           row is wider than its box, and then it would pin the first tab off-screen, so the margin
+           does the aligning instead. */
+        margin-left: auto;
+        overflow-x: auto;
+        /* Without this the flex item sizes to its content and scrolls the whole page instead of
+           itself. min-width on a flex item defaults to auto, not zero. */
+        min-width: 0;
+        scrollbar-width: none;
+      }
+      .tabs::-webkit-scrollbar { display: none; }
+      .tab {
+        padding: 6px 11px;
+        border-radius: var(--radius-chip);
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--ink-muted);
+        white-space: nowrap;
+      }
+      .tab:hover { color: var(--ink); text-decoration: none; background: var(--surface-sunken); }
+      .tab-on { color: var(--accent); background: var(--accent-soft); }
+      .tab-on:hover { background: var(--accent-soft); }
+
+      .nav-toggle {
+        display: none;
+        flex: none;
+        margin-left: auto;
+        width: 38px;
+        height: 34px;
+        padding: 0;
+        background: none;
+        border: 1px solid var(--hairline);
+        border-radius: var(--radius-chip);
+        color: var(--ink-muted);
+        cursor: pointer;
+      }
+      .nav-toggle:hover { color: var(--accent); border-color: var(--accent); }
+      .nav-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+      /* Three bars from one element: the middle is the box, the outer two are its borders offset
+         by a shadow. One span keeps the markup out of the way of the accessible name. */
+      .nav-bars, .nav-bars::before, .nav-bars::after {
+        display: block;
+        width: 16px;
+        height: 1.5px;
+        margin: 0 auto;
+        background: currentColor;
+        border-radius: 2px;
+        transition: transform 120ms ease, opacity 120ms ease;
+      }
+      .nav-bars { position: relative; }
+      .nav-bars::before, .nav-bars::after { content: ""; position: absolute; left: 0; }
+      .nav-bars::before { top: -5px; }
+      .nav-bars::after { top: 5px; }
+      .nav-toggle[aria-expanded="true"] .nav-bars { background: transparent; }
+      .nav-toggle[aria-expanded="true"] .nav-bars::before { top: 0; transform: rotate(45deg); }
+      .nav-toggle[aria-expanded="true"] .nav-bars::after { top: 0; transform: rotate(-45deg); }
+
+      .page-head { padding: var(--space-12) var(--space-6) var(--space-8); }
+      .page-title { font-size: clamp(34px, 5vw, 52px); }
+      .page-lead { margin-top: var(--space-3); }
+
+      .site-foot {
+        border-top: 1px solid var(--hairline);
+        padding-top: var(--space-6);
+        padding-bottom: var(--space-12);
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-4) var(--space-8);
+        justify-content: space-between;
+      }
+      .site-foot-note { font-size: 13px; max-width: 62ch; }
+      .site-identity { display: flex; gap: var(--space-3); align-items: baseline; font-size: 13px; }
+      /* Until the worker unhides the address there is nothing to announce, so the whole line goes. */
+      .site-identity:has([data-identity][hidden]) { display: none; }
+
+      @media (max-width: 860px) {
+        .nav-toggle { display: block; }
+        .tabs {
+          display: none;
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 100%;
+          flex-direction: column;
+          gap: 2px;
+          margin: 0;
+          padding: var(--space-3) var(--space-6) var(--space-4);
+          overflow: visible;
+          background: var(--canvas);
+          border-bottom: 1px solid var(--hairline);
+          box-shadow: 0 12px 24px -18px rgb(0 0 0 / 0.5);
+        }
+        .site-head[data-nav-open] .tabs { display: flex; }
+        .tab { padding: 10px 12px; font-size: 15px; }
+        .page-head { padding: var(--space-8) var(--space-6) var(--space-6); }
+      }
+    </style>
+
+    <script>
+      // The panel is closed on every load, including a back-navigation that restores the DOM, so
+      // the button and the nav can never disagree about what is showing.
+      const head = document.querySelector("[data-nav]");
+      const toggle = document.querySelector("[data-nav-toggle]");
+      if (head && toggle) {
+        const set = (open) => {
+          head.toggleAttribute("data-nav-open", open);
+          toggle.setAttribute("aria-expanded", String(open));
+        };
+        set(false);
+        toggle.addEventListener("click", () => set(!head.hasAttribute("data-nav-open")));
+        head.querySelector(".tabs").addEventListener("click", () => set(false));
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && head.hasAttribute("data-nav-open")) { set(false); toggle.focus(); }
+        });
+        // Widening past the breakpoint shows the tabs again; an open flag left behind would
+        // otherwise survive as a stuck close icon.
+        matchMedia("(max-width: 860px)").addEventListener("change", (e) => { if (!e.matches) set(false); });
+      }
+    </script>
+  </body>
+</html>

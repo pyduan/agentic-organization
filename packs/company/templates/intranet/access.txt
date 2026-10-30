@@ -1,0 +1,6 @@
+# Who may sign in to the intranet: one address per line, `#` starts a comment. Each person signs in
+# with a one-time code sent to that address (or with Google, see README.md ▸ Access).
+#
+# Mirrored from administrative/people/emails.md ▸ Signs in with, which says who each person is. Apply
+# it with scripts/protect-access.mjs (README.md ▸ Access). Removing a line and rerunning stops that
+# person's next sign-in, not the session they already have: revoke it too (Zero Trust ▸ Users).

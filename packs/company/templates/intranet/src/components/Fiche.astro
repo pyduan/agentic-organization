@@ -1,0 +1,144 @@
+---
+// The detail shell, used by a company and by a project without variation.
+//
+// Both files have the same shape, so both pages have the same shape: same header, same sidebar,
+// same section order. Two pages being comparable is the point of templating the file and the view
+// together, and it is what makes a page readable by someone who has never opened that customer.
+import Badge from "./ui/Badge.astro";
+import Monogram from "./ui/Monogram.astro";
+import Journal from "./Journal.astro";
+import MiniTimeline from "./MiniTimeline.astro";
+import { stageLabel } from "../lib/content.mjs";
+import {t, tOr, formatDate} from "../lib/i18n.mjs";
+
+const { item, crumbs = [], subtitle, milestones = [], accent, order = [], source } = Astro.props;
+
+// Section headings are structure this site imposes, so they translate. The bodies under them are
+// the author's words and stay as written. A heading we do not know is shown as authored.
+const heading = (h) => tOr(`section.${h}`, h);
+const s = item.sections ?? {};
+const present = order.filter((h) => s[h]);
+const extra = Object.keys(s).filter((h) => !order.includes(h) && h !== "Journal");
+---
+<nav class="crumbs">
+  {crumbs.map((c, i) => (
+    <>
+      {i > 0 && <span class="faint">/</span>}
+      {c.href ? <a href={c.href}>{c.label}</a> : <span class="faint">{c.label}</span>}
+    </>
+  ))}
+</nav>
+
+<header class="fiche-head">
+  <div class="fiche-portrait">
+    {item.image ? <img src={item.image} alt="" /> : <Monogram name={item.name} />}
+  </div>
+
+  <div class="fiche-ident">
+    <div class="fiche-chips">
+      <Badge status={item.status} />
+      {item.stage && <Badge plain label={stageLabel(item.stage)} />}
+      {item.owner && <Badge plain label={`${t("common.owner")}: ${item.owner}`} />}
+      <span class="faint fiche-updated">{t("common.updated")} {item.updated ? formatDate(item.updated) : t("common.unknown")}</span>
+    </div>
+
+    <h1 class="display fiche-title">{item.name}</h1>
+    {subtitle && <p class="muted measure fiche-sub">{subtitle}</p>}
+
+    {(item.key_facts ?? []).length > 0 && (
+      <ul class="facts fiche-facts">{item.key_facts.map((f) => <li>{f}</li>)}</ul>
+    )}
+  </div>
+</header>
+
+<div class="fiche-body">
+  <aside class="fiche-side">
+    <slot name="sidebar" />
+
+    {(item.tags ?? []).length > 0 && (
+      <div class="fiche-tagrow">{item.tags.map((t) => <Badge plain label={t} />)}</div>
+    )}
+
+    <p class="faint fiche-source">{t("common.source")}: <code>{source}</code></p>
+  </aside>
+
+  <div class="fiche-main">
+    {milestones.length > 0 && (
+      <section>
+        <h2 class="label fiche-h">{t("fiche.milestones")}</h2>
+        <MiniTimeline milestones={milestones} accent={accent} />
+      </section>
+    )}
+
+    <slot name="lead" />
+
+    {[...present, ...extra].map((h) => (
+      <section>
+        <h2 class="label fiche-h">{heading(h)}</h2>
+        <div class="prose" set:html={s[h]} />
+      </section>
+    ))}
+
+    <section>
+      <h2 class="label fiche-h">{t("fiche.journal")}</h2>
+      <Journal entries={item.journal} />
+    </section>
+  </div>
+</div>
+
+<style is:global>
+  .crumbs {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    font-size: 12.5px;
+    padding-top: var(--space-8);
+  }
+
+  .fiche-head {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: var(--space-8);
+    align-items: start;
+    padding: var(--space-6) 0 var(--space-8);
+  }
+  .fiche-portrait {
+    position: relative;
+    aspect-ratio: 4/3;
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+  }
+  .fiche-portrait img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* One block, stepping down. Each row sits close to the one it belongs to rather than inheriting
+     a section-sized gap, which is what made the header read as loose. */
+  .fiche-ident { display: grid; gap: var(--space-3); min-width: 0; }
+  .fiche-chips { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; }
+  .fiche-updated { font-size: 12.5px; }
+  .fiche-title { font-size: clamp(30px, 4.4vw, 46px); margin: 0; }
+  .fiche-sub { margin: -4px 0 0; font-size: 15px; }
+  .fiche-facts { margin-top: var(--space-2); }
+
+  .fiche-body {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: var(--space-12);
+    align-items: start;
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--hairline);
+  }
+  .fiche-side { display: grid; gap: var(--space-6); position: sticky; top: 80px; min-width: 0; }
+  .fiche-tagrow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .fiche-source { font-size: 12px; overflow-wrap: anywhere; }
+
+  .fiche-main { display: grid; gap: var(--space-12); min-width: 0; }
+  .fiche-h { margin-bottom: var(--space-3); }
+
+  @media (max-width: 900px) {
+    .fiche-head, .fiche-body { grid-template-columns: 1fr; }
+    .fiche-side { position: static; }
+    .fiche-portrait { max-width: 320px; }
+  }
+</style>

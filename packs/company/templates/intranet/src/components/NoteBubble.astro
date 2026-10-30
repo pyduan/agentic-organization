@@ -1,0 +1,130 @@
+---
+// Note anything, from whatever page you are on.
+//
+// Most of what a cofounder wants to say from a phone is not an edit to anything on the site: a
+// figure heard on a call, a piece of news, an idea. The bubble takes it as it comes and the Worker
+// commits it, dated and signed with the verified address, into the central repo's `inbox/notes/`.
+// The next agent session files it into the markdown it belongs to. The site never reads it back.
+//
+// Rendered hidden: worker.js unhides it, as it does the footer identity, so it appears only where the
+// endpoint behind it exists. `npm run dev` has neither, and shows neither.
+import { t } from "../lib/i18n.mjs";
+---
+<div class="note-bubble" data-note-bubble hidden
+     data-sending={t("note.sending")} data-sent={t("note.sent")} data-failed={t("note.failed")}>
+  <button class="note-bubble-open" type="button" aria-expanded="false" aria-controls="note-bubble-panel"
+          aria-label={t("note.title")} title={t("note.title")} data-note-open>
+    <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor"
+         stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  </button>
+
+  <div class="note-bubble-panel" id="note-bubble-panel" data-note-panel hidden>
+    <h2 class="label">{t("note.title")}</h2>
+    <p class="faint note-bubble-help">{t("note.help")}</p>
+    <textarea rows="4" data-note-text aria-label={t("note.title")}></textarea>
+    <div class="note-bubble-actions">
+      <button type="button" class="btn" data-note-send>{t("note.send")}</button>
+      <span class="faint note-bubble-status" role="status" data-note-status></span>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .note-bubble { position: fixed; right: 16px; bottom: 16px; z-index: 20; }
+  .note-bubble[hidden] { display: none; }
+  .note-bubble-open {
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--hairline);
+    background: var(--ink);
+    color: var(--canvas);
+    box-shadow: var(--shadow-overlay);
+    cursor: pointer;
+  }
+  .note-bubble-open:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .note-bubble-panel {
+    position: absolute;
+    right: 0;
+    bottom: 60px;
+    width: min(22rem, calc(100vw - 32px));
+    display: grid;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-overlay);
+  }
+  .note-bubble-panel[hidden] { display: none; }
+  .note-bubble-help { font-size: 12.5px; margin: 0; }
+  .note-bubble-panel textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--canvas);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 8px 10px;
+    resize: vertical;
+  }
+  .note-bubble-panel textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .note-bubble-actions { display: flex; align-items: center; gap: var(--space-3); }
+  .note-bubble-status { font-size: 12px; }
+  .note-bubble-status.is-error { color: var(--bad); }
+</style>
+
+<script>
+  const bubble = document.querySelector("[data-note-bubble]");
+  if (bubble) {
+    const open = bubble.querySelector("[data-note-open]");
+    const panel = bubble.querySelector("[data-note-panel]");
+    const text = bubble.querySelector("[data-note-text]");
+    const sendButton = bubble.querySelector("[data-note-send]");
+    const status = bubble.querySelector("[data-note-status]");
+    const localToday = (d = new Date()) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+    const toggle = (show) => {
+      panel.hidden = !show;
+      open.setAttribute("aria-expanded", String(show));
+      if (show) text.focus();
+      else open.focus();
+    };
+    const say = (message, error = false) => {
+      status.textContent = message;
+      status.classList.toggle("is-error", error);
+    };
+
+    open.addEventListener("click", () => toggle(panel.hidden));
+    panel.addEventListener("keydown", (event) => { if (event.key === "Escape") toggle(false); });
+
+    sendButton.addEventListener("click", async () => {
+      const note = text.value.trim();
+      if (!note) return;
+      sendButton.disabled = true;
+      say(bubble.dataset.sending);
+      try {
+        const response = await fetch("/api/notes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: note, on: localToday() }),
+        });
+        if (!response.ok) throw new Error((await response.text().catch(() => "")).trim() || `HTTP ${response.status}`);
+        // Cleared only once the server has the note: a failure keeps every word on screen.
+        text.value = "";
+        say(bubble.dataset.sent);
+        setTimeout(() => { say(""); toggle(false); }, 2500);
+      } catch (error) {
+        say(`${bubble.dataset.failed} ${error.message}`, true);
+      } finally {
+        sendButton.disabled = false;
+      }
+    });
+  }
+</script>

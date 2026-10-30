@@ -1,0 +1,36 @@
+{
+  "name": "__SLUG__-intranet",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "npm run images && npm run decks -- --no-check && npm run doc -- --intranet --no-check && astro dev",
+    "build": "npm run check && npm run images && npm run decks && npm run doc -- --intranet && astro build",
+    "preview": "astro preview",
+    "deploy": "npm run build && wrangler deploy",
+    "check": "node scripts/check-content.mjs && node scripts/check-access-config.mjs && node scripts/check-leaks.mjs && node scripts/vendor-sync.mjs verify",
+    "images": "node scripts/copy-images.mjs",
+    "decks": "node scripts/deck/intranet.mjs",
+    "deck": "node scripts/deck/build.mjs",
+    "doc": "node scripts/doc/build.mjs",
+    "check:decks": "node scripts/deck/intranet.mjs --strict",
+    "check:tics": "node scripts/check-ai-tics.mjs",
+    "check:leaks": "node scripts/check-leaks.mjs",
+    "check:access": "node scripts/check-access-config.mjs",
+    "vendor:pull": "node scripts/vendor-sync.mjs pull",
+    "vendor:verify": "node scripts/vendor-sync.mjs verify",
+    "test": "node --test scripts/deck/test.mjs scripts/doc/test.mjs scripts/test-worker.mjs scripts/test-checks.mjs scripts/test-vendor-sync.mjs && node scripts/check-ai-tics.mjs --self-test"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.1.13",
+    "astro": "^5.14.1",
+    "gray-matter": "^4.0.3",
+    "marked": "^15.0.12",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "wrangler": "^4.42.0"
+  }
+}

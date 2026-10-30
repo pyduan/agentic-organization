@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+import Separator from "../components/ui/Separator.astro";
+import PipelineChart from "../components/PipelineChart.astro";
+import Timeline from "../components/Timeline.astro";
+import TodoList from "../components/TodoList.astro";
+import { companies, projects, milestones, openQuestions, openDecisions, STATUS, STATUS_ORDER, statusLabel, sizeOf } from "../lib/content.mjs";
+import { t } from "../lib/i18n.mjs";
+
+const cos = companies();
+const projs = projects();
+
+// One list, not two. Arbitrations and open questions were two TodoLists stacked under two headings
+// that looked identical, and only the first was ever interactive: the component wires a single
+// [data-todos] root per page. Merged, tagged by kind, arbitrations first because a choice waiting on
+// somebody blocks more than a gap in what we know.
+const todos = [
+  ...openDecisions().map((d) => ({ ...d, kind: "decision" })),
+  ...openQuestions().map((q) => ({ ...q, kind: "question" })),
+];
+
+const order = STATUS_ORDER;
+// Biggest first inside a stage, so the eye reads the chart as sizes rather than as an alphabet.
+const bySize = (a, b) => (sizeOf(b) ?? -1) - (sizeOf(a) ?? -1);
+const groups = order
+  .map((status) => ({ status, list: cos.filter((c) => c.status === status).sort(bySize) }))
+  .filter((g) => g.list.length);
+
+const tiles = [
+  ...order
+    .map((s) => ({ n: cos.filter((c) => c.status === s).length, label: statusLabel(s), token: STATUS[s].token }))
+    .filter((x) => x.n),
+  { n: projs.filter((p) => p.status === "active").length, label: t("dash.liveProjects") },
+  { n: todos.length, label: t("dash.todo") },
+];
+---
+<Base title={t("dash.title")}>
+  <section class="tiles">
+    {tiles.map((x) => (
+      <div class="tile">
+        <span class="tile-n" style={x.token ? `color: var(${x.token})` : undefined}>{x.n}</span>
+        <span class="label">{x.label}</span>
+      </div>
+    ))}
+  </section>
+
+  <section style="margin-top:var(--space-8);">
+    <div class="panel"><PipelineChart companies={cos} groups={groups} /></div>
+  </section>
+
+  <section style="margin-top:var(--space-4);">
+    <h2 class="label" style="margin-bottom:var(--space-3);">{t("dash.timeline")}</h2>
+    <div class="panel"><Timeline milestones={milestones()} companies={cos} /></div>
+  </section>
+
+  <Separator />
+
+  <section>
+    <h2 class="label" style="margin-bottom:var(--space-2);">{t("dash.todo")}</h2>
+    <p class="muted measure dash-note">{t("dash.todoNote")}</p>
+    <TodoList todos={todos} />
+  </section>
+
+  <style is:global>
+    .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr)); gap: var(--space-3); }
+    .tile {
+      display: grid;
+      gap: 2px;
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+    }
+    .tile-n { font-family: var(--font-display); font-size: 38px; line-height: 1; }
+    .dash-note { margin-bottom: var(--space-4); font-size: 14px; }
+  </style>
+</Base>

@@ -1,0 +1,86 @@
+---
+// Marketing: the name, the lexical fields, and what the existing-name research found.
+//
+// The table is the page. Each row is a theme we considered, what it claims, who already holds it,
+// and the verdict, so the same field does not get re-explored in three months.
+import Base from "../layouts/Base.astro";
+import Separator from "../components/ui/Separator.astro";
+import { naming } from "../lib/content.mjs";
+import { t } from "../lib/i18n.mjs";
+
+const nm = naming();
+// Matched on a fragment rather than on the whole string. A verdict is written by whoever studied
+// the name, so "free" became "free, needs work" and "rejected" became "rejected as a company
+// name", and an exact-match table silently greyed them out. First match wins, so the order is the
+// meaning: "partly free" has to be tested before "free".
+const VERDICT = [
+  ["partly", "--warn"],
+  ["promising", "--info"],
+  ["free", "--ok"],
+  ["caution", "--priority-normal"],
+  ["rejected", "--priority-high"],
+  ["blocked", "--priority-high"],
+  ["crowded", "--priority-high"],
+  ["closed", "--priority-high"],
+  ["taken", "--priority-high"],
+];
+const verdictToken = (v) =>
+  VERDICT.find(([word]) => String(v ?? "").toLowerCase().includes(word))?.[1] ?? "--ink-faint";
+---
+<Base title={t("mkt.title")} lead={t("mkt.lead")}>
+  <section>
+    <h2 class="label" style="margin-bottom:var(--space-4);">{t("mkt.themes")}</h2>
+
+    <div class="themes">
+      {(nm?.themes ?? []).map((th) => (
+        <article class="theme" style={`--v: var(${verdictToken(th.verdict)})`}>
+          <header class="theme-head">
+            <h3 class="theme-name">{th.theme}</h3>
+            <span class="theme-verdict">{th.verdict}</span>
+          </header>
+          <p class="theme-says">{th.says}</p>
+          <p class="muted theme-why">{th.why}</p>
+          {th.taken && (
+            <p class="theme-taken">
+              <span class="label">{t("mkt.taken")}</span>
+              <span class="faint">{th.taken}</span>
+            </p>
+          )}
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <Separator />
+
+  <section>
+    <div class="prose" set:html={nm?.bodyHtml ?? ""} />
+  </section>
+
+  <style is:global>
+    .themes { display: grid; gap: var(--space-3); }
+    .theme {
+      display: grid;
+      gap: 6px;
+      padding: var(--space-4) var(--space-5, var(--space-4));
+      padding-left: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-left: 3px solid var(--v);
+      border-radius: var(--radius-card);
+    }
+    .theme-head { display: flex; gap: var(--space-3); align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+    .theme-name { font-family: var(--font-display); font-size: 20px; line-height: 1.2; }
+    .theme-verdict {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: var(--radius-chip);
+      color: var(--v);
+      background: color-mix(in srgb, var(--v) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--v) 28%, transparent);
+      white-space: nowrap;
+    }
+    .theme-says { font-size: 14px; margin: 0; }
+    .theme-why { font-size: 13.5px; line-height: 1.5; margin: 0; max-width: var(--measure); }
+    .theme-taken { display: flex; gap: var(--space-3); align-items: baseline; flex-wrap: wrap; margin: 2px 0 0; font-size: 12.5px; }
+  </style>
+</Base>

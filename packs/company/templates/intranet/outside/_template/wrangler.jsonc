@@ -1,0 +1,24 @@
+{
+  // One page for someone outside __COMPANY__: its own Worker, its own Access application, its own
+  // list. Never the intranet's, whose list opens everything. Copy this folder to outside/<slug>/,
+  // then follow intranet/README.md ▸ "A page for someone outside".
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "__WORKER__-page",
+  "main": "worker.js",
+  "compatibility_date": "2026-09-16",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    // Without it the files are served before the Worker runs, and nothing checks who is asking.
+    "run_worker_first": true
+  },
+  "preview_urls": false,
+
+  // Written by scripts/protect-access.mjs --write-vars. The Worker serves nothing without them.
+  "vars": {
+    "TEAM_DOMAIN": "",
+    "POLICY_AUD": ""
+  },
+
+  "observability": { "enabled": true }
+}

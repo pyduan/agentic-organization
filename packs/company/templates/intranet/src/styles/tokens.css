@@ -1,0 +1,182 @@
+/* Design tokens. The single source of colour, type and spacing.
+   Documented in design.md. Imported by the intranet; copy it, do not fork it. */
+
+:root {
+  color-scheme: light;
+
+  --canvas: #fbfaf8;
+  --surface: #ffffff;
+  --surface-sunken: #f4f2ee;
+  --ink: #141413;
+  --ink-muted: #6b6862;
+  --ink-faint: #9c978e;
+  --hairline: #e6e3dd;
+  --accent: #2e5e56;
+  --accent-soft: #e8f0ec;
+
+  --stage-1: #2e6b4f;
+  --stage-2: #3a5a8c;
+  --stage-3: #8a6a1f;
+  --stage-4: #6b6862;
+  --stage-5: #8c8981;
+  --stage-0: #8c8981;
+
+  /* Sector hues for the pipeline chart. Categorical: identity, never magnitude. Assigned in this
+     fixed order and never cycled; a sixth sector gets a validated step added here, never a
+     generated hue. Validated for CVD separation and contrast in both modes against the card
+     surface, light #ffffff and dark #1a1917. Do not nudge these by eye. */
+  --cat-1: #00897b;
+  --cat-2: #c05a17;
+  --cat-3: #3a5fd0;
+  --cat-4: #a93c86;
+  --cat-5: #77761a;
+  --cat-0: #9c978e;
+
+  /* One colour per cofounder, for the owner tags on next steps. Categorical: identity, never
+     magnitude. Validated for colour-vision separation and contrast in both modes, like the sectors.
+     A fifth person means a validated step added here, never a generated hue. */
+  --who-1: #1c72b8;
+  --who-2: #b54436;
+  --who-3: #6f56ad;
+  --who-4: #3a7f42;
+  --who-0: #9c978e;
+
+  /* Verdicts: good, neutral-informative, caution, bad. Used where a page states a judgement (a SWOT
+     quadrant, a domain that is taken) rather than a pipeline position. They are aliases, not new
+     hues: a judgement borrows a validated colour instead of introducing an unvalidated one, and
+     because they resolve at use time they follow the theme without being redefined per theme. */
+  --ok: var(--stage-1);
+  --info: var(--stage-2);
+  --warn: var(--stage-3);
+  --bad: var(--who-2);
+
+  /* Decision types. Categorical, and validated across ALL pairs rather than adjacent ones, because
+     three chips appear together in any order on the journal. Dark mode sits in the 6-8 CVD floor
+     band, which is legal only with a second encoding: every chip carries its word and its dot, so
+     the colour is a scanning shortcut and never the only carrier. */
+  --decision-strategy: #1c72b8;
+  --decision-technology: #c2610f;
+  --decision-business: #a8318a;
+  --decision-untyped: #9c978e;
+
+  /* Priority is ordered, not categorical, so it is one hue at three steps rather than three hues.
+     A reader has to be able to say which of two is more urgent without a legend. */
+  --priority-high: #b5442f;
+  --priority-normal: #c79a4a;
+  --priority-low: #a8a39a;
+
+  --font-display: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --font-ui: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  --radius-card: 8px;
+  --radius-chip: 6px;
+  --shadow-overlay: 0 8px 32px rgba(20, 20, 19, 0.1);
+
+  --measure: 68ch;
+  --content-max: 1180px;
+}
+
+/* Top level, so the deck build, which drops what only a dark interface needs, sees it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --canvas: #12110f;
+    --surface: #1a1917;
+    --surface-sunken: #221f1c;
+    --ink: #f2f0ec;
+    --ink-muted: #a8a39a;
+    --ink-faint: #75706a;
+    --hairline: #2f2c28;
+    --accent: #7fb3a4;
+    --accent-soft: #1d2a27;
+
+    --stage-1: #6fbb91;
+    --stage-2: #7fa3d8;
+    --stage-3: #d2ab5c;
+    --stage-4: #a8a39a;
+    --stage-5: #8c8981;
+    --stage-0: #8c8981;
+
+    /* Dark mode is stepped, not flipped: its own values, validated against the dark card surface. */
+    --cat-1: #1aa08c;
+    --cat-2: #d4762e;
+    --cat-3: #5f82e0;
+    --cat-4: #c55ba8;
+    --cat-5: #93913a;
+    --cat-0: #75706a;
+
+    --who-1: #4e90cb;
+    --who-2: #c97465;
+    --who-3: #907fc8;
+    --who-4: #62a569;
+    --who-0: #75706a;
+
+    --decision-strategy: #4e90cf;
+    --decision-technology: #d07e38;
+    --decision-business: #c757a8;
+    --decision-untyped: #75706a;
+
+    --priority-high: #d4705c;
+    --priority-normal: #d6ab62;
+    --priority-low: #8c8981;
+
+    --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --canvas: #12110f;
+  --surface: #1a1917;
+  --surface-sunken: #221f1c;
+  --ink: #f2f0ec;
+  --ink-muted: #a8a39a;
+  --ink-faint: #75706a;
+  --hairline: #2f2c28;
+  --accent: #7fb3a4;
+  --accent-soft: #1d2a27;
+
+  --stage-1: #6fbb91;
+  --stage-2: #7fa3d8;
+  --stage-3: #d2ab5c;
+  --stage-4: #a8a39a;
+  --stage-5: #8c8981;
+  --stage-0: #8c8981;
+
+  /* Dark mode is stepped, not flipped: its own values, validated against the dark card surface. */
+  --cat-1: #1aa08c;
+  --cat-2: #d4762e;
+  --cat-3: #5f82e0;
+  --cat-4: #c55ba8;
+  --cat-5: #93913a;
+  --cat-0: #75706a;
+
+  --who-1: #4e90cb;
+  --who-2: #c97465;
+  --who-3: #907fc8;
+  --who-4: #62a569;
+  --who-0: #75706a;
+
+  --decision-strategy: #4e90cf;
+  --decision-technology: #d07e38;
+  --decision-business: #c757a8;
+  --decision-untyped: #75706a;
+
+  --priority-high: #d4705c;
+  --priority-normal: #d6ab62;
+  --priority-low: #8c8981;
+
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.5);
+}

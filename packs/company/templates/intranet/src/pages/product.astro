@@ -1,0 +1,258 @@
+---
+// The product: what we sell, who for, where it goes.
+//
+// SWOT, the competitive map and the business model moved to Strategy. This page was long enough
+// that the vision sat between the deck and a four-quadrant table and read as neither.
+import Base from "../layouts/Base.astro";
+import Separator from "../components/ui/Separator.astro";
+import Badge from "../components/ui/Badge.astro";
+import { positioning, vision, openCore, productJournal, resources, features, governance } from "../lib/content.mjs";
+import OwnerTags from "../components/OwnerTags.astro";
+import { t, formatDate } from "../lib/i18n.mjs";
+
+const pos = positioning();
+const vis = vision();
+const core = openCore();
+const insights = productJournal();
+const deck = resources().find((r) => r.kind === "deck");
+const parts = features();
+const nameOf = Object.fromEntries(parts.map((f) => [f.slug, f.name]));
+const gov = governance();
+
+// Four states, and they are about evidence rather than effort: what already runs on a prototype, what
+// is written down, what is being built, what is only an intention. A roadmap that says "in progress"
+// for everything says nothing.
+const FSTATE = {
+  poc: { label: "On the prototype", note: "Runs on the test rig." },
+  spec: { label: "Specified", note: "Written, not built yet." },
+  build: { label: "Being built", note: "" },
+  shipped: { label: "Shipped", note: "" },
+  idea: { label: "Intention", note: "Not a feature yet." },
+};
+---
+<Base>
+  <section class="phead">
+    <div class="phead-text">
+      {pos?.one_liner && <p class="display phead-line">{pos.one_liner}</p>}
+    </div>
+
+    {deck && (
+      <a class="phead-deck" href={deck.url} target="_blank" rel="noreferrer">
+        <span class="phead-frame">
+          {deck.image && <img src={deck.image} alt="" loading="lazy" />}
+        </span>
+        <span class="phead-deck-label">{t("prod.method")} ↗</span>
+      </a>
+    )}
+  </section>
+
+  <Separator />
+
+  {vis && (
+    <>
+      <section class="vision">
+        <div class="vision-lead">
+          <h2 class="label">{t("prod.vision")}</h2>
+          {vis.statement && <p class="display vision-statement">{vis.statement}</p>}
+        </div>
+        <div class="prose vision-body" set:html={vis.bodyHtml} />
+      </section>
+      <Separator />
+    </>
+  )}
+
+  <section>
+    <h2 class="label prod-h">{t("prod.positioning")}</h2>
+    <div class="prod-split">
+      <div>
+        <h3 class="label prod-sub">{t("prod.usp")}</h3>
+        <ul class="facts">{(pos?.usp ?? []).map((u) => <li>{u}</li>)}</ul>
+      </div>
+      <div>
+        <h3 class="label prod-sub">{t("prod.icp")}</h3>
+        <ul class="facts">{(pos?.icp_signals ?? []).map((u) => <li>{u}</li>)}</ul>
+        {(pos?.icp_disqualifiers ?? []).length > 0 && (
+          <>
+            <h3 class="label prod-sub" style="margin-top:var(--space-6);">{t("prod.icpNot")}</h3>
+            <ul class="facts">{pos.icp_disqualifiers.map((u) => <li>{u}</li>)}</ul>
+          </>
+        )}
+      </div>
+    </div>
+    <div class="prose prod-prose" set:html={pos?.bodyHtml ?? ""} />
+  </section>
+
+  {parts.length > 0 && (
+    <>
+      <Separator />
+      <section>
+        <h2 class="label prod-h">The functional parts</h2>
+        <p class="muted measure" style="margin-bottom:var(--space-6); font-size:14px;">
+          One file per part, with its spec and what is not decided in it. The state says what is
+          demonstrated, not what is started.
+        </p>
+        <div class="feat-grid">
+          {parts.map((f) => (
+            <a class="feat" href={`/product/${f.slug}`}>
+              <div class="feat-head">
+                <span class="feat-n">{String(f.order).padStart(2, "0")}</span>
+                <Badge plain label={FSTATE[f.status]?.label ?? f.status} />
+              </div>
+              <h3 class="feat-name">{f.name}</h3>
+              <p class="feat-sum">{f.summary}</p>
+              <div class="feat-foot">
+                <OwnerTags owner={f.owner} />
+                {(f.depends_on ?? []).length > 0 && (
+                  <span class="faint feat-dep">after {f.depends_on.map((d) => nameOf[d] ?? d).join(", ")}</span>
+                )}
+              </div>
+            </a>
+          ))}
+        </div>
+      </section>
+    </>
+  )}
+
+  {gov && (
+    <>
+      <Separator />
+      <section>
+        <h2 class="label prod-h">{gov.title}</h2>
+        <div class="prose" set:html={gov.bodyHtml} />
+      </section>
+    </>
+  )}
+
+  {core && (
+    <>
+      <Separator />
+      <section>
+        <h2 class="label prod-h">{t("prod.openCore")}</h2>
+        <div class="prose" set:html={core.bodyHtml} />
+      </section>
+    </>
+  )}
+
+  <Separator />
+
+  <section>
+    <h2 class="label prod-h">{t("prod.insights")}</h2>
+    <p class="muted measure" style="margin-bottom:var(--space-6); font-size:14px;">
+      {t("prod.insightsNote")}
+    </p>
+    <ol class="ptl">
+      {insights.map((e) => (
+        <li class="ptl-item">
+          <span class="ptl-dot"></span>
+          <div class="ptl-head">
+            <span class="ptl-date">{formatDate(e.date)}</span>
+            {e.tag && <Badge plain label={e.tag} />}
+          </div>
+          <h3 class="ptl-title">{e.title}</h3>
+          <div class="prose muted ptl-body" set:html={e.html} />
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <style is:global>
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(270px, 100%), 1fr));
+      gap: var(--space-3);
+    }
+    .feat {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      min-width: 0;
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+      color: inherit;
+      text-decoration: none;
+    }
+    .feat:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(--hairline)); }
+    .feat-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+    .feat-n { font-family: var(--font-display); font-size: 13px; color: var(--ink-faint); }
+    .feat-name { font-size: 16px; line-height: 1.25; margin: 0; }
+    .feat-sum { font-size: 13.5px; color: var(--ink-muted); margin: 0; overflow-wrap: anywhere; }
+    .feat-foot { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-top: auto; padding-top: var(--space-2); }
+    .feat-dep { font-size: 11px; }
+    /* Header: the line and the deck side by side, the deck small. It was full width above the fold
+       and pushed everything that says what we do below it. */
+    .phead {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: var(--space-12);
+      align-items: center;
+      padding: var(--space-12) 0 var(--space-8);
+    }
+    .phead-text { display: grid; gap: var(--space-4); min-width: 0; }
+    .phead-line { font-size: clamp(24px, 3.4vw, 38px); line-height: 1.22; max-width: 20ch; }
+    .phead-sub { font-size: 14px; max-width: var(--measure); }
+
+    .phead-deck { display: grid; gap: 6px; color: var(--ink-muted); }
+    .phead-deck:hover { text-decoration: none; color: var(--accent); }
+    .phead-frame {
+      display: block;
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1200 / 630;
+      overflow: hidden;
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+      background: var(--surface-sunken);
+    }
+    /* A committed still, not a live frame. The deck rendered blank inside a scaled iframe with no
+       console error, and a preview that works only sometimes is worse than a picture. */
+    .phead-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .phead-deck-label { font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
+
+    /* Vision: the statement on the left, the argument on the right. It was a single column with a
+       quote, a rule and five headings stacked, which read as a wall. */
+    .vision { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: var(--space-12); align-items: start; }
+    .vision-lead { position: sticky; top: 80px; display: grid; gap: var(--space-3); }
+    .vision-statement {
+      font-size: 20px;
+      line-height: 1.35;
+      padding-left: var(--space-4);
+      border-left: 2px solid var(--accent);
+    }
+    .vision-body { max-width: 62ch; }
+    .vision-body h3 { margin-top: var(--space-8); }
+    .vision-body h3:first-child { margin-top: 0; }
+
+    .prod-h { margin-bottom: var(--space-4); }
+    .prod-sub { margin-bottom: var(--space-3); color: var(--ink); }
+    .prod-split { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); align-items: start; }
+    .prod-prose { margin-top: var(--space-8); }
+
+    .ptl {
+      list-style: none; margin: 0; padding: 0 0 0 var(--space-8);
+      border-left: 1px solid var(--hairline); display: grid; gap: var(--space-8);
+    }
+        /* min-width: 0 because a grid child defaults to min-width: auto and sizes to its widest word,
+       which on a 320px screen pushes the whole page sideways. */
+    .ptl-item { position: relative; display: grid; gap: var(--space-2); min-width: 0; }
+    .ptl-item > * { min-width: 0; overflow-wrap: anywhere; }
+    .ptl-dot {
+      position: absolute; left: calc(-1 * var(--space-8) - 5px); top: 6px;
+      width: 9px; height: 9px; border-radius: 999px; background: var(--accent);
+    }
+    .ptl-head { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+    .ptl-date {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--ink-muted);
+    }
+    .ptl-title { font-family: var(--font-display); font-size: 19px; line-height: 1.25; }
+    .ptl-body { font-size: 14px; }
+
+    @media (max-width: 960px) {
+      .phead, .vision, .prod-split { grid-template-columns: 1fr; gap: var(--space-8); }
+      .phead-deck { max-width: 300px; }
+      .vision-lead { position: static; }
+    }
+  </style>
+</Base>

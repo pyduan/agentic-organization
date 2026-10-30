@@ -14,4 +14,6 @@ when it breaks — or **expérimental**, meaning it worked somewhere and you are
 
 That page is the whole store, on purpose. The hard part of sharing is triage, not distribution.
 
- The first pack is extracted from a project that already runs the thing.
+`association-fr` was extracted from an association that already ran it. `company` came from a
+private kit that set companies up on five repos until it retired into this pack on 2026-10-30: its
+`skills/company-setup/SKILL.md` is the way in.

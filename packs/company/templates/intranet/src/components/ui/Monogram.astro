@@ -1,0 +1,12 @@
+---
+// The fallback when a file has no image on disk. A designed empty state, not a gap: see design.md.
+const { name = "" } = Astro.props;
+const initials = String(name)
+  .replace(/[^\p{L}\p{N}\s]/gu, " ")
+  .split(/\s+/)
+  .filter(Boolean)
+  .slice(0, 2)
+  .map((w) => w[0].toUpperCase())
+  .join("");
+---
+<span class="monogram" aria-hidden="true">{initials}</span>

@@ -1,0 +1,98 @@
+---
+import Base from "../../../layouts/Base.astro";
+import Fiche from "../../../components/Fiche.astro";
+import Field from "../../../components/ui/Field.astro";
+import OwnerTags from "../../../components/OwnerTags.astro";
+import { value, sectorOf, sectorColor, stageLabel } from "../../../lib/content.mjs";
+import { t } from "../../../lib/i18n.mjs";
+
+export async function getStaticPaths() {
+  const { companies, accounts, projects, milestones } = await import("../../../lib/content.mjs");
+  const seen = new Set();
+  const cos = [...accounts(), ...companies()].filter((c) => !seen.has(c.slug) && seen.add(c.slug));
+  const ms = milestones();
+  return projects().map((p) => ({
+    params: { company: p.company, project: p.slug },
+    props: {
+      p,
+      company: cos.find((c) => c.slug === p.company) ?? null,
+      ms: ms.filter((m) => m.from === "project" && m.sourceName === p.name),
+    },
+  }));
+}
+
+const { p, company, ms } = Astro.props;
+const ORDER = ["Summary", "Where we stand", "Decisions", "What we learned", "People", "Open questions"];
+const steps = p.next_steps ?? [];
+---
+<Base>
+  <Fiche
+    item={p}
+    crumbs={[
+      { label: t("common.customers"), href: "/customers" },
+      { label: company?.name ?? p.company, href: `/customers/${p.company}` },
+      { label: p.name },
+    ]}
+    subtitle={company ? `${company.name} · ${value(company.industry) ?? ""}` : undefined}
+    milestones={ms}
+    accent={company ? sectorColor(sectorOf(company)) : undefined}
+    order={ORDER}
+    source={`customers/projects/${p.slug}.md`}
+  >
+    <Fragment slot="sidebar">
+      <div class="panel" style="display:grid; gap:var(--space-4);">
+        <Field label={t("common.company")} v={company?.name} href={`/customers/${p.company}`} />
+        <Field label={t("fiche.stage")} v={stageLabel(p.stage)} />
+        <Field label={t("common.owner")} v={p.owner} />
+        <Field label={t("fiche.started")} v={p.started} />
+        <Field label={t("fiche.value")} v={p.value} />
+        <Field label={t("fiche.repo")} v={p.repo} href={p.repo} />
+      </div>
+    </Fragment>
+
+    <Fragment slot="lead">
+      {steps.length > 0 && (
+        <section>
+          <h2 class="label fiche-h">{t("fiche.nextSteps")}</h2>
+          <ol class="steps">
+            {steps.map((n) => (
+              <li class="step">
+                <span class="step-text">{n.text}</span>
+                <span class="step-meta">
+                  <OwnerTags owner={n.owner} />
+                  {n.waiting_on && (
+                    <span class="step-wait">{t("common.waitingOn")} {n.waiting_on}</span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ol>
+          <p class="faint" style="font-size:12px; margin-top:var(--space-3);">
+            {t("fiche.nextStepsNote")}
+          </p>
+        </section>
+      )}
+    </Fragment>
+  </Fiche>
+
+  <style is:global>
+    .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .step {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: var(--space-3);
+      align-items: start;
+      background: var(--surface-sunken);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-chip);
+      padding: 10px 12px;
+    }
+    .step-text { font-size: 13.5px; line-height: 1.45; }
+    .step-meta { display: flex; gap: var(--space-2); align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+    .step-wait { font-size: 11px; color: var(--ink-faint); white-space: nowrap; }
+    @media (max-width: 620px) {
+      .step { grid-template-columns: 1fr; }
+      .step-meta { justify-content: flex-start; }
+    }
+  </style>
+</Base>

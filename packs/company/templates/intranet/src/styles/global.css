@@ -1,0 +1,299 @@
+@import "tailwindcss";
+/* The brand comes from the central repo's source/brand/ (design.md, tokens.css). The intranet's own
+   palette slots (--cat-N, --stage-N, --who-N) are in tokens.css beside this file, validated for
+   colour vision and contrast in both themes. Do not add a colour here. */
+@import "./tokens.css";
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  img { max-width: 100%; display: block; }
+  [hidden] { display: none !important; }
+
+  h1, h2, h3 { margin: 0; letter-spacing: -0.01em; }
+  p { margin: 0 0 var(--space-3); }
+  p:last-child { margin-bottom: 0; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@layer components {
+  .shell { max-width: var(--content-max); margin: 0 auto; padding: 0 var(--space-6); }
+
+  /* Grid and flex children size to their content unless told otherwise, which is what makes one
+     long word or one wide panel scroll the entire page sideways on a phone. Set once here rather
+     than hunted down per component. */
+  .grid-cards > *, .panel, .card, .prose { min-width: 0; }
+  .prose, .facts > li, .card-title, .dtl-title, .display { overflow-wrap: anywhere; }
+  .prose pre { overflow-x: auto; }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+
+  .label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+
+  .muted { color: var(--ink-muted); }
+  .faint { color: var(--ink-faint); }
+  .measure { max-width: var(--measure); }
+
+  /* Cards ------------------------------------------------------------------ */
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* A fixed height rather than an aspect ratio. The covers come from six different sites at six
+     different shapes, and a ratio makes each card as tall as its own image. object-fit crops them
+     all to the same band instead, so a row of cards lines up. */
+  .card-media {
+    position: relative;
+    height: 168px;
+    background: var(--surface-sunken);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .card-media img { width: 100%; height: 100%; object-fit: cover; }
+
+  .monogram {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 44px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+
+  .card-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); flex: 1; }
+  .card-title { font-family: var(--font-display); font-size: 22px; line-height: 1.15; }
+  .card-title a { color: var(--ink); }
+
+  /* Key facts are the only lines most people read, so each gets its own outlined box. A row of
+     boxes is scannable; the same text as a bulleted paragraph is not. */
+  .facts {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 6px;
+  }
+  .facts > li {
+    color: var(--ink);
+    font-size: 13.5px;
+    line-height: 1.5;
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 9px 11px;
+  }
+  /* On a sunken surface the boxes need to come forward instead of disappearing into it. */
+  .panel-sunken .facts > li,
+  .facts-on-sunken > li { background: var(--surface); }
+
+  .card-foot {
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .grid-cards {
+    display: grid;
+    gap: var(--space-6);
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+  }
+
+  /* Chips ------------------------------------------------------------------ */
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: var(--radius-chip);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--chip);
+    background: color-mix(in srgb, var(--chip) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--chip) 24%, transparent);
+    white-space: nowrap;
+  }
+  .chip-on-media { position: absolute; top: var(--space-3); right: var(--space-3); background: var(--surface); }
+
+  .chip-plain {
+    color: var(--ink-muted);
+    background: var(--surface-sunken);
+    border-color: var(--hairline);
+  }
+
+  /* Tables ----------------------------------------------------------------- */
+
+  .scroll-x { overflow-x: auto; }
+
+  table.data {
+    width: 100%;
+    min-width: 720px;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.data th {
+    text-align: left;
+    background: var(--surface-sunken);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    padding: var(--space-2) var(--space-3);
+    white-space: nowrap;
+  }
+  table.data td {
+    padding: var(--space-3);
+    border-top: 1px solid var(--hairline);
+    vertical-align: top;
+  }
+
+  /* Prose ------------------------------------------------------------------ */
+
+  .prose { max-width: var(--measure); }
+  .prose h3 { font-size: 17px; font-weight: 600; margin: var(--space-6) 0 var(--space-2); }
+  /* Same treatment in running prose: a top-level bullet is a fact and reads as one. Nested lists
+     stay ordinary, because they are detail on the item above rather than items of their own. */
+  .prose > ul { margin: 0 0 var(--space-4); padding: 0; list-style: none; display: grid; gap: 6px; }
+  .prose > ul > li {
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 10px 12px;
+  }
+  .prose > ul > li > p:last-child { margin-bottom: 0; }
+  .prose > ul ul, .prose > ul ol { margin: var(--space-2) 0 0; padding-left: 1.2em; list-style: disc; }
+  .prose > ul ul > li { background: none; border: 0; padding: 0; }
+  .prose ol { margin: 0 0 var(--space-3); padding-left: 1.2em; }
+  .prose li { margin-bottom: var(--space-1); }
+  .prose > ul > li { margin-bottom: 0; }
+  .prose table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: var(--space-4); }
+  .prose th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); padding: var(--space-2) var(--space-3) ; background: var(--surface-sunken); }
+  .prose td { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--hairline); vertical-align: top; }
+  .prose code {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    background: var(--surface-sunken);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+  .prose blockquote {
+    margin: 0 0 var(--space-3);
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--hairline);
+    color: var(--ink-muted);
+  }
+
+
+  /* Filter bar ------------------------------------------------------------ */
+  /* Lives here rather than in a page, because two pages use it and the second one shipped without
+     any of it: the chips rendered as run-together text with the counts glued to the labels. */
+
+  .filters {
+    display: grid;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-6);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    margin-bottom: var(--space-4);
+  }
+  .filter-row { display: flex; gap: var(--space-4); align-items: center; flex-wrap: wrap; }
+  .filter-label { min-width: 56px; }
+  .filter-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .fchip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--hairline);
+    background: var(--surface);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .fchip:hover { color: var(--ink); border-color: var(--ink-faint); }
+  .fchip.is-on {
+    color: var(--ink);
+    border-color: color-mix(in srgb, var(--chip, var(--ink)) 45%, transparent);
+    background: color-mix(in srgb, var(--chip, var(--ink)) 10%, transparent);
+  }
+  .fchip-dot { width: 8px; height: 8px; border-radius: 999px; background: var(--chip, var(--ink-faint)); flex: none; }
+  .fchip-n { color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+  .filter-count { font-size: 12px; margin-bottom: var(--space-4); }
+  .filter-empty { padding: var(--space-8) 0; }
+
+  /* Panels ----------------------------------------------------------------- */
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-card);
+    padding: var(--space-6);
+  }
+
+  .rule { height: 1px; background: var(--hairline); border: 0; margin: var(--space-12) 0; }
+
+  /* Expandable card body --------------------------------------------------- */
+
+  details.expand > summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    user-select: none;
+  }
+  details.expand > summary::-webkit-details-marker { display: none; }
+  details.expand > summary:hover { color: var(--accent); }
+  details.expand[open] > summary { margin-bottom: var(--space-3); }
+  details.expand > summary::after { content: " +"; }
+  details.expand[open] > summary::after { content: " −"; }
+}

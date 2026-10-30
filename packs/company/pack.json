@@ -1,0 +1,23 @@
+{
+  "id": "pk-fe0af0",
+  "name": "company",
+  "title": "Company on five repos",
+  "description": "This repo as a company's central repo, with customers, strategy, administrative and an intranet beside it: a pipeline of named accounts or population segments, accounts and projects, product, strategy, a decisions journal, and decks and documents refused at build when they fail.",
+  "suits": "A small company with cofounders who want to steer sales, product and strategy from files, where different people may read different areas. Not for a single project or a one-person organization: one repo does that with less ceremony.",
+  "status": "canonical",
+  "requires": {
+    "kit": "2026-10-30",
+    "services": ["GitHub", "Cloudflare Workers", "Cloudflare Access"]
+  },
+  "adds": {
+    "skills": ["company-setup", "customer-file", "meeting-log", "prospect-research", "knowledge-consolidation", "company-decisions", "workshop", "customer-onboarding"],
+    "scripts": ["bootstrap-company.mjs", "open-decisions.mjs", "test-company.mjs"],
+    "files": ["templates/", "DECISIONS.md"]
+  },
+  "settings": {
+    "org": { "description": "The GitHub organization that holds the company's repos. It belongs to the company, with two administrators." },
+    "name": { "description": "The company's name, as it writes it. It names the intranet's Worker and appears on every page." },
+    "profile": { "description": "What the pipeline is made of: b2b-services or b2b-product (named companies) or b2c-product (segments of a population).", "default": "b2b-services" }
+  },
+  "extractedFrom": "A private kit that set companies up on five repos for several months. It retired on 2026-10-30, and its bootstrap, intranet and recipes became this pack."
+}

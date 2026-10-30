@@ -1,0 +1,245 @@
+---
+// The decision log. Every decision taken across every repo, newest first, typed and filterable.
+//
+// It was the "what we learned" page and those entries moved to Product, which is where an
+// observation about the offer belongs. The split is the useful one: this file is what we decided,
+// the product journal is what we noticed. An insight with no decision attached is still open.
+//
+// The contact history that used to sit under this moved too: major prospect events are a rail on
+// Prospects, and a customer's full history is on its own page, next to the context that explains it.
+//
+// The rail also carries what happened to the company itself, with no customer and no product angle
+// (the central journal.md): an outage, an administration's answer, an arrival. Events, not decisions,
+// so they sit beside the log rather than in it.
+import Base from "../layouts/Base.astro";
+import Badge from "../components/ui/Badge.astro";
+import { decisions, openDecisions, companyJournal, DECISION_TYPES } from "../lib/content.mjs";
+import { t, formatDate } from "../lib/i18n.mjs";
+
+const log = decisions();
+const arbitrations = openDecisions();
+const events = companyJournal();
+const types = [...DECISION_TYPES, "untyped"]
+  .map((key) => ({ key, n: log.filter((d) => d.type === key).length }))
+  .filter((x) => x.n);
+const repos = [...new Set(log.map((d) => d.source))].map((key) => ({
+  key,
+  n: log.filter((d) => d.source === key).length,
+}));
+---
+<Base title={t("jour.title")} lead={t("jour.lead")}>
+  <div class="filters" data-filters>
+    <div class="filter-row">
+      <span class="label filter-label">{t("jour.type")}</span>
+      <div class="filter-chips">
+        <button class="fchip is-on" type="button" data-filter="type" data-value="">{t("pros.all")}</button>
+        {types.map((x) => (
+          <button class="fchip" type="button" data-filter="type" data-value={x.key}
+                  style={`--chip: var(--decision-${x.key})`}>
+            <span class="fchip-dot"></span>{t(`dtype.${x.key}`)}<span class="fchip-n">{x.n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="label filter-label">{t("jour.repo")}</span>
+      <div class="filter-chips">
+        <button class="fchip is-on" type="button" data-filter="repo" data-value="">{t("pros.all")}</button>
+        {repos.map((x) => (
+          <button class="fchip" type="button" data-filter="repo" data-value={x.key}>
+            {x.key}<span class="fchip-n">{x.n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <p class="faint filter-count" data-filter-count
+     data-word-companies={t("jour.count")} data-word-of={t("pros.countOf")}></p>
+
+  <div class="jour-layout">
+  <ol class="dtl" data-filter-grid>
+    {log.map((d) => (
+      <li class="dtl-item" data-type={d.type} data-repo={d.source}>
+        <span class="dtl-dot" style={`background: var(--decision-${d.type})`}></span>
+        <div class="dtl-head">
+          <span class="dtl-date">{formatDate(d.date)}</span>
+          <span class="dtl-type" style={`--chip: var(--decision-${d.type})`}>{t(`dtype.${d.type}`)}</span>
+          <Badge plain label={d.source} />
+        </div>
+        <h2 class="dtl-title">{d.title}</h2>
+        <details class="dtl-more">
+          <summary>{t("jour.why")}</summary>
+          <div class="prose muted" set:html={d.html} />
+        </details>
+      </li>
+    ))}
+  </ol>
+
+  <aside class="decide-rail">
+    <h2 class="label">{t("jour.toDecide")}</h2>
+    <p class="faint decide-note">{t("jour.toDecideNote")}</p>
+    <ol class="decide-list">
+      {arbitrations.map((d) => (
+        <li class="decide-item">
+          <span class="decide-dot"></span>
+          <span class="decide-text" set:html={d.html} />
+          <span class="faint decide-src">{d.source}</span>
+        </li>
+      ))}
+    </ol>
+
+    {events.length > 0 && (
+      <>
+        <h2 class="label events-head">{t("jour.events")}</h2>
+        <ol class="event-list">
+          {events.map((e) => (
+            <li class="event-item">
+              <span class="faint event-date">{formatDate(e.date)}{e.tag && ` · ${e.tag}`}</span>
+              <details>
+                <summary class="event-title">{e.title}</summary>
+                <div class="prose muted event-body" set:html={e.html} />
+              </details>
+            </li>
+          ))}
+        </ol>
+      </>
+    )}
+  </aside>
+  </div>
+
+  <p class="faint filter-empty" data-filter-empty hidden>{t("pros.empty")}</p>
+
+  <style is:global>
+    .dtl {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 var(--space-8);
+      border-left: 1px solid var(--hairline);
+      display: grid;
+      gap: var(--space-8);
+    }
+    .dtl-item { position: relative; display: grid; gap: var(--space-2); }
+    .dtl-item[hidden] { display: none; }
+    .dtl-dot {
+      position: absolute;
+      left: calc(-1 * var(--space-8) - 5px);
+      top: 6px;
+      width: 9px; height: 9px;
+      border-radius: 999px;
+    }
+    .dtl-head { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+    .dtl-date {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+    .dtl-type {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: var(--radius-chip);
+      color: var(--chip);
+      background: color-mix(in srgb, var(--chip) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--chip) 28%, transparent);
+    }
+    .dtl-title { font-family: var(--font-display); font-size: 21px; line-height: 1.25; }
+    .dtl-more > summary {
+      list-style: none;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      color: var(--ink-muted);
+      width: max-content;
+    }
+    .dtl-more > summary::-webkit-details-marker { display: none; }
+    .dtl-more > summary::after { content: " +"; }
+    .dtl-more[open] > summary::after { content: " −"; }
+    .dtl-more > summary:hover { color: var(--accent); }
+    .dtl-more[open] > summary { margin-bottom: var(--space-3); }
+
+    .jour-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 300px;
+      gap: var(--space-12);
+      align-items: start;
+    }
+    .decide-rail { position: sticky; top: 80px; display: grid; gap: var(--space-2); min-width: 0; }
+    .decide-note { font-size: 11.5px; margin-bottom: var(--space-2); }
+    .decide-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+    .decide-item {
+      position: relative;
+      display: grid; gap: 3px;
+      padding: 10px 12px 10px 24px;
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-chip);
+    }
+    .decide-dot {
+      position: absolute; left: 11px; top: 15px;
+      width: 7px; height: 7px; border-radius: 999px;
+      background: var(--priority-high);
+    }
+    .decide-text { font-size: 12.5px; line-height: 1.45; }
+    .decide-src { font-size: 10.5px; letter-spacing: 0.04em; }
+
+    .events-head { margin-top: var(--space-8); }
+    .event-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+    .event-item { display: grid; gap: 2px; }
+    .event-date { font-size: 10.5px; letter-spacing: 0.04em; }
+    .event-title { font-size: 13px; line-height: 1.4; cursor: pointer; list-style: none; }
+    .event-title::-webkit-details-marker { display: none; }
+    .event-title:hover { color: var(--accent); }
+    .event-body { font-size: 12.5px; margin-top: var(--space-2); }
+
+    @media (max-width: 1080px) {
+      .jour-layout { grid-template-columns: 1fr; }
+      .decide-rail { position: static; padding-top: var(--space-8); border-top: 1px solid var(--hairline); }
+    }
+    @media (max-width: 720px) { .dtl { padding-left: var(--space-6); } }
+  </style>
+
+  <script>
+    const bar = document.querySelector("[data-filters]");
+    const grid = document.querySelector("[data-filter-grid]");
+    if (bar && grid) {
+      const cells = [...grid.children];
+      const count = document.querySelector("[data-filter-count]");
+      const empty = document.querySelector("[data-filter-empty]");
+      const WORD = count.dataset.wordCompanies ?? "decisions";
+      const OF = count.dataset.wordOf ?? "of";
+      const picked = { type: "", repo: "" };
+
+      const apply = () => {
+        let shown = 0;
+        for (const cell of cells) {
+          const ok =
+            (!picked.type || cell.dataset.type === picked.type) &&
+            (!picked.repo || cell.dataset.repo === picked.repo);
+          cell.hidden = !ok;
+          if (ok) shown++;
+        }
+        count.textContent =
+          shown === cells.length ? `${cells.length} ${WORD}` : `${shown} ${OF} ${cells.length} ${WORD}`;
+        empty.hidden = shown > 0;
+      };
+
+      for (const button of bar.querySelectorAll("[data-filter]")) {
+        button.addEventListener("click", () => {
+          const { filter, value } = button.dataset;
+          picked[filter] = picked[filter] === value ? "" : value;
+          for (const sibling of bar.querySelectorAll(`[data-filter="${filter}"]`)) {
+            sibling.classList.toggle("is-on", sibling.dataset.value === picked[filter]);
+          }
+          apply();
+        });
+      }
+      apply();
+    }
+  </script>
+</Base>

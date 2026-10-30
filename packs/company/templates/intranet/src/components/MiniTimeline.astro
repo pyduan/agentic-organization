@@ -1,0 +1,79 @@
+---
+// One entity's milestones, vertically. Vertical because the labels are sentences: a horizontal
+// timeline at this width truncates every one of them.
+import { TODAY } from "../lib/content.mjs";
+import {t, formatDate} from "../lib/i18n.mjs";
+
+const { milestones = [], accent = "var(--accent)" } = Astro.props;
+const items = [...milestones].sort((a, b) => a.day.localeCompare(b.day));
+const isAhead = (d) => d > TODAY;
+const label = (d, vague) => formatDate(d, { month: "short", day: !vague });
+---
+{items.length === 0 ? (
+  <p class="faint" style="font-size:13.5px;">{t("tl.none")}</p>
+) : (
+  <ol class="mini-tl">
+    {items.map((m) => {
+      const ahead = isAhead(m.day);
+      return (
+        <li class={ahead ? "mini-tl-item is-ahead" : "mini-tl-item"} style={`--accent:${accent}`}>
+          <span class="mini-tl-dot"></span>
+          <div class="mini-tl-date">
+            {label(m.day, m.vague)}
+            {ahead && <span class="mini-tl-ahead">{t("tl.ahead")}</span>}
+          </div>
+          <div class="mini-tl-text">
+            {m.text}
+            {m.kind && <span class="mini-tl-kind">{t(`kind.${m.kind}`)}</span>}
+          </div>
+        </li>
+      );
+    })}
+  </ol>
+)}
+
+<style is:global>
+  .mini-tl {
+    list-style: none;
+    margin: 0;
+    padding: 0 0 0 var(--space-6);
+    position: relative;
+    display: grid;
+    gap: var(--space-4);
+    border-left: 1px solid var(--hairline);
+  }
+  .mini-tl-item { position: relative; display: grid; gap: 2px; }
+  .mini-tl-dot {
+    position: absolute;
+    left: calc(-1 * var(--space-6) - 5px);
+    top: 5px;
+    width: 9px; height: 9px;
+    border-radius: 999px;
+    background: var(--accent);
+    border: 2px solid var(--accent);
+  }
+  .is-ahead .mini-tl-dot { background: var(--surface); border-color: var(--ink-faint); }
+
+  .mini-tl-date {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    gap: var(--space-2);
+    align-items: baseline;
+  }
+  .is-ahead .mini-tl-date { color: var(--ink-faint); }
+  .mini-tl-ahead { color: var(--ink-faint); letter-spacing: 0.06em; }
+
+  .mini-tl-text { font-size: 13.5px; line-height: 1.45; }
+  .mini-tl-kind {
+    display: inline-block;
+    margin-left: var(--space-2);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+</style>

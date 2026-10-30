@@ -1,0 +1,36 @@
+---
+// Who carries a step. One tag per person, coloured from the owner palette.
+//
+// The name is always on the tag. The colour is a shortcut for scanning a long list, never the only
+// thing carrying the information: two of these sit side by side on a shared step, and a reader who
+// cannot separate the hues still reads two names.
+import { ownerColor, ownerLabel, ownersOf } from "../lib/content.mjs";
+
+const { owner } = Astro.props;
+const list = ownersOf(owner);
+---
+{list.length > 0 && (
+  <span class="owners">
+    {list.map((o) => (
+      <span class="owner" style={`--owner: ${ownerColor(o)}`}>{ownerLabel(o)}</span>
+    ))}
+  </span>
+)}
+
+<style is:global>
+  .owners { display: inline-flex; gap: 4px; flex-wrap: wrap; }
+  .owner {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: var(--radius-chip);
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: var(--owner);
+    background: color-mix(in srgb, var(--owner) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--owner) 30%, transparent);
+  }
+</style>

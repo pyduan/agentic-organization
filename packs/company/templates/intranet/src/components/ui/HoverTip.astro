@@ -1,0 +1,94 @@
+---
+// One tooltip for the whole page, positioned in viewport coordinates.
+//
+// A tooltip drawn inside its own chart is clipped by that chart. Both charts here scroll
+// horizontally, and `overflow-x: auto` computes `overflow-y` to `auto` as well, so a tip that opens
+// upward is cut off at the top even when there is room on the page. Every dot on the timeline was
+// losing 37 to 53 pixels that way, and a dot near the left edge lost most of its width too.
+//
+// So the tip lives here, outside every scroller, `position: fixed`, and is moved to the pointer and
+// clamped to the viewport. It is rendered once by the layout rather than by each chart: two copies
+// would both answer `[data-hovertip]` and only the first would ever be filled.
+//
+// A component opts in by putting `data-tip-title` and `data-tip-rows` (a JSON array of strings) on
+// anything hoverable. Keyboard focus places it on the element instead, since there is no pointer to
+// follow. Nothing here is required for the content to be readable: the element keeps its own aria-label.
+---
+<div class="hovertip" data-hovertip hidden>
+  <strong data-hovertip-title></strong>
+  <span data-hovertip-rows></span>
+</div>
+
+<style is:global>
+  .hovertip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 40;
+    display: grid;
+    gap: 2px;
+    max-width: 280px;
+    padding: 8px 11px;
+    border-radius: var(--radius-chip);
+    background: var(--ink);
+    color: var(--canvas);
+    font-size: 12px;
+    line-height: 1.4;
+    pointer-events: none;
+    box-shadow: var(--shadow-overlay);
+  }
+  .hovertip strong { font-weight: 600; }
+  .hovertip [data-hovertip-rows] { display: grid; gap: 1px; opacity: 0.8; }
+</style>
+
+<script>
+  const tip = document.querySelector("[data-hovertip]");
+  const titleEl = tip?.querySelector("[data-hovertip-title]");
+  const rowsEl = tip?.querySelector("[data-hovertip-rows]");
+
+  if (tip) {
+    const GAP = 14;
+
+    const fill = (el) => {
+      titleEl.textContent = el.dataset.tipTitle ?? "";
+      let rows = [];
+      try { rows = JSON.parse(el.dataset.tipRows ?? "[]"); } catch { rows = []; }
+      rowsEl.replaceChildren(
+        ...rows.filter(Boolean).map((line) => {
+          const span = document.createElement("span");
+          span.textContent = line;
+          return span;
+        })
+      );
+    };
+
+    // Clamped to the viewport on both axes, so an element at the right edge does not push the tip
+    // off screen and one near the top flips below the pointer instead of being cut off.
+    const place = (x, y) => {
+      tip.hidden = false;
+      const box = tip.getBoundingClientRect();
+      const left = Math.min(Math.max(GAP, x + GAP), innerWidth - box.width - GAP);
+      // Above the pointer by default, below it when there is no room above. Then clamped to the
+      // bottom as well: a tall tip flipped below a pointer near the top of the window would
+      // otherwise run off the fold, which is the same defect one edge over.
+      const above = y - box.height - GAP;
+      const top = Math.min(
+        Math.max(GAP, above < GAP ? y + GAP * 1.6 : above),
+        innerHeight - box.height - GAP
+      );
+      tip.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+    };
+
+    for (const el of document.querySelectorAll("[data-tip-title]")) {
+      el.addEventListener("pointerenter", (e) => { fill(el); place(e.clientX, e.clientY); });
+      el.addEventListener("pointermove", (e) => place(e.clientX, e.clientY));
+      el.addEventListener("pointerleave", () => { tip.hidden = true; });
+      el.addEventListener("focus", () => {
+        fill(el);
+        const box = el.getBoundingClientRect();
+        place(box.left + box.width / 2, box.top + 8);
+      });
+      el.addEventListener("blur", () => { tip.hidden = true; });
+    }
+  }
+</script>

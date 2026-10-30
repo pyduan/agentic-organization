@@ -1,0 +1,4 @@
+---
+const { class: cls = "", ...rest } = Astro.props;
+---
+<article class={`card ${cls}`} {...rest}><slot /></article>

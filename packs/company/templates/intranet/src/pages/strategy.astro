@@ -1,0 +1,255 @@
+---
+// Strategy: what we understood about the market, where we sit, and what it is worth.
+//
+// Took the SWOT, the competitive map and the business model off Product, which had become one long
+// page holding two different questions: what we sell, and whether the company works.
+import Base from "../layouts/Base.astro";
+import Separator from "../components/ui/Separator.astro";
+import { thesis, market, competition, swot, businessModel } from "../lib/content.mjs";
+import { t, formatNumber } from "../lib/i18n.mjs";
+
+const th = thesis();
+const mkt = market();
+const comp = competition();
+const sw = swot();
+const model = businessModel();
+const QUADRANTS = [
+  ["strengths", "prod.strengths", "--ok"],
+  ["weaknesses", "prod.weaknesses", "--priority-high"],
+  ["opportunities", "prod.opportunities", "--info"],
+  ["threats", "prod.threats", "--warn"],
+];
+
+---
+<Base title={t("strat.title")} lead={t("strat.lead")}>
+  <section>
+    <h2 class="label strat-h">{t("strat.summary")}</h2>
+    <ol class="thesis">
+      {(th?.claims ?? []).map((c, i) => (
+        <li class="claim">
+          <span class="claim-n">{String(i + 1).padStart(2, "0")}</span>
+          <div class="claim-body">
+            <strong class="claim-head">{c.claim}</strong>
+            <span class="muted claim-detail">{c.detail}</span>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <div class="prose strat-prose" set:html={th?.bodyHtml ?? ""} />
+  </section>
+
+  <Separator />
+
+  {mkt && (
+    <>
+      <section>
+        <h2 class="label strat-h">{mkt.title}</h2>
+        <div class="prose" set:html={mkt.bodyHtml} />
+      </section>
+      <Separator />
+    </>
+  )}
+
+  {comp && (
+    <>
+      <section>
+        <h2 class="label strat-h">{t("strat.landscape")}</h2>
+        <div class="prose" set:html={comp.bodyHtml} />
+      </section>
+      <Separator />
+    </>
+  )}
+
+  {sw && (
+    <>
+      <section>
+        <h2 class="label strat-h">{t("strat.swot")}</h2>
+        <div class="swot">
+          {QUADRANTS.map(([key, label, token]) => (
+            <div class="swot-cell" style={`--q: var(${token})`}>
+              <h3 class="swot-h">{t(label)}</h3>
+              <ul class="facts">{(sw[key] ?? []).map((x) => <li>{x}</li>)}</ul>
+            </div>
+          ))}
+        </div>
+        <div class="prose strat-prose" set:html={sw.bodyHtml} />
+      </section>
+      <Separator />
+    </>
+  )}
+
+  {model && (
+    <section>
+      <h2 class="label strat-h">{t("strat.model")}</h2>
+
+      {model.anchor && (
+        <div class="anchor">
+          <div class="anchor-band">
+            <span class="anchor-lo">{formatNumber(model.anchor.low)} {model.anchor.unit}</span>
+            <span class="anchor-rule"></span>
+            <span class="anchor-hi">{formatNumber(model.anchor.high)} {model.anchor.unit}</span>
+          </div>
+          <div class="anchor-text">
+            <span class="label">{t("strat.anchor")}</span>
+            <strong class="anchor-label">{model.anchor.label}</strong>
+            <span class="muted anchor-note">{model.anchor.note}</span>
+          </div>
+        </div>
+      )}
+
+      <h3 class="label strat-sub">{t("strat.tam")}</h3>
+      <div class="tam">
+        {(model.tam ?? []).map((seg) => {
+          const pct = seg.count ? Math.round((seg.reachable / seg.count) * 100) : 0;
+          return (
+            <div class="tam-cell">
+              <span class="tam-name">{seg.segment}</span>
+              <span class="tam-bar">
+                <span class="tam-fill" style={`width:${pct}%`}></span>
+              </span>
+              <span class="tam-nums">
+                <strong>{formatNumber(seg.reachable)}</strong>
+                <span class="faint"> / {formatNumber(seg.count)}</span>
+              </span>
+              <span class="faint tam-basis">{seg.basis}</span>
+              <span class="faint tam-basis">{t("strat.reachable")} : {seg.reachable_basis}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      <h3 class="label strat-sub" style="margin-top:var(--space-12);">{t("strat.ladder")}</h3>
+      <div class="scroll-x">
+        <table class="data">
+          <thead>
+            <tr>
+              <th>{t("strat.stage")}</th><th>{t("strat.price")}</th>
+              <th>{t("strat.recurrence")}</th><th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {(model.ladder ?? []).map((r) => (
+              <tr class={r.price_high >= 100 && r.recurrence === "one-shot" ? "is-core" : undefined}>
+                <td><strong>{r.stage}</strong></td>
+                <td style="white-space:nowrap;">
+                  {r.price_high ? `${r.price_low} to ${r.price_high} ${r.unit}` : r.unit}
+                </td>
+                <td>
+                  <span class={r.recurrence === "recurring" ? "rec rec-on" : "rec"}>{r.recurrence}</span>
+                </td>
+                <td class="muted">{r.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="prose strat-prose" set:html={model.bodyHtml} />
+    </section>
+  )}
+
+  <style is:global>
+    .strat-h { margin-bottom: var(--space-4); }
+    .strat-sub { margin-bottom: var(--space-3); color: var(--ink); }
+    .strat-prose { margin-top: var(--space-8); }
+    /* Written, not computed. The list this replaced took the newest journal entry per tag, which
+       is a ranking by date wearing the clothes of a ranking by importance. */
+    .thesis { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--space-3); }
+    .claim {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: var(--space-4);
+      align-items: start;
+      padding: var(--space-4);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+    }
+    .claim-n {
+      font-family: var(--font-display);
+      font-size: 19px;
+      line-height: 1.2;
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+    }
+    .claim-body { display: grid; gap: 4px; }
+    .claim-head { font-size: 15.5px; line-height: 1.35; }
+    .claim-detail { font-size: 13.5px; line-height: 1.55; }
+    @media (max-width: 620px) {
+      .claim { grid-template-columns: 1fr; gap: var(--space-2); }
+    }
+
+    .swot { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+    .swot-cell {
+      padding: var(--space-4);
+      border: 1px solid var(--hairline);
+      border-top: 2px solid var(--q);
+      border-radius: var(--radius-card);
+      background: var(--surface);
+    }
+    .swot-h {
+      font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--q); margin-bottom: var(--space-3);
+    }
+    .swot-cell .facts > li { background: var(--surface-sunken); }
+
+    /* The anchor is the whole point of the section: the price reads against a spend the customer
+       already makes. It gets a band of its own above the numbers that depend on it. */
+    .anchor {
+      display: grid;
+      gap: var(--space-4);
+      padding: var(--space-6);
+      background: var(--surface);
+      border: 1px solid var(--hairline);
+      border-radius: var(--radius-card);
+      margin-bottom: var(--space-12);
+    }
+    .anchor-band { display: flex; align-items: center; gap: var(--space-4); }
+    .anchor-lo, .anchor-hi {
+      font-family: var(--font-display);
+      font-size: 30px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .anchor-rule {
+      flex: 1;
+      height: 6px;
+      border-radius: 999px;
+      background: linear-gradient(to right,
+        color-mix(in srgb, var(--accent) 30%, transparent), var(--accent));
+    }
+    .anchor-text { display: grid; gap: 3px; }
+    .anchor-label { font-size: 15px; }
+    .anchor-note { font-size: 13.5px; line-height: 1.5; max-width: var(--measure); }
+
+    table.data tr.is-core td { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+    table.data tr.is-core td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+
+    .tam { display: grid; gap: var(--space-6); }
+    .tam-cell { display: grid; grid-template-columns: 200px minmax(0, 1fr) 110px; gap: var(--space-3) var(--space-4); align-items: center; }
+    .tam-name { font-size: 13.5px; font-weight: 500; }
+    .tam-bar { height: 10px; background: var(--surface-sunken); border: 1px solid var(--hairline); border-radius: 999px; overflow: hidden; }
+    .tam-fill { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+    .tam-nums { font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+    .tam-basis { grid-column: 1 / -1; font-size: 11.5px; line-height: 1.45; margin-top: -6px; }
+
+    .rec {
+      font-size: 10.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: var(--radius-chip);
+      color: var(--ink-muted); background: var(--surface-sunken); border: 1px solid var(--hairline);
+      white-space: nowrap;
+    }
+    .rec-on {
+      color: var(--ok);
+      background: color-mix(in srgb, var(--ok) 12%, transparent);
+      border-color: color-mix(in srgb, var(--ok) 28%, transparent);
+    }
+
+    @media (max-width: 860px) {
+      .swot { grid-template-columns: 1fr; }
+      .tam-cell { grid-template-columns: 1fr; gap: 4px; }
+      .tam-nums { text-align: left; }
+      .tam-basis { margin-top: 0; }
+    }
+  </style>
+</Base>

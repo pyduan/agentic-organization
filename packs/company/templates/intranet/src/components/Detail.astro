@@ -1,0 +1,23 @@
+---
+// The detail page body. Fixed section order so two pages are comparable, which is the point of
+// templating the file and the view together.
+import Journal from "./Journal.astro";
+
+const { item, order = [] } = Astro.props;
+const s = item.sections ?? {};
+const present = order.filter((h) => s[h]);
+const extra = Object.keys(s).filter((h) => !order.includes(h) && h !== "Journal");
+---
+<div style="display:grid; gap:var(--space-12);">
+  {[...present, ...extra].map((h) => (
+    <section>
+      <h2 class="label" style="margin-bottom:var(--space-3);">{h}</h2>
+      <div class="prose" set:html={s[h]} />
+    </section>
+  ))}
+
+  <section>
+    <h2 class="label" style="margin-bottom:var(--space-4);">Journal</h2>
+    <Journal entries={item.journal} />
+  </section>
+</div>

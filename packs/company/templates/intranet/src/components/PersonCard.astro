@@ -1,0 +1,65 @@
+---
+import Card from "./ui/Card.astro";
+import Monogram from "./ui/Monogram.astro";
+
+const { person } = Astro.props;
+const links = [
+  person.linkedin && ["LinkedIn", person.linkedin],
+  person.github && ["GitHub", `https://github.com/${person.github}`],
+  person.website && ["Site", person.website],
+].filter(Boolean);
+---
+<Card class="person-card">
+  <div class="person-portrait">
+    {person.image
+      ? <img src={person.image} alt="" loading="lazy" />
+      : <Monogram name={person.name} />}
+  </div>
+
+  <div class="card-body">
+    <div class="person-ident">
+      <h3 class="card-title">{person.name}</h3>
+      <p class="person-role">{person.role}</p>
+      {person.focus && <p class="person-focus">{person.focus}</p>}
+    </div>
+
+    <div class="prose muted" style="font-size:14px;" set:html={person.bodyHtml} />
+
+    <div class="card-foot">
+      <div style="display:flex; gap:var(--space-3); flex-wrap:wrap; font-size:13px;">
+        {links.map(([name, url]) => <a href={url}>{name}</a>)}
+      </div>
+      {person.email && (
+        <a href={`mailto:${person.email}`} style="font-size:13px; white-space:nowrap;">{person.email}</a>
+      )}
+    </div>
+  </div>
+</Card>
+
+<style is:global>
+  .person-card { flex-direction: row; align-items: stretch; }
+  .person-ident { display: grid; gap: 2px; }
+  .person-role { font-size: 14px; color: var(--ink-muted); margin: 0; }
+  .person-focus { font-size: 12.5px; color: var(--ink-faint); margin: 0; }
+
+  /* A square thumbnail, not a full-height panel. Stretching a square headshot down the whole card
+     cropped it to a band across the middle of the face: the taller the card, the tighter the zoom,
+     so the crop changed with the length of the bio. */
+  .person-portrait {
+    position: relative;
+    flex: 0 0 124px;
+    align-self: flex-start;
+    aspect-ratio: 1;
+    margin: var(--space-4) 0 var(--space-4) var(--space-4);
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    overflow: hidden;
+  }
+  .person-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+  .person-portrait .monogram { font-size: 34px; }
+  @media (max-width: 640px) {
+    .person-card { flex-direction: column; }
+    .person-portrait { flex: none; width: 104px; margin-bottom: 0; }
+  }
+</style>

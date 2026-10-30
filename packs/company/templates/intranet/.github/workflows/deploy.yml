@@ -1,0 +1,144 @@
+# Deploying the intranet from a phone.
+#
+# Until this existed, `npm run deploy` on one laptop was the only way to ship, so a change sat
+# unpublished whenever the person holding the laptop was not at it. This is the same command, run by
+# GitHub on a button press.
+#
+# workflow_dispatch only. Nothing here fires on a push, because a deploy is one of the things a
+# human says yes to, and the button is that yes.
+#
+# It builds the site the same way the laptop does, which means it needs the four sibling repos on
+# disk: src/lib/content.mjs reads `..`. So everything is checked out under the workspace root and
+# the intranet sits beside its sources, exactly as it does locally.
+#
+# Its order is the other safeguard. Every step that installs, tests or builds runs code from the
+# dependencies and from the content itself, so it runs with no credential on the runner: the job
+# reads contents only, and no checkout keeps its token. The deploy token appears in one step, which
+# ships what is already built and builds nothing (wrangler.jsonc declares no `build` command; one
+# added there would run with the token in reach, so it belongs in the build step).
+name: Deploy the intranet
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Branch or tag to deploy, in every repo"
+        required: true
+        default: main
+
+permissions:
+  contents: read
+
+env:
+  # Not a secret: it names the company's Cloudflare account, it does not open it. A repository
+  # variable (the company-setup skill ▸ Deploy from GitHub, without a terminal), because a value written here would be the
+  # account of whichever company the kit was first built for.
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: The Cloudflare account is named
+        run: |
+          if [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Set the CLOUDFLARE_ACCOUNT_ID variable on this repo (the company-setup skill ▸ Deploy from GitHub, without a terminal)."
+            exit 1
+          fi
+
+      - name: intranet
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+          path: intranet
+          persist-credentials: false
+
+      # The three content repos and the central one are private, so the job's own GITHUB_TOKEN
+      # cannot read them: it is scoped to this repository alone. REPOS_TOKEN is a token with
+      # read access to the five, and nothing else. It is used here only, and not kept on disk.
+      - name: customers
+        uses: actions/checkout@v4
+        with:
+          repository: __ORG__/customers
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.REPOS_TOKEN }}
+          path: customers
+          persist-credentials: false
+
+      - name: strategy
+        uses: actions/checkout@v4
+        with:
+          repository: __ORG__/strategy
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.REPOS_TOKEN }}
+          path: strategy
+          persist-credentials: false
+
+      - name: administrative
+        uses: actions/checkout@v4
+        with:
+          repository: __ORG__/administrative
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.REPOS_TOKEN }}
+          path: administrative
+          persist-credentials: false
+
+      - name: __CENTRAL__
+        uses: actions/checkout@v4
+        with:
+          repository: __ORG__/__CENTRAL__
+          ref: ${{ inputs.ref }}
+          token: ${{ secrets.REPOS_TOKEN }}
+          path: __CENTRAL__
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: intranet/.node-version
+          cache: npm
+          cache-dependency-path: intranet/package-lock.json
+
+      # From here to the build, code from the dependencies and the content runs: no credential yet.
+      - run: npm ci
+        working-directory: intranet
+
+      # `npm run build` is `check && images && decks && doc && astro build`, so the content check that
+      # catches the YAML trap runs here too, and every deck is measured in the runner's Chrome: a
+      # deck that fails is refused (not served) and the run log says why.
+      - run: npm run build
+        working-directory: intranet
+
+      # The token appears here, for a step that only ships what is built.
+      - name: wrangler deploy
+        working-directory: intranet
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx wrangler deploy
+
+      # The door is still shut to strangers. A deploy that served the intranet to an anonymous
+      # visitor fails here, in red, instead of passing in silence. Needs the repository variable
+      # INTRANET_URL (the company-setup skill ▸ Deploy from GitHub, without a terminal); skipped, and said so, without it.
+      - name: The intranet refuses an anonymous visitor
+        env:
+          URL: ${{ vars.INTRANET_URL }}
+        run: |
+          if [ -z "$URL" ]; then echo "INTRANET_URL is not set: the outside check did not run."; exit 0; fi
+          sleep 5
+          code=$(curl -s -o /dev/null -w '%{http_code}' "$URL/?cb=$RANDOM$RANDOM")
+          echo "anonymous request: $code"
+          [ "$code" = 302 ] || [ "$code" = 403 ] || [ "$code" = 503 ]
+
+      # Says which commit is live, in the run summary, because nothing on the page does yet.
+      - name: What went out
+        working-directory: intranet
+        run: |
+          {
+            echo "### Deployed"
+            echo
+            echo "- ref: \`${{ inputs.ref }}\`"
+            echo "- intranet: \`$(git rev-parse --short HEAD)\`"
+            echo "- customers: \`$(git -C ../customers rev-parse --short HEAD)\`"
+            echo "- strategy: \`$(git -C ../strategy rev-parse --short HEAD)\`"
+            echo "- administrative: \`$(git -C ../administrative rev-parse --short HEAD)\`"
+            echo "- central: \`$(git -C ../__CENTRAL__ rev-parse --short HEAD)\`"
+          } >> "$GITHUB_STEP_SUMMARY"

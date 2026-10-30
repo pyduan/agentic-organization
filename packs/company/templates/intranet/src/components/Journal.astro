@@ -1,0 +1,21 @@
+---
+import Badge from "./ui/Badge.astro";
+import {t, tOr, formatDate} from "../lib/i18n.mjs";
+const { entries = [] } = Astro.props;
+---
+{entries.length === 0 ? (
+  <p class="faint">{t("jour.none")}</p>
+) : (
+  <div style="display:grid; gap:var(--space-6);">
+    {entries.map((e) => (
+      <div style="display:grid; gap:var(--space-2);">
+        <div style="display:flex; align-items:center; gap:var(--space-3); flex-wrap:wrap;">
+          <span class="label" style="color:var(--ink);">{formatDate(e.date)}</span>
+          {e.kind && <Badge plain label={tOr(`kind.${e.kind}`, e.kind)} />}
+        </div>
+        <h3 style="font-size:16px; font-weight:600;">{e.title}</h3>
+        <div class="prose muted" set:html={e.html} />
+      </div>
+    ))}
+  </div>
+)}

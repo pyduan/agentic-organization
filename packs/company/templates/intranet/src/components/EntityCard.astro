@@ -1,0 +1,126 @@
+---
+// One card for a company and for a project. Same component, same slots, because the two files have
+// the same shape. Adding a field to the markdown template adds it here once, for everything.
+//
+// Every fact is rendered. The list is clamped to a fixed height so cards in a row match, and a
+// "More" control appears only on the cards that actually overflow, added by script after layout.
+// The previous version split the facts at three and showed "More" on every card with a fourth,
+// which put a control on cards that had nothing hidden behind it.
+import Card from "./ui/Card.astro";
+import CardContent from "./ui/CardContent.astro";
+import Badge from "./ui/Badge.astro";
+import Monogram from "./ui/Monogram.astro";
+import { value } from "../lib/content.mjs";
+import {t} from "../lib/i18n.mjs";
+
+// `cover` is what decides whether this card has an image band at all. Companies have one and
+// projects do not: a customer is a place with a face, a project is a piece of work. Without it the
+// card is shorter, which is the point, and the monogram placeholder does not appear on six cards
+// that were never going to have a photo.
+const { item, href: to, subtitle, meta = [], cover = false } = Astro.props;
+const facts = item.key_facts ?? [];
+---
+<Card>
+  {cover && (
+    <a class="card-media" href={to} aria-hidden="true" tabindex="-1">
+      {item.image
+        ? <img src={item.image} alt="" loading="lazy" />
+        : <Monogram name={item.name} />}
+      <Badge status={item.status} class="chip-on-media" />
+    </a>
+  )}
+
+  <CardContent>
+    <div class="card-head">
+      {!cover && <Badge status={item.status} />}
+      <h3 class="card-title"><a href={to}>{item.name}</a></h3>
+      {subtitle && <p class="card-sub">{subtitle}</p>}
+    </div>
+
+    {facts.length > 0 && (
+      <div class="clamp" data-clamp data-more-label={t("common.more")} data-less-label={t("common.less")}>
+        <ul class="facts">{facts.map((f) => <li>{f}</li>)}</ul>
+      </div>
+    )}
+
+    <div class="card-foot">
+      <div class="card-tags">
+        {meta.filter(Boolean).map((m) => <Badge plain label={m} />)}
+      </div>
+      <span class="faint card-date">{value(item.updated) ?? t("common.noDate")}</span>
+    </div>
+  </CardContent>
+</Card>
+
+<style is:global>
+  /* The title and its subtitle are one unit and sit tighter to each other than to anything else.
+     Before this they inherited the card's own gap and read as two unrelated lines. */
+  .card-head { display: grid; gap: 3px; justify-items: start; }
+  .card-sub { font-size: 13.5px; color: var(--ink-muted); margin: 0; line-height: 1.4; }
+
+  .card-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .card-date { font-size: 12px; white-space: nowrap; }
+
+  /* Collapsed height fits three facts. Script measures and only then offers to expand. */
+  .clamp { position: relative; max-height: 164px; overflow: hidden; }
+  .clamp.is-open { max-height: none; }
+
+  .clamp.is-clipped::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    height: 44px;
+    background: linear-gradient(to bottom, transparent, var(--surface));
+    pointer-events: none;
+  }
+  .clamp.is-open.is-clipped::after { display: none; }
+
+  .clamp-more {
+    margin-top: 6px;
+    background: none;
+    border: 0;
+    padding: 2px 0;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .clamp-more:hover { color: var(--accent); }
+</style>
+
+<script>
+  // Runs after layout, so it measures what the browser actually rendered rather than guessing from
+  // character counts. A card whose facts fit gets no control at all.
+  const sweep = () => {
+    for (const el of document.querySelectorAll("[data-clamp]")) {
+      const open = el.classList.contains("is-open");
+      if (open) continue;
+      const clipped = el.scrollHeight > el.clientHeight + 2;
+      el.classList.toggle("is-clipped", clipped);
+
+      const existing = el.nextElementSibling?.classList.contains("clamp-more")
+        ? el.nextElementSibling
+        : null;
+      if (!clipped) { existing?.remove(); continue; }
+      if (existing) continue;
+
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "clamp-more";
+      const more = el.dataset.moreLabel ?? "More";
+      const less = el.dataset.lessLabel ?? "Less";
+      button.textContent = `${more} +`;
+      button.addEventListener("click", () => {
+        const nowOpen = el.classList.toggle("is-open");
+        button.textContent = nowOpen ? `${less} \u2212` : `${more} +`;
+      });
+      el.after(button);
+    }
+  };
+  sweep();
+  // Fonts land after first paint and change the measurement.
+  document.fonts?.ready.then(sweep);
+  addEventListener("resize", () => requestAnimationFrame(sweep));
+</script>

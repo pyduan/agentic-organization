@@ -1,0 +1,278 @@
+---
+// The org-wide todo list.
+//
+// The questions come from each repo's INDEX.md at build time and are not editable here: answering
+// one means editing the file, which is where the context lives. What is editable is the tick and a
+// note, which is the part that belongs to a person rather than to a repo.
+//
+// So a tick is a working signal, not an answer. The list shortens when someone edits the markdown.
+//
+// An item may carry a `kind`, which the dashboard uses to hold arbitrations and open questions in
+// one list. They are different things — a choice waiting on somebody, and something nobody knows
+// yet — but they are the same gesture for the reader, so the distinction is a chip, not a heading.
+import Badge from "./ui/Badge.astro";
+import OwnerTags from "./OwnerTags.astro";
+import {t} from "../lib/i18n.mjs";
+
+const { todos } = Astro.props;
+---
+<div class="todos" data-todos data-note-label={t("todo.note")} data-saving-label={t("todo.saving")}
+     data-failed-label={t("todo.failed")}>
+  <p class="todo-offline faint" data-todo-offline hidden>{t("todo.offline")}</p>
+
+  <ul class="todo-list">
+    {todos.map((item) => (
+      <li class="todo" data-todo-id={item.id}>
+        <input class="todo-box" type="checkbox" id={`todo-${item.id}`} aria-label={t("todo.done")} />
+        <div class="todo-main">
+          <label class="todo-text" for={`todo-${item.id}`} set:html={item.html} />
+          <div class="todo-meta">
+            {item.kind && <span class={`todo-kind todo-kind-${item.kind}`}>{t(`todo.kind.${item.kind}`)}</span>}
+            <OwnerTags owner={item.owner} />
+            <Badge plain label={item.source} />
+            <span class="faint todo-by" data-todo-by></span>
+            <button class="todo-note-open" type="button" data-todo-note-open>{t("todo.note")}</button>
+          </div>
+          <p class="todo-status" data-todo-status role="status" hidden>
+            <span data-todo-status-text></span>
+            <button type="button" class="btn" data-todo-retry hidden>{t("todo.retry")}</button>
+          </p>
+          <div class="todo-note" data-todo-note hidden>
+            <textarea rows="2" placeholder={t("todo.notePlaceholder")} data-todo-note-input></textarea>
+            <div class="todo-note-actions">
+              <button type="button" class="btn" data-todo-note-save>{t("todo.save")}</button>
+              <span class="faint todo-note-by" data-todo-note-by></span>
+            </div>
+          </div>
+        </div>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style is:global>
+  .todos { display: grid; gap: var(--space-3); }
+  .todo-offline { font-size: 12.5px; }
+  .todo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+
+  .todo {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: var(--space-3);
+    align-items: start;
+    background: var(--surface-sunken);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 10px 12px;
+  }
+  .todo.is-done { background: var(--surface); }
+  .todo.is-done .todo-text { color: var(--ink-faint); text-decoration: line-through; }
+
+  .todo-box { margin-top: 3px; width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  .todo-main { display: grid; gap: 6px; min-width: 0; }
+  .todo-text { font-size: 13.5px; line-height: 1.5; cursor: pointer; }
+  .todo-text code { font-family: var(--font-mono); font-size: 12px; }
+
+  .todo-meta { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+  .todo-by { font-size: 11.5px; }
+
+  .todo-kind {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: var(--radius-chip);
+    color: var(--chip);
+    background: color-mix(in srgb, var(--chip) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--chip) 28%, transparent);
+  }
+  .todo-kind-decision { --chip: var(--priority-high); }
+  .todo-kind-question { --chip: var(--ink-muted); }
+
+  .todo-note-open, .btn {
+    background: none;
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 2px 8px;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    cursor: pointer;
+  }
+  .todo-note-open:hover, .btn:hover { color: var(--accent); border-color: var(--accent); }
+  .todo-note-open.has-note { color: var(--accent); border-color: var(--accent); }
+
+  .todo-note { display: grid; gap: 6px; }
+  .todo-note textarea {
+    width: 100%;
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-chip);
+    padding: 8px 10px;
+    resize: vertical;
+  }
+  .todo-note textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .todo-note-actions { display: flex; align-items: center; gap: var(--space-3); }
+  .todo-note-by { font-size: 11.5px; }
+  .todo-status { display: flex; align-items: center; gap: var(--space-3); font-size: 12px; color: var(--ink-muted); margin: 0; }
+  .todo-status:has([data-todo-retry]:not([hidden])) { color: var(--bad); }
+</style>
+
+<script>
+  // Every gesture paints at once, and what reaches the server is where the item ends up. A tick and
+  // an untick, or a note edited back to what it said, leave nothing to save, so nothing is sent: the
+  // row is compared with the last state the server confirmed, a short while after the last gesture.
+  const DELAY = 1200;
+  const localToday = (d = new Date()) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+  const root = document.querySelector("[data-todos]");
+  if (root) {
+    const rows = [...root.querySelectorAll("[data-todo-id]")];
+    const state = new Map(); // row → { saved, note, timer, busy }
+
+    const paintMeta = (row, saved) => {
+      const by = row.querySelector("[data-todo-by]");
+      const noteOpen = row.querySelector("[data-todo-note-open]");
+      const noteBy = row.querySelector("[data-todo-note-by]");
+      by.textContent = saved.done && saved.doneBy ? `${saved.doneBy} · ${saved.doneAt ?? ""}` : "";
+      noteOpen.classList.toggle("has-note", Boolean(saved.note));
+      const noteLabel = root.dataset.noteLabel ?? "Note";
+      noteOpen.textContent = saved.note ? `${noteLabel} ·` : noteLabel;
+      noteBy.textContent = saved.note && saved.noteBy ? `${saved.noteBy} · ${saved.noteAt ?? ""}` : "";
+    };
+
+    const paint = (row, saved = {}) => {
+      const box = row.querySelector(".todo-box");
+      box.checked = Boolean(saved.done);
+      row.classList.toggle("is-done", Boolean(saved.done));
+      row.querySelector("[data-todo-note-input]").value = saved.note ?? "";
+      paintMeta(row, saved);
+    };
+
+    // A save that fails says so on the row, keeps what the person did, and offers to try again.
+    // Before this, a failed note vanished in silence and a failed tick undid itself.
+    const showStatus = (row, message, retry = false) => {
+      const line = row.querySelector("[data-todo-status]");
+      line.hidden = !message;
+      line.querySelector("[data-todo-status-text]").textContent = message ?? "";
+      line.querySelector("[data-todo-retry]").hidden = !retry;
+    };
+
+    const send = async (id, patch) => {
+      const response = await fetch(`/api/todos/${id}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+        // Lets a save started as the tab closes finish anyway.
+        keepalive: true,
+      });
+      if (!response.ok) {
+        const reason = (await response.text().catch(() => "")).trim();
+        throw new Error(reason || `HTTP ${response.status}`);
+      }
+      return response.json();
+    };
+
+    const flush = async (row) => {
+      const s = state.get(row);
+      clearTimeout(s.timer);
+      s.timer = null;
+      if (s.busy) { s.timer = setTimeout(() => flush(row), DELAY); return; }
+
+      const patch = {};
+      const done = row.querySelector(".todo-box").checked;
+      if (done !== Boolean(s.saved.done)) patch.done = done;
+      if (s.note !== null && s.note !== (s.saved.note ?? "")) patch.note = s.note;
+      if (!Object.keys(patch).length) {
+        // Everything since the last save cancelled out.
+        s.note = null;
+        showStatus(row, null);
+        return;
+      }
+
+      patch.on = localToday();
+      s.busy = true;
+      showStatus(row, root.dataset.savingLabel);
+      try {
+        s.saved = await send(row.dataset.todoId, patch);
+        if ("note" in patch) { s.note = null; row.querySelector("[data-todo-note]").hidden = true; }
+        // A gesture made while this was in flight is the person's latest word: leave it on screen
+        // and let its own flush compare it with what was just saved.
+        if (s.timer) paintMeta(row, s.saved);
+        else paint(row, s.saved);
+        showStatus(row, null);
+      } catch (error) {
+        showStatus(row, `${root.dataset.failedLabel} ${error.message}`, true);
+      } finally {
+        s.busy = false;
+      }
+    };
+
+    const later = (row) => {
+      const s = state.get(row);
+      clearTimeout(s.timer);
+      s.timer = setTimeout(() => flush(row), DELAY);
+    };
+
+    const wire = () => {
+      for (const row of rows) {
+        const box = row.querySelector(".todo-box");
+        const noteOpen = row.querySelector("[data-todo-note-open]");
+        const note = row.querySelector("[data-todo-note]");
+        const noteInput = row.querySelector("[data-todo-note-input]");
+
+        box.addEventListener("change", () => {
+          row.classList.toggle("is-done", box.checked);
+          later(row);
+        });
+
+        noteOpen.addEventListener("click", () => {
+          note.hidden = !note.hidden;
+          if (!note.hidden) noteInput.focus();
+        });
+
+        row.querySelector("[data-todo-note-save]").addEventListener("click", () => {
+          state.get(row).note = noteInput.value.trim();
+          // Saving a note that says what it already said is closing the box.
+          if (state.get(row).note === (state.get(row).saved.note ?? "")) note.hidden = true;
+          flush(row);
+        });
+
+        row.querySelector("[data-todo-retry]").addEventListener("click", () => flush(row));
+      }
+
+      // A tab closed during the short wait would otherwise drop the last tick.
+      addEventListener("pagehide", () => {
+        for (const row of rows) if (state.get(row).timer) flush(row);
+      });
+    };
+
+    fetch("/api/todos")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((saved) => {
+        for (const row of rows) {
+          const s = { saved: saved[row.dataset.todoId] ?? {}, note: null, timer: null, busy: false };
+          state.set(row, s);
+          paint(row, s.saved);
+        }
+        wire();
+      })
+      .catch(() => {
+        // No API: dev, or a build served without the worker. Say so rather than showing controls
+        // that silently do nothing.
+        root.querySelector("[data-todo-offline]").hidden = false;
+        for (const row of rows) {
+          row.querySelector(".todo-box").disabled = true;
+          row.querySelector("[data-todo-note-open]").disabled = true;
+        }
+      });
+  }
+</script>

@@ -1,0 +1,15 @@
+---
+// One labelled fact. An absent value renders as the word "unknown", never as a blank, because a
+// blank is indistinguishable from a field nobody thought about.
+import { value } from "../../lib/content.mjs";
+import {t} from "../../lib/i18n.mjs";
+
+const { label, v, href } = Astro.props;
+const shown = value(v);
+---
+<div style="display:grid; gap:2px;">
+  <span class="label">{label}</span>
+  {shown
+    ? (href ? <a href={href}>{shown}</a> : <span>{shown}</span>)
+    : <span class="faint">{t("common.unknown")}</span>}
+</div>

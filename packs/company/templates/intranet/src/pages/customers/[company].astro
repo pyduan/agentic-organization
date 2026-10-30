@@ -1,0 +1,103 @@
+---
+import Base from "../../layouts/Base.astro";
+import Fiche from "../../components/Fiche.astro";
+import Field from "../../components/ui/Field.astro";
+import Badge from "../../components/ui/Badge.astro";
+import { value, sectorOf, sectorColor, stageLabel } from "../../lib/content.mjs";
+import { model } from "../../../config.mjs";
+import { t, formatNumber } from "../../lib/i18n.mjs";
+
+export async function getStaticPaths() {
+  const { companies, accounts, projects, milestones } = await import("../../lib/content.mjs");
+  const projs = projects();
+  const ms = milestones();
+  // A fiche page exists for every account and for every pipeline entity. In B2B those are the same
+  // files and the dedup is a no-op; in B2C a segment and a partner both need a page and neither is
+  // reachable from the other's list.
+  const seen = new Set();
+  const all = [...accounts(), ...companies()].filter((c) => !seen.has(c.slug) && seen.add(c.slug));
+  return all.map((c) => ({
+    params: { company: c.slug },
+    props: {
+      c,
+      mine: projs.filter((p) => p.company === c.slug),
+      ms: ms.filter((m) => m.company === c.slug),
+    },
+  }));
+}
+
+const { c, mine, ms } = Astro.props;
+const ORDER = ["Summary", "Where we stand", "What we learned", "People", "Open questions"];
+---
+<Base>
+  <Fiche
+    item={c}
+    crumbs={[{ label: t("common.customers"), href: "/customers" }, { label: c.name }]}
+    subtitle={value(c.industry)}
+    milestones={ms}
+    accent={sectorColor(sectorOf(c))}
+    order={ORDER}
+    source={`customers/${c.dir ?? model.accounts}/${c.slug}.md`}
+  >
+    <Fragment slot="sidebar">
+      <div class="panel" style="display:grid; gap:var(--space-4);">
+        <Field label={model.sizeLabel} v={c[model.size]} />
+        <Field label={t("fiche.revenue")} v={c.revenue} />
+        <Field label={t("fiche.hq")} v={c.hq} />
+        {/* Not every company runs on an ERP, and the template does not ask for one. A file that
+            fills the field in, even as unknown, gets the row; a file without it gets none. */}
+        {c.erp != null && <Field label={t("fiche.erp")} v={c.erp} />}
+        <Field label={t("fiche.intro")} v={c.intro} />
+        <Field label={t("fiche.since")} v={c.since} />
+        <Field label={t("fiche.website")} v={c.website} href={c.website} />
+      </div>
+
+      {c.parent?.name && (
+        <div class="panel" style="display:grid; gap:var(--space-2);">
+          <span class="label">{t("fiche.parent")}</span>
+          <strong style="font-size:15px;">{c.parent.name}</strong>
+          <span class="muted" style="font-size:13px;">
+            {[
+              c.parent[model.size] && `${formatNumber(Number(c.parent[model.size]))} ${model.sizeUnit}`,
+              c.parent.revenue,
+            ].filter(Boolean).join(" · ")}
+          </span>
+          {c.parent.note && <p class="faint" style="font-size:12.5px; margin:0;">{c.parent.note}</p>}
+        </div>
+      )}
+
+      {mine.length > 0 && (
+        <div class="panel" style="display:grid; gap:var(--space-3);">
+          <span class="label">{t("common.projects")}</span>
+          {mine.map((p) => (
+            <a href={`/customers/${c.slug}/${p.slug}`} class="side-link">
+              <span>{p.name}</span>
+              <span class="faint" style="font-size:12px;">
+                {stageLabel(p.stage)} · {value(p.owner) ?? "—"}
+              </span>
+            </a>
+          ))}
+        </div>
+      )}
+
+      {(c.contacts ?? []).length > 0 && (
+        <div class="panel" style="display:grid; gap:var(--space-4);">
+          <span class="label">{t("common.contacts")}</span>
+          {c.contacts.map((p) => (
+            <div style="display:grid; gap:1px;">
+              <strong style="font-size:13.5px;">{p.name}</strong>
+              <span class="muted" style="font-size:12.5px;">{value(p.role) ?? t("common.unknown")}</span>
+              {value(p.email) && <a href={`mailto:${p.email}`} style="font-size:12.5px;">{p.email}</a>}
+            </div>
+          ))}
+        </div>
+      )}
+    </Fragment>
+  </Fiche>
+
+  <style is:global>
+    .side-link { display: grid; gap: 2px; }
+    .side-link:hover { text-decoration: none; }
+    .side-link:hover span:first-child { text-decoration: underline; }
+  </style>
+</Base>

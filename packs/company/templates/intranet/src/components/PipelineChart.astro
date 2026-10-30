@@ -1,0 +1,214 @@
+---
+// The pipeline: magnitude by entity, grouped by stage.
+//
+// Vertical bars. The first version ran them horizontally, which read well and used the full page
+// width for six companies. Columns say the same thing in a third of the space, which matters
+// because this sits at the top of the dashboard above the work.
+//
+// Bar height is headcount, colour is sector. Two encodings, two questions: how big is this company,
+// and what kind of company is it. Colour never carries size and height never carries kind.
+//
+// Every bar is labelled with its company name, so identity never rests on colour alone. A company
+// whose headcount we have not confirmed gets a hatched stub rather than a short bar: a short bar
+// reads as "small" and the truth is "not known".
+import { SECTORS, sectorOf, sectorColor, sectorLabel, sizeOf, statusLabel, STATUS, value } from "../lib/content.mjs";
+import { model } from "../../config.mjs";
+import {t, formatNumber} from "../lib/i18n.mjs";
+
+const { companies, groups } = Astro.props;
+
+const known = companies.map(sizeOf).filter(Boolean);
+const max = known.length ? Math.max(...known) : 1;
+
+const PLOT = 150; // px of plot height the largest bar fills
+const MIN = 6; // a real but tiny value still has to be visible
+
+const legend = SECTORS.filter((s) => companies.some((c) => sectorOf(c) === s.key));
+const fmt = (n) => formatNumber(n);
+---
+<figure class="pipeline">
+  <figcaption class="pipeline-legend">
+    {legend.map((s) => (
+      <span class="legend-item">
+        <span class="legend-swatch" style={`background: ${sectorColor(s.key)}`}></span>
+        {s.label}
+      </span>
+    ))}
+    <span class="legend-item">
+      <span class="legend-swatch legend-swatch-unknown"></span>
+      {model.sizeLabel} inconnu
+    </span>
+  </figcaption>
+
+  <div class="scroll-x">
+    <div class="stages">
+      {groups.map(({ status, label, note, list }) => (
+        <section class="stage">
+          <div class="bars" style={`--plot:${PLOT}px`}>
+            {list.map((c) => {
+              const n = sizeOf(c) ?? NaN;
+              const sized = Number.isFinite(n) && n > 0;
+              // Same test as the company's own headcount. A parent recorded as `unknown` is a
+              // truthy string, and formatting it printed "NaN personnes" in the tooltip, which
+              // reads as a bug rather than as the gap it is. Number(value(…)) is not enough on its
+              // own: value() returns null for unknown, and Number(null) is 0, not NaN.
+              const parentRaw = Number(value(c.parent?.[model.size]) ?? NaN);
+              const parentN = Number.isFinite(parentRaw) ? parentRaw : 0;
+              const h = sized ? Math.max((n / max) * PLOT, MIN) : 0;
+              const sector = sectorOf(c);
+              // The tooltip is the only place a bar can say more than its height and its colour.
+              // Two rows are structural and come from the model; the rest are whatever the fiche
+              // put in `facts`, so a segment can say "revenu moyen 240 €" where a company says who
+              // owns it, without the component knowing either word.
+              const rows = [
+                sectorLabel(sector),
+                sized ? `${fmt(n)} ${model.sizeUnit}` : `${model.sizeLabel} inconnu`,
+                value(c.revenue) ? `${model.valueLabel} ${c.revenue}` : null,
+                c.parent?.name
+                  ? `${t("common.within")} ${c.parent.name}` +
+                    (parentN > 0 ? ` · ${fmt(parentN)} ${model.sizeUnit}` : "") +
+                    (value(c.parent.revenue) ? ` · ${c.parent.revenue}` : "")
+                  : null,
+                value(c.intro) ? `${t("chart.introduced")} ${c.intro}` : null,
+                ...(Array.isArray(c.facts) ? c.facts.map(String) : []),
+              ].filter(Boolean);
+
+              return (
+                <a
+                  class="bar"
+                  href={`/customers/${c.slug}`}
+                  aria-label={`${c.name}. ${rows.join(". ")}`}
+                  data-tip-title={c.name}
+                  data-tip-rows={JSON.stringify(rows)}
+                  style={`--h:${sized ? h : 22}px`}
+                >
+                  <span class="bar-plot">
+                    {/* The value sits just above the top of its own bar rather than at the top of
+                        the column. On a 50-person bar next to a 3,100-person one, a label pinned to
+                        the top of the plot is nowhere near the thing it labels. */}
+                    <span class={sized ? "bar-value" : "bar-value faint"}>
+                      {sized ? fmt(n) : "?"}
+                    </span>
+                    {sized
+                      ? <span class="bar-fill" style={`background: ${sectorColor(sector)}`}></span>
+                      : <span class="bar-stub" style={`--hatch: ${sectorColor(sector)}`}></span>}
+                  </span>
+                  <span class="bar-name">{c.name}</span>
+                </a>
+              );
+            })}
+          </div>
+
+          <div class="stage-head">
+            <span class="label" style={`color: var(${STATUS[status].token})`}>{statusLabel(status)}</span>
+            <span class="faint stage-note">{STATUS[status].note}</span>
+          </div>
+        </section>
+      ))}
+    </div>
+  </div>
+
+  <p class="faint pipeline-foot">{t("chart.foot")}</p>
+</figure>
+
+<style is:global>
+  .pipeline { margin: 0; }
+
+  .pipeline-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-6);
+    border-bottom: 1px solid var(--hairline);
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--ink-muted); }
+  .legend-swatch { width: 11px; height: 11px; border-radius: 3px; flex: none; }
+  .legend-swatch-unknown {
+    background: repeating-linear-gradient(135deg, var(--ink-faint) 0 2px, transparent 2px 4px);
+    border: 1px solid var(--hairline);
+  }
+
+  .stages { display: flex; align-items: flex-end; gap: var(--space-6); min-width: max-content; }
+
+  /* The rule under a stage runs the width of its own bars, so the grouping is legible without a
+     box around it. */
+  .stage + .stage { border-left: 1px solid var(--hairline); padding-left: var(--space-6); }
+  .stage-head { display: grid; gap: 1px; padding-top: var(--space-3); border-top: 1px solid var(--hairline); }
+  .stage-note { font-size: 11px; }
+
+  .bars { display: flex; align-items: flex-end; gap: var(--space-3); }
+
+  .bar {
+    display: grid;
+    grid-template-rows: var(--plot) auto;
+    justify-items: center;
+    gap: 5px;
+    width: 76px;
+    color: var(--ink);
+    border-radius: 4px;
+    padding: 4px 2px;
+  }
+  .bar:hover { text-decoration: none; background: var(--surface-sunken); }
+
+  .bar-plot { position: relative; width: 100%; height: 100%; }
+
+  .bar-value {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: calc(var(--h) + 4px);
+    font-size: 11px;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* Rounded top only: the bar is anchored to its baseline and grows up from it. */
+  .bar-fill {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: var(--h);
+    border-radius: 4px 4px 0 0;
+  }
+
+  /* Short and hatched. Drawing the stub full height made "not known" the tallest thing on the
+     chart, which is the one reading it must never have. Short says "no value here", the hatch and
+     the "?" say it is a gap rather than a small number. */
+  .bar-stub {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: var(--h);
+    border-radius: 4px 4px 0 0;
+    background: repeating-linear-gradient(135deg, var(--hatch, var(--ink-faint)) 0 2px, transparent 2px 5px);
+    opacity: 0.7;
+    border-top: 1px dashed var(--hatch, var(--ink-faint));
+  }
+
+  .bar-name {
+    font-size: 11px;
+    line-height: 1.25;
+    text-align: center;
+    color: var(--ink-muted);
+    overflow-wrap: anywhere;
+  }
+
+  /* One tooltip for the whole chart, moved to the cursor, rather than one per bar anchored above
+     it. Anchored tooltips on a bar chart collide with the bars beside them and run off the panel at
+     the edges, and on a short bar they appear a long way from the pointer. */
+
+  .pipeline-foot {
+    font-size: 12px;
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--hairline);
+    max-width: var(--measure);
+  }
+</style>
+

@@ -1,0 +1,12 @@
+---
+// A status chip. The word is always present, so the colour is never the only carrier of meaning.
+import { STATUS } from "../../lib/content.mjs";
+
+const { status, label, plain = false, class: cls = "" } = Astro.props;
+const known = STATUS[status];
+const text = label ?? known?.label ?? status;
+const token = known?.token ?? "--stage-0";
+---
+{plain || !known
+  ? <span class={`chip chip-plain ${cls}`}>{text}</span>
+  : <span class={`chip ${cls}`} style={`--chip: var(${token})`}>{text}</span>}

@@ -1,0 +1,65 @@
+---
+// Who we are. The people and the shape of the company.
+//
+// What we sell moved to Product and the decision log moved to Journal. Both were here and both were
+// competing with the thing this page is for, which is the four names and how to reach them.
+import Base from "../layouts/Base.astro";
+import PersonCard from "../components/PersonCard.astro";
+import Separator from "../components/ui/Separator.astro";
+import { people } from "../lib/content.mjs";
+import { t } from "../lib/i18n.mjs";
+
+const all = people();
+const founders = all.filter((p) => p.group === "cofounder");
+const around = all.filter((p) => p.group !== "cofounder");
+---
+<Base title={t("about.title")} lead={t("about.lead")}>
+  <p class="muted measure about-codename">
+    <a href={"/product"}>{t("about.seeProduct")}</a>
+  </p>
+
+  <Separator />
+
+  <section>
+    <h2 class="label about-h">{t("about.cofounders")}</h2>
+    <p class="muted measure about-note">{t("about.cofoundersNote")}</p>
+    <div class="people-grid">{founders.map((p) => <PersonCard person={p} />)}</div>
+  </section>
+
+  {around.length > 0 && (
+    <>
+      <Separator />
+      <section>
+        <details class="around">
+          <summary class="around-summary">
+            <span class="label about-h" style="margin:0;">{t("about.around")}</span>
+            <span class="faint around-count">{around.length}</span>
+          </summary>
+          <p class="muted measure about-note" style="margin-top:var(--space-4);">{t("about.aroundNote")}</p>
+          <div class="people-grid">{around.map((p) => <PersonCard person={p} />)}</div>
+        </details>
+      </section>
+    </>
+  )}
+
+  <style is:global>
+    .about-h { margin-bottom: var(--space-4); }
+    .about-note { margin-bottom: var(--space-6); font-size: 14px; }
+    .around-summary {
+      list-style: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: baseline;
+      gap: var(--space-3);
+      user-select: none;
+    }
+    .around-summary::-webkit-details-marker { display: none; }
+    .around-summary::after { content: "+"; color: var(--ink-faint); font-size: 14px; }
+    .around[open] .around-summary::after { content: "\2212"; }
+    .around-summary:hover .label { color: var(--accent); }
+    .around-count { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+    .people-grid { display: grid; gap: var(--space-6); grid-template-columns: repeat(auto-fill, minmax(min(430px, 100%), 1fr)); }
+    @media (max-width: 900px) { .people-grid { grid-template-columns: 1fr; } }
+  </style>
+</Base>

@@ -1,0 +1,211 @@
+---
+// Every company we hold a file on, in one flat grid.
+//
+// Flat on purpose. Grouping under status headings made the page read as five short lists and made
+// two companies at different stages hard to compare. The status is on the card, in colour, and the
+// filter is at the top for anyone who wants one stage at a time.
+import Base from "../layouts/Base.astro";
+import EntityCard from "../components/EntityCard.astro";
+import { companies, projects, milestones, value, STATUS, STATUS_ORDER, SECTORS, sectorOf, sectorColor, statusLabel, sizeOf, TODAY } from "../lib/content.mjs";
+import { model, tabLabel } from "../../config.mjs";
+import { t, tOr, formatNumber, formatDate } from "../lib/i18n.mjs";
+
+const cos = companies();
+const projs = projects();
+
+const order = STATUS_ORDER;
+const list = [...cos].sort(
+  (a, b) => order.indexOf(a.status) - order.indexOf(b.status) || a.name.localeCompare(b.name)
+);
+
+const statuses = order
+  .map((s) => ({ key: s, token: STATUS[s].token, n: cos.filter((c) => c.status === s).length }))
+  .filter((s) => s.n);
+const sectors = SECTORS.map((s) => ({ ...s, n: cos.filter((c) => sectorOf(c) === s.key).length }))
+  .filter((s) => s.n);
+
+// The rail: major events, prospects only.
+//
+// Milestones rather than journal entries, because a milestone is already the curated version: a
+// person decided it was worth a line. Every mail in a thread is not a major event, and a rail that
+// lists them is a rail nobody reads.
+//
+// A customer's full contact history stays on that customer's own page, next to the context that
+// explains it.
+const openStages = new Set(["prospect", "lead", "scoping"]);
+const railCompanies = new Set(cos.filter((c) => openStages.has(c.status)).map((c) => c.slug));
+const rail = milestones()
+  .filter((m) => railCompanies.has(m.company))
+  .sort((a, b) => b.day.localeCompare(a.day))
+  .slice(0, 14);
+const statusOf = Object.fromEntries(cos.map((c) => [c.slug, c.status]));
+---
+<Base title={tabLabel("/prospects")} lead={t("pros.lead")}>
+  <div class="filters" data-filters>
+    <div class="filter-row">
+      <span class="label filter-label">{t("pros.status")}</span>
+      <div class="filter-chips">
+        <button class="fchip is-on" type="button" data-filter="status" data-value="">
+          {t("pros.all")}
+        </button>
+        {statuses.map((s) => (
+          <button class="fchip" type="button" data-filter="status" data-value={s.key}
+                  style={`--chip: var(${s.token})`}>
+            <span class="fchip-dot"></span>{statusLabel(s.key)}<span class="fchip-n">{s.n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="filter-row">
+      <span class="label filter-label">{t("pros.sector")}</span>
+      <div class="filter-chips">
+        <button class="fchip is-on" type="button" data-filter="sector" data-value="">
+          {t("pros.all")}
+        </button>
+        {sectors.map((s) => (
+          <button class="fchip" type="button" data-filter="sector" data-value={s.key}
+                  style={`--chip: ${sectorColor(s.key)}`}>
+            <span class="fchip-dot"></span>{s.label}<span class="fchip-n">{s.n}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <p class="faint filter-count" data-filter-count
+     data-word-companies={t("pros.count")} data-word-of={t("pros.countOf")}></p>
+
+  <div class="pros-layout">
+  <div class="grid-cards" data-filter-grid>
+    {list.map((c) => {
+      const mine = projs.filter((p) => p.company === c.slug);
+      return (
+        <div data-status={c.status} data-sector={sectorOf(c)}>
+          <EntityCard
+            item={c}
+            cover
+            href={`/customers/${c.slug}`}
+            subtitle={[
+              value(c.industry),
+              sizeOf(c) && `${formatNumber(sizeOf(c))} ${model.sizeUnit}`,
+            ].filter(Boolean).join(" · ")}
+            meta={[
+              value(c.revenue),
+              c.parent?.name && `${t("common.within")} ${c.parent.name}`,
+              mine.length ? `${mine.length} ${t("common.projects").toLowerCase()}` : null,
+            ]}
+          />
+        </div>
+      );
+    })}
+  </div>
+
+  <aside class="rail">
+    <h2 class="label">{t("rail.title")}</h2>
+    <p class="faint rail-note">{t("rail.note")}</p>
+    <ol class="rail-list">
+      {rail.map((m) => (
+        <li class={m.day > TODAY ? "rail-item is-ahead" : "rail-item"}>
+          <span class="rail-dot" style={`--dot: var(${(STATUS[statusOf[m.company]] ?? STATUS[STATUS_ORDER.at(-1)]).token})`}></span>
+          <span class="rail-date">{formatDate(m.day, { month: "short", day: !m.vague })}</span>
+          <a class="rail-who" href={`/customers/${m.company}`}>{m.sourceName}</a>
+          <span class="rail-what">{m.text}</span>
+          {m.kind && <span class="rail-kind">{tOr(`kind.${m.kind}`, m.kind)}</span>}
+        </li>
+      ))}
+    </ol>
+  </aside>
+  </div>
+
+  <p class="faint filter-empty" data-filter-empty hidden>{t("pros.empty")}</p>
+
+  <style is:global>
+
+    .pros-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: var(--space-8);
+      align-items: start;
+    }
+    .pros-layout .grid-cards { grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); }
+
+    .rail { position: sticky; top: 80px; display: grid; gap: var(--space-2); }
+    .rail-note { font-size: 11.5px; line-height: 1.45; margin-bottom: var(--space-2); }
+    .rail-list {
+      list-style: none;
+      margin: 0;
+      padding: 0 0 0 var(--space-4);
+      border-left: 1px solid var(--hairline);
+      display: grid;
+      gap: var(--space-4);
+    }
+    .rail-item { position: relative; display: grid; gap: 1px; }
+    .rail-dot {
+      position: absolute;
+      left: calc(-1 * var(--space-4) - 4px);
+      top: 5px;
+      width: 7px; height: 7px;
+      border-radius: 999px;
+      background: var(--dot);
+    }
+    .is-ahead .rail-dot { background: var(--surface); border: 1.5px solid var(--dot); }
+    .rail-date {
+      font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--ink-faint);
+    }
+    .rail-who { font-size: 12.5px; font-weight: 500; }
+    .rail-what { font-size: 12px; line-height: 1.4; color: var(--ink-muted); }
+    .rail-kind {
+      font-size: 9.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint);
+    }
+
+    @media (max-width: 1000px) {
+      .pros-layout { grid-template-columns: 1fr; }
+      .rail { position: static; padding-top: var(--space-8); border-top: 1px solid var(--hairline); }
+    }
+  </style>
+
+  <script>
+    const bar = document.querySelector("[data-filters]");
+    const grid = document.querySelector("[data-filter-grid]");
+    if (bar && grid) {
+      const cells = [...grid.children];
+      const count = document.querySelector("[data-filter-count]");
+      const empty = document.querySelector("[data-filter-empty]");
+      const WORD = count.dataset.wordCompanies ?? "companies";
+      const OF = count.dataset.wordOf ?? "of";
+      const picked = { status: "", sector: "" };
+
+      const apply = () => {
+        let shown = 0;
+        for (const cell of cells) {
+          const ok =
+            (!picked.status || cell.dataset.status === picked.status) &&
+            (!picked.sector || cell.dataset.sector === picked.sector);
+          cell.hidden = !ok;
+          if (ok) shown++;
+        }
+        count.textContent =
+          shown === cells.length
+            ? `${cells.length} ${WORD}`
+            : `${shown} ${OF} ${cells.length} ${WORD}`;
+        empty.hidden = shown > 0;
+      };
+
+      for (const button of bar.querySelectorAll("[data-filter]")) {
+        button.addEventListener("click", () => {
+          const { filter, value } = button.dataset;
+          // Clicking the chip that is already on clears it, so the whole bar is reachable with one
+          // hand and nobody has to find the All chip again.
+          picked[filter] = picked[filter] === value ? "" : value;
+          for (const sibling of bar.querySelectorAll(`[data-filter="${filter}"]`)) {
+            sibling.classList.toggle("is-on", sibling.dataset.value === picked[filter]);
+          }
+          apply();
+        });
+      }
+      apply();
+    }
+  </script>
+</Base>

@@ -68,6 +68,14 @@ files and carries a permanent id.
 **Why:** sharing what one organization built without either side editing the other's files, and
 feedback that still reaches the right pack after a rename (`source/formats/pack.md`).
 
+### A company on five repos, as a pack
+`packs/company/`: this repo as a company's central repo, four repos beside it (customers, strategy,
+administrative, intranet), and an intranet that reads them at build time, behind Access. Optional,
+set up on request by its `company-setup` skill.
+**Why:** areas with different readers need repo boundaries, and a pipeline worth steering needs a
+view nobody edits; most organizations need neither, so it stays out of the defaults
+(`packs/company/DECISIONS.md`, 2026-10-30).
+
 ### The quality loop
 An incident register (`source/quality/incidents.json`), the failure families it is filed under
 (`docs/failure-modes.md`), a preflight before delivery, and an anonymized report for the kit's

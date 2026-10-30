@@ -1,0 +1,4 @@
+# Who may open this page: one address per line. Each signs in with a one-time code sent to it.
+# The same list, with who each person is and until when, is in administrative/people/emails.md ▸
+# Outside access. Removing a line and rerunning scripts/protect-access.mjs stops their next sign-in,
+# not the session they already have: revoke it too (Zero Trust ▸ Users ▸ the person ▸ revoke sessions).
