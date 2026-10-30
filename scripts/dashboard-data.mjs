@@ -1,6 +1,9 @@
 #!/usr/bin/env node
-// Build the private dashboard: gather every project across the workspace into one
-// small JSON file, then assemble apps/dashboard/dist/ (the only folder the host sees).
+// Build the intranet (the private dashboard grown into the organization's home page): gather every
+// project across the workspace into one small JSON file, then render apps/dashboard/dist/, the only
+// folder the host sees: a home page with the banner from source/content/intranet-home.md, the
+// dashboards and the tools from source/content/intranet-tools.md, and a page per project. The
+// pages themselves are apps/dashboard/intranet.mjs.
 //
 // Why it aggregates rather than linking: the owner opens one door and wants to know
 // where things stand by SUBJECT. Which repo a project happens to live in is plumbing,
@@ -22,13 +25,15 @@
 //
 // Zero dependencies, Node built-ins only.
 //
-// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist]
+// Usage:  node scripts/dashboard-data.mjs [--out=apps/dashboard/dist]   (npm run intranet)
 
 import { readFile, readdir, mkdir, writeFile, copyFile } from 'node:fs/promises';
+import { renderIntranet, parseHome, parseTools } from '../apps/dashboard/intranet.mjs';
 import { parse as parseTodos } from '../lib/todo.mjs';
 import { locatedRepos } from '../lib/workspace.mjs';
 import { neighbour } from '../lib/neighbour.mjs';
 import { existsSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { basename, dirname, join, resolve } from 'node:path';
 
 const ROOT = resolve(process.cwd());
@@ -74,6 +79,7 @@ function items(nextSteps) {
       owners: i.owners,
       due: i.due,
       id: i.id,
+      tags: i.tags,
       note: i.notes[0] || null,
     };
     if (i.done) done.push({ ...item, doneOn: i.doneOn });
@@ -150,8 +156,9 @@ async function projectsIn(repo) {
       repo: repo.self ? null : repo.slug,
       countsOnly,
       counts: { open: open.length, done: done.length },
-      open: countsOnly ? [] : open.slice(0, 12),
+      open: countsOnly ? [] : open,
       latest: countsOnly ? [] : log.slice(0, 3),
+      log: countsOnly ? [] : log.slice(0, 20),
     });
   }
   return out;
@@ -168,8 +175,19 @@ const orgName = firstHeading(brief, basename(ROOT)).replace(/^(brief|project bri
 const order = (p) => STAGES.indexOf(p.stage ?? 'idea');
 projects.sort((a, b) => order(b) - order(a) || b.counts.open - a.counts.open);
 
+// Each project with wording gets a page. Its address carries the repo when it is not this one, so
+// two repos may each hold a `projects/site` without one page overwriting the other.
+const used = new Set();
+for (const p of projects) {
+  if (!p.slug) continue;
+  let key = p.repo ? `${p.repo}-${p.slug}` : p.slug;
+  while (used.has(key)) key += '-2';
+  used.add(key);
+  p.page = `projects/${key}/`;
+}
+
 const recap = projects
-  .flatMap((p) => p.latest.map((e) => ({ ...e, project: p.title, slug: p.slug })))
+  .flatMap((p) => p.latest.map((e) => ({ ...e, project: p.title, slug: p.slug, page: p.page })))
   .sort((a, b) => (a.date < b.date ? 1 : -1))
   .slice(0, 12);
 
@@ -185,14 +203,26 @@ const data = {
   recap,
 };
 
+// The owner's words: the banner and the tools. They live in source/content/ so that changing the
+// welcome text is editing a file, never the app; a missing file means no banner, or no tools.
+const home = parseHome(await read(join(ROOT, 'source', 'content', 'intranet-home.md')));
+const tools = parseTools(await read(join(ROOT, 'source', 'content', 'intranet-tools.md')));
+const css = await readFile(fileURLToPath(new URL('../apps/dashboard/intranet.css', import.meta.url)), 'utf8');
+
 await mkdir(OUT, { recursive: true });
 await writeFile(join(OUT, 'data.json'), JSON.stringify(data, null, 2));
-await copyFile(join(ROOT, 'apps', 'dashboard', 'index.html'), join(OUT, 'index.html'));
+for (const [rel, text] of Object.entries(renderIntranet({ data, home, tools, css }))) {
+  await mkdir(dirname(join(OUT, rel)), { recursive: true });
+  await writeFile(join(OUT, rel), text);
+}
 const tokens = join(ROOT, 'source', 'brand', 'tokens.css');
 if (existsSync(tokens)) await copyFile(tokens, join(OUT, 'tokens.css'));
+// The packs catalogue is a page of its own (npm run packs); the intranet serves it at packs/.
+const packs = join(ROOT, 'apps', 'packs', 'index.html');
+if (existsSync(packs)) { await mkdir(join(OUT, 'packs'), { recursive: true }); await copyFile(packs, join(OUT, 'packs', 'index.html')); }
 
 const totalOpen = projects.reduce((n, p) => n + p.counts.open, 0);
-console.log(`dashboard: ${projects.length} project(s) from ${found.length} repo(s), ${totalOpen} open item(s) → ${OUT.replace(ROOT + '/', '')}`);
+console.log(`intranet: ${home ? 'banner' : 'no banner'}, ${tools.length} tool(s), ${projects.length} project(s) from ${found.length} repo(s), ${totalOpen} open item(s) → ${OUT.replace(ROOT + '/', '')}`);
 for (const r of found.filter((x) => x.consent && x.consent !== 'full')) {
   console.log(`  ${r.slug}: ${r.consent === 'none' ? 'declares none, not read' : 'declares counts, summed without names'}${r.consentProblem ? ` (${r.consentProblem})` : ''}`);
 }

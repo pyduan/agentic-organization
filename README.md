@@ -59,12 +59,12 @@ source/              your source of truth
   content/           your canonical texts, facts, and data (prices, catalogs...)
   facts/             sourced third-party facts and key figures (stats, benchmarks)
   brand/             voice guide, design guide, design tokens, original assets
-  formats/           one playbook per output: website pages, decks, apps, messages, the dashboard
+  formats/           one playbook per output: website pages, decks, apps, messages, the intranet
   quality/           the register of the AI's own mistakes on your project (see below)
 site/                the website itself (Astro, deployed by Cloudflare Workers)
 decks/               your presentations: each composed in deck.mdx, built into one shareable HTML file
 apps/                your web apps (a calculator, a form flow, a tool), one folder each
-apps/dashboard/      your private dashboard: where every project stands, behind a login
+apps/dashboard/      your intranet: a quickstart, where every project stands, your tools, behind a login
 projects/            (optional module) your real work, tracked: charter, log, files, next steps
 team/                (optional module) your team files — gitignored, local-only, never shared
 scripts/             install scripts (mac + windows), the deploy/build helpers, the checks
@@ -88,11 +88,12 @@ again, smaller, every time a new client, area or pile of documents arrives.
 
 ### Two things worth knowing before you start
 
-**A private page, not just a public site.** The kit's default private app is a **dashboard**: one
-page, only you (and whoever you name) can open, showing where every project stands — what moved this
-week, what is open, one card per subject rather than per repo. It publishes as its own Cloudflare
-Worker behind a login, never as a public URL nobody has guessed yet. Setup asks whether you want it;
-`source/formats/dashboard.md` is the playbook.
+**An intranet, before anything else.** Once the stack is approved, the first thing the setup
+builds is your **intranet**: a private home page, only you (and whoever you name) can open. At the
+top, a banner with the quickstart and how the system works, in words you edit in
+`source/content/intranet-home.md`; below it, where every project stands, who waits on what, and a
+card per tool. It publishes as its own Cloudflare Worker behind a login, never as a public URL
+nobody has guessed yet. `source/formats/dashboard.md` is the playbook.
 
 **It keeps a record of its own mistakes.** Every project running this kit logs what the AI got wrong
 — what it had in front of it, what it did, who caught it, and whether anything now prevents it —

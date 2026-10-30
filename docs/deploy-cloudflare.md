@@ -114,11 +114,11 @@ There is no day-to-day **once the repo is connected**. Pushing is publishing: a 
 >
 > **Until it is connected**, deploy explicitly after every push (`npm run deploy`), and verify **on the live URL**, never on the local build. `freshness.json` supports a `mustContain` claim for exactly this: name a string the live page must carry, and `scripts/check-freshness.mjs` fails when the repo is ahead of what is served. If the live site ever looks stale, open **Workers & Pages → your Worker → Deployments** for a failed build; the log says why. Any previous version can be restored from that same screen, and the AI can also revert the offending commit.
 
-## Publishing something private: the dashboard Worker
+## Publishing something private: the intranet Worker
 
-Everything above puts files on the open internet. Some things must not go there: the private
-dashboard (`source/formats/dashboard.md`), a financial model, a tool showing client material. For
-those the answer is **not** "a Pages project with a URL nobody knows". A URL is not a lock. It ends
+Everything above puts files on the open internet. Some things must not go there: the intranet
+(`source/formats/dashboard.md`), which the setup publishes first, a financial model, a tool
+showing client material. For those the answer is **not** "a Pages project with a URL nobody knows". A URL is not a lock. It ends
 up in a browser history, a screenshot, a chat message.
 
 It goes on a **second Worker with Cloudflare Access in front of it**. Access attached at the Worker
@@ -128,11 +128,13 @@ added later, so there is no list of URLs to remember to protect.
 1. **Build and deploy it** (the repo already ships the config):
 
    ```sh
-   npm run deploy:dashboard
+   npm run deploy:intranet
    ```
 
    That runs `scripts/dashboard-data.mjs` into `apps/dashboard/dist/` and deploys
-   `apps/dashboard/wrangler.jsonc`. Set its `name` to `<your-slug>-dashboard` the first time.
+   `apps/dashboard/wrangler.jsonc`. Set its `name` to `<your-slug>-dashboard` the first time, and
+   keep it afterwards: Access is attached to that name. (`deploy:dashboard` is the same command
+   under its old name.)
 
    **Then connect this Worker to the repo as well, before you go any further.** A Worker created by
    `wrangler deploy` has no build trigger, and that is precisely where "pushing doesn't publish"

@@ -10,7 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
----
+## 2026-10-30 · MAJOR · An intranet as your private home page
+
+- **The private dashboard is now the intranet**: a home page with a banner at the top (a
+  quickstart for working with your agent, and a short explanation of how the system works), then
+  your numbers, who waits on what, where each project stands, what moved, and a card per tool. A
+  Projects tab lists every project, each with a page of its own. Anyone who closes the banner keeps
+  it closed on their browser.
+- **The banner's words are yours to change** in `source/content/intranet-home.md`, and the tool
+  cards in `source/content/intranet-tools.md`: ask your agent to reword them or to add a tool.
+- `npm run intranet` and `npm run deploy:intranet` build and publish it; the old `dashboard` names
+  do the same thing. The Worker keeps its name, so its sign-in protection is unchanged.
+
+**What you need to do:** nothing to keep it working. If your agent had customized
+`apps/dashboard/index.html`, that file is gone: the update will show it, and your agent moves what
+you had into `apps/dashboard/intranet.mjs` and `intranet.css`. Then ask it to republish the
+intranet and to put your to-do app's address in `source/content/intranet-tools.md`.
 
 ## 2026-10-30 · MINOR · An optional company pack: five repos and an intranet that steers the company
 

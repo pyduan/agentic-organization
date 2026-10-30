@@ -518,9 +518,10 @@ talks to, not the place your facts, voice, or content live.
 - **Its own Access-gated Worker** — for anything **private**: a personal dashboard, a financial
   model, a tool showing client or unreleased material. Never a public project "with a URL nobody
   knows": a URL is not a lock, and it ends up in a history, a screenshot, a chat message. The kit
-  ships this path for the private dashboard (`source/formats/dashboard.md`,
-  `apps/dashboard/wrangler.jsonc`, `npm run deploy:dashboard`); any other private app follows the
-  same shape, with the Access policy as its access list. The steps, and the two limitations worth
+  ships this path for the intranet (`source/formats/dashboard.md`,
+  `apps/dashboard/wrangler.jsonc`, `npm run deploy:intranet`); any other private app follows the
+  same shape, with the Access policy as its access list, and gets a card on the intranet's home
+  page (a line in `source/content/intranet-tools.md`). The steps, and the two limitations worth
   knowing before you design on it, are in `docs/deploy-cloudflare.md` ▸ *Publishing something
   private*.
 

@@ -287,7 +287,7 @@ to use.
 | Door | Where it goes | Who sees it |
 |---|---|---|
 | **Public** | Every push to `main` rebuilds the site on Cloudflare, free, in a minute. Nobody "deploys" | Everyone. A page shared with one person carries an unguessable, unindexed address |
-| **Private** | The dashboard and apps like the to-do one, published as their own Worker behind Cloudflare Access | You, and whoever you name |
+| **Private** | The intranet and apps like the to-do one, published as their own Worker behind Cloudflare Access | You, and whoever you name |
 | **Confidential** | Financial models, personal data, a draft that is not ready: git-ignored, never committed | Your machine only |
 
 A host serves everything in the folder you hand it. After any hosting change, ask the agent to check

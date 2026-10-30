@@ -45,7 +45,7 @@ Find every row that matches the task at hand and read those files before produci
 | Starting a new project, several projects at once, or something the owner calls "a different site" or "an app" | `.claude/skills/new-project/SKILL.md` — first ask whether it's one project or several and how much they share, then decide the structure (folders in one repo vs. repos in one org vs. separate orgs; new repo vs. sub-site/sub-app) before creating anything |
 | The kit/framework was updated and the owner wants the newest guides/skills/scripts | `.claude/skills/update-kit/SKILL.md` (pull template improvements, keep the owner's content, re-apply follow-ups) |
 | **Anything new** — a project, a client, an area, a pile of documents that just arrived — or the owner asks "what do we actually know about X" | `.claude/skills/fact-finding/SKILL.md` — the master recipe: decide the structure, decide which facts matter, sweep the corpus, record facts + decisions + history, *then* build |
-| A **private page only the owner (and whoever they name) may open**: a dashboard, a recap of where projects stand, anything with client or unreleased material | `source/formats/dashboard.md` — it publishes as its own Access-gated Worker, never a public URL, and `npm run dashboard` builds it |
+| **The intranet**: its home page, the banner's quickstart and philosophy, who waits on what, the tools cards; or any **private page only the owner (and whoever they name) may open** | `source/formats/dashboard.md` — the banner's words are `source/content/intranet-home.md` and the tools `source/content/intranet-tools.md`; it publishes as its own Access-gated Worker, never a public URL, and `npm run intranet` builds it |
 | A page **someone outside the organization** must read or answer (a relative, a partner, an accountant) | `source/formats/webapp.md` ▸ *Opening a page to someone outside the organization* — Access with their address and a one-time code, set by `scripts/protect-access.mjs`; a secret link only as a dated fallback |
 | An **analysis**, or any task with several moving parts where being wrong costs something | `docs/complex-tasks.md` — objectives and constraints first, plans checked back against them, the task cut into judgeable subtasks, and `node scripts/preflight.mjs` before delivery |
 | About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
@@ -241,6 +241,8 @@ source/decisions.md          how hypotheses & positioning evolved, and why (per 
 source/journal.md            what happened, one dated line per event (source/formats/journal.md)
 source/inbox/                drop zone (processed then emptied)
 source/content/              canonical texts, facts, and data files
+source/content/intranet-home.md   the words of the intranet's banner: quickstart and how this works
+source/content/intranet-tools.md  the intranet's tools, one card per line
 source/facts/                sourced third-party facts and key figures
 source/brand/voice.md        how we write
 source/brand/design.md       how we look
@@ -277,9 +279,9 @@ docs/troubleshooting.md      the install/hosting FAQ (living: add solved problem
 docs/how-it-works.md         the mental model, for humans
 docs/failure-modes.md        the seven ways this goes wrong, and the rule each one produced
 docs/complex-tasks.md        the recipe for an analysis: objectives, plan check, subtasks, preflight
-source/formats/dashboard.md  the private dashboard: what it shows, and why one and not one per repo
+source/formats/dashboard.md  the intranet: what its home page shows, and why one and not one per repo
 source/quality/              the incident register (the AI's own mistakes) + its schema
-apps/dashboard/              the private dashboard app; npm run dashboard builds it into dist/
+apps/dashboard/              the intranet (it began as the dashboard): intranet.mjs renders it, npm run intranet builds dist/
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
 scripts/install-workspace.mjs  gives the parent folder this repo's guards (templates in docs/workspace/)
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
@@ -296,7 +298,7 @@ docs/seeding.md              preparing another organization's repository before 
 docs/helping-another-organization.md  installing the kit at someone else's: before, during, after
 source/formats/partner-repo.md  a repository two organizations share, and the channel between their agents
 scripts/check-contrast.mjs   every text on a page or deck measured against what is behind it (WCAG)
-scripts/dashboard-data.mjs   gathers every project across the workspace into the dashboard
+scripts/dashboard-data.mjs   gathers every project across the workspace and builds the intranet
 scripts/error-report.mjs     the incident register → a report, full or anonymized
 scripts/check-register.mjs   does every entry in the register keep to the schema?
 scripts/preflight.mjs        before delivering: the failure families that apply + what this project already got wrong

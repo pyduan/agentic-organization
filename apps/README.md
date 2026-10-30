@@ -9,4 +9,7 @@ The boundary that matters: an app in here shares this project's brand, voice, an
 for a **different** project or brand is a **new repo from the template**, not a folder here — the
 `new-project` skill (`.claude/skills/new-project/SKILL.md`) makes that call.
 
-This folder starts empty; the first app creates `apps/<slug>/`.
+Two apps ship with the kit. `apps/dashboard/` is the **intranet**, the private home page the setup
+publishes first (`source/formats/dashboard.md`); `apps/todos/` is the to-do app. `apps/packs/` is
+the packs catalogue, a page the intranet serves at `packs/`. Each app you add gets a line in
+`source/content/intranet-tools.md`, which makes it a card on the intranet's home page.

@@ -49,8 +49,26 @@ printed to PDF from the same build. Blanks stay visible until filled.
 **Why:** what the screen shows is what the printer produces, and a value nobody gave is never
 filled with a guess (`source/formats/document.md`).
 
+### The intranet, a home page before anything else
+A private home page (`apps/dashboard/`, `npm run intranet`): a banner with a quickstart and how the
+system works, then stat tiles, who waits on what, where each project stands, what moved, and a card
+per tool; a page per project behind a Projects tab with a sidebar. The banner's words are
+`source/content/intranet-home.md` and the tools `source/content/intranet-tools.md`, so changing
+them is editing a file. A viewer can close the banner and it stays closed on that browser.
+**Why:** asked for on 2026-10-30, so that the first thing an organization sees of the kit is its own
+private page saying how to work with it, with everything else reached from there. It grew out of
+the dashboard rather than beside it (`webapp.md` ▸ *First cut*: an internal app that already works
+is enriched, never migrated): same folder, same Worker name, so the Access policy an instance
+already attached keeps protecting it, and `npm run dashboard` still works. It stays static HTML
+built by Node alone, against `webapp.md`'s Astro default for internal apps, because the setup
+publishes it within its first half-hour, before any `npm install`, and a read-only view has no
+state that would need components. The company pack's intranet (`packs/company/templates/intranet`)
+was the reference for the shape (one header row of tabs, the chrome's words in one table, the
+sign-out link, "nothing is edited here"); its code was not reused because it is an Astro app built
+over five repos.
+
 ### Private pages behind Access
-The dashboard and any page with private material publish as their own Worker behind Cloudflare
+The intranet and any page with private material publish as their own Worker behind Cloudflare
 Access, with a list of addresses and a one-time code (`scripts/protect-access.mjs`).
 **Why:** a secret URL is not a lock; it travels in screenshots and chat. An address on a list is
 revoked by deleting a line. Every Worker that checks identity fails closed
