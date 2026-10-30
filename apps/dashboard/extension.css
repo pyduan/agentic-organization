@@ -12,9 +12,11 @@
   .top.many .top-in { flex-wrap: wrap; row-gap: 0; padding-top: var(--space-2); }
   .top.many .mark { flex: 1 1 100%; }
   .top.many .tabs {
+    flex: none;
     margin-left: calc(-1 * var(--space-3)); width: calc(100% + 2 * var(--space-3));
     padding: var(--space-1) var(--space-3) var(--space-2);
   }
+  .top.many .tabs a { padding: var(--space-1) var(--space-2); }
 }
 
 /* A tile's line under its label (tile(n, label, note)). */
