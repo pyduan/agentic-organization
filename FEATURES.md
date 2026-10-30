@@ -180,9 +180,36 @@ a format for a repository shared with a partner (`source/formats/partner-repo.md
 seeded draft spends its first hour correcting rather than dictating.
 
 ### The infrastructure, written down
-`STACK.md`: one row per brick, its state and its way out.
+`STACK.md`: one row per brick, its state, its way out, and who approved it when.
 **Why:** a brick nobody knows how to leave is a brick nobody chose, and another project's stack is
 never this one's.
+
+### Connectors, approved row by row
+`CONNECTORS.md`: one row per connector or MCP server (Gmail, Drive, Notion and Slack suggested;
+Calendar, GitHub, browser control and others beside them), with its status (*recommended*,
+*authorized*, *not allowed*, *to decide*), what it may be used for and how far it reaches, who
+approves it, and an *Approved* column like `STACK.md`'s. The setup walks it right after the stack,
+and the history import uses only approved rows. `setup-status` reads the names of the MCP servers
+configured for this repo and its workspace folder (`~/.claude.json`, `~/.claude/settings.json`,
+`.mcp.json`), never their settings, and reports one with no approved row (orange), one an approved
+row forbids (red), and an approved one it cannot see here. `kit-sync` reports both files rather
+than replacing them, and delivers them whole to a project that lacks them.
+**Why:** asked for on 2026-10-30. A connector is access to people's mail and files, and the default
+reach of one (a whole mailbox, a whole drive, kept open) is wider than any task needs: a one-off
+import scoped to a person, a date range or a folder, then disconnected, covers the history, and an
+inbox the agents read, which people CC, covers the day to day without reading anyone's mailbox.
+Writing the list down makes the reach a decision with a name and a date on it, and checking it
+against what is configured on the machine is what catches a server installed for an experiment
+and never removed. Names only, because the settings beside them may hold a token.
+
+### The setup check sees the setup's first steps
+`setup-status` reports whether every row of `STACK.md` is approved, `CONNECTORS.md` against the
+servers configured here, and whether the intranet is named for publishing, built (and not with
+`--local`), published at the address recorded in `STACK.md`'s *Private pages* row, and behind a
+sign-in (a redirect to Access or a `403` is green, a `200` is red).
+**Why:** 2026-10-30, the setup now starts with those steps, and a step that only a conversation
+remembers is redone or forgotten. The address is read from the file the setup writes it in, so the
+check needs no configuration of its own.
 
 ## This organization's own
 

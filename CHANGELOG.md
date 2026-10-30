@@ -10,6 +10,25 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MAJOR · A list of the connectors your agent may use, and a setup check that sees it
+
+- **`CONNECTORS.md`**, beside `STACK.md`: one row per connector (Gmail, Drive, Notion and Slack
+  suggested, Calendar, GitHub and browser control beside them), with what it may be used for, how
+  far it reaches, who approves it, and the date and name of whoever said yes. The kit suggests a
+  one-off import of your history, limited to one person, a date range or a folder, then
+  disconnected; and, day to day, an inbox for the agents that people copy in, rather than the agent
+  reading anyone's whole mailbox.
+- **"Check my setup" now says three more things**: whether every row of `STACK.md` has been
+  approved; whether a connector is set up on this computer without an approved row (or against
+  one that says *not allowed*); and whether your intranet is built, published, and asks for a
+  sign-in. It reads connector names only, never their settings.
+- Updates now hand you `STACK.md` and `CONNECTORS.md` whole if you do not have them, and only
+  report the kit's changes to them once you do, since their rows are your decisions.
+
+**What you need to do:** ask your agent to update the kit, then to walk `CONNECTORS.md` with you
+one row at a time, as it did `STACK.md`, and to say "check my setup" afterwards. If a connector
+you use is not on the list, it is reported until you decide on it.
+
 ## 2026-10-30 · MINOR · A private view of material on your machine, which can never be published
 
 - `npm run intranet -- --local` builds the intranet with what you keep in `local/` on your own

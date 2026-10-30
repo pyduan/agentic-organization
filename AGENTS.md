@@ -52,6 +52,7 @@ Find every row that matches the task at hand and read those files before produci
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows). The `Kind` column says `router` or `satellite` per repo, and it is what stops the tools demanding a satellite carry a framework it deliberately does not hold |
 | **Infrastructure**: which service holds which function, proposing a new one, "can we just use X" | `STACK.md` first: one row per brick with its way out. Never infer this organization's setup from another project's stack |
+| **A connector or an MCP server**: connecting Gmail, Drive, Notion, Slack or browser control, an import of history, "can you read my mailbox" | `CONNECTORS.md` first: one row per connector with what it may be used for, how far it reaches, and who approved it. Only an approved row is used; a history import is scoped (a person, a date range, a folder) and the connector disconnected after; the standing alternative to mailbox-wide access is the agents' inbox people CC. A new connector gets a *to decide* row before its first use |
 | A decision **retires a route** (where something is built, which tool holds what) | sweep the guides in the same change, then add the old wording to `source/quality/retired-claims.json`; `node scripts/check-retired.mjs` fails when a guide says it again |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
 | A **scheduled task**: writing one, retiring one, or "what runs on its own around here" | `routines/README.md` — versioned because the scheduler's own folder is not, offered at setup rather than installed, and retiring one means deregistering it **and** deleting its file in the same change |
@@ -231,7 +232,8 @@ This is what makes the system compound: feedback given once becomes a rule appli
 ## Map of the repo
 
 ```
-STACK.md                     what runs on what, its state, and the way out of each brick
+STACK.md                     what runs on what, its state, and the way out of each brick, each row approved and dated
+CONNECTORS.md                which connectors and MCP servers the agent may use, for what, how far, approved and dated
 FEATURES.md                  what the repo does, feature by feature, and the design decision behind each
 CLAUDE.md                    one line, @AGENTS.md: how Claude Code loads this manual
 ORGANIGRAM.md                the org's repos + who may use/change/approve what (solo by default)
@@ -290,6 +292,7 @@ scripts/check-fleet.mjs      which projects run this kit, how stale each is, and
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/workspace-sync.mjs   keeps the clones current: fast-forwards a clean default branch, names the rest
 scripts/setup-status.mjs     every setup check in one table, green to red, with the fixes (--json for a skill or an app)
+scripts/intranet-guard.mjs   refuses to deploy an intranet built with --local (local/ material) or an empty one
 scripts/protect-access.mjs   put a Worker behind Access: a list of addresses, a one-time code each, no screen
 scripts/vendor-sync.mjs      code co-owned with another repo: pull, push-back, verify, against vendor/<kit>.json
 scripts/check-ai-tics.mjs    does this read as machine-written? the voice guide's tics as a check (--stdin, --strict, --self-test)

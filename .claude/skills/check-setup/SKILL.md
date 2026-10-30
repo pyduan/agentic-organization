@@ -1,6 +1,6 @@
 ---
 name: check-setup
-description: "Check that this machine is set up the way the kit expects and show it as one table, green, orange or red, with the fix for each row: git and Node, the GitHub login, the git identity, the repo map, whether the clones are up to date, the workspace folder's guards, whether the session hooks run, the kit version, and what instructs the agent from outside the repo. Use when the owner says 'check my setup', 'is everything installed', 'is my computer ready', 'why does the agent behave differently on this machine', right after an install, and when a second person has just joined."
+description: "Check that this machine is set up the way the kit expects and show it as one table, green, orange or red, with the fix for each row: git and Node, the GitHub login, the git identity, the repo map, whether the clones are up to date, the workspace folder's guards, whether the session hooks run, the kit version, what instructs the agent from outside the repo, whether every row of STACK.md and CONNECTORS.md is approved (and no MCP server runs here without an approved row), and whether the intranet is built, published and behind a sign-in. Use when the owner says 'check my setup', 'is everything installed', 'is my computer ready', 'why does the agent behave differently on this machine', right after an install, and when a second person has just joined."
 ---
 
 # Check my setup
@@ -45,6 +45,15 @@ each one can be undone:
 
 **Needs the owner, one sentence each:**
 
+- rows of `STACK.md` or `CONNECTORS.md` not approved: walk them with the owner one row at a time,
+  as the `setup` skill's step 1 does, and write the date and their handle in *Approved*.
+- an MCP server configured on this machine with no approved row in `CONNECTORS.md`: say what it
+  is and where it is declared, then add its row with the owner or remove it with their yes. One
+  that `CONNECTORS.md` marks *not allowed* is red: remove it first, and ask afterwards.
+- the intranet not published, or answering without a sign-in: the `setup` skill's step 2. A page
+  that answers without a sign-in is an incident: protect it now (`scripts/protect-access.mjs`),
+  then log it (`feedback` skill).
+
 - the GitHub login: you run `gh auth login --web`, they click once in the browser.
 - the git identity: ask the name and address they want on their commits, then set them yourself.
 - a file in the workspace folder that someone else wrote and the installer will not touch (a `AGENTS.md`
@@ -63,5 +72,7 @@ the row. Show the second table, and say in one line what is left and why.
 ## What it does not check
 
 Whether the code works is `npm test`. Whether what you published is still up is the `freshness`
-skill. Connectors (mail, calendar, drive) are declared per session and are not visible from here:
-if one matters to the owner, ask them to try it once.
+skill. A connector enabled in Claude's own settings (mail, calendar, drive through the provider) is not
+visible from here, so an approved one the check does not see is reported, never red: if it matters
+to the owner, ask them to try it once. The check reads server names only, never their settings,
+which may hold a token.

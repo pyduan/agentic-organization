@@ -134,3 +134,109 @@ test('a check that cannot run is reported, and the verdict is counted from the c
     assert.match(report(r), /3 check\(s\): 1 green, 1 orange, 1 red\.$/);
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });
+
+// ---------------------------------------------------------------- the setup's first steps
+
+const STACK = (approved) => [
+  '# Stack', '', '| Role | What we use | State | Way out | Approved |', '|---|---|---|---|---|',
+  `| Source of truth | Git | in place | any Git host | ${approved[0] || ''} |`,
+  `| Private pages (the intranet first) | Access, https://riverside-dashboard.sam.workers.dev | in place | any gate | ${approved[1] || ''} |`, '',
+].join('\n');
+
+test('stack: rows without a dated approval are orange and named, all approved is green', async () => {
+  const area = scratch();
+  try {
+    assert.match(byId(await only(area, ['stack'], { template: false }), 'stack').detail, /no STACK\.md/);
+    writeFileSync(join(area.org, 'STACK.md'), '| Role | What we use |\n|---|---|\n| Website | Workers |\n');
+    assert.match(byId(await only(area, ['stack'], { template: false }), 'stack').detail, /no Approved column/);
+    writeFileSync(join(area.org, 'STACK.md'), STACK(['2026-10-30 @sam']));
+    const half = byId(await only(area, ['stack'], { template: false }), 'stack');
+    assert.equal(half.level, 'warn');
+    assert.match(half.detail, /^1 of 2 row\(s\) not approved yet: Private pages/);
+    assert.match(half.fix, /walk the stack/);
+    writeFileSync(join(area.org, 'STACK.md'), STACK(['2026-10-30 @sam', '2026-10-30 @sam']));
+    assert.equal(byId(await only(area, ['stack'], { template: false }), 'stack').level, 'ok');
+    assert.equal(byId(await only(area, ['stack'], { template: true }), 'stack').level, 'info');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+const CONNECTORS = [
+  '# Connectors', '', '<!-- | a | comment | -->',
+  '| Connector | Status | What for, and how far | Who approves | Approved |', '|---|---|---|---|---|',
+  '| Gmail | authorized | one-off import | @sam | 2026-10-30 @sam |',
+  '| Google Drive (`gdrive`) | recommended | named folders | @sam | 2026-10-30 @sam |',
+  '| Notion | to decide | export | @sam | |',
+  '| Third-party WhatsApp servers (`whatsapp`) | not allowed | none | @sam | 2026-10-30 @sam |', '',
+].join('\n');
+
+test('connectors: names only, a configured server without an approved row is orange, a forbidden one red', async () => {
+  const area = scratch();
+  const home = join(area.top, 'home');
+  mkdirSync(join(home, '.claude'), { recursive: true });
+  const servers = (user, project = {}) => writeFileSync(join(home, '.claude.json'), JSON.stringify({
+    mcpServers: user, projects: { [area.org]: { mcpServers: project } },
+  }));
+  const check = async () => byId(await only(area, ['connectors'], { template: false, home }), 'connectors');
+  try {
+    assert.match((await check()).detail, /no CONNECTORS\.md/);
+    writeFileSync(join(area.org, 'CONNECTORS.md'), CONNECTORS);
+    servers({ gdrive: { command: 'x', env: { TOKEN: 'secret-never-read-out' } } });
+    let c = await check();
+    assert.equal(c.level, 'warn');
+    assert.match(c.detail, /^1 of 4 row\(s\) of CONNECTORS\.md not approved yet; approved but not configured on this machine: Gmail/);
+    assert.doesNotMatch(JSON.stringify(c), /secret-never-read-out/);
+
+    servers({ gdrive: {} }, { 'notion-mcp': {}, 'crm-sync': {} });
+    c = await check();
+    assert.equal(c.level, 'warn');
+    assert.match(c.detail, /not on the list: crm-sync \(~\/\.claude\.json \(this repo\)\)/);
+    assert.match(c.detail, /listed, not approved: notion-mcp/);
+
+    writeFileSync(join(area.org, '.mcp.json'), JSON.stringify({ mcpServers: { whatsapp: {} } }));
+    c = await check();
+    assert.equal(c.level, 'fail');
+    assert.match(c.detail, /does not allow it: whatsapp \(\.mcp\.json\)/);
+    rmSync(join(area.org, '.mcp.json'));
+
+    writeFileSync(join(area.org, 'CONNECTORS.md'), CONNECTORS.replace('| Notion | to decide | export | @sam | |', '| Notion (`notion-mcp`) | authorized | export | @sam | 2026-10-31 @sam |'));
+    servers({ gdrive: {} }, { 'notion-mcp': {} });
+    c = await check();
+    assert.equal(c.level, 'ok');
+    assert.match(c.detail, /2 server\(s\) configured here, each on an approved row; approved but not configured on this machine: Gmail/);
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+test('intranet: unnamed, built with --local, then published open (red) and behind Access (green)', async () => {
+  const area = scratch();
+  const dash = join(area.org, 'apps', 'dashboard');
+  const answer = (status, location) => async () => ({ status, headers: new Headers(location ? { location } : {}) });
+  const check = async (o = {}) => byId(await only(area, ['intranet'], { template: false, ...o }), 'intranet');
+  try {
+    assert.match((await check()).detail, /no apps\/dashboard/);
+    mkdirSync(join(dash, 'dist'), { recursive: true });
+    writeFileSync(join(dash, 'wrangler.jsonc'), '{ "name": "my-dashboard" }\n');
+    let c = await check();
+    assert.equal(c.level, 'warn');
+    assert.match(c.detail, /not published yet: its Worker still has the template's name/);
+    assert.match(c.fix, /publish my intranet/);
+
+    writeFileSync(join(dash, 'dist', 'index.html'), '<p>home</p>');
+    writeFileSync(join(dash, 'dist', '.local-build'), 'local');
+    assert.match((await check()).detail, /made with --local/);
+    rmSync(join(dash, 'dist', '.local-build'));
+
+    writeFileSync(join(dash, 'wrangler.jsonc'), '{ "name": "riverside-dashboard" }\n');
+    assert.match((await check()).detail, /^built; no address recorded/);
+
+    writeFileSync(join(area.org, 'STACK.md'), STACK([]));
+    assert.equal((await check({ offline: true })).level, 'info');
+    c = await check({ fetch: answer(200) });
+    assert.equal(c.level, 'fail');
+    assert.match(c.detail, /answers without a sign-in/);
+    c = await check({ fetch: answer(302, 'https://riverside.cloudflareaccess.com/cdn-cgi/access/login/x') });
+    assert.equal(c.level, 'ok');
+    assert.match(c.detail, /riverside-dashboard\.sam\.workers\.dev, behind a sign-in/);
+    assert.equal((await check({ fetch: answer(403) })).level, 'ok');
+    assert.equal((await check({ fetch: async () => { throw new Error('ENOTFOUND'); } })).level, 'warn');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});

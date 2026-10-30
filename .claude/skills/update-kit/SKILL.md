@@ -92,8 +92,11 @@ matters, and getting it wrong silently reverts the owner's work.
    node scripts/kit-sync.mjs apply
    ```
 
-   Nothing colliding is ever written. `AGENTS.md`, `package.json` and `wrangler.jsonc` are
-   report-only: they always carry local values, so they are listed and never replaced.
+   Nothing colliding is ever written. `AGENTS.md`, `FEATURES.md`, `STACK.md`, `CONNECTORS.md`,
+   `package.json` and `wrangler.jsonc` are report-only: they always carry local values (the last
+   two tables carry the owner's approvals, row by row), so they are listed and never replaced. A
+   project that has none of them yet receives it whole; for `STACK.md` and `CONNECTORS.md`, walk the
+   new file with the owner row by row (`setup` skill ▸ 1) before anything relies on it.
 
 6. **Resolve the collisions with the owner, one at a time.** For each file, `git diff <baseline>
    template/main -- <file>` shows what the kit changed and `git diff <baseline> -- <file>` what they

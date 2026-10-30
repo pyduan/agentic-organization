@@ -35,13 +35,15 @@ const REF = `${REMOTE}/${BRANCH}`;
 // CLAUDE.md, now a one-line pointer to it) and FEATURES.md are deliberately NOT here -- they carry
 // local rules and local features, so a change to them is reported and never auto-applied. A
 // project that does not have one yet receives it whole, since there is nothing of its own to lose.
+// STACK.md and CONNECTORS.md are the same: the owner's once the setup has walked them (each row
+// approved, dated), so a kit change to them is reported, and a project without them receives them.
 // `apps/intranet-extend/` is deliberately outside these paths: it holds an instance's own views on
 // the intranet (apps/dashboard/extend.mjs), and the kit never ships a file there.
 const FRAMEWORK = [
   '.claude', 'docs', 'scripts', 'lib', 'source/formats',
   'apps/dashboard', 'apps/todos', 'SETUP.md', 'README.md', 'CHANGELOG.md',
 ];
-const REPORT_ONLY = ['AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'package.json', 'wrangler.jsonc'];
+const REPORT_ONLY = ['AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'STACK.md', 'CONNECTORS.md', 'package.json', 'wrangler.jsonc'];
 
 const git = (args, opts = {}) =>
   execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
