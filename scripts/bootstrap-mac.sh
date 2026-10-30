@@ -1,12 +1,24 @@
 #!/bin/bash
-# Bootstrap a new agentic-organization project on macOS: installs whatever's missing
-# (Homebrew, git, Node, GitHub CLI, Claude Code), authenticates GitHub, creates
-# a new repo from this template, clones it, gives the parent folder the repo's
-# guards, and opens Claude on the first step of the setup: the STACK.md walk.
+# Set up a Mac for the agentic-organization kit: installs whatever's missing (Homebrew,
+# git, Node, GitHub CLI, Claude Code), authenticates GitHub, makes ~/Projects the folder
+# that holds the repositories, then does one of three things, asked at the start:
+#   1. new    create the organization's repo from this template, clone it, give the parent
+#             folder the repo's guards, and open Claude on the setup (the STACK.md walk)
+#   2. join   clone a repo that already runs on the kit (owner/repo), give the parent folder
+#             its guards, and open Claude on the newcomer's first session (QUICKSTART.md ▸ 7)
+#   3. tools  stop after the tools: for someone with no repo yet, or who will get one later
 #
 # Run it directly:
 #   curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-mac.sh | bash
-# or clone the repo first and run ./scripts/bootstrap-mac.sh
+# Skip the question:
+#   … | bash -s -- --join <owner>/<repo>      (or --new, --tools-only)
+# or clone the repo first and run ./scripts/bootstrap-mac.sh [--join <owner>/<repo>]
+# AO_JOIN=<owner>/<repo> or AO_MODE=new|join|tools in the environment do the same.
+#
+# Cloudflare is asked too, since not everyone needs it: whoever publishes needs the
+# Cloudflare login (Wrangler), and the agent can also get Cloudflare's own plugin, so it
+# creates Workers and Access rules itself. --cloudflare=no|login|plugin (or AO_CLOUDFLARE)
+# answers in advance. A newcomer gets the plugin only if CONNECTORS.md approves it.
 #
 # Safe to re-run: every step checks whether it's already done before acting.
 
@@ -19,6 +31,23 @@ set -e
 if [ ! -t 0 ] && [ -e /dev/tty ]; then exec < /dev/tty; fi
 
 TEMPLATE="pyduan/agentic-organization"
+
+MODE="${AO_MODE:-}"
+JOIN_REPO="${AO_JOIN:-}"
+CLOUDFLARE="${AO_CLOUDFLARE:-}"
+[ -n "$JOIN_REPO" ] && MODE="${MODE:-join}"
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --new) MODE=new ;;
+    --join) MODE=join; JOIN_REPO="${2:-}"; [ $# -gt 1 ] && shift ;;
+    --join=*) MODE=join; JOIN_REPO="${1#--join=}" ;;
+    --tools-only|--tools) MODE=tools ;;
+    --cloudflare=*) CLOUDFLARE="${1#--cloudflare=}" ;;
+    --no-cloudflare) CLOUDFLARE=no ;;
+    *) echo "Unknown option: $1 (expected --new, --join <owner>/<repo>, --tools-only, --cloudflare=no|login|plugin)"; exit 1 ;;
+  esac
+  shift
+done
 
 echo "== agentic-organization setup =="
 echo
@@ -131,75 +160,210 @@ else
   echo "✓ SSH key already present"
 fi
 
-# --- Where to put the project ---
-echo
-read -p "What should we call your repository? (e.g. riverside-coop): " PROJECT_NAME
-while [ -z "$PROJECT_NAME" ]; do
-  read -p "Please enter a name: " PROJECT_NAME
-done
-
-DEFAULT_DIR="$HOME/Projects"
-mkdir -p "$DEFAULT_DIR"
-read -p "Where should it live on your computer? [$DEFAULT_DIR]: " PARENT_DIR
-PARENT_DIR="${PARENT_DIR:-$DEFAULT_DIR}"
-mkdir -p "$PARENT_DIR"
-TARGET="$PARENT_DIR/$PROJECT_NAME"
-
-if [ -d "$TARGET" ] && [ -n "$(ls -A "$TARGET" 2>/dev/null)" ]; then
-  # Reusing a folder that is already there is how a half-finished earlier attempt
-  # becomes the project: its stale files look like yours and nothing says otherwise.
-  # Offer a clean start, and rename the old one aside rather than deleting it.
+# --- Cloudflare, for whoever needs it ---
+# The login lets the agent deploy with Wrangler; the plugin lets it create Workers and Access
+# rules through Cloudflare's own tools. Neither is needed to read and write the repository.
+cloudflare_login() {
   echo
-  echo "$TARGET already exists and is not empty."
-  read -p "Start clean and move the existing folder aside? [Y/n]: " CLEAN_START
-  if [ "${CLEAN_START:-Y}" != "n" ] && [ "${CLEAN_START:-Y}" != "N" ]; then
-    ASIDE="$TARGET.before-$(date +%Y-%m-%d-%H%M)"
-    mv "$TARGET" "$ASIDE"
-    echo "✓ moved aside to $ASIDE (nothing deleted)"
-    cd "$PARENT_DIR"
-    gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "Our organization, run from one repository"
-    cd "$PROJECT_NAME"
-  else
-    echo "Using it as-is (skipping repo creation)."
-    cd "$TARGET"
-  fi
-elif [ -d "$TARGET" ]; then
-  cd "$TARGET"
-else
-  echo
-  echo "Creating your own private copy of the template on GitHub, and cloning it to:"
-  echo "  $TARGET"
-  cd "$PARENT_DIR"
-  gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "Our organization, run from one repository"
-  cd "$PROJECT_NAME"
-fi
-
-# --- Hosting, and getting the agent able to deploy on its own ---
-echo
-echo "Where should your intranet and your site be published? (Your agent goes over this"
-echo "again with you in the first session, as rows of STACK.md you approve one at a time.)"
-echo "  1) A fresh Cloudflare account in the organization's name (default: free, and it holds"
-echo "     the private intranet behind a sign-in, the site, the domain and DNS in one place)"
-echo "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
-read -p "Choose 1 or 2 [1]: " HOST_CHOICE
-HOST_CHOICE="${HOST_CHOICE:-1}"
-
-HOST_NOTE="Cloudflare (fresh account)"
-if [ "$HOST_CHOICE" = "2" ]; then
-  read -p "What are you using? (a name is enough): " HOST_EXISTING
-  HOST_NOTE="existing host: ${HOST_EXISTING:-unspecified}"
-else
-  echo
-  echo "Installing the deploy tooling and logging into Cloudflare, so Claude can publish"
-  echo "without you clicking through a dashboard every time."
-  npm install --silent >/dev/null 2>&1 || echo "▲ npm install had trouble; Claude will sort it in the first session."
+  echo "Logging into Cloudflare, so your agent can publish without you clicking through a dashboard."
   if npx --yes wrangler whoami >/dev/null 2>&1; then
     echo "✓ Already logged into Cloudflare"
   else
     echo "A browser window will open to authorize Cloudflare (Ctrl+C to skip and do it later):"
     npx --yes wrangler login || echo "▲ Skipped — Claude can run 'npx wrangler login' with you later."
   fi
+}
+# Installed for the folder the sessions open on (scope local), never for the whole machine:
+# a plugin loaded everywhere is what check-conflicts exists to find.
+cloudflare_plugin() {
+  if ! command -v claude >/dev/null 2>&1; then
+    echo "▲ Claude Code's command is not on your PATH, so Cloudflare's plugin waits: ask your agent to install it."
+    CF_PLUGIN_DONE=no; return
+  fi
+  claude plugin marketplace add cloudflare/skills >/dev/null 2>&1 || true
+  if (cd "$1" && claude plugin install cloudflare@cloudflare --scope local >/dev/null 2>&1); then
+    echo "✓ Cloudflare's plugin installed for sessions opened on $1"
+    CF_PLUGIN_DONE=yes
+  else
+    echo "▲ Cloudflare's plugin did not install; ask your agent to install cloudflare@cloudflare for this folder."
+    CF_PLUGIN_DONE=no
+  fi
+}
+CF_PLUGIN_DONE=no
+
+# --- What this machine is for ---
+if [ -z "$MODE" ]; then
+  echo
+  echo "What are you setting up?"
+  echo "  1) A new organization: create our repository from the kit (default)"
+  echo "  2) Join an organization that already runs on the kit: clone its repository"
+  echo "  3) Just the tools for now: I will get a repository later"
+  read -p "Choose 1, 2 or 3 [1]: " MODE_CHOICE
+  case "${MODE_CHOICE:-1}" in 2) MODE=join ;; 3) MODE=tools ;; *) MODE=new ;; esac
 fi
+
+DEFAULT_DIR="$HOME/Projects"
+mkdir -p "$DEFAULT_DIR"
+
+if [ "$MODE" = tools ]; then
+  echo
+  echo "== Done. The tools are installed, and $DEFAULT_DIR is where your repositories go. =="
+  echo
+  echo "When you have one, run this script again with the repository it should clone:"
+  echo "  curl -fsSL https://raw.githubusercontent.com/$TEMPLATE/main/scripts/bootstrap-mac.sh | bash -s -- --join <owner>/<repo>"
+  echo "or with --new to create your organization's own."
+  exit 0
+fi
+
+if [ "$MODE" = join ]; then
+  # --- Joining: the repo exists, and it carries how the agent behaves there ---
+  while [ -z "$JOIN_REPO" ]; do
+    read -p "Which repository are you joining? (owner/repo, as in github.com/owner/repo): " JOIN_REPO
+  done
+  # Accept a pasted URL as well as owner/repo.
+  JOIN_REPO="$(printf '%s' "$JOIN_REPO" | sed -E 's#^(https?://)?(www\.)?github\.com[/:]##; s#^git@github\.com:##; s#\.git$##; s#/+$##')"
+  JOIN_OWNER="${JOIN_REPO%%/*}"
+  REPO_NAME="${JOIN_REPO##*/}"
+
+  if ! gh repo view "$JOIN_REPO" --json name >/dev/null 2>&1; then
+    # The usual reason is an invitation sent and never accepted. Offer to accept it here.
+    ORG_PENDING="$(gh api user/memberships/orgs --jq ".[] | select(.state==\"pending\" and .organization.login==\"$JOIN_OWNER\") | .organization.login" 2>/dev/null || true)"
+    REPO_INVITE="$(gh api user/repository_invitations --jq ".[] | select(.repository.full_name==\"$JOIN_REPO\") | .id" 2>/dev/null || true)"
+    if [ -n "$ORG_PENDING" ] || [ -n "$REPO_INVITE" ]; then
+      echo
+      read -p "You have a pending invitation to $JOIN_OWNER. Accept it now? [Y/n]: " ACCEPT
+      if [ "${ACCEPT:-Y}" != "n" ] && [ "${ACCEPT:-Y}" != "N" ]; then
+        [ -n "$ORG_PENDING" ] && gh api -X PATCH "user/memberships/orgs/$JOIN_OWNER" -f state=active >/dev/null
+        [ -n "$REPO_INVITE" ] && gh api -X PATCH "user/repository_invitations/$REPO_INVITE" >/dev/null
+      fi
+    fi
+  fi
+  if ! gh repo view "$JOIN_REPO" --json name >/dev/null 2>&1; then
+    echo
+    echo "Your GitHub account ($(gh api user --jq .login 2>/dev/null || echo unknown)) cannot read $JOIN_REPO."
+    echo "Check the spelling, and ask whoever runs it to invite this account. Then run this again."
+    exit 1
+  fi
+
+  read -p "Where should it live on your computer? [$DEFAULT_DIR]: " PARENT_DIR
+  PARENT_DIR="${PARENT_DIR:-$DEFAULT_DIR}"
+  mkdir -p "$PARENT_DIR"
+  TARGET="$PARENT_DIR/$REPO_NAME"
+
+  if [ -d "$TARGET/.git" ] && git -C "$TARGET" remote get-url origin 2>/dev/null | grep -Eqi "[/:]$JOIN_REPO(\.git)?$"; then
+    echo "✓ Already cloned at $TARGET, bringing it up to date"
+    git -C "$TARGET" pull --ff-only || echo "▲ Could not fast-forward; your agent will sort it out in the first session."
+  else
+    if [ -d "$TARGET" ] && [ -n "$(ls -A "$TARGET" 2>/dev/null)" ]; then
+      echo
+      echo "$TARGET already exists and is not $JOIN_REPO."
+      read -p "Move it aside and clone $JOIN_REPO there? [Y/n]: " CLEAN_START
+      if [ "${CLEAN_START:-Y}" = "n" ] || [ "${CLEAN_START:-Y}" = "N" ]; then
+        echo "Stopping here, nothing changed. Choose another folder and run this again."
+        exit 1
+      fi
+      ASIDE="$TARGET.before-$(date +%Y-%m-%d-%H%M)"
+      mv "$TARGET" "$ASIDE"
+      echo "✓ moved aside to $ASIDE (nothing deleted)"
+    fi
+    echo "Cloning $JOIN_REPO to $TARGET"
+    gh repo clone "$JOIN_REPO" "$TARGET"
+  fi
+  cd "$TARGET"
+  if [ -f package.json ]; then
+    npm install --silent >/dev/null 2>&1 || echo "▲ npm install had trouble; your agent will sort it in the first session."
+  fi
+
+  # Most newcomers use what the others publish, and need nothing from Cloudflare.
+  CF_APPROVED=no
+  grep -i 'cloudflare' CONNECTORS.md 2>/dev/null | grep -qi '| *authorized *|' && CF_APPROVED=yes
+  if [ -z "$CLOUDFLARE" ]; then
+    echo
+    echo "Will you publish for the organization (its site, its intranet, its apps)?"
+    echo "  1) No, I use what the others publish (default)"
+    echo "  2) Yes: log me into Cloudflare so my agent can deploy"
+    if [ "$CF_APPROVED" = yes ]; then
+      echo "  3) Yes, and give my agent Cloudflare's plugin too, so it creates Workers and Access rules itself"
+    fi
+    read -p "Choose [1]: " CF_CHOICE
+    case "${CF_CHOICE:-1}" in 2) CLOUDFLARE=login ;; 3) CLOUDFLARE=plugin ;; *) CLOUDFLARE=no ;; esac
+  fi
+  if [ "$CLOUDFLARE" = plugin ] && [ "$CF_APPROVED" != yes ]; then
+    echo "▲ CONNECTORS.md has no authorized Cloudflare row, so the plugin is not installed: ask the owner."
+    CLOUDFLARE=login
+  fi
+  [ "$CLOUDFLARE" = login ] || [ "$CLOUDFLARE" = plugin ] && cloudflare_login
+fi
+
+if [ "$MODE" = new ]; then
+  # --- Where to put the project ---
+  echo
+  read -p "What should we call your repository? (e.g. riverside-coop): " PROJECT_NAME
+  while [ -z "$PROJECT_NAME" ]; do
+    read -p "Please enter a name: " PROJECT_NAME
+  done
+
+  read -p "Where should it live on your computer? [$DEFAULT_DIR]: " PARENT_DIR
+  PARENT_DIR="${PARENT_DIR:-$DEFAULT_DIR}"
+  mkdir -p "$PARENT_DIR"
+  TARGET="$PARENT_DIR/$PROJECT_NAME"
+
+  if [ -d "$TARGET" ] && [ -n "$(ls -A "$TARGET" 2>/dev/null)" ]; then
+    # Reusing a folder that is already there is how a half-finished earlier attempt
+    # becomes the project: its stale files look like yours and nothing says otherwise.
+    # Offer a clean start, and rename the old one aside rather than deleting it.
+    echo
+    echo "$TARGET already exists and is not empty."
+    read -p "Start clean and move the existing folder aside? [Y/n]: " CLEAN_START
+    if [ "${CLEAN_START:-Y}" != "n" ] && [ "${CLEAN_START:-Y}" != "N" ]; then
+      ASIDE="$TARGET.before-$(date +%Y-%m-%d-%H%M)"
+      mv "$TARGET" "$ASIDE"
+      echo "✓ moved aside to $ASIDE (nothing deleted)"
+      cd "$PARENT_DIR"
+      gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "Our organization, run from one repository"
+      cd "$PROJECT_NAME"
+    else
+      echo "Using it as-is (skipping repo creation)."
+      cd "$TARGET"
+    fi
+  elif [ -d "$TARGET" ]; then
+    cd "$TARGET"
+  else
+    echo
+    echo "Creating your own private copy of the template on GitHub, and cloning it to:"
+    echo "  $TARGET"
+    cd "$PARENT_DIR"
+    gh repo create "$PROJECT_NAME" --template "$TEMPLATE" --private --clone --description "Our organization, run from one repository"
+    cd "$PROJECT_NAME"
+  fi
+
+  # --- Hosting, and getting the agent able to deploy on its own ---
+  echo
+  echo "Where should your intranet and your site be published? (Your agent goes over this"
+  echo "again with you in the first session, as rows of STACK.md you approve one at a time.)"
+  echo "  1) A fresh Cloudflare account in the organization's name (default: free, and it holds"
+  echo "     the private intranet behind a sign-in, the site, the domain and DNS in one place)"
+  echo "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
+  read -p "Choose 1 or 2 [1]: " HOST_CHOICE
+  HOST_CHOICE="${HOST_CHOICE:-1}"
+
+  HOST_NOTE="Cloudflare (fresh account)"
+  if [ "$HOST_CHOICE" = "2" ]; then
+    read -p "What are you using? (a name is enough): " HOST_EXISTING
+    HOST_NOTE="existing host: ${HOST_EXISTING:-unspecified}"
+  else
+    echo
+    echo "Installing the deploy tooling."
+    npm install --silent >/dev/null 2>&1 || echo "▲ npm install had trouble; Claude will sort it in the first session."
+    [ "$CLOUDFLARE" = no ] || cloudflare_login
+    if [ -z "$CLOUDFLARE" ]; then
+      echo
+      read -p "Also give your agent Cloudflare's plugin, so it creates Workers and Access rules itself? [Y/n]: " CF_PLUGIN
+      if [ "${CF_PLUGIN:-Y}" != "n" ] && [ "${CF_PLUGIN:-Y}" != "N" ]; then CLOUDFLARE=plugin; else CLOUDFLARE=login; fi
+    fi
+  fi
+
+fi   # new
 
 # --- Anything else instructing this agent ---
 # The kit's whole premise is one source of truth. A user-level CLAUDE.md, plugins
@@ -209,8 +373,9 @@ fi
 # session behaved unlike everyone else's for exactly this reason. Look now, while
 # there is a person here to decide; nothing is ever deleted, only moved aside.
 echo
-CONFLICTS="$(node scripts/check-conflicts.mjs 2>&1 || true)"
-echo "$CONFLICTS"
+CONFLICTS=""
+[ -f scripts/check-conflicts.mjs ] && CONFLICTS="$(node scripts/check-conflicts.mjs 2>&1 || true)"
+[ -n "$CONFLICTS" ] && echo "$CONFLICTS"
 if printf '%s' "$CONFLICTS" | grep -q '▸'; then
   echo
   read -p "Move the ▸ ones aside (reversible, nothing deleted)? [Y/n]: " PARK
@@ -231,6 +396,36 @@ if WS_OUT="$(node scripts/install-workspace.mjs 2>&1)"; then LAUNCH_DIR="$PARENT
 printf '%s\n' "$WS_OUT" | grep -v '^Next:' || true
 [ "$LAUNCH_DIR" = "$PWD" ] && echo "▲ The workspace folder did not take the guards, so Claude opens in the repository itself; your agent will say why."
 
+[ "$CLOUDFLARE" = plugin ] && cloudflare_plugin "$LAUNCH_DIR"
+CF_LOGGED=no; [ "$CLOUDFLARE" = login ] || [ "$CLOUDFLARE" = plugin ] && npx --yes wrangler whoami >/dev/null 2>&1 && CF_LOGGED=yes
+
+# --- Joining ends here: no setup answers to write, the repo is already set up ---
+if [ "$MODE" = join ]; then
+  STATUS_SCRIPT="$REPO_NAME/scripts/setup-status.mjs"
+  [ "$LAUNCH_DIR" = "$PWD" ] && STATUS_SCRIPT="scripts/setup-status.mjs"
+  JOIN_PROMPT="I am joining $JOIN_REPO, which already runs on the agentic-organization kit; the install script cloned it into $TARGET. Read its AGENTS.md, source/brief.md, the repo map in ORGANIGRAM.md and CONNECTORS.md, ask me what my job is, and clone beside it only the repos that job needs, skipping without a word any I cannot read. Run node $STATUS_SCRIPT, fix what is red, and tell me which connectors the organization has approved for me to connect, and nothing else. Then tell me in plain words what the organization already does with you, starting from its intranet and its recipes, so we find my first task and run it as a recipe too."
+  case "$CLOUDFLARE" in
+    login|plugin) JOIN_PROMPT="$JOIN_PROMPT I said I will publish for the organization: logged into Cloudflare: $CF_LOGGED; Cloudflare's plugin installed: $CF_PLUGIN_DONE." ;;
+    *) JOIN_PROMPT="$JOIN_PROMPT I said I will not publish, so I need nothing from Cloudflare." ;;
+  esac
+  echo
+  echo "== Done. $JOIN_REPO is at: $TARGET =="
+  echo
+  echo "Work with your agent in Claude Code's Code tab (desktop app) or in a terminal, never in"
+  echo "the chat: only a Code session reads the repository."
+  echo
+  cd "$LAUNCH_DIR"
+  if command -v claude >/dev/null 2>&1; then
+    echo "Launching Claude Code in $LAUNCH_DIR on your first session."
+    echo
+    exec claude "$JOIN_PROMPT"
+  fi
+  echo "Open the Claude Code desktop app on $LAUNCH_DIR, in the Code tab, and paste:"
+  echo
+  echo "$JOIN_PROMPT"
+  exit 0
+fi
+
 # Two things wrangler's token cannot do, so nobody hunts for a command that
 # does not exist: writing a DNS record, and enabling Zero Trust. The Access
 # policy itself is scripts/protect-access.mjs, with a token of its own.
@@ -245,7 +440,8 @@ act on it, and delete the file (inbox protocol).
 - Machine: macOS, $(sw_vers -productVersion 2>/dev/null || echo "version unknown")
 - Project folder: $TARGET
 - Hosting: $HOST_NOTE
-- Cloudflare CLI logged in: $(npx --yes wrangler whoami >/dev/null 2>&1 && echo yes || echo no)
+- Cloudflare CLI logged in: $CF_LOGGED
+- Cloudflare's plugin for the agent: $CF_PLUGIN_DONE (installed for $LAUNCH_DIR; a row to approve in CONNECTORS.md during the walk)
 - SSH key present: $([ -f "$HOME/.ssh/id_ed25519.pub" ] || [ -f "$HOME/.ssh/id_rsa.pub" ] && echo yes || echo no)
 
 ## Still instructing this agent from outside the repo

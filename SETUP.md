@@ -60,8 +60,13 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 ```
 
 Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing; logs
-you into GitHub over an SSH key it creates and uploads for you; asks for a repository name and a
-folder; creates + clones your own copy of the template; asks where the intranet and the site will be
+you into GitHub over an SSH key it creates and uploads for you; then asks what you are setting up.
+Joining an organization that already runs on the kit (`--join <owner>/<repo>`) clones its repo into
+`~/Projects` and opens Claude Code on the newcomer's first session (QUICKSTART.md ▸ 7). Only the
+tools (`--tools-only`) stops there, for someone with no repository yet. Both repository modes then
+ask about Cloudflare: the login for whoever publishes, and Cloudflare's plugin for the agent, installed
+for the workspace folder only (a newcomer gets it only if `CONNECTORS.md` authorizes it). A new
+organization, the default, asks for a repository name and a folder; creates + clones your own copy of the template; asks where the intranet and the site will be
 published (a fresh Cloudflare account in the organization's name by default, or somewhere you
 already are) and logs you into Cloudflare if that is the answer, so the AI can publish on its own
 from the first session; gives the parent folder the repository's guards

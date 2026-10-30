@@ -1,16 +1,32 @@
-# Bootstrap a new agentic-organization project on Windows: installs whatever's missing
-# (git, Node, GitHub CLI, Claude Code), authenticates GitHub, creates a new
-# repo from this template, clones it, gives the parent folder the repo's guards,
-# and opens Claude on the first step of the setup: the STACK.md walk.
+# Set up a Windows machine for the agentic-organization kit: installs whatever's missing
+# (git, Node, GitHub CLI, Claude Code), authenticates GitHub, makes ~\Projects the folder
+# that holds the repositories, then does one of three things, asked at the start:
+#   1. new    create the organization's repo from this template, clone it, give the parent
+#             folder the repo's guards, and open Claude on the setup (the STACK.md walk)
+#   2. join   clone a repo that already runs on the kit (owner/repo), give the parent folder
+#             its guards, and open Claude on the newcomer's first session (QUICKSTART.md, section 7)
+#   3. tools  stop after the tools: for someone with no repo yet, or who will get one later
 #
 # Run it directly, from a PowerShell window (right-click Start -> "Terminal"):
 #   irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
+# Skip the question (irm | iex takes no arguments, so it reads the environment):
+#   $env:AO_JOIN="<owner>/<repo>"; irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
+#   $env:AO_MODE="new" (or "tools") does the same for the other two.
+#
+# Cloudflare is asked too, since not everyone needs it: whoever publishes needs the
+# Cloudflare login (Wrangler), and the agent can also get Cloudflare's own plugin, so it
+# creates Workers and Access rules itself. $env:AO_CLOUDFLARE="no" | "login" | "plugin"
+# answers in advance. A newcomer gets the plugin only if CONNECTORS.md approves it.
 # or clone the repo first and run .\scripts\bootstrap-windows.ps1
 #
 # Safe to re-run: every step checks whether it's already done before acting.
 
 $ErrorActionPreference = "Stop"
 $Template = "pyduan/agentic-organization"
+$Mode = "$env:AO_MODE"
+$JoinRepo = "$env:AO_JOIN"
+$Cloudflare = "$env:AO_CLOUDFLARE"
+if ($JoinRepo -and -not $Mode) { $Mode = "join" }
 
 Write-Host "== agentic-organization setup =="
 Write-Host ""
@@ -100,76 +116,220 @@ if (-not (Test-Path "$KeyPath.pub")) {
   Write-Host "OK SSH key already present"
 }
 
-# --- Where to put the project ---
-Write-Host ""
-$ProjectName = Read-Host "What should we call your repository? (e.g. riverside-coop)"
-while ([string]::IsNullOrWhiteSpace($ProjectName)) {
-  $ProjectName = Read-Host "Please enter a name"
+# --- Cloudflare, for whoever needs it ---
+# The login lets the agent deploy with Wrangler; the plugin lets it create Workers and Access
+# rules through Cloudflare's own tools. Neither is needed to read and write the repository.
+function Invoke-CloudflareLogin {
+  Write-Host ""
+  Write-Host "Logging into Cloudflare, so your agent can publish without you clicking through a dashboard."
+  try { npx --yes wrangler whoami | Out-Null; $ok = ($LASTEXITCODE -eq 0) } catch { $ok = $false }
+  if ($ok) { Write-Host "OK Already logged into Cloudflare"; return }
+  Write-Host "A browser window will open to authorize Cloudflare (Ctrl+C to skip and do it later):"
+  try { npx --yes wrangler login } catch { Write-Host "!! Skipped -- Claude can run 'npx wrangler login' with you later." }
+}
+# Installed for the folder the sessions open on (scope local), never for the whole machine:
+# a plugin loaded everywhere is what check-conflicts exists to find.
+$CfPluginDone = "no"
+function Install-CloudflarePlugin($dir) {
+  if (-not (Test-Command "claude")) {
+    Write-Host "!! Claude Code's command is not on your PATH, so Cloudflare's plugin waits: ask your agent to install it."
+    return "no"
+  }
+  try { claude plugin marketplace add cloudflare/skills 2>$null | Out-Null } catch { }
+  Push-Location $dir
+  try { claude plugin install cloudflare@cloudflare --scope local 2>$null | Out-Null; $ok = ($LASTEXITCODE -eq 0) } catch { $ok = $false }
+  Pop-Location
+  if ($ok) { Write-Host "OK Cloudflare's plugin installed for sessions opened on $dir"; return "yes" }
+  Write-Host "!! Cloudflare's plugin did not install; ask your agent to install cloudflare@cloudflare for this folder."
+  return "no"
+}
+
+# --- What this machine is for ---
+if (-not $Mode) {
+  Write-Host ""
+  Write-Host "What are you setting up?"
+  Write-Host "  1) A new organization: create our repository from the kit (default)"
+  Write-Host "  2) Join an organization that already runs on the kit: clone its repository"
+  Write-Host "  3) Just the tools for now: I will get a repository later"
+  $ModeChoice = Read-Host "Choose 1, 2 or 3 [1]"
+  $Mode = switch ($ModeChoice) { "2" { "join" } "3" { "tools" } default { "new" } }
 }
 
 $DefaultDir = Join-Path $HOME "Projects"
 New-Item -ItemType Directory -Force -Path $DefaultDir | Out-Null
-$ParentDir = Read-Host "Where should it live on your computer? [$DefaultDir]"
-if ([string]::IsNullOrWhiteSpace($ParentDir)) { $ParentDir = $DefaultDir }
-New-Item -ItemType Directory -Force -Path $ParentDir | Out-Null
-$Target = Join-Path $ParentDir $ProjectName
 
-if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -First 1)) {
-  # Reusing a folder that is already there is how a half-finished earlier attempt
-  # becomes the project: its stale files look like yours and nothing says otherwise.
-  # Offer a clean start, and rename the old one aside rather than deleting it.
+if ($Mode -eq "tools") {
   Write-Host ""
-  Write-Host "$Target already exists and is not empty."
-  $CleanStart = Read-Host "Start clean and move the existing folder aside? [Y/n]"
-  if ($CleanStart -ne "n" -and $CleanStart -ne "N") {
-    $Aside = "$Target.before-$(Get-Date -Format yyyy-MM-dd-HHmm)"
-    Move-Item $Target $Aside
-    Write-Host "OK moved aside to $Aside (nothing deleted)"
+  Write-Host "== Done. The tools are installed, and $DefaultDir is where your repositories go. =="
+  Write-Host ""
+  Write-Host "When you have one, run this script again with the repository it should clone:"
+  Write-Host "  `$env:AO_JOIN=`"<owner>/<repo>`"; irm https://raw.githubusercontent.com/$Template/main/scripts/bootstrap-windows.ps1 | iex"
+  Write-Host "or with `$env:AO_MODE=`"new`" to create your organization's own."
+  return
+}
+
+# Windows PowerShell 5.1 turns a native command's stderr into an exception under "Stop",
+# so every gh/git call that may fail on purpose sits in a try.
+function Test-RepoReadable($repo) {
+  try { gh repo view $repo --json name 2>$null | Out-Null; return ($LASTEXITCODE -eq 0) } catch { return $false }
+}
+function Get-GhText($arguments) {
+  try { return (& gh @arguments 2>$null | Out-String).Trim() } catch { return "" }
+}
+
+if ($Mode -eq "join") {
+  # --- Joining: the repo exists, and it carries how the agent behaves there ---
+  while ([string]::IsNullOrWhiteSpace($JoinRepo)) {
+    $JoinRepo = Read-Host "Which repository are you joining? (owner/repo, as in github.com/owner/repo)"
+  }
+  # Accept a pasted URL as well as owner/repo.
+  $JoinRepo = $JoinRepo.Trim() -replace '^(https?://)?(www\.)?github\.com[/:]', '' -replace '^git@github\.com:', '' -replace '\.git$', '' -replace '/+$', ''
+  $JoinOwner = $JoinRepo.Split('/')[0]
+  $RepoName = $JoinRepo.Split('/')[-1]
+
+  if (-not (Test-RepoReadable $JoinRepo)) {
+    # The usual reason is an invitation sent and never accepted. Offer to accept it here.
+    $OrgPending = Get-GhText @("api", "user/memberships/orgs", "--jq", ".[] | select(.state==`"pending`" and .organization.login==`"$JoinOwner`") | .organization.login")
+    $RepoInvite = Get-GhText @("api", "user/repository_invitations", "--jq", ".[] | select(.repository.full_name==`"$JoinRepo`") | .id")
+    if ($OrgPending -or $RepoInvite) {
+      Write-Host ""
+      $Accept = Read-Host "You have a pending invitation to $JoinOwner. Accept it now? [Y/n]"
+      if ($Accept -ne "n" -and $Accept -ne "N") {
+        if ($OrgPending) { gh api -X PATCH "user/memberships/orgs/$JoinOwner" -f state=active | Out-Null }
+        if ($RepoInvite) { gh api -X PATCH "user/repository_invitations/$RepoInvite" | Out-Null }
+      }
+    }
+  }
+  if (-not (Test-RepoReadable $JoinRepo)) {
+    $Login = Get-GhText @("api", "user", "--jq", ".login")
+    Write-Host ""
+    Write-Host "Your GitHub account ($Login) cannot read $JoinRepo."
+    Write-Host "Check the spelling, and ask whoever runs it to invite this account. Then run this again."
+    return
+  }
+
+  $ParentDir = Read-Host "Where should it live on your computer? [$DefaultDir]"
+  if ([string]::IsNullOrWhiteSpace($ParentDir)) { $ParentDir = $DefaultDir }
+  New-Item -ItemType Directory -Force -Path $ParentDir | Out-Null
+  $Target = Join-Path $ParentDir $RepoName
+
+  $Origin = ""
+  if (Test-Path (Join-Path $Target ".git")) { try { $Origin = (git -C $Target remote get-url origin 2>$null | Out-String).Trim() } catch { } }
+  if ($Origin -match "[/:]$([regex]::Escape($JoinRepo))(\.git)?$") {
+    Write-Host "OK Already cloned at $Target, bringing it up to date"
+    try { git -C $Target pull --ff-only } catch { }
+    if ($LASTEXITCODE -ne 0) { Write-Host "!! Could not fast-forward; your agent will sort it out in the first session." }
+  } else {
+    if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -First 1)) {
+      Write-Host ""
+      Write-Host "$Target already exists and is not $JoinRepo."
+      $CleanStart = Read-Host "Move it aside and clone $JoinRepo there? [Y/n]"
+      if ($CleanStart -eq "n" -or $CleanStart -eq "N") {
+        Write-Host "Stopping here, nothing changed. Choose another folder and run this again."
+        return
+      }
+      $Aside = "$Target.before-$(Get-Date -Format yyyy-MM-dd-HHmm)"
+      Move-Item $Target $Aside
+      Write-Host "OK moved aside to $Aside (nothing deleted)"
+    }
+    Write-Host "Cloning $JoinRepo to $Target"
+    gh repo clone $JoinRepo $Target
+  }
+  Set-Location $Target
+  if (Test-Path "package.json") {
+    try { npm install --silent | Out-Null } catch { Write-Host "!! npm install had trouble; your agent will sort it in the first session." }
+  }
+
+  # Most newcomers use what the others publish, and need nothing from Cloudflare.
+  $CfApproved = (Test-Path "CONNECTORS.md") -and [bool](Get-Content "CONNECTORS.md" | Where-Object { $_ -match '(?i)cloudflare' -and $_ -match '(?i)\|\s*authorized\s*\|' })
+  if (-not $Cloudflare) {
+    Write-Host ""
+    Write-Host "Will you publish for the organization (its site, its intranet, its apps)?"
+    Write-Host "  1) No, I use what the others publish (default)"
+    Write-Host "  2) Yes: log me into Cloudflare so my agent can deploy"
+    if ($CfApproved) {
+      Write-Host "  3) Yes, and give my agent Cloudflare's plugin too, so it creates Workers and Access rules itself"
+    }
+    $CfChoice = Read-Host "Choose [1]"
+    $Cloudflare = switch ($CfChoice) { "2" { "login" } "3" { "plugin" } default { "no" } }
+  }
+  if ($Cloudflare -eq "plugin" -and -not $CfApproved) {
+    Write-Host "!! CONNECTORS.md has no authorized Cloudflare row, so the plugin is not installed: ask the owner."
+    $Cloudflare = "login"
+  }
+  if ($Cloudflare -eq "login" -or $Cloudflare -eq "plugin") { Invoke-CloudflareLogin }
+}
+
+if ($Mode -eq "new") {
+  # --- Where to put the project ---
+  Write-Host ""
+  $ProjectName = Read-Host "What should we call your repository? (e.g. riverside-coop)"
+  while ([string]::IsNullOrWhiteSpace($ProjectName)) {
+    $ProjectName = Read-Host "Please enter a name"
+  }
+
+  $ParentDir = Read-Host "Where should it live on your computer? [$DefaultDir]"
+  if ([string]::IsNullOrWhiteSpace($ParentDir)) { $ParentDir = $DefaultDir }
+  New-Item -ItemType Directory -Force -Path $ParentDir | Out-Null
+  $Target = Join-Path $ParentDir $ProjectName
+
+  if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -First 1)) {
+    # Reusing a folder that is already there is how a half-finished earlier attempt
+    # becomes the project: its stale files look like yours and nothing says otherwise.
+    # Offer a clean start, and rename the old one aside rather than deleting it.
+    Write-Host ""
+    Write-Host "$Target already exists and is not empty."
+    $CleanStart = Read-Host "Start clean and move the existing folder aside? [Y/n]"
+    if ($CleanStart -ne "n" -and $CleanStart -ne "N") {
+      $Aside = "$Target.before-$(Get-Date -Format yyyy-MM-dd-HHmm)"
+      Move-Item $Target $Aside
+      Write-Host "OK moved aside to $Aside (nothing deleted)"
+      Set-Location $ParentDir
+      gh repo create $ProjectName --template $Template --private --clone --description "Our organization, run from one repository"
+      Set-Location $ProjectName
+    } else {
+      Write-Host "Using it as-is (skipping repo creation)."
+      Set-Location $Target
+    }
+  } elseif (Test-Path $Target) {
+    Set-Location $Target
+  } else {
+    Write-Host ""
+    Write-Host "Creating your own private copy of the template on GitHub, and cloning it to:"
+    Write-Host "  $Target"
     Set-Location $ParentDir
     gh repo create $ProjectName --template $Template --private --clone --description "Our organization, run from one repository"
     Set-Location $ProjectName
+  }
+
+  # --- Hosting, and getting the agent able to deploy on its own ---
+  Write-Host ""
+  Write-Host "Where should your intranet and your site be published? (Your agent goes over this"
+  Write-Host "again with you in the first session, as rows of STACK.md you approve one at a time.)"
+  Write-Host "  1) A fresh Cloudflare account in the organization's name (default: free, and it holds"
+  Write-Host "     the private intranet behind a sign-in, the site, the domain and DNS in one place)"
+  Write-Host "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
+  $HostChoice = Read-Host "Choose 1 or 2 [1]"
+  if ([string]::IsNullOrWhiteSpace($HostChoice)) { $HostChoice = "1" }
+
+  $HostNote = "Cloudflare (fresh account)"
+  if ($HostChoice -eq "2") {
+    $HostExisting = Read-Host "What are you using? (a name is enough)"
+    if ([string]::IsNullOrWhiteSpace($HostExisting)) { $HostExisting = "unspecified" }
+    $HostNote = "existing host: $HostExisting"
   } else {
-    Write-Host "Using it as-is (skipping repo creation)."
-    Set-Location $Target
+    Write-Host ""
+    Write-Host "Installing the deploy tooling."
+    try { npm install --silent | Out-Null } catch { Write-Host "!! npm install had trouble; Claude will sort it in the first session." }
+    if ($Cloudflare -ne "no") { Invoke-CloudflareLogin }
+    if (-not $Cloudflare) {
+      Write-Host ""
+      $CfPlugin = Read-Host "Also give your agent Cloudflare's plugin, so it creates Workers and Access rules itself? [Y/n]"
+      $Cloudflare = if ($CfPlugin -eq "n" -or $CfPlugin -eq "N") { "login" } else { "plugin" }
+    }
   }
-} elseif (Test-Path $Target) {
-  Set-Location $Target
-} else {
-  Write-Host ""
-  Write-Host "Creating your own private copy of the template on GitHub, and cloning it to:"
-  Write-Host "  $Target"
-  Set-Location $ParentDir
-  gh repo create $ProjectName --template $Template --private --clone --description "Our organization, run from one repository"
-  Set-Location $ProjectName
-}
 
-# --- Hosting, and getting the agent able to deploy on its own ---
-Write-Host ""
-Write-Host "Where should your intranet and your site be published? (Your agent goes over this"
-Write-Host "again with you in the first session, as rows of STACK.md you approve one at a time.)"
-Write-Host "  1) A fresh Cloudflare account in the organization's name (default: free, and it holds"
-Write-Host "     the private intranet behind a sign-in, the site, the domain and DNS in one place)"
-Write-Host "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
-$HostChoice = Read-Host "Choose 1 or 2 [1]"
-if ([string]::IsNullOrWhiteSpace($HostChoice)) { $HostChoice = "1" }
-
-$HostNote = "Cloudflare (fresh account)"
-$CfLoggedIn = "no"
-if ($HostChoice -eq "2") {
-  $HostExisting = Read-Host "What are you using? (a name is enough)"
-  if ([string]::IsNullOrWhiteSpace($HostExisting)) { $HostExisting = "unspecified" }
-  $HostNote = "existing host: $HostExisting"
-} else {
-  Write-Host ""
-  Write-Host "Installing the deploy tooling and logging into Cloudflare, so Claude can publish"
-  Write-Host "without you clicking through a dashboard every time."
-  try { npm install --silent | Out-Null } catch { Write-Host "!! npm install had trouble; Claude will sort it in the first session." }
-  try { npx --yes wrangler whoami | Out-Null; $CfLoggedIn = "yes"; Write-Host "OK Already logged into Cloudflare" }
-  catch {
-    Write-Host "A browser window will open to authorize Cloudflare (Ctrl+C to skip and do it later):"
-    try { npx --yes wrangler login; $CfLoggedIn = "yes" } catch { Write-Host "!! Skipped -- Claude can run 'npx wrangler login' with you later." }
-  }
-}
+}   # new
 
 # --- Anything else instructing this agent ---
 # The kit's whole premise is one source of truth. A user-level CLAUDE.md, plugins and
@@ -178,8 +338,9 @@ if ($HostChoice -eq "2") {
 # owner cannot see any of it. Look now, while there is a person here to decide;
 # nothing is ever deleted, only moved aside.
 Write-Host ""
-$Conflicts = (node "scripts/check-conflicts.mjs" 2>&1 | Out-String)
-Write-Host $Conflicts
+$Conflicts = ""
+if (Test-Path "scripts/check-conflicts.mjs") { $Conflicts = (node "scripts/check-conflicts.mjs" 2>&1 | Out-String) }
+if ($Conflicts) { Write-Host $Conflicts }
 if ($Conflicts -match [char]0x25B8) {
   $Park = Read-Host "Move the marked ones aside (reversible, nothing deleted)? [Y/n]"
   if ($Park -ne "n" -and $Park -ne "N") {
@@ -205,6 +366,40 @@ if ($LaunchDir -eq (Get-Location).Path) {
   Write-Host "!! The workspace folder did not take the guards, so Claude opens in the repository itself; your agent will say why."
 }
 
+if ($Cloudflare -eq "plugin") { $CfPluginDone = Install-CloudflarePlugin $LaunchDir }
+$CfLoggedIn = "no"
+if ($Cloudflare -eq "login" -or $Cloudflare -eq "plugin") {
+  try { npx --yes wrangler whoami | Out-Null; if ($LASTEXITCODE -eq 0) { $CfLoggedIn = "yes" } } catch { }
+}
+
+# --- Joining ends here: no setup answers to write, the repo is already set up ---
+if ($Mode -eq "join") {
+  $StatusScript = if ($LaunchDir -eq (Get-Location).Path) { "scripts/setup-status.mjs" } else { "$RepoName/scripts/setup-status.mjs" }
+  $JoinPrompt = "I am joining $JoinRepo, which already runs on the agentic-organization kit; the install script cloned it into $Target. Read its AGENTS.md, source/brief.md, the repo map in ORGANIGRAM.md and CONNECTORS.md, ask me what my job is, and clone beside it only the repos that job needs, skipping without a word any I cannot read. Run node $StatusScript, fix what is red, and tell me which connectors the organization has approved for me to connect, and nothing else. Then tell me in plain words what the organization already does with you, starting from its intranet and its recipes, so we find my first task and run it as a recipe too."
+  if ($Cloudflare -eq "login" -or $Cloudflare -eq "plugin") {
+    $JoinPrompt += " I said I will publish for the organization: logged into Cloudflare: $CfLoggedIn; Cloudflare's plugin installed: $CfPluginDone."
+  } else {
+    $JoinPrompt += " I said I will not publish, so I need nothing from Cloudflare."
+  }
+  Write-Host ""
+  Write-Host "== Done. $JoinRepo is at: $Target =="
+  Write-Host ""
+  Write-Host "Work with your agent in Claude Code's Code tab (desktop app) or in a terminal, never in"
+  Write-Host "the chat: only a Code session reads the repository."
+  Write-Host ""
+  Set-Location $LaunchDir
+  if (Test-Command "claude") {
+    Write-Host "Launching Claude Code in $LaunchDir on your first session."
+    Write-Host ""
+    claude $JoinPrompt
+  } else {
+    Write-Host "Open the Claude Code desktop app on $LaunchDir, in the Code tab, and paste:"
+    Write-Host ""
+    Write-Host $JoinPrompt
+  }
+  return
+}
+
 # Two things the Cloudflare CLI token cannot do, written down now rather than
 # discovered mid-deploy: writing a DNS record, and enabling Zero Trust. The Access
 # policy itself is scripts/protect-access.mjs, with a token of its own.
@@ -220,6 +415,7 @@ read this, act on it, and delete the file (inbox protocol).
 - Project folder: $Target
 - Hosting: $HostNote
 - Cloudflare CLI logged in: $CfLoggedIn
+- Cloudflare's plugin for the agent: $CfPluginDone (installed for $LaunchDir; a row to approve in CONNECTORS.md during the walk)
 - SSH key present: $SshPresent
 
 ## Still instructing this agent from outside the repo

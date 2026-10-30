@@ -77,9 +77,20 @@ curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-organization/main/sc
 irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
 ```
 
-Both are safe to run twice if something gets interrupted.
+Both are safe to run twice if something gets interrupted. They start by asking what you are
+setting up: a new organization (this section), joining one that already runs on the kit
+(section 7), or only the tools for now, for someone who has no repository yet and will get one
+later. That last choice installs everything above and makes `~/Projects` the folder the
+repositories will go in, then stops.
 
-Both end where the paste does: the guards in place, and Claude Code opened on the setup, whose
+They also ask about Cloudflare, because not everyone needs it. Whoever publishes the site, the
+intranet or the apps needs the Cloudflare login, so the agent can deploy. The agent can also get
+Cloudflare's own plugin, which lets it create Workers and Access rules itself instead of walking you
+through the dashboard; it is installed for the folder your sessions open on, never for the whole
+machine. The owner of a new organization is offered both. A newcomer who will not publish needs
+neither, which is the default.
+
+On a new organization, both end where the paste does: the guards in place, and Claude Code opened on the setup, whose
 first step is the `STACK.md` walk.
 
 Once it is done, and whenever something seems off later, say **"check my setup"**. You get one line
@@ -309,6 +320,27 @@ paste:
 > the organization has approved for me to connect, and nothing else. Then tell me in plain words
 > what the organization already does with you, starting from its intranet and its recipes, so we
 > find my first task and run it as a recipe too.
+
+Or the same as a script, which installs the tools, accepts a pending GitHub invitation if there is
+one, clones the repo into `~/Projects`, gives the folder its guards and opens Claude Code on that
+same first session. Whoever invites them can send this line with the repo filled in:
+
+```sh
+# Mac, in Terminal
+curl -fsSL https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-mac.sh | bash -s -- --join <owner>/<repo>
+```
+
+```powershell
+# Windows, in PowerShell
+$env:AO_JOIN="<owner>/<repo>"; irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
+```
+
+Without the repo, the script asks for it, then whether they will publish: most newcomers will not,
+and need nothing from Cloudflare. Someone who will gets the Cloudflare login, and Cloudflare's plugin
+for their agent only if `CONNECTORS.md` has an authorized Cloudflare row. To answer in advance, add
+`--cloudflare=no`, `login` or `plugin` (on Windows, `$env:AO_CLOUDFLARE`). A newcomer whose
+invitation has not arrived yet can run it with `--tools-only` (on Windows, `$env:AO_MODE="tools"`)
+and come back for the clone later.
 
 The main repo is the one everybody needs. The others come by role, from the repo map, and later one
 at a time as a task calls for one: an account that can see every repo of the organization would

@@ -276,7 +276,7 @@ wrangler.jsonc + package.json  repo-root deploy layer: builds site/ and serves s
 apps/<slug>/                 web apps of this project, one self-contained folder each
 projects/<slug>/             the org's work, tracked: charter, log, files, next steps
 team/                        the owner's team files — gitignored, local-only, never shared
-scripts/bootstrap-*          one-command install for a new machine/owner (mac + windows)
+scripts/bootstrap-*          one-command install (mac + windows): a new organization, joining one (--join owner/repo), or the tools only
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans

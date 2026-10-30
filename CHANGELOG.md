@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · The install scripts also set up someone joining, or only the tools
+
+The Mac and Windows install scripts now ask first what you are setting up. Besides a new
+organization, they can set up a newcomer on your existing repository in one line you send them
+(`--join <owner>/<repo>`, QUICKSTART.md ▸ 7), accepting their GitHub invitation and opening their
+first session, or install only the tools for someone who has no repository yet. They also ask
+whether the person will publish: only then do they log into Cloudflare, and Cloudflare's plugin for
+the agent comes on request, for the workspace folder only, and for a newcomer only when
+`CONNECTORS.md` authorizes it.
+
 ## 2026-10-30 · MAJOR · Everything is built from the design system, the components and the stack
 
 - **One rule in `AGENTS.md`**: whatever your agent builds (a page, a deck, an app, a document, a
