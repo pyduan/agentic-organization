@@ -119,6 +119,31 @@ because you seeded it. Replace what is between angle brackets; keep the rest.
 and everyone after*, with the repository's name filled in. It is the same for a seeded repository,
 because by then the repository carries everything the first session settled.
 
+## A prompt written for one person
+
+Past the first setup, each newcomer gets a prompt written for their role: an assistant, a student,
+a partner's team member. A few rules hold for every one of them.
+
+- **Check their access before you hand it over.** List the repositories the prompt names, and check
+  each one: is the person a collaborator, or is an invitation pending? Only the owner of a personal
+  repository can invite, so a write access is not enough to add someone. If an access is still
+  pending, install in two steps (`--tools-only` now, `--join` once it arrives), and write the
+  prompt so it skips a missing repository and says so rather than stopping.
+- **Ask whose mailbox it is before setting its rules.** The person who owns a mailbox decides who
+  may send from it. An assistant's own address is not their principal's.
+- **Write every send rule with its limits.** By default the agent drafts and the person sends. An
+  exception names who it may write to and about what, says what never goes in, and leaves a dated
+  trace where both sides read it. It is recorded in `CONNECTORS.md`.
+- **Credentials never pass through the agent.** The person types a password into their own keychain.
+  A password that went through a chat or a message must be changed.
+- **Write the role's recurring jobs as recipes to build.** List them (for an assistant: their
+  principal's fees, notes and decks in their principal's voice, how their principal ranks contacts
+  and projects, the calendar). Each recipe is learned from sources, and what is inferred is marked
+  for the principal to confirm. When a request says "how I do it", settle whose method it is before
+  you write it.
+- **Hand over one consolidated prompt.** After each correction, send the whole prompt again with
+  the correction folded in, never a section to swap in by hand.
+
 ## After the day, the same day
 
 1. **The guide for their next person**, written from the transcript read in full: what is installed,

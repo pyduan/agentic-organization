@@ -34,6 +34,55 @@ an empty brief.
 Every line the helper wrote carries `(seed, to confirm)` until the owner confirms it, and the
 setup skill treats the seed as its interview notes, not as answers.
 
+## Three things to infer before writing a line
+
+A seed that only copies the "about" page leaves the workshop to guess the rest. Three inferences
+make it useful, each drawn from public signals and from what the helper's own recipes already say
+about this kind of organization, each marked *(seed, to confirm)*.
+
+**1. Where their material probably lives.** Before proposing a connector, work out what they
+actually use:
+
+- **their DNS**: the MX names the mail provider (Google, Microsoft, Proton, OVH), and the TXT
+  verification records name the services the domain is verified with (a CRM, a document signer, a
+  chat tool);
+- **their site**: who serves it, which forms it embeds (applications, newsletter, donations), and
+  which tools its job posts name;
+- **the kind of organization**: a funder runs on applications, grantee reports and a portfolio; an
+  accelerator on cohorts, applications and mentors; a ministry on mail, notes, files and a registry.
+  The helper's recipes for that kind of organization say which of these to expect.
+
+Each likely source becomes a proposed row in `CONNECTORS.md` with the route that really works for
+that provider, and a line in the history-takeover table. Some providers have no API. A Proton
+mailbox goes through Proton Mail Bridge, a calendar with no API through a read-only sharing link,
+and a site like LinkedIn through the browser, read-only. Name that route in the row, so the
+workshop does not find out on the day.
+
+**2. The intranet they need first.** List the tools to build, ranked, three at most. A tool makes
+the list when its source will be there on the first day and the job it serves comes back every week.
+The home page (who waits on what) comes first. Then comes the view for the first use case, then
+the second. Each line names the files it reads and the recipe behind it. A page with no source on
+the first day waits.
+
+**3. Their design system, read from their site.** Never guess a brand.
+
+- If they publish a design system or brand guide, it is the reference, kept verbatim and pinned.
+  Your tokens summarize it, and theirs win when the two disagree.
+- Otherwise read the site's stylesheet: its custom properties, and the colors and fonts of the body
+  text, the headings, the links and the primary button. Each token in `tokens.css` names its page,
+  its source variable and the date it was read.
+- Take the logo as SVG from the site's header, or failing that its favicon or sharing image, and
+  say which.
+- **Check each font's license before you embed it.** Google Fonts can be embedded. A font from a
+  commercial foundry or from Adobe cannot be embedded without a license, so the tokens fall back to
+  a close system stack and `design.md` says what is missing.
+- Check the contrast of text on the background and on the accent color.
+- For a public administration, look for the state's official visual charter before the flag: flag
+  colors carry states (done, to watch, late), never decoration.
+
+What the site cannot say (a muted grey it never declares, a second accent) stays the kit's value,
+marked as such.
+
 ## How
 
 1. **Create it from the template, private, on the helper's account**:
@@ -53,7 +102,9 @@ setup skill treats the seed as its interview notes, not as answers.
    (`source/formats/pack.md`) is the layer meant for sharing between organizations; what is theirs
    alone stays in their recipes, where the setup confirms it and every correction lands.
 5. **Propose their stack and connectors**: the rows of `STACK.md` and `CONNECTORS.md` you can
-   infer (a zone already on Cloudflare, a Google mailbox), each with its *Approved* cell empty. The
+   infer (a zone already on Cloudflare, a Google mailbox, the likely sources above, each with the
+   route that works for its provider), each with its *Approved* cell empty. Write the design system
+   (`source/brand/tokens.css` and `design.md`) and the ranked intranet tools in the same pass. The
    setup walks them with the person who decides, before anything else.
 6. **Hand it over at the workshop**: transfer the repository to their GitHub organization
    (Settings ▸ Transfer ownership, or `gh api repos/<you>/<repo>/transfer -f new_owner=<org>`), so

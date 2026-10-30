@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · A seed infers where the material lives, which tools come first, and the design system
+
+Seeding a repository for another organization (`docs/seeding.md`) now starts with three inferences.
+First, where their material probably lives, read from their DNS, their site and the kind of
+organization, with the route that really works for each provider. Second, the intranet tools to
+build first, ranked. Third, their design system, read from their site with each font's license
+checked. `docs/helping-another-organization.md` gains the rules for a prompt written for one
+newcomer: check their access first, ask whose mailbox it is, put limits on every send rule, and hand
+over one consolidated prompt.
+
 ## 2026-10-30 · MINOR · The install scripts also set up someone joining, or only the tools
 
 The Mac and Windows install scripts now ask first what you are setting up. Besides a new
