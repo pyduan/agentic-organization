@@ -122,7 +122,7 @@ if (wants('links')) {
     for (const m of text.matchAll(/https?:\/\/[^\s<>)\]"'`]+/g)) {
       const url = m[0].replace(/[.,;:]+$/, '');
       if (shouldIgnore(url)) continue;
-      if (/\{\{|\}\}|example\.(com|org)|localhost|127\.0\.0\.1|yourdomain/.test(url)) continue;
+      if (/\{\{|\}\}|__[A-Z][A-Z_]*__|example\.(com|org)|localhost|127\.0\.0\.1|yourdomain/.test(url)) continue;
       if (!found.has(url)) found.set(url, new Set());
       found.get(url).add(relative(ROOT, f));
     }

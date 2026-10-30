@@ -244,7 +244,9 @@ const RULES = [
 
 // The owner's own list: the words source/brand/voice.md says to avoid, read on every run, so the
 // guide and the check never disagree. A word with a qualifier in the guide is left to a reader.
-const VOICE = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'source', 'brand', 'voice.md')
+// AI_TICS_VOICE points at another voice guide, for a copy of this file that lives in a repo without
+// one (the company pack's intranet reads the central repo's).
+const VOICE = process.env.AI_TICS_VOICE || resolve(dirname(fileURLToPath(import.meta.url)), '..', 'source', 'brand', 'voice.md')
 const OWN = existsSync(VOICE) ? wordsToAvoid(readFileSync(VOICE, 'utf8')).filter((w) => /^[\p{L}' -]+$/u.test(w)) : []
 if (OWN.length) {
   RULES.push(['voice-word', TELL, new RegExp(`(?<!\\p{L})(${OWN.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})(?!\\p{L})`, 'giu'), 'a word source/brand/voice.md says to avoid'])

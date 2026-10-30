@@ -57,6 +57,9 @@ function walk(dir, out = []) {
   for (const e of readdirSync(dir)) {
     if (SKIP.has(e)) continue;
     const p = join(dir, e);
+    // A pack's templates/ are the files it writes into other repos, not Workers deployed from here;
+    // they are checked where they land (the company pack's intranet runs its own copy of this check).
+    if (e === 'templates' && /^packs\/[^/]+$/.test(relative(ROOT, dir))) continue;
     if (statSync(p).isDirectory()) walk(p, out);
     else if (NAMES.has(e)) out.push(p);
   }
