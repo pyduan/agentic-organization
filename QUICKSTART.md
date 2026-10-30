@@ -210,9 +210,15 @@ cd ~/Projects/<name>
 claude
 ```
 
-Say **"set up my site"**. The hour that follows decides where your material will live, decides which
-facts matter, sweeps whatever you already have (an existing site to scrape, an old repo to mine, a
-folder of documents, or nothing at all), records the facts with their sources and the decisions with
+Say **"set up my site"**. The agent starts with two short steps. It walks you through `STACK.md`
+one row at a time (where things are stored, published and protected, and how you would leave each
+service) and records your yes or your change against each row, dated. Then it builds your
+**intranet** and publishes it behind a sign-in: a private home page whose banner says how to work
+with the agent and how the system works, with your projects and tools below it as they arrive.
+
+The rest of the hour decides where your material will live, decides which facts matter, sweeps
+whatever you already have (an existing site to scrape, an old repo to mine, a folder of documents,
+or nothing at all), records the facts with their sources and the decisions with
 their reasons, and only then builds a first version of the site for you to react to.
 
 That order is deliberate. Build the site first and the corpus never gets opened.

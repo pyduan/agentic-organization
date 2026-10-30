@@ -10,8 +10,12 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
-## 2026-10-30 · MAJOR · An intranet as your private home page
+## 2026-10-30 · MAJOR · Setup starts with your stack and your intranet
 
+- **A new setup now begins with two steps, in this order.** The agent walks `STACK.md` with you one
+  row at a time and records each yes or change with the date and who said it (a new *Approved*
+  column). Then it builds your intranet and publishes it behind a sign-in. The interview, your
+  facts, the guides and the website come after.
 - **The private dashboard is now the intranet**: a home page with a banner at the top (a
   quickstart for working with your agent, and a short explanation of how the system works), then
   your numbers, who waits on what, where each project stands, what moved, and a card per tool. A
@@ -22,10 +26,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 - `npm run intranet` and `npm run deploy:intranet` build and publish it; the old `dashboard` names
   do the same thing. The Worker keeps its name, so its sign-in protection is unchanged.
 
-**What you need to do:** nothing to keep it working. If your agent had customized
-`apps/dashboard/index.html`, that file is gone: the update will show it, and your agent moves what
-you had into `apps/dashboard/intranet.mjs` and `intranet.css`. Then ask it to republish the
-intranet and to put your to-do app's address in `source/content/intranet-tools.md`.
+**What you need to do:** nothing to keep it working. If your repository was set up before this,
+ask your agent to walk `STACK.md` with you and fill the *Approved* column, so each brick says who
+chose it and when; and if you never published the private dashboard, ask it to publish the
+intranet. If your agent had customized `apps/dashboard/index.html`, that file is gone: the update
+will show it, and your agent moves what you had into `apps/dashboard/intranet.mjs` and
+`intranet.css`. Then ask it to republish the intranet and to put your to-do app's address in
+`source/content/intranet-tools.md`.
 
 ## 2026-10-30 · MINOR · An optional company pack: five repos and an intranet that steers the company
 

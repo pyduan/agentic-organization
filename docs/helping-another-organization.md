@@ -61,17 +61,22 @@ is spent installing, structuring and running a first real task.
    never a variant of your own: they will update from the kit, so the kit is what they must have run.
 3. **The settings, with them**: the Code tab, not the chat; the same parent folder everywhere; the
    microphone allowed for dictation; confirmations on for the first sessions, auto mode after.
-4. **Connect the mailbox the first task needs.** A mail connector takes one account per login: a
+4. **The stack, then their intranet**, the setup skill's first two steps: `STACK.md` walked row by
+   row with the person who decides, each row approved or changed with the date and their handle,
+   then the intranet built and published behind Access with their addresses. The rest of the day's
+   work appears there, and its banner is what they reread once you have left.
+5. **Connect the mailbox the first task needs.** A mail connector takes one account per login: a
    shared mailbox goes on the machine that automates, a person's own mail through the browser.
-5. **The owner of the task says it to the agent**, end to end, with its exceptions. When they start
+6. **The owner of the task says it to the agent**, end to end, with its exceptions. When they start
    explaining it to you, stop and turn them to the session: retold, it loses the exceptions. If a
    tracking table or a script already does part of it, give it to the agent so the new tool takes
    over its logic.
-6. **While the import and the structure run**, show what the system does elsewhere from public
+7. **While the import and the structure run**, show what the system does elsewhere from public
    material. Nothing from your own repositories, nothing from another organization.
-7. **Before leaving**: their private pages behind Access with their addresses
-   (`scripts/protect-access.mjs`), a session long enough that nobody types a code every morning, and
-   the address opened once from a browser where nobody is signed in. A code screen is the right
+8. **Before leaving**: every private page behind Access with their addresses
+   (`scripts/protect-access.mjs`), the intranet's tool cards pointing at what was built, a session
+   long enough that nobody types a code every morning, and the address opened once from a browser
+   where nobody is signed in. A code screen is the right
    answer; a page is an incident.
 
 ## After the day, the same day

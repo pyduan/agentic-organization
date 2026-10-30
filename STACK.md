@@ -1,7 +1,8 @@
 # Stack
 
-<!-- TEMPLATE: the setup skill fills this in with the owner. One row per brick: what the
-     organization uses for it, where it stands, and the way out. Delete this comment once filled. -->
+<!-- TEMPLATE: the setup skill walks this table with the owner first, one row at a time, before
+     anything else (.claude/skills/setup/SKILL.md ▸ 1). Each row ends approved or changed, with the
+     date and who said yes in the last column. Delete this comment once every row is settled. -->
 
 What runs on what, and what would replace it. Read it before proposing any change to the
 infrastructure, and never infer this organization's setup from another project's: the stack next
@@ -9,17 +10,19 @@ door is a different stack. The money side of a row (plans, seats, invoices) live
 the accounts, not here.
 
 The *Way out* column is the point of the file. A brick nobody knows how to leave is a brick nobody
-chose.
+chose. The *Approved* column says who chose it and when (`2026-10-30 @sam`): a row without one is a
+proposal, and *to decide* means a dated `#decide` line waits on someone. A row that changes later
+gets a new date and handle, and the reason goes in `source/decisions.md`.
 
-| Role | What we use | State | Way out |
-|---|---|---|---|
-| Source of truth | Git, a private repository on GitHub | in place | any Git host, same model |
-| Operator | Claude Code, on the repositories cloned locally | in place | any agent that reads a repository |
-| Website | Cloudflare Workers, built from `site/` | TODO | any static host |
-| Private pages | Cloudflare Access in front of a Worker | TODO | Access on a hostname once a domain arrives |
-| Domain and DNS | TODO | | |
-| Mail | TODO | | |
-| Accounts in the organization's name | TODO (two administrators each) | | |
+| Role | What we use | State | Way out | Approved |
+|---|---|---|---|---|
+| Source of truth | Git, a private repository on GitHub | in place | any Git host, same model | |
+| Operator | Claude Code, on the repositories cloned locally | in place | any agent that reads a repository | |
+| Private pages (the intranet first) | Cloudflare Access in front of a Worker, `apps/dashboard` | TODO | Access on a hostname once a domain arrives; any host with a sign-in gate | |
+| Website | Cloudflare Workers, built from `site/` | TODO | any static host | |
+| Domain and DNS | TODO | | | |
+| Mail | TODO | | | |
+| Accounts in the organization's name | TODO (two administrators each) | | | |
 
 ## What does not exist yet
 

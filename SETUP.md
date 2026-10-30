@@ -112,7 +112,18 @@ cd ~/Projects/<name>   # or wherever you put it
 claude
 ```
 
-Say: **"set up my site"**. Claude runs a guided interview (what the site is for, what pages, what tone) and then ingests content one of a few ways:
+Say: **"set up my site"**. Two short things come first, before any interview:
+
+1. **The stack, row by row.** Claude walks you through `STACK.md`, one service at a time (where the
+   repository lives, where things are published, what protects the private pages, mail, the
+   domain): what each does, what it costs, how you would leave it. You approve each row or change
+   it, and the file records the date and who said yes.
+2. **Your intranet, published.** Claude builds your private home page and puts it online behind a
+   sign-in only the people you name can pass. At its top, a banner with the quickstart and how the
+   system works, in words you can change; below, where your projects stand and your tools, empty on
+   day one and filling as you work. It is the page to open every morning.
+
+Then Claude runs a guided interview (what the site is for, what pages, what tone) and ingests content one of a few ways:
 
 - **You have an existing site**: give Claude the URL. It scrapes every page, saves the copy and images into `source/`, notes the design cues, and rebuilds on this system.
 - **You have an existing repo** (even a messy one, even a different framework): point Claude at it. It clones it somewhere separate, reads the raw files instead of the rendered pages (often richer: drafts, structured data, higher-res images), and builds this kit's own `source/`/`site/` fresh from what it finds. None of the old code carries over.
@@ -136,9 +147,9 @@ Claude then personalizes the guides in `source/brand/`, builds a first version o
 ## Put it live
 
 Follow [docs/deploy-cloudflare.md](docs/deploy-cloudflare.md), or just ask Claude to walk you through
-it while you click. If you also said yes to the **private dashboard**, it publishes separately, as
-its own Worker behind a login: `npm run deploy:dashboard`, then one click in the Cloudflare dashboard
-to turn on Zero Trust and say who may open it. That page never goes on a public URL.
+it while you click. Your **intranet** is already live by then: it went up at the start of the
+session, as its own Worker behind a login (`npm run deploy:intranet`, plus one click in the
+Cloudflare dashboard to turn on Zero Trust), and it never goes on a public URL.
 
 For the public site, in short: connect the GitHub repo to Cloudflare Workers (free, via Workers Builds), keep the root directory at `/` (the repo already ships the `wrangler.jsonc` that points Workers at the built site), add the custom domain, adjust DNS. From then on every push publishes automatically.
 

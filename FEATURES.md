@@ -67,6 +67,18 @@ was the reference for the shape (one header row of tabs, the chrome's words in o
 sign-out link, "nothing is edited here"); its code was not reused because it is an Astro app built
 over five repos.
 
+### Setup starts with the stack, then the intranet
+The setup skill's first step with the owner walks `STACK.md` row by row, each row approved or
+changed with the date and who said yes; the second builds and publishes the intranet behind Access.
+The interview, the structure and facts, the guides and the site come after. A seeded repository's
+service lines are settled in the stack walk, its other lines at the start of the interview.
+**Why:** asked for on 2026-10-30. The stack is the premise of every later step, so an interview held
+before it can assume a host or a mailbox nobody chose. The intranet gives the owner, within the first
+half-hour, the private page they will come back to and the instructions for working with the agent,
+and everything the session builds afterwards appears on it. It is also the early thing on screen
+that owners ask for, built from files, so it does not pull the session towards a website with no
+source of truth beneath it.
+
 ### Private pages behind Access
 The intranet and any page with private material publish as their own Worker behind Cloudflare
 Access, with a list of addresses and a one-time code (`scripts/protect-access.mjs`).
