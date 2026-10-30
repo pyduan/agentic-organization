@@ -140,7 +140,8 @@ added later, so there is no list of URLs to remember to protect.
    `wrangler deploy` has no build trigger, and that is precisely where "pushing doesn't publish"
    comes from — a second Worker is the easiest one to forget, because the first one works. Same
    screens as step 1 above (**Settings → Build → Connect a repository**), with the root directory
-   set to the app's folder (`apps/dashboard`), build `npm run build`, deploy `npx wrangler deploy`.
+   left at the repo root (`/`), because the intranet is built from the whole repo, not from its own
+   folder: build `npm run intranet`, deploy `npx wrangler deploy --config apps/dashboard/wrangler.jsonc`.
    Then push a trivial commit and watch a build start on its own. **Every Worker this project owns
    gets this at creation, not later.**
 
