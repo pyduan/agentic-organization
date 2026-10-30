@@ -10,11 +10,26 @@ This is why the system stays coherent as it grows. Change the accent color once 
 
 Your everyday tools stay doorways in, not the source of truth. Notion, Google Drive, Dropbox, your own Desktop: drop things there (or in `source/inbox/`) and the AI ingests them. But those are built for people, so treat what's in them as raw, human, inevitably messy material, and the AI never writes back into them. It curates the truth in the repo instead, through Git, where every change is versioned, attributed, and reversible, and access is fine-grained (who can read, who can write, who can publish). That's both clearer and more secure than a shared folder that slowly fills with `v3_final(2).docx`. Your tools feed the system; Git is what it stands on.
 
+Which tools the AI may read, and how far, is written in `CONNECTORS.md`, one row each, approved by
+you like the rows of `STACK.md`. The defaults keep the reach small: your history comes in once, through
+an import limited to one person, a date range or a folder, after which the connector is disconnected;
+and day to day, people copy the agents' inbox on what the AI should see, so it never needs anyone's
+whole mailbox.
+
 Why Git specifically? Because it's not a technical detail, it's decades of developers solving one hard question: how do many people move a shared thing forward without losing track. You always know which version is the one that counts, everyone can work in parallel, and changes merge cleanly (or flag a conflict to resolve on purpose). You inherit all of that for free, and the AI operates it for you.
 
 ## The AI is the operator, the repo is its manual
 
 `AGENTS.md` tells the AI, for every kind of task, exactly which guide to read first. You never need to say "remember, we don't use exclamation points": the voice guide says it, the AI reads the voice guide before writing, so it applies. When you give feedback in a session, the AI folds it into the right guide before it signs off, so the correction sticks for every future session, on any machine.
+
+## Workflows, not one-off outputs
+
+A task that comes back is built once as a workflow: a recipe in the repo (a skill or a format) that
+says how it is done, the files it works from, and a view of the result on your intranet. The next
+time, the AI follows the recipe instead of starting over, and each correction you make goes into the
+recipe, so you make it once. The same holds for scheduled work: a routine only says who runs it and
+when, and points at the recipe in the repo, so the method is versioned like everything else
+(`routines/README.md`). The setup ends on your first such task.
 
 ## Git, invisibly
 

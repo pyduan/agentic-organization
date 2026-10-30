@@ -262,6 +262,7 @@ lib/register.mjs             the incident register: find it, read it, and the sc
 lib/workspace.mjs            the repo map in ORGANIGRAM.md, and where each repo sits on this machine
 lib/neighbour.mjs            what another repo lets a script read of it (.read-consent), held in one place
 lib/setup-checks.mjs         the setup checks any layout can run: git, GitHub, identity, clones, outside instructions
+lib/setup-stage.mjs          where the setup stands (brief, STACK.md, CONNECTORS.md, intranet) and the one next step every script prints
 source/formats/deck.md       deck playbook: decks are composed, built and measured
 source/formats/document.md   documents: one markdown file, real A4 pages, a PDF from the same build
 scripts/doc/                 the document engine: build.mjs (new · build · check · --pdf), markdown.mjs, paged.js, doc.css

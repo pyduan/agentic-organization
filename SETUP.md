@@ -17,25 +17,13 @@ Claude Code) with their fixes.
 
 Open Claude Code — the **desktop app** is the easiest on-ramp if you're not comfortable in a
 terminal ([claude.com/claude-code](https://claude.com/claude-code), Mac and Windows); the CLI works
-just as well if you already have a terminal you like. Then paste this:
+just as well if you already have a terminal you like. Work in the app's **Code** tab, never the
+chat: only a Code session reads the repository. Then paste the kit's one install prompt,
+[QUICKSTART.md ▸ Install, in one paste](QUICKSTART.md#2-install-in-one-paste).
 
-> I want to set up my own site using the agentic-organization template
-> (github.com/pyduan/agentic-organization). Check what's already on my machine (git,
-> Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
-> Windows if you can't tell from my system. Install whatever's missing, one
-> step at a time: explain each step in plain language, verify it actually
-> worked before moving to the next, and ask before anything that needs my
-> password. If a step fails, look up the fix in the template's
-> docs/troubleshooting.md on GitHub and walk me through it. Log me into
-> GitHub with the GitHub CLI and set up an SSH key for me (`gh auth login
-> --git-protocol ssh`, which creates and uploads it), on Mac or Windows alike,
-> so you talk to GitHub on my behalf from now on. Then ask me for my
-> project's name and where I'd like it on my computer, and create my own
-> private copy of the template repo there.
-
-Claude checks, installs, authenticates, asks the two questions it needs, and finishes with your own
-cloned repo. From there, keep talking: say **"set up my site"** to start the real interview (see
-[Run the first session](#run-the-first-session) below).
+Claude checks, installs, authenticates, asks the one question it needs, creates and clones your
+repository, gives its parent folder the guards, and ends by telling you to open a session on it and
+say **"set up my organization"** (see [Run the first session](#run-the-first-session) below).
 
 
 ## One working folder, and the agent inside it
@@ -72,12 +60,16 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 ```
 
 Each script checks for git, Node, the GitHub CLI, and Claude Code; installs whatever's missing; logs
-you into GitHub over an SSH key it creates and uploads for you; asks for a project name and a folder;
-creates + clones your own copy of the template; asks where the site will be published (a fresh
-Cloudflare account by default, or somewhere you already are) and logs you into Cloudflare if that is
-the answer, so the AI can publish on its own from the first session. The answers land in
-`source/inbox/setup-answers.md` for that session to pick up. Both scripts are safe to run again if
-something gets interrupted partway through.
+you into GitHub over an SSH key it creates and uploads for you; asks for a repository name and a
+folder; creates + clones your own copy of the template; asks where the intranet and the site will be
+published (a fresh Cloudflare account in the organization's name by default, or somewhere you
+already are) and logs you into Cloudflare if that is the answer, so the AI can publish on its own
+from the first session; gives the parent folder the repository's guards
+(`scripts/install-workspace.mjs`); and opens Claude Code on the setup, whose first step is the
+`STACK.md` walk. The answers land in `source/inbox/setup-answers.md` as proposals for that walk.
+Both scripts are safe to run again if something gets interrupted partway through: on a repository
+already set up, they open Claude Code and print the next step its files call for
+(`node scripts/setup-status.mjs --next`).
 
 ## Option C: do it by hand
 
@@ -108,22 +100,26 @@ cd <name>
 ## Run the first session
 
 ```sh
-cd ~/Projects/<name>   # or wherever you put it
+cd ~/Projects   # the folder holding your repositories, which install-workspace gave the guards
 claude
 ```
 
-Say: **"set up my site"**. Two short things come first, before any interview:
+Say: **"set up my organization"** (the install scripts say it for you). Two short things come
+first, before any interview:
 
-1. **The stack, row by row.** Claude walks you through `STACK.md`, one service at a time (where the
-   repository lives, where things are published, what protects the private pages, mail, the
-   domain): what each does, what it costs, how you would leave it. You approve each row or change
-   it, and the file records the date and who said yes.
+1. **The stack and the connectors, row by row.** Claude walks you through `STACK.md`, one service at
+   a time (where the repository lives, where things are published, what protects the private pages,
+   mail, the domain): what each does, what it costs, how you would leave it. Then `CONNECTORS.md`:
+   which of your mail, files and chat it may read, for what, and how far. You approve each row or
+   change it, and the file records the date and who said yes.
 2. **Your intranet, published.** Claude builds your private home page and puts it online behind a
    sign-in only the people you name can pass. At its top, a banner with the quickstart and how the
    system works, in words you can change; below, where your projects stand and your tools, empty on
    day one and filling as you work. It is the page to open every morning.
 
-Then Claude runs a guided interview (what the site is for, what pages, what tone) and ingests content one of a few ways:
+If someone seeded your repository before the day (`docs/seeding.md`), Claude then confirms what
+they wrote with you, line by line. Then it runs a guided interview (who does what, from your org
+chart if you have one; what the site is for, what pages, what tone) and ingests content one of a few ways:
 
 - **You have an existing site**: give Claude the URL. It scrapes every page, saves the copy and images into `source/`, notes the design cues, and rebuilds on this system.
 - **You have an existing repo** (even a messy one, even a different framework): point Claude at it. It clones it somewhere separate, reads the raw files instead of the rendered pages (often richer: drafts, structured data, higher-res images), and builds this kit's own `source/`/`site/` fresh from what it finds. None of the old code carries over.
@@ -137,10 +133,17 @@ three lists at the end of it: what is now recorded, what could not be establishe
 proposes to build on top. That is the part that makes the second conversation cheaper than the first.
 
 **Your history comes in once, then the day-to-day takes over.** Everything that predates the kit
-(years of mail, notes, files) is swept in that first pass, scoped and reviewed, and recorded in the
-repo; after that, each session ingests what its task needs through the connectors you plugged in and
-the inbox. That split is why keeping your mailbox permanently connected is optional: a personal
-comfort for asks like "search my event invitations", never something the system depends on.
+(years of mail, notes, files) is swept in that first pass through the connectors `CONNECTORS.md`
+approves, each import scoped to a person, a date range or a folder, reviewed, recorded in the repo,
+and the connector disconnected after; after that, each session ingests what its task needs, and
+people copy the agents' inbox on what the agent should see. That split is why keeping your mailbox
+permanently connected is optional: a personal comfort for asks like "search my event invitations",
+never something the system depends on.
+
+**Then your first real task, as a recipe.** Something you do by hand every week or every month: you
+say it to Claude end to end, it runs it once on real material, and it writes the method into the
+repository (a skill, its files, a view on the intranet), so the next run starts from there. Every
+correction you make goes into that recipe.
 
 Claude then personalizes the guides in `source/brand/`, builds a first version of the site, and shows it to you locally. Iterate by talking until the owner likes it. This is the fun part; budget most of the hour here.
 
@@ -161,10 +164,11 @@ person, and everyone after*.
 
 Teach the owner the entire technical surface they need:
 
-1. Open Terminal (or the Claude Code desktop app).
-2. `cd ~/Projects/<name>` (or open the folder, in the desktop app).
+1. Open the Claude Code desktop app, in the Code tab (or Terminal).
+2. Open `~/Projects`, the folder holding the repositories (`cd ~/Projects` in Terminal).
 3. `claude` (skip this if you're already in the desktop app).
-4. Talk. Drop files in `source/inbox/` when there's something new.
+4. Talk. Drop files in `source/inbox/` when there's something new. The intranet's banner repeats
+   this, on the page they open every morning.
 
 Claude saves, publishes, and updates its own guides at the end of each session on its own. The owner never needs to know more than the four lines above.
 

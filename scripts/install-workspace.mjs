@@ -36,6 +36,7 @@ import { existsSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { setupStage } from '../lib/setup-stage.mjs';
 
 export class Stop extends Error {}
 
@@ -210,6 +211,8 @@ if (isMain) {
   if (written.length) {
     console.log(`\nOpen the agent on ${dirname(real(routerDir))}. Its first lines should now read "Workspace: N repo(s) up to date."; if they do not, the guards are not loaded there.`);
   }
+  // The same next step the bootstrap scripts and setup-status give, read from the files.
+  console.log(`Next: ${setupStage(routerDir).next}.`);
   const left = steps.filter((s) => s.state !== 'current' && !written.includes(s));
   process.exit(left.length ? 1 : 0);
 }

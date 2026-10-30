@@ -30,7 +30,8 @@ One table, in the owner's language, one row per check, in the order the JSON giv
 
 🟢 is `ok`, 🟠 is `warn`, 🔴 is `fail`, ⚪ is `info` (does not apply on this machine). Say what each
 row means for them, never the raw command. Under the table, one line counted from the JSON's
-`green`, `orange` and `red`, never written before you have read them.
+`green`, `orange` and `red`, never written before you have read them, then the JSON's `next`, the
+one next step of the setup in the owner's words (it is `null` on the template itself).
 
 ## Then fix, red first
 

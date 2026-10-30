@@ -34,8 +34,8 @@ is spent installing, structuring and running a first real task.
    `dig MX`: a zone already on Cloudflare and a Google mail change the intranet's steps), their own
    AI policy, and your own history with them.
 3. **Seed their repository** if you can (`docs/seeding.md`): their public facts with sources, their
-   tools as a pack, the history-takeover table. The workshop then confirms instead of starting from
-   an empty brief.
+   published tools verbatim, their workflows as the repository's own recipes, the history-takeover
+   table. The workshop then confirms instead of starting from an empty brief.
 4. **Send the list with the date, and check it the day before**:
    - a GitHub organization of theirs and an account per person coming. If their organization is
      open source with outside contributors, recommend a dedicated private one for operations: a
@@ -57,16 +57,21 @@ is spent installing, structuring and running a first real task.
 
 1. **Record with their own meeting tool**, and say why: the transcript is the input of the guide you
    write afterwards.
-2. **Install with the kit's own paste** (`QUICKSTART.md`), or with a setup prompt that adapts it,
-   never a variant of your own: they will update from the kit, so the kit is what they must have run.
+2. **Install with the kit's own paste** (`QUICKSTART.md` ▸ *Install, in one paste*), or, for a
+   repository you seeded, with the three prompts below, which keep its order. Never a variant of
+   your own: they will update from the kit, so the kit is what they must have run.
 3. **The settings, with them**: the Code tab, not the chat; the same parent folder everywhere; the
    microphone allowed for dictation; confirmations on for the first sessions, auto mode after.
-4. **The stack, then their intranet**, the setup skill's first two steps: `STACK.md` walked row by
-   row with the person who decides, each row approved or changed with the date and their handle,
-   then the intranet built and published behind Access with their addresses. The rest of the day's
+4. **The stack and the connectors, then their intranet**, the setup skill's first two steps:
+   `STACK.md` and `CONNECTORS.md` walked row by row with the person who decides, each row approved
+   or changed with the date and their handle, then the intranet built and published behind Access
+   with their addresses. The rest of the day's
    work appears there, and its banner is what they reread once you have left.
-5. **Connect the mailbox the first task needs.** A mail connector takes one account per login: a
-   shared mailbox goes on the machine that automates, a person's own mail through the browser.
+5. **Connect what the first task needs, and only what `CONNECTORS.md` approved**, for the scope its
+   row says: a history import limited to one person, a date range or a folder, then disconnected.
+   A mail connector takes one account per login: a shared mailbox goes on the machine that
+   automates, a person's own mail through the browser. For the day to day, set up the agents'
+   inbox that people copy in, rather than mailbox-wide access.
 6. **The owner of the task says it to the agent**, end to end, with its exceptions. When they start
    explaining it to you, stop and turn them to the session: retold, it loses the exceptions. If a
    tracking table or a script already does part of it, give it to the agent so the new tool takes
@@ -78,6 +83,41 @@ is spent installing, structuring and running a first real task.
    long enough that nobody types a code every morning, and the address opened once from a browser
    where nobody is signed in. A code screen is the right
    answer; a page is an incident.
+
+## The prompts for a seeded repository
+
+Three blocks, pasted in the order below in a Code session (never the chat). They say the same thing
+as the kit's install paste, in the same order (the stack and the connectors, then the intranet,
+then the seed confirmed, then the first task as a recipe), for a repository that already exists
+because you seeded it. Replace what is between angle brackets; keep the rest.
+
+**1. Taking over the repository**, by the person who runs the setup, once the transfer is done:
+
+> Our organization's repository already exists: `<org>/<repo>`, seeded before today from what we
+> publish, and now ours. Check what is on my machine (git, Node 22.12 or later, the GitHub CLI,
+> Claude Code, whether I am logged into GitHub), install what is missing one step at a time,
+> explaining each step and checking it worked, and log me into GitHub with
+> `gh auth login --git-protocol ssh --web`. Clone the repository into `~/Projects`, run
+> `node ~/Projects/<repo>/scripts/install-workspace.mjs` and
+> `node ~/Projects/<repo>/scripts/check-conflicts.mjs`, and park what is safe to park. Then tell
+> me to open a new Code session on `~/Projects` and say "set up my organization". That setup
+> walks `STACK.md` and `CONNECTORS.md` with me one row at a time and records each yes with the
+> date, publishes our intranet behind a sign-in with the addresses I give, and then confirms every
+> line of `source/seed.md` with me rather than taking any of it as decided.
+
+**2. The first task**, said by the person who owns it, once the intranet is up and the seed confirmed:
+
+> Here is a task I do by hand: <the task, end to end, with its exceptions>. Run it once with me on
+> real material. Use only the connectors `CONNECTORS.md` approves, for the scope their rows give;
+> if it needs another, add its row as *to decide* and ask me. Build it as a recipe the repository
+> keeps (a skill, its files, and its result on our intranet), not as a one-off answer. Show me what
+> you extracted before you write anything, put every correction I make into the recipe before you
+> finish, and tell me what the next run will look like. If `source/seed.md` drafted this task,
+> start from that draft.
+
+**3. The second person, and everyone after**: the block in `QUICKSTART.md` ▸ *The second person,
+and everyone after*, with the repository's name filled in. It is the same for a seeded repository,
+because by then the repository carries everything the first session settled.
 
 ## After the day, the same day
 

@@ -9,6 +9,13 @@ The router is `{{ROUTER}}/`. **Read `{{ROUTER}}/AGENTS.md` before anything else*
 (`source/…`, `scripts/…`, `.claude/skills/…`) is relative to `{{ROUTER}}/`. Each other folder is a
 repo whose own `AGENTS.md` (or `CLAUDE.md`, in one not moved yet) says what it holds and who may read it.
 
+If `{{ROUTER}}/source/brief.md` still holds `TODO` markers, the organization is not set up yet: run
+the setup skill (`{{ROUTER}}/.claude/skills/setup/SKILL.md`) before anything else. It starts by
+walking `{{ROUTER}}/STACK.md` and `{{ROUTER}}/CONNECTORS.md` with the owner, one row at a time, then
+publishes the intranet behind a sign-in. Run the repo's commands (`npm run intranet`, its scripts)
+from `{{ROUTER}}/`. Use a connector only when its row in `{{ROUTER}}/CONNECTORS.md` is approved, for
+the scope it gives. `node {{ROUTER}}/scripts/setup-status.mjs --next` says what comes next.
+
 A session opened here does not load the router's `.claude/settings.json`, so `.claude/settings.json`
 in this folder runs the router's guards instead: at the start, a note of what is already unsaved, a
 fast-forward pull of every repo, a warning if git has no identity, and the router's notices; before

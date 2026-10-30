@@ -40,21 +40,30 @@ with eligibility checked by a form.
 
 ## 2. Install, in one paste
 
-Open Claude Code (the desktop app is the easiest on-ramp) and paste this. It checks your machine,
-installs what is missing, logs you into GitHub, creates your own private copy of the template and
-clones it, asking before anything that touches your password.
+Open Claude Code, the desktop app's **Code** tab (never the chat, section 4), and paste this. It is
+the kit's one install prompt: the other pages and the scripts point here, and a helper who adapts it
+keeps its order.
 
-> I want to set up my own organization repo from the agentic-organization template
-> (github.com/pyduan/agentic-organization). Check what is already on my machine (git, Node, the
-> GitHub CLI, whether I am logged into GitHub). Ask me Mac or Windows if you cannot tell. Install
-> whatever is missing, one step at a time, explaining each one in plain language and verifying it
-> worked before moving on. If a step fails, look up the fix in the template's
-> docs/troubleshooting.md and walk me through it. Log me into GitHub with the browser login, not an
-> SSH key. Then ask me for a project name and where to put it, create my own private copy of the
-> template there, and clone it. If a folder already exists at that path, do not reuse it: move it
-> aside with a dated name and start clean. Then run `node scripts/check-conflicts.mjs` and tell me
-> in plain words what else on this machine is instructing you from outside the repo, and park what
-> is safe to park.
+> I want to set up my organization's repository from the agentic-organization kit
+> (github.com/pyduan/agentic-organization). Do it in this order, one step at a time, explaining
+> each step in plain language, checking it worked before the next, and asking before anything that
+> needs my password. If a step fails, look up the fix in the kit's docs/troubleshooting.md.
+>
+> 1. Check what is on my machine: git, Node 22.12 or later, the GitHub CLI, Claude Code, and
+>    whether I am logged into GitHub. Ask me Mac or Windows if you cannot tell. Install what is
+>    missing, and log me into GitHub with `gh auth login --git-protocol ssh --web` (one browser
+>    click; it offers to create and upload an SSH key, so say yes).
+> 2. Ask me for the repository's name, then create my own private copy of the template in
+>    `~/Projects/<name>` and clone it. If a folder already exists there, move it aside with a dated
+>    name and start clean. Run `node ~/Projects/<name>/scripts/install-workspace.mjs`, so a session
+>    opened on `~/Projects` keeps the repository's guards, then
+>    `node ~/Projects/<name>/scripts/check-conflicts.mjs`: tell me what else on this machine
+>    instructs you from outside the repository, and park what is safe to park.
+> 3. Then tell me to open a new Code session on `~/Projects`, the folder that holds my
+>    repositories, and say "set up my organization". That setup walks `STACK.md` and
+>    `CONNECTORS.md` with me one row at a time and records each yes with the date, then publishes
+>    my intranet behind a sign-in, and only then interviews me and turns my first real task into a
+>    recipe the repository keeps.
 
 Prefer a deterministic command, or setting someone else up remotely? The same thing as a script:
 
@@ -70,9 +79,15 @@ irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/b
 
 Both are safe to run twice if something gets interrupted.
 
+Both end where the paste does: the guards in place, and Claude Code opened on the setup, whose
+first step is the `STACK.md` walk.
+
 Once it is done, and whenever something seems off later, say **"check my setup"**. You get one line
-per piece of the setup, green, orange or red, with the fix beside each one, and the agent fixes what
-only touches your own machine (`node scripts/setup-status.mjs` underneath).
+per piece of the setup, green, orange or red, with the fix beside each one. Among them: whether every row of
+`STACK.md` and `CONNECTORS.md` is approved, whether a connector runs on this computer without an
+approved row, whether the intranet is published behind a sign-in. The agent fixes what only
+touches your own machine (`node scripts/setup-status.mjs` underneath), and its last line says what
+comes next.
 
 ### If this machine has been used with Claude before
 
@@ -98,7 +113,15 @@ real work, and a settings file holds your preferences alongside the parts that i
 ## 3. What plugs in, and what stays out
 
 Connect these under your own login, one at a time, and revoke any of them whenever you like. The
-agent has no sovereign access to anything: it borrows yours, on your machine.
+agent has no sovereign access to anything: it borrows yours, on your machine. Which ones your
+organization allows, for what and how far, is written in `CONNECTORS.md`, one row each, approved in
+the first session like the stack: the agent uses a connector only once its row is approved.
+
+**Your history comes in once, scoped.** A mail or drive connector is connected for an import with an
+edge (one person's mailbox, a date range, a folder), the agent records what matters in the
+repository, and the connector is disconnected or narrowed back. **Day to day, people copy the
+agents' inbox** (an address of the organization's that the agent reads) on what it should see,
+which keeps it out of everyone's whole mailbox.
 
 **GitHub**, the connector or SSH, is the only one that is not optional: it is how the agent reads
 and writes your repos, under your account. Set it up during the install above and forget it.
@@ -206,41 +229,47 @@ whose only justification is that inference is nearly free is a design that dates
 ## 5. The first session
 
 ```sh
-cd ~/Projects/<name>
+cd ~/Projects
 claude
 ```
 
-Say **"set up my site"**. The agent starts with two short steps. It walks you through `STACK.md`
-one row at a time (where things are stored, published and protected, and how you would leave each
-service) and records your yes or your change against each row, dated. Then it builds your
-**intranet** and publishes it behind a sign-in: a private home page whose banner says how to work
-with the agent and how the system works, with your projects and tools below it as they arrive.
+The install scripts open it for you; otherwise open `~/Projects` in the Code tab and say **"set up
+my organization"**. The agent starts with two short steps. It walks you through `STACK.md` one row at
+a time (where things are stored, published and protected, and how you would leave each service),
+then `CONNECTORS.md` (which of your mail, files and chat it may read, for what, and how far), and
+records your yes or your change against each row, dated. Then it builds your **intranet** and
+publishes it behind a sign-in: a private home page whose banner says how to work with the agent and
+how the system works, with your projects and tools below it as they arrive.
 
-The rest of the hour decides where your material will live, decides which facts matter, sweeps
-whatever you already have (an existing site to scrape, an old repo to mine, a folder of documents,
-or nothing at all), records the facts with their sources and the decisions with
-their reasons, and only then builds a first version of the site for you to react to.
+If someone prepared your repository before the day, the agent confirms what they wrote with you
+next, line by line, rather than asking from scratch. The rest of the hour decides where your
+material will live and which facts matter, imports your history through the connectors you approved,
+records the facts with their sources and the decisions with their reasons, runs your first real task
+as a recipe (below), and only then builds a first version of the site for you to react to.
 
 That order is deliberate. Build the site first and the corpus never gets opened.
 
 ## 6. Your first real use case
 
 The most convincing first build is not a page. It is something you already do by hand, turned into
-files the agent maintains and a small app that reads them. The pattern: a source you already have,
-structured into the repo, then a private page over it.
+a **recipe** the repository keeps (the method, written where every later session reads it), files
+the agent maintains, and a view on your intranet. Build the workflow, never a one-off output: the
+second run should cost less than the first, and every correction you make goes into the recipe.
 
 A worked example you can paste on day one, adapting the two sources to whatever you actually have:
 
-> I want a first real use case rather than a demo page. Read my inbox for the last two weeks through
-> the Gmail connector, and take the chat export I dropped in `source/inbox/`. From those two, pull
-> out what actually commits me to something: a deadline, a promise, a reply someone is waiting for.
-> File them as to-do items per project, in the kit's own to-do format
-> (`source/formats/todo.md`), then run the to-do app over them (`npm run todos:dev`) so I can look
-> at the result. Show me what you extracted before you write anything, and tell me which items you
-> were unsure about and why.
+> I want a first real use case rather than a demo page, built as a recipe the repository keeps.
+> Read my own mailbox for the last two weeks through the Gmail connector, within the scope its row
+> in `CONNECTORS.md` approves, and take the chat export I dropped in `source/inbox/`. From those
+> two, pull out what actually commits me to something: a deadline, a promise, a reply someone is
+> waiting for. Show me what you extracted before you write anything, and tell me which items you
+> were unsure about and why. Then file them as to-do items per project, in the kit's own to-do
+> format (`source/formats/todo.md`), so they appear on my intranet. Write the method as a skill in
+> the repository, so next week's run is "do the commitments pass", and put every correction I make
+> into that skill before you finish.
 
-What that leaves behind: real items in `projects/<slug>/next-steps.md`, in a format an agent and a
-person can both edit, and an app reading them. When you want it on a URL only you can open,
+What that leaves behind: a recipe, real items in `projects/<slug>/next-steps.md` in a format an
+agent and a person can both edit, and the intranet showing who waits on what. When you want it on a URL only you can open,
 `npm run deploy:todos` publishes it as its own Worker behind Cloudflare Access.
 
 Two rules the agent already follows here, worth knowing so you can hold it to them: it patches those
@@ -268,25 +297,28 @@ What they need beforehand: a seat on the organization's plan, a GitHub account i
 organization, the name of its main repo, and the desktop app with the settings above. Then this
 paste:
 
-> I am joining an organization that already runs on the agentic-organization kit. Check what is on my
-> machine (git, Node, the GitHub CLI, whether I am logged into GitHub), install what is missing one
-> step at a time, explaining each step and checking it worked, and log me into GitHub with
-> `gh auth login --git-protocol ssh`. Then clone the organization's main repo, `<owner>/<repo>`, into
-> `~/Projects`, the same folder as everyone else, and run
-> `node <main repo>/scripts/install-workspace.mjs` from there. Read its `AGENTS.md`,
-> `source/brief.md` and the repo map in `ORGANIGRAM.md`, ask me what my job is, and clone beside it
-> only the repos that job needs, skipping without a word any I cannot read. Then run
-> `node <main repo>/scripts/setup-status.mjs`, fix what is red, and tell me in plain words what the
-> organization already does with you, so we find my first use case.
+> I am joining an organization that already runs on the agentic-organization kit. Check what is on
+> my machine (git, Node 22.12 or later, the GitHub CLI, whether I am logged into GitHub), install
+> what is missing one step at a time, explaining each step and checking it worked, and log me into
+> GitHub with `gh auth login --git-protocol ssh --web`. Then clone the organization's main repo,
+> `<owner>/<repo>`, into `~/Projects`, the same folder as everyone else, and run
+> `node ~/Projects/<repo>/scripts/install-workspace.mjs`. Read its `AGENTS.md`, `source/brief.md`,
+> the repo map in `ORGANIGRAM.md` and `CONNECTORS.md`, ask me what my job is, and clone beside it
+> only the repos that job needs, skipping without a word any I cannot read. Run
+> `node ~/Projects/<repo>/scripts/setup-status.mjs`, fix what is red, and tell me which connectors
+> the organization has approved for me to connect, and nothing else. Then tell me in plain words
+> what the organization already does with you, starting from its intranet and its recipes, so we
+> find my first task and run it as a recipe too.
 
 The main repo is the one everybody needs. The others come by role, from the repo map, and later one
 at a time as a task calls for one: an account that can see every repo of the organization would
 otherwise fill the folder with repos nobody touches. A repo someone cannot read is restricted on
 purpose, so the agent skips it and moves on.
 
-After that, they connect their own mailbox (one per login, section 3), and they describe their first
-use case to the agent, out loud if they like. What the first person built is already there for them
-to use.
+They work in the Code tab, never the chat, like everyone. After that, they connect what
+`CONNECTORS.md` approves for their role (one mailbox per login, section 3), and they describe their
+first use case to the agent, out loud if they like. What the first person built is already there for
+them to use: the intranet, and the recipes behind it.
 
 ## 8. Publishing: three doors, not one
 

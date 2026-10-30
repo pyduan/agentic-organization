@@ -158,7 +158,7 @@ whatever language the owner writes in; the block tells the agent which language 
 ```
 Update this project to the current version of the agentic-organization kit.
 
-Run all six steps to the end without asking me anything. I am not technical and I
+Run all seven steps to the end without asking me anything. I am not technical and I
 cannot arbitrate mid-way. Decide the ordinary things yourself, and use the defaults
 below where you would otherwise ask. Report once, at the end.
 
@@ -202,11 +202,21 @@ and it overwrites my work. Step 3 replaces it.
    for a repo carrying the framework, `satellite` for one that only holds its own
    material and points at another. If in doubt write `router`. Commit and push.
 
-6. REPORT, once, in my language, in under twenty lines: the rescue branch name and
+6. WHERE THE SETUP STANDS, and change nothing that needs me. Run
+   `node scripts/install-workspace.mjs` (it only adds what the folder holding my repos
+   lacks), then `node scripts/setup-status.mjs` and `node scripts/setup-status.mjs --next`,
+   and paste what they print. The kit's setup now starts by walking STACK.md and
+   CONNECTORS.md with me one row at a time, then publishing my intranet behind a
+   sign-in. Do not fill an Approved cell for me and do not publish anything: those
+   wait for a session with me, and the report says so.
+
+7. REPORT, once, in my language, in under twenty lines: the rescue branch name and
    link; how many files were applied and how many set aside, with the set-aside names;
-   what check-fleet and kit-news actually said; anything the freshness check found; and
-   anything you deliberately did not do. No options, no questions I have to answer for
-   you to finish — you have already finished.
+   what check-fleet and kit-news actually said; anything the freshness check found;
+   the rows of STACK.md and CONNECTORS.md still waiting for my yes, whether my intranet
+   is published behind a sign-in, and the next step setup-status gave; and anything you
+   deliberately did not do. No options, no questions I have to answer for you to finish
+   — you have already finished.
 
 Three things only are a hard stop, and for each, do the thing next to it rather than
 writing to me: unpushed commits nobody can account for (leave them, say so, continue);

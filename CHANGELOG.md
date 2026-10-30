@@ -10,6 +10,27 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-30 · MINOR · One install prompt, and installs that open on the stack walk
+
+- **One prompt to paste for an install**, in `QUICKSTART.md` ▸ *Install, in one paste*. The README
+  and `SETUP.md` link to it instead of carrying their own, and it follows the setup's order: your
+  stack and your connectors approved row by row, then your intranet published behind a sign-in,
+  then the seed confirmed if someone prepared your repository, then your first real task turned
+  into a recipe the repository keeps.
+- **The install scripts end where that prompt does**: the folder holding your repositories gets the
+  guards, and Claude Code opens there already on "set up my organization" ("set up my site" still
+  works). On a repository already set up, they say the next step its files call for, the same
+  sentence "check my setup" ends on.
+- **Installing for another organization** has three prompts of its own for a seeded repository:
+  taking it over, the first task, and the second person. A seed now carries their workflows as the
+  repository's own recipes and proposes rows of `STACK.md` and `CONNECTORS.md` for them to approve.
+- The update block for an older install now ends by saying which rows still wait for your yes and
+  whether your intranet is published.
+
+**What you need to do:** nothing. The next time someone joins, hand them the prompt in
+`QUICKSTART.md` ▸ *The second person, and everyone after*; it now has them read `CONNECTORS.md` and
+connect only what it approves.
+
 ## 2026-10-30 · MAJOR · A list of the connectors your agent may use, and a setup check that sees it
 
 - **`CONNECTORS.md`**, beside `STACK.md`: one row per connector (Gmail, Drive, Notion and Slack

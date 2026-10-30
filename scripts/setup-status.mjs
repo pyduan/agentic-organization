@@ -20,6 +20,7 @@
 //   node scripts/setup-status.mjs            the table
 //   node scripts/setup-status.mjs --json     the same, for a skill or an app
 //   node scripts/setup-status.mjs --offline  no fetch, no network check
+//   node scripts/setup-status.mjs --next     only the next step of the setup, one line (lib/setup-stage.mjs)
 //
 // Exit 1 when a check is red, 0 otherwise. Zero dependencies, Node built-ins and git.
 
@@ -32,9 +33,10 @@ import {
   exec, gitOut, ok, warn, fail, info, tools, github, identity, repos, conflicts, runChecks, report,
 } from '../lib/setup-checks.mjs';
 import { plan as workspacePlan, Stop } from './install-workspace.mjs';
+import { approvalTable, DATED, setupStage } from '../lib/setup-stage.mjs';
 import * as workspaceSync from './workspace-sync.mjs';
 
-export { report };
+export { report, approvalTable };
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -111,27 +113,6 @@ async function kit(root, { offline, template }) {
 // ---------------------------------------------------------------- the setup's first steps
 
 const readText = (file) => { try { return readFileSync(file, 'utf8'); } catch { return null; } };
-const DATED = /\b\d{4}-\d{2}-\d{2}\b/;
-
-/**
- * The first markdown table of a file whose header has the given column, as rows of
- * { cells: { header: text } }, or null when there is no such table. Comments are ignored.
- */
-export function approvalTable(text, column = 'Approved') {
-  const lines = String(text || '').replace(/<!--[\s\S]*?-->/g, '').split('\n');
-  const cellsOf = (l) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
-  for (let i = 0; i < lines.length - 1; i++) {
-    if (!/^\s*\|/.test(lines[i]) || !/^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) continue;
-    const head = cellsOf(lines[i]);
-    const rows = [];
-    for (let j = i + 2; j < lines.length && /^\s*\|/.test(lines[j]); j++) {
-      const c = cellsOf(lines[j]);
-      rows.push(Object.fromEntries(head.map((h, k) => [h, c[k] ?? ''])));
-    }
-    return { head, hasColumn: head.includes(column), rows };
-  }
-  return null;
-}
 
 /** STACK.md: has every row been approved, with a date, by someone? */
 async function stack(root, { template }) {
@@ -268,7 +249,9 @@ const isMain = (() => {
 })();
 if (isMain) {
   const args = new Set(process.argv.slice(2));
+  if (args.has('--next')) { console.log(setupStage(resolve(HERE, '..')).next); process.exit(0); }
   const result = await setupStatus(resolve(HERE, '..'), { offline: args.has('--offline') });
-  console.log(args.has('--json') ? JSON.stringify(result, null, 2) : report(result));
+  result.next = result.checks.some((c) => c.id === 'stack' && c.level === 'info') ? null : setupStage(result.root).next;
+  console.log(args.has('--json') ? JSON.stringify(result, null, 2) : `${report(result)}${result.next ? `\nNext: ${result.next}.` : ''}`);
   process.exit(result.ok ? 0 : 1);
 }

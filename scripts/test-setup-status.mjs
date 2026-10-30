@@ -12,6 +12,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setupStatus, report } from './setup-status.mjs';
+import { setupStage, SAY_SETUP } from '../lib/setup-stage.mjs';
 
 const ID = ['-c', 'user.name=Sam', '-c', 'user.email=sam@example.com', '-c', 'init.defaultBranch=main'];
 const git = (cwd, ...a) => execFileSync('git', [...ID, ...a], { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
@@ -238,5 +239,28 @@ test('intranet: unnamed, built with --local, then published open (red) and behin
     assert.match(c.detail, /riverside-dashboard\.sam\.workers\.dev, behind a sign-in/);
     assert.equal((await check({ fetch: answer(403) })).level, 'ok');
     assert.equal((await check({ fetch: async () => { throw new Error('ENOTFOUND'); } })).level, 'warn');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+test('the next step follows the setup\'s order: the brief, the stack, the connectors, the intranet', () => {
+  const area = scratch();
+  const w = (rel, text) => { mkdirSync(join(area.org, rel, '..'), { recursive: true }); writeFileSync(join(area.org, rel), text); };
+  const table = (approved) => `| Connector | Status | Approved |\n|---|---|---|\n| Gmail | authorized | ${approved} |\n`;
+  try {
+    assert.equal(setupStage(area.org).next, SAY_SETUP, 'no brief yet');
+    w('source/brief.md', '# Riverside Co-op\n- **Owner**: TODO\n');
+    assert.equal(setupStage(area.org).next, SAY_SETUP, 'a brief with TODO is the template');
+    w('source/brief.md', '# Riverside Co-op\n- **Owner**: Sam\n');
+    w('STACK.md', STACK(['2026-10-30 @sam']));
+    assert.match(setupStage(area.org).next, /walk the stack/);
+    w('STACK.md', STACK(['2026-10-30 @sam', '2026-10-30 @sam']));
+    w('CONNECTORS.md', table(''));
+    assert.match(setupStage(area.org).next, /walk the connectors/);
+    w('CONNECTORS.md', table('2026-10-30 @sam'));
+    assert.match(setupStage(area.org).next, /publish my intranet/);
+    w('apps/dashboard/dist/index.html', '<p>home</p>');
+    const s = setupStage(area.org);
+    assert.deepEqual([s.setUp, s.stack, s.connectors, s.intranet], [true, 0, 0, true]);
+    assert.match(s.next, /check my setup/);
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });

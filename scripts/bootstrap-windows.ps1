@@ -1,6 +1,7 @@
 # Bootstrap a new agentic-organization project on Windows: installs whatever's missing
 # (git, Node, GitHub CLI, Claude Code), authenticates GitHub, creates a new
-# repo from this template, clones it, and hands off to Claude.
+# repo from this template, clones it, gives the parent folder the repo's guards,
+# and opens Claude on the first step of the setup: the STACK.md walk.
 #
 # Run it directly, from a PowerShell window (right-click Start -> "Terminal"):
 #   irm https://raw.githubusercontent.com/pyduan/agentic-organization/main/scripts/bootstrap-windows.ps1 | iex
@@ -101,7 +102,7 @@ if (-not (Test-Path "$KeyPath.pub")) {
 
 # --- Where to put the project ---
 Write-Host ""
-$ProjectName = Read-Host "What should we call your project? (e.g. mariana-site)"
+$ProjectName = Read-Host "What should we call your repository? (e.g. riverside-coop)"
 while ([string]::IsNullOrWhiteSpace($ProjectName)) {
   $ProjectName = Read-Host "Please enter a name"
 }
@@ -125,7 +126,7 @@ if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -Firs
     Move-Item $Target $Aside
     Write-Host "OK moved aside to $Aside (nothing deleted)"
     Set-Location $ParentDir
-    gh repo create $ProjectName --template $Template --private --clone --description "My site, run by Claude"
+    gh repo create $ProjectName --template $Template --private --clone --description "Our organization, run from one repository"
     Set-Location $ProjectName
   } else {
     Write-Host "Using it as-is (skipping repo creation)."
@@ -138,14 +139,16 @@ if ((Test-Path $Target) -and (Get-ChildItem -Force $Target | Select-Object -Firs
   Write-Host "Creating your own private copy of the template on GitHub, and cloning it to:"
   Write-Host "  $Target"
   Set-Location $ParentDir
-  gh repo create $ProjectName --template $Template --private --clone --description "My site, run by Claude"
+  gh repo create $ProjectName --template $Template --private --clone --description "Our organization, run from one repository"
   Set-Location $ProjectName
 }
 
 # --- Hosting, and getting the agent able to deploy on its own ---
 Write-Host ""
-Write-Host "Where should the site be published?"
-Write-Host "  1) A fresh Cloudflare account (default: free, and it holds domain + DNS + apps in one place)"
+Write-Host "Where should your intranet and your site be published? (Your agent goes over this"
+Write-Host "again with you in the first session, as rows of STACK.md you approve one at a time.)"
+Write-Host "  1) A fresh Cloudflare account in the organization's name (default: free, and it holds"
+Write-Host "     the private intranet behind a sign-in, the site, the domain and DNS in one place)"
 Write-Host "  2) Somewhere I already have (Vercel, Netlify, my own server, an existing Cloudflare account)"
 $HostChoice = Read-Host "Choose 1 or 2 [1]"
 if ([string]::IsNullOrWhiteSpace($HostChoice)) { $HostChoice = "1" }
@@ -185,8 +188,26 @@ if ($Conflicts -match [char]0x25B8) {
   }
 }
 
+# --- The workspace folder's guards ---
+# Sessions are opened on the parent folder (repos side by side), which does not load this
+# repo's hooks on its own: install-workspace gives it the copy it needs. Idempotent.
+# The session then opens on that folder, as every later one should (QUICKSTART.md, section 4);
+# if it cannot take them (a parent folder that is your home folder, say), it opens here.
+Write-Host ""
+$LaunchDir = (Get-Location).Path
+try {
+  $WsOut = & node "scripts/install-workspace.mjs" 2>&1
+  $WsOk = ($LASTEXITCODE -eq 0)
+  $WsOut | Where-Object { "$_" -notmatch '^Next:' } | ForEach-Object { Write-Host "$_" }
+  if ($WsOk) { $LaunchDir = $ParentDir }
+} catch { }
+if ($LaunchDir -eq (Get-Location).Path) {
+  Write-Host "!! The workspace folder did not take the guards, so Claude opens in the repository itself; your agent will say why."
+}
+
 # Two things the Cloudflare CLI token cannot do, written down now rather than
-# discovered mid-deploy: writing a DNS record, and creating an Access policy.
+# discovered mid-deploy: writing a DNS record, and enabling Zero Trust. The Access
+# policy itself is scripts/protect-access.mjs, with a token of its own.
 $SshPresent = if (Test-Path "$KeyPath.pub") { "yes" } else { "no" }
 New-Item -ItemType Directory -Force -Path "source/inbox" | Out-Null
 @"
@@ -205,19 +226,42 @@ read this, act on it, and delete the file (inbox protocol).
 
 $Conflicts
 
+## For the setup
+
+The hosting answer above is a proposal for the stack walk (setup, step 1), not a decision:
+walk STACK.md and CONNECTORS.md with the owner row by row before relying on it.
+
 Still needs a human in the Cloudflare dashboard (the CLI token cannot do these):
-writing DNS records, and enabling Zero Trust / creating the Access policy that
-protects the private dashboard. See docs/deploy-cloudflare.md.
+enabling Zero Trust once on the account, and writing DNS records. The Access policy
+that protects the intranet is scripts/protect-access.mjs, with an API token of its
+own (setup, step 2). See docs/deploy-cloudflare.md.
 "@ | Set-Content -Path "source/inbox/setup-answers.md" -Encoding UTF8
 Write-Host "OK Wrote source/inbox/setup-answers.md for the first session"
 
+# --- The next step, from the repo's own files (lib/setup-stage.mjs) ---
+# A fresh repo opens on the setup, whose first step is the STACK.md walk; a repo already
+# set up opens on whatever its files say is next. setup-status --next is the one wording.
+$Next = 'say "set up my organization"'
+try { $n = (node "scripts/setup-status.mjs" --next 2>$null | Out-String).Trim(); if ($n) { $Next = $n } } catch { }
+$Fresh = (Test-Path "source/brief.md") -and (Select-String -Path "source/brief.md" -Pattern "TODO" -Quiet)
+
 Write-Host ""
-Write-Host "== Done. Your project is at: $Target =="
+Write-Host "== Done. Your repository is at: $Target =="
 Write-Host ""
+Write-Host "Work with your agent in Claude Code's Code tab (desktop app) or in a terminal, never in"
+Write-Host "the chat: only a Code session reads the repository."
+Write-Host ""
+Set-Location $LaunchDir
 if (Test-Command "claude") {
-  Write-Host "Launching Claude Code -- once it opens, just say: `"set up my site`""
-  Write-Host ""
-  claude
+  if ($Fresh) {
+    Write-Host "Launching Claude Code in $LaunchDir on the setup: it starts by walking STACK.md with you."
+    Write-Host ""
+    claude "set up my organization"
+  } else {
+    Write-Host "Launching Claude Code in $LaunchDir. Next: $Next."
+    Write-Host ""
+    claude
+  }
 } else {
-  Write-Host "Open the Claude Code desktop app and open this folder, then say: `"set up my site`""
+  Write-Host "Open the Claude Code desktop app on $LaunchDir, in the Code tab, then $Next."
 }

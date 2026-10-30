@@ -24,7 +24,9 @@ an empty brief.
 | Goes in | Never goes in |
 |---|---|
 | Facts the organization publishes, each with its URL and the date read | Anything the helper learned in confidence, or from a third party |
-| Their own published tools, as a pack holding that content verbatim, each file with its URL and the date read | Another organization's material, even reworded |
+| Their own published tools, verbatim, each file with its URL and the date read | Another organization's material, even reworded |
+| Their workflows, as the repository's own recipes (skills, formats), drafted from what they publish | A recipe of yours with their name put on it |
+| Proposed rows in `STACK.md` and `CONNECTORS.md`, each *Approved* cell left empty | An approval, even one they gave you in a call |
 | A draft brief and a first `decisions.md` entry, marked *proposed* | A decision taken on their behalf |
 | The history-takeover table: their documents, and what each becomes | Their documents themselves, unless they sent them for this |
 | The first use cases as recipes, with leads drawn from what they publish | Secrets, tokens, or any account of theirs |
@@ -44,13 +46,21 @@ setup skill treats the seed as its interview notes, not as answers.
 3. **Fill what is public**, with sources: `source/brief.md` (the parts that are not governance),
    `source/content/` and `source/facts/`, and their AI policy mapped onto the files that enforce it
    (`AGENTS.md`, `ORGANIGRAM.md`, `.gitignore`, a restricted repository).
-4. **Their tools as a pack** under `packs/<slug>/` (`source/formats/pack.md`): the recipes around
-   the tool, and an import step their own agent runs to bring the content in.
-5. **Hand it over at the workshop**: transfer the repository to their GitHub organization
+4. **Their tools and their workflows.** What they already publish (a guide, a template, a
+   calculator) goes in verbatim, each file naming its page and the day it was read. How they work
+   becomes the repository's own recipes: a skill in `.claude/skills/` or a format in
+   `source/formats/`, marked *(seed, to confirm)*. A pack under `packs/<slug>/`
+   (`source/formats/pack.md`) is the layer meant for sharing between organizations; what is theirs
+   alone stays in their recipes, where the setup confirms it and every correction lands.
+5. **Propose their stack and connectors**: the rows of `STACK.md` and `CONNECTORS.md` you can
+   infer (a zone already on Cloudflare, a Google mailbox), each with its *Approved* cell empty. The
+   setup walks them with the person who decides, before anything else.
+6. **Hand it over at the workshop**: transfer the repository to their GitHub organization
    (Settings ▸ Transfer ownership, or `gh api repos/<you>/<repo>/transfer -f new_owner=<org>`), so
    the history and the seed's provenance come with it. Then remove yourself as a collaborator unless
-   they ask otherwise. The repository is theirs from that minute.
-6. **Delete `source/seed.md`** once the setup session has confirmed or corrected every line in it,
+   they ask otherwise. The repository is theirs from that minute. The prompts they paste are in
+   `docs/helping-another-organization.md` ▸ *The prompts for a seeded repository*.
+7. **Delete `source/seed.md`** once the setup session has confirmed or corrected every line in it,
    and record that in `source/decisions.md`.
 
 The seed is a starting point the owner can throw away. Say so when handing it over: an owner who

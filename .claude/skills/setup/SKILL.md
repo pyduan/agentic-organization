@@ -1,14 +1,15 @@
 ---
 name: setup
-description: "First-time project setup: walk the stack with the owner and get each row approved, build and publish their intranet, then interview the owner, ingest their content (dropped files, a scrape of their existing site, or a clone of an existing repo mined for content), personalize the brand guides, build v1 of the site, and help put it live. Use when source/brief.md still contains TODO placeholders, or when the owner asks to set up or start their site."
+description: "First-time setup of an organization's repository: walk STACK.md and CONNECTORS.md with the owner and get each row approved, build and publish their intranet behind a sign-in, confirm the seed if the repository was seeded, then interview the owner, import their history through approved connectors only, run their first real task as a recipe the repository keeps, personalize the guides, build v1 of the site, and help put it live. Use when source/brief.md still contains TODO placeholders, or when the owner says 'set up my organization', 'set up my site' or asks to start."
 ---
 
 # Setup
 
 The founding session. Unlike normal sessions, here you ask questions liberally: everything you learn now becomes guides that every future session runs on. Budget the conversation; batch questions in small, natural groups rather than one long form.
 
-**The order matters more than the questions.** The stack first, approved row by row; then the
-intranet, built and published; then the interview, structure and facts, guides, and the site last.
+**The order matters more than the questions.** The stack and the connectors first, approved row by
+row; then the intranet, built and published; then the seed confirmed, the interview, the structure
+and the facts, the first real task written as a recipe, the guides, and the site last.
 The first two are short and they come first for one reason each. The stack is every later step's
 premise: an interview that assumes a host or a mailbox the owner has not chosen gets redone. The
 intranet is the place the owner will come back to: within the first half-hour they have a private
@@ -36,7 +37,7 @@ If the organization publishes an AI policy, read it now as well: a principle abo
 go constrains rows of the stack, and the others become rules in `AGENTS.md`, `ORGANIGRAM.md` and
 `.gitignore`, which the owner confirms in the interview.
 
-## 1. The stack, row by row
+## 1. The stack and the connectors, row by row
 
 The first thing you do with the owner. `STACK.md` lists what runs on what: one row per brick, its
 state and its way out. Walk it with them **one row at a time**, in plain words: what the brick does
@@ -57,6 +58,16 @@ Hold the rule at the end of `STACK.md`: an account in a person's name is not an 
 account. When the default is a fresh Cloudflare account, it is a fresh one in the organization's
 name, with two administrators.
 
+**Then `CONNECTORS.md`, the same way.** One row per connector or MCP server: what it would read,
+how far, and who approves it. Propose the kit's defaults in plain words: a one-off import of their
+history, limited to one person's mailbox, a date range or a folder, then disconnected; and, day to
+day, an inbox for the agents that people copy in on what the agent should see, rather than the agent
+reading anyone's whole mailbox. Each row ends with a status and, once they say yes, the date and
+their handle in *Approved*. A connector they do not want is *not allowed*, said once and written
+down; one they are unsure of stays *to decide* with its `#decide` line. Step 5 uses only the rows
+approved here. Then run `node scripts/setup-status.mjs --offline` and read them its *Connectors*
+row: a server already configured on this machine with no approved row is settled now, with them.
+
 Two things follow the walk at once, because step 2 publishes:
 
 - **If hosting is Cloudflare, run `npx wrangler login` with them now.** It is one browser click,
@@ -71,7 +82,8 @@ Two things follow the walk at once, because step 2 publishes:
   - **Review mode (for owners comfortable with git who want to stay in the loop):** you still do all the git yourself, but you pause for a yes before each push or merge.
   Ask it simply, *"Once a change looks good, should I just publish it, or check with you first each time?"*, with AskUserQuestion offering those two options. Record the choice in `brief.md` (Governance → "How the AI publishes"); if they pick review mode, also flip the publish rule in `AGENTS.md`. Most owners want simplified. Either way you run all the git; the mode only decides whether you pause for a yes before publishing.
 
-Commit `STACK.md` when the walk is done: it is the first decision of the project, and it is dated.
+Commit `STACK.md` and `CONNECTORS.md` when the walk is done: they are the first decisions of the
+project, and they are dated.
 
 ## 2. The intranet, built and published
 
@@ -89,7 +101,7 @@ and its empty state tells the owner how to fill them; that is expected, and the 
 3. **Build it and look at it.** Set `name` in `apps/dashboard/wrangler.jsonc` to `<slug>-dashboard`.
    `npm run intranet`, then serve `apps/dashboard/dist/` locally and show it at phone width and on a
    desktop. Run `node scripts/check-contrast.mjs` on its pages; it must exit 0. The header shows the
-   repository's name until the brief is written in step 6.
+   repository's name until the brief is written in step 7.
 4. **Publish it behind Access**, per `docs/deploy-cloudflare.md` ▸ *Publishing something private*:
    Zero Trust enabled once on the account (one human click; the free plan is enough),
    `npm run deploy:intranet`, then `node scripts/protect-access.mjs --worker=<name>
@@ -100,7 +112,11 @@ and its empty state tells the owner how to fill them; that is expected, and the 
    answer a login redirect or a `403`. A `200` is an incident. Then sign in with them once, so they
    see the page and the one-time code.
 6. **Record it.** The URL goes in `brief.md` under derivatives and in the *Private pages* row of
-   `STACK.md`; their bookmark is the page they will open tomorrow.
+   `STACK.md`; their bookmark is the page they will open tomorrow. `node scripts/setup-status.mjs`
+   then reads that address and its *Intranet* row turns green only behind a sign-in.
+
+Never publish a build made with `npm run intranet -- --local`: it may hold material from `local/`
+on this machine, and `npm run deploy:intranet` refuses it (`source/formats/dashboard.md`).
 
 If the stack walk chose a host without an access gate, the intranet stays on their machine (`npm
 run intranet`, opened locally) until one exists, with a dated `#decide` line. It never goes on a
@@ -142,7 +158,10 @@ Establish, in the owner's own words:
 - Taste: sites or brands they admire, colors and fonts they love or hate, photos of their work if relevant. Concrete references beat adjectives.
 - Domain: do they own one, where is it registered. (Setup works fine before the domain exists; the site lives on a `.workers.dev` URL meanwhile.)
 - Any recurring content: gallery, products, events. These become collections.
-- **Governance and repos, in plain terms**: two short questions, both answered into `ORGANIGRAM.md`
+- **Governance and repos, from the org chart**: ask for the organization chart if one exists (a
+  file, a page, or who does what in their words). Each area of responsibility becomes a folder with
+  an owner, or a repo when only some people may read it, and owning an area becomes the right to
+  approve changes to it. Then two short questions, both answered into `ORGANIGRAM.md`
   (the governance + repo-map file every future session reads). First, *who else, if anyone, will
   work on this, and who has the last word before something goes live?* Just the owner is the default,
   and the three rights (use, change, approve) collapse into "you, on `main`". Owner plus a helper or
@@ -239,10 +258,35 @@ Two things not to negotiate away, however keen the owner is to see a site:
   corpus again, and every later session then reasons from a conversation it cannot read. The site is
   a derivative; build it from files, not from memory.
 
+**Their history comes in through the connectors approved in step 1, and only those.** For each
+import, say what it covers before it starts (whose mailbox, which dates, which folder), ask the
+owner to connect that connector for it (the provider's own connector in Claude's settings, under
+their login; a token never goes through the conversation), import that scope and nothing more,
+record what came in and where it went, then have them disconnect it or narrow it back. A source
+with no approved row is a new row in `CONNECTORS.md` first, *to decide*, or a file dropped in
+`source/inbox/`.
+
 Come back from that skill with its three lists (what is recorded, what could not be established, what
 you propose to build). Then continue here.
 
-## 6. Personalize the system
+## 6. The first real task, as a recipe
+
+Before the guides and the site, run one task the owner actually does by hand: the reply they write
+every week, the report a funder expects, the list they keep in a spreadsheet. The person who owns it
+says it to you end to end, with its exceptions. A helper in the room who starts explaining it for
+them is turned back to the session: retold, it loses the exceptions.
+
+Build it as a workflow the repository keeps, never as a one-off output. The method goes in a recipe
+(a skill in `.claude/skills/<slug>/SKILL.md`, or a format in `source/formats/`), its data in files,
+and its result on the intranet, as a tool card or a view in `apps/intranet-extend/`. Run it once
+with them on real material and show the result. Every correction they make goes into the recipe in
+the same session, so the second run needs none of them; say that sentence, because it is what they
+will hold you to. A recipe that needs a connector uses an approved row of `CONNECTORS.md`, and one
+that should run on its own is offered as a routine in step 10, its method left in the recipe.
+
+If a seed carried this task (`source/seed.md`), start from its draft and confirm it with the owner.
+
+## 7. Personalize the system
 
 Replace every TODO in these files with what you learned, keeping each file's structure:
 
@@ -255,11 +299,11 @@ Replace every TODO in these files with what you learned, keeping each file's str
 
 Read each personalized guide back as a whole; it must read as this project's guide, with no template smell left.
 
-## 7. Build v1
+## 8. Build v1
 
 Build the site in `site/` per `source/formats/website.md`: layout shell first (nav, footer, typography on tokens), then pages, then collections if any. Replace the placeholder home page. Run `npm install` and `npm run dev` inside `site/`, verify at mobile and desktop widths, then review it with the owner page by page (share the local URL, show screenshots). Iterate until they're happy; this loop is most of the session.
 
-## 8. Go live
+## 9. Go live
 
 Set the deploy config first: open `wrangler.jsonc` at the repo root and set `name` to this
 project's slug (it becomes the Worker's name and its `<name>.<subdomain>.workers.dev` URL, and must
@@ -281,13 +325,16 @@ same for each app the day it gets one. If the owner is not technical, this is on
 walk them through in the access pass — a build configuration needs an API token that only their
 dashboard can mint, so it cannot be done from here.
 
-## 9. Offer the routines — do not install them
+## 10. Offer the routines — do not install them
 
 Read [`routines/README.md`](../../../routines/README.md) and tell the owner, in plain words, what
 each available routine would do and how often. **Install only what they say yes to**, with the
 scheduled-task tooling.
 
-Start with `freshness-sweep`, monthly: it is the check nothing else performs, asking whether what
+Offer the routine for the first task if step 6 called for one: its schedule, its identity and the
+recipe it follows, nothing of the method itself (`routines/README.md` ▸ *A routine is thin*).
+
+Then `freshness-sweep`, monthly: it is the check nothing else performs, asking whether what
 they published is still there and whether what the repo says about the world is still true. It only
 reads.
 
@@ -299,6 +346,6 @@ Why offer rather than install: a routine writes a cron entry on their machine an
 nobody is watching. That is a side effect on their computer, not a file in their repo, and the kit's
 rule is that nothing is applied silently. Say what it does, say it can be removed, wait for the yes.
 
-## 10. Close
+## 11. Close
 
-Run the reflect skill (it will have plenty to record from this session), push everything, and tell the owner what exists now: the intranet's address first (the page to open every morning, whose banner repeats how to work with you), the live site's URL, what each folder is for in one line each, and how to work with you from now on (open the folder, run `claude`, talk, drop files in the inbox).
+Run the reflect skill (it will have plenty to record from this session), run `node scripts/setup-status.mjs` and fix what is yours to fix, push everything, and tell the owner what exists now: the intranet's address first (the page to open every morning, whose banner repeats how to work with you), the recipe their first task now runs on, the live site's URL, what each folder is for in one line each, and how to work with you from now on (open the folder, run `claude`, talk, drop files in the inbox).

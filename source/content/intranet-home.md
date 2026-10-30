@@ -22,7 +22,9 @@ something here is wrong, the file behind it is what needs fixing.
 
 - `source/` holds the facts with their sources, the decisions with their reasons, and the brand.
 - `projects/` has a folder per piece of work: its charter, its log and its next steps.
-- `STACK.md` lists what runs on what, and how to leave each service.
+- `STACK.md` lists what runs on what, and how to leave each service; `CONNECTORS.md`, which of
+  your mail, files and chat the agent may read, and how far. Each row says who approved it.
+- `.claude/skills/` holds the recipes: how each task that comes back is done here.
 - This intranet, the website, the decks and the documents are all built from those files.
 
 ## How this works

@@ -101,10 +101,27 @@ read `local/` in a build that will be published. Restricted material for the sha
 from a restricted repository instead.
 
 ### Setup starts with the stack, then the intranet
-The setup skill's first step with the owner walks `STACK.md` row by row, each row approved or
-changed with the date and who said yes; the second builds and publishes the intranet behind Access.
-The interview, the structure and facts, the guides and the site come after. A seeded repository's
+The setup skill's first step with the owner walks `STACK.md`, then `CONNECTORS.md`, row by row, each
+row approved or changed with the date and who said yes; the second builds and publishes the intranet
+behind Access. The seed is confirmed next, then the interview, the structure and facts (the history
+imported through approved connectors only, each import scoped), and the owner's first real task,
+built as a recipe the repository keeps; the guides and the site come after. A seeded repository's
 service lines are settled in the stack walk, its other lines at the start of the interview.
+
+### One install prompt, and scripts that end where it does
+`QUICKSTART.md` ▸ *Install, in one paste* is the kit's one install prompt; `README.md` and
+`SETUP.md` link to it, and `docs/helping-another-organization.md` adapts it in the same order for a
+seeded repository (taking it over, the first task, the second person). The bootstrap scripts end in
+the same state: the workspace folder given its guards (`install-workspace`), and Claude Code opened
+on that folder with "set up my organization" on a fresh repository. Every script that ends on a next
+step (the bootstrap scripts, `install-workspace`, `setup-status`) takes it from `lib/setup-stage.mjs`,
+which reads the brief, the two approval tables and the intranet's build
+(`node scripts/setup-status.mjs --next`).
+**Why:** 2026-10-30. Each page had grown its own variant of the paste, and they had drifted (one
+asked for an SSH key, another for the browser login; none mentioned the stack walk), so an
+installer could not tell which one the kit stood behind, and the next step a script printed no
+longer matched the setup's order. One prompt, linked rather than copied, and one function for the
+next step, keep them from drifting again.
 **Why:** asked for on 2026-10-30. The stack is the premise of every later step, so an interview held
 before it can assume a host or a mailbox nobody chose. The intranet gives the owner, within the first
 half-hour, the private page they will come back to and the instructions for working with the agent,
@@ -174,8 +191,11 @@ sweep of what is published.
 **Why:** each one was a mistake that reached a reader before it had a check.
 
 ### Installing the kit for someone else
-`docs/helping-another-organization.md`, a repository seeded before the day (`docs/seeding.md`), and
-a format for a repository shared with a partner (`source/formats/partner-repo.md`).
+`docs/helping-another-organization.md`, with its three prompts for a seeded repository; a repository
+seeded before the day (`docs/seeding.md`), which carries their published tools verbatim, their
+workflows as the repository's own recipes and proposed rows of `STACK.md` and `CONNECTORS.md` with
+no approval; and a format for a repository shared with a partner (`source/formats/partner-repo.md`).
+Packs stay the layer shared between organizations; recipes are the organization's own.
 **Why:** a workshop stalls on accounts, never on the agent, and an organization that starts from a
 seeded draft spends its first hour correcting rather than dictating.
 

@@ -48,6 +48,8 @@ That third one updates your voice guide, so every future page and deck inherits 
 ```
 AGENTS.md            the AI's operating manual: rules + a map of every guide (CLAUDE.md is a one-line pointer to it)
 FEATURES.md          what the repo does, feature by feature, and the design decision behind each
+STACK.md             what runs on what and the way out of each service, each row approved by you, dated
+CONNECTORS.md        which of your mail, files and chat the agent may read, for what and how far, approved the same way
 ORGANIGRAM.md        your org's repos + who may use/change/approve what (solo by default)
 QUICKSTART.md        the one-pager to hand someone before the setup hour
 SETUP.md             the one-hour setup checklist, three ways to install
@@ -76,10 +78,14 @@ The guides ship as genericized templates distilled from real projects. The first
 
 ### What the first hour actually does
 
-Not "build a website". The first session decides **where this organization's material will live**,
-decides **which facts matter**, and then goes and finds them: the facts with their sources, the
-decisions with their reasons, the history in order. The site is built from those files, in the last
-third of the hour, and every later session reads them rather than re-asking you.
+Not "build a website". The first session starts by walking `STACK.md` and `CONNECTORS.md` with you,
+one row at a time, so every service and every connector has your yes and a date on it. Then it
+publishes your intranet behind a sign-in. Then it decides **where this organization's material will
+live**, decides **which facts matter**, and goes and finds them, through the connectors you
+approved: the facts with their sources, the decisions with their reasons, the history in order. It
+runs your first real task as a recipe the repository keeps, so the second run costs less than the
+first. The site is built from those files, in the last part of the hour, and every later session
+reads them rather than re-asking you.
 
 That order is the whole design. Build the site first and the corpus never gets opened, because a
 finished-looking site removes the reason to go back — and then every conversation reasons from
@@ -118,19 +124,11 @@ the paste, the connectors, the first use case); full detail in [SETUP.md](SETUP.
 - **Run a script.** One command, Mac or Windows, does the same thing deterministically — good for a technical helper setting this up for someone else.
 - **Do it by hand.** Click **Use this template** on GitHub, install the few tools yourself, clone it.
 
-The prompt to paste, if you go the first route:
+The prompt to paste, if you go the first route, is [QUICKSTART.md ▸ Install, in one paste](QUICKSTART.md#2-install-in-one-paste):
+one prompt for everyone, in the order the setup runs. Paste it in the **Code** tab of Claude Code,
+never in the chat: only a Code session reads the repository.
 
-> I want to set up my own site using the agentic-organization template
-> (github.com/pyduan/agentic-organization). Check what's already on my machine (git,
-> Node, the GitHub CLI, and whether I'm logged into GitHub). Ask me Mac or
-> Windows if you can't tell from my system. Install whatever's missing,
-> explaining each step in plain language and asking before anything that
-> needs my password. Log me into GitHub with the GitHub CLI and set up an SSH
-> key for me (`gh auth login --git-protocol ssh`), on Mac or Windows alike, so
-> you talk to GitHub on my behalf. Then ask me for my project's name and where I'd like it on my
-> computer, and create my own private copy of the template repo there.
-
-Either way you end up with your own copy, cloned locally, and a first session that interviews you and builds v1. After that it's yours: open the folder, run `claude` (or the desktop app), talk.
+Either way you end up with your own copy, cloned locally, and a first session that opens on the stack walk, then your intranet, then the interview. After that it's yours: open the folder, run `claude` (or the desktop app), talk.
 
 If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixes for the problems everyone actually hits: git vs GitHub vs gh, the Mac command-line-tools popup, "command not found" right after an install, Cloudflare's empty branch dropdown, and running Claude Code in the cloud instead of installing anything locally.
 
@@ -138,7 +136,7 @@ If a step fails, [docs/troubleshooting.md](docs/troubleshooting.md) has the fixe
 
 A few things to say once you're in, to get a feel for it:
 
-- **"Set up my site."** — the first-session interview; starts everything.
+- **"Set up my organization."** The first session: the stack and the connectors, row by row, then your intranet, then the interview. ("Set up my site" works too.)
 - **"Set up my site from my existing site at [URL]."** — skips straight to scraping it.
 - **"Here's my old site's repo: [URL]. Set up from that."** — mines the raw files instead of the rendered pages (often richer).
 - **"Build me a [calculator / simulator / intake form] for this project."** — a web app in `apps/`, same brand, same repo, published under the site or on its own URL.
@@ -154,11 +152,7 @@ A few things to say once you're in, to get a feel for it:
 
 This kit keeps improving. Your project is your own copy, so it doesn't change on its own — when you want the latest, open your project in Claude Code and say **"update the framework"** (the `update-kit` skill). It pulls the newest guides, skills, and scripts from the template, **leaves all your content untouched** (your pages, your facts, your voice), and tells you if any improvement needs a small follow-up. Then it commits and publishes as usual. Nothing you've built is at risk.
 
-**If you set up before the `update-kit` skill existed** (early adopter — you won't see it in `.claude/skills/`), do the first refresh by pasting this once, and you'll have the skill for every update after:
-
-> Pull the latest framework files from the `pyduan/agentic-organization` template into this project — the scaffolding only (`.claude/`, `docs/`, `scripts/`, `source/formats/`, and the root `AGENTS.md`/`SETUP.md`/`README.md`), never my own content under `source/`, `site/` or `apps/`. Add the template as a git remote if needed, bring those paths over, reconcile `AGENTS.md` by merging rather than overwriting, then commit and publish.
-
-That's not a git rebase and it won't touch your work: the framework files are updated in place, your content carries forward as-is. Claude flags anything a change implies you should redo.
+**If you set up before the `update-kit` skill existed** (early adopter — you won't see it in `.claude/skills/`), or your copy of it is old, send your agent the block in [`update-kit` ▸ *The block to send an install that predates kit-sync*](.claude/skills/update-kit/SKILL.md#the-block-to-send-an-install-that-predates-kit-sync) once. It fetches the sync tool from the template before anything else, keeps every file you changed for you to decide on, and ends by saying which rows of your `STACK.md` and `CONNECTORS.md` still wait for your yes, for your next session to walk with you.
 
 ## When you grow
 
