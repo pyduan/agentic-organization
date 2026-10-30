@@ -172,7 +172,7 @@ let templateDir = null;
 let templateHead = null;
 let templateBehind = null;
 
-// By exact slug. A substring test took `pyduan/agentic-organization-pro`, or any
+// By exact slug. A substring test took `pyduan/agentic-organization-extras`, or any
 // repo whose name merely starts with the kit's, for the template itself.
 const isTemplate = async (d) => isTemplateSlug(slugOf(await git(d, ['remote', 'get-url', 'origin'])) || '');
 

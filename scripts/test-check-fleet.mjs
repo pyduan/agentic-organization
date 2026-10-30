@@ -267,7 +267,7 @@ test('a repo whose name merely starts with the kit’s is not taken for the temp
   const { ws, proj } = fleet();
   try {
     rmSync(join(ws, 'template'), { recursive: true, force: true });  // no real clone here
-    repo(join(ws, 'kit-pro'), { origin: 'https://github.com/pyduan/agentic-organization-pro.git', commits: 5 });
+    repo(join(ws, 'kit-extras'), { origin: 'https://github.com/pyduan/agentic-organization-extras.git', commits: 5 });
     const out = scan(proj, ws);
     // Measured against the instance's own template ref, which is the honest fallback.
     assert.match(out, /proj[\s\S]*?2 template commit\(s\) behind/);

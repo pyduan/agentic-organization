@@ -101,7 +101,7 @@ test('the map reads the same with or without the legacy folder column', async ()
 
 test('slugs compare exactly', () => {
   assert.equal(slugOf('git@github.com:pyduan/agentic-organization.git'), 'pyduan/agentic-organization');
-  assert.equal(slugOf('https://github.com/pyduan/agentic-organization-pro'), 'pyduan/agentic-organization-pro');
+  assert.equal(slugOf('https://github.com/pyduan/agentic-organization-extras'), 'pyduan/agentic-organization-extras');
   assert.ok(sameSlug('Acme/Shop', 'acme/shop'));
-  assert.ok(!sameSlug('pyduan/agentic-organization', 'pyduan/agentic-organization-pro'));
+  assert.ok(!sameSlug('pyduan/agentic-organization', 'pyduan/agentic-organization-extras'));
 });
