@@ -41,7 +41,7 @@ test("the kit's own banner parses into a quickstart and the philosophy", () => {
   const h = parseHome(readFileSync(join(ROOT, 'source/content/intranet-home.md'), 'utf8'));
   assert.ok(h.title && h.lede);
   assert.ok(h.sections.length >= 2);
-  assert.ok(h.sections.some((s) => /quickstart/i.test(s.heading)));
+  assert.ok(h.sections.some((s) => /quickstart|démarrage rapide/i.test(s.heading)), 'a quickstart section, in English or in French');
   assert.ok(!/TODO/.test(JSON.stringify(h)), 'the default banner ships ready to read');
 });
 
