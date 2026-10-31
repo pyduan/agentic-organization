@@ -251,7 +251,7 @@ console.log(`intranet: ${home ? 'banner' : 'no banner'}, ${tools.length} tool(s)
 if (LOCAL) console.log(`  built with --local: ${extension ? 'local/ readable by the extension' : 'no extension to read local/'}; marked, so deploy:intranet refuses it`);
 if (extension) {
   const sections = Object.values(extension.home).reduce((n, l) => n + l.length, 0);
-  console.log(`  + ${extension.file}: ${extension.tabs.length} tab(s), ${extension.pages.length} page(s), ${sections} home section(s)${extension.css.length ? ', its styles' : ''}`);
+  console.log(`  + ${extension.file}: ${extension.tabs.length} tab(s)${extension.groups.length ? ` in ${extension.groups.length} group(s)` : ''}, ${extension.pages.length} page(s), ${sections} home section(s)${extension.css.length ? ', its styles' : ''}`);
 }
 for (const r of found.filter((x) => x.consent && x.consent !== 'full')) {
   console.log(`  ${r.slug}: ${r.consent === 'none' ? 'declares none, not read' : 'declares counts, summed without names'}${r.consentProblem ? ` (${r.consentProblem})` : ''}`);

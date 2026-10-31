@@ -19,6 +19,41 @@
   .top.many .tabs a { padding: var(--space-1) var(--space-2); }
 }
 
+/* The sections as a sidebar (intranet.mjs ▸ sideNav), from SIDEBAR_FROM tabs or as soon as the
+   extension groups them: a column down the left side on a wide screen, and on a phone a bar whose
+   one menu names the current section and opens the same list. */
+.nav-side { display: none; }
+.nav-group { display: flex; flex-direction: column; gap: 1px; }
+.nav-group + .nav-group { margin-top: var(--space-3); }
+.nav-group-label { margin: 0 0 var(--space-1); padding: 0 var(--space-2); font-size: var(--text-sm); font-weight: 600; color: var(--color-muted); }
+.nav-group a {
+  padding: var(--space-1) var(--space-2); border-radius: var(--radius);
+  color: var(--color-ink); text-decoration: none; font-size: var(--text-sm); font-weight: 500;
+}
+.nav-group a:hover { background: var(--color-surface); }
+.nav-group a.on { background: var(--color-accent); color: var(--color-accent-ink); }
+.nav-fold { position: relative; margin-left: auto; flex: none; }
+.nav-fold > summary {
+  list-style: none; cursor: pointer; padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-line); border-radius: var(--radius); font-size: var(--text-sm); font-weight: 600;
+}
+.nav-fold > summary::-webkit-details-marker { display: none; }
+.nav-fold > summary::after { content: " ▾"; }
+.nav-fold > nav {
+  position: absolute; right: 0; top: calc(100% + var(--space-1)); z-index: 10;
+  width: 15rem; max-height: 70vh; overflow-y: auto; padding: var(--space-2);
+  background: var(--color-bg); border: 1px solid var(--color-line); border-radius: var(--radius);
+}
+@media (min-width: 64rem) {
+  body.has-nav { padding-left: 15rem; }
+  .nav-side {
+    display: flex; flex-direction: column; gap: var(--space-4);
+    position: fixed; top: 0; bottom: 0; left: 0; width: 15rem; overflow-y: auto;
+    padding: var(--space-4) var(--space-3); border-right: 1px solid var(--color-line); background: var(--color-bg);
+  }
+  .nav-bar { display: none; }
+}
+
 /* A tile's line under its label (tile(n, label, note)). */
 .tile small { display: block; color: var(--color-muted); font-size: var(--text-sm); }
 

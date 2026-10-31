@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-31 · MINOR · An intranet with many sections gets a sidebar instead of a row of tabs
+
+From seven sections, the intranet's sections leave the header for a column down the left side, and
+your agent can group them under headings (`intranet.group('Volunteers', ['rota/', 'rooms/'])` in
+`apps/intranet-extend/index.mjs`, `source/formats/dashboard.md` ▸ *Adding your own views*). On a
+phone the column folds into one menu that names the page you are on. `source/formats/webapp.md` ▸
+*One row of tabs, then a sidebar* now says the same for any app: when the sections stop fitting one
+row, they become a sidebar, never a second row.
+
+**What you need to do:** nothing if your intranet has six sections or fewer. Past that, it changes
+by itself at the next build; ask your agent to group the sections so the headings say something.
+
 ## 2026-10-31 · MINOR · A to-do's updates record events, and a fact changes at its source
 
 `source/formats/todo.md` ▸ *Updates record events; state lives at its source*: a to-do says what to

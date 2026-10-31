@@ -15,6 +15,7 @@
 //   // apps/intranet-extend/index.mjs
 //   export default function extend(intranet) {
 //     intranet.tab('rota/', 'Rota');                        // before Projects unless placed
+//     intranet.group('Volunteers', ['rota/', 'rooms/']);    // a heading in the sidebar of sections
 //     intranet.page('rota/', (c) => ({ title: 'Rota', body: `<h1>Rota</h1>…` }));
 //     intranet.home('top', (c) => `<h2>This week</h2>…`);   // top · before-tools · end
 //     intranet.css(new URL('./rota.css', import.meta.url)); // tokens only
@@ -29,7 +30,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { esc, inline, renderMarkdown, slugify } from '../../scripts/doc/markdown.mjs';
 import { parse as parseTodos } from '../../lib/todo.mjs';
 import {
-  HOME_SLOTS, LOCALE, t, shell, withSide, tile, todoRow, projectCard, feed,
+  HOME_SLOTS, LOCALE, TABS, t, shell, withSide, tile, todoRow, projectCard, feed,
 } from './intranet.mjs';
 
 /** Where an instance keeps its extension, from the repository's root. Never shipped by the kit. */
@@ -98,7 +99,7 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
   const extend = mod.default;
   if (typeof extend !== 'function') fail(`${relative(root, file)} must export a default function`);
 
-  const reg = { file: shownPath(root, file), strings: {}, tabs: [], home: {}, pages: [], css: [] };
+  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [] };
   const repo = repoReader(root);
   // local/ on this machine, only in a --local build: null otherwise, so a view tests `if (intranet.local)`.
   const localReader = local ? repoReader(join(root, LOCAL_DIR), { refuseLocal: false }) : null;
@@ -119,6 +120,19 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
       checkPath('tab', path);
       if (reg.tabs.some((x) => x.path === path)) fail(`the tab ${path} is added twice`);
       reg.tabs.push({ path, label, before, after });
+    },
+    /**
+     * A heading in the sidebar of sections, over the tabs `paths` names in that order (the kit's
+     * own, '' and 'projects/', included). Declaring one turns the row of tabs into that sidebar.
+     */
+    group(label, paths) {
+      if (!label || !Array.isArray(paths) || !paths.length) fail('a group needs a label and a list of tab paths');
+      if (reg.groups.some((g) => g.label === label)) fail(`the group ${label} is declared twice`);
+      for (const p of paths) {
+        const other = reg.groups.find((g) => g.paths.includes(p));
+        if (other || paths.indexOf(p) !== paths.lastIndexOf(p)) fail(`the tab ${JSON.stringify(p)} is in two groups${other ? ` (${other.label} and ${label})` : ''}`);
+      }
+      reg.groups.push({ label, paths: [...paths] });
     },
     /** A page: `render(c)` returns { title, body, side?, tab? }, or a whole file as a string. */
     page(path, render) {
@@ -146,6 +160,10 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
   };
 
   await extend(api);
+
+  // A group names tabs, which may be added after it: checked once everything is registered.
+  const known = new Set([...TABS.map(([to]) => to), ...reg.tabs.map((x) => x.path)]);
+  for (const g of reg.groups) for (const p of g.paths) if (!known.has(p)) fail(`the group ${g.label} names ${JSON.stringify(p)}, which is no tab`);
 
   // What a page's or a section's render receives: the same helpers, and the pieces of the kit's
   // pages bound to where the page sits, so a link written `c.href('rota/')` works at any depth.

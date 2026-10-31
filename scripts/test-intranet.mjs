@@ -269,6 +269,49 @@ test('the contract refuses what would break a page: an unknown slot, a taken pat
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
+test('sections that outgrow one row: a sidebar of grouped sections, one menu on a phone', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-nav-'));
+  const data = { generated: '2026-10-30T10:00:00Z', org: 'Riverside Co-op', repos: [], private: [], projects: [], recap: [] };
+  const load = async (code) => {
+    const file = join(dir, `ext-${Math.random().toString(36).slice(2)}.mjs`);
+    writeFileSync(file, code);
+    return loadExtension({ root: dir, data, today: TODAY, file });
+  };
+  const build = (extension) => renderIntranet({ data, home: null, tools: [], css: '', today: TODAY, extension });
+  const sections = (html) => [...html.match(/<aside class="nav-side">.*?<\/aside>/s)[0].matchAll(/<p class="nav-group-label">([^<]*)<\/p>|href="([^"]*)"/g)]
+    .map((m) => m[1] ?? m[2]);
+  try {
+    // Six sections stay a row; the seventh moves them all to the sidebar, in the row's order.
+    const tabs = (n) => `export default (i) => { ${Array.from({ length: n }, (_, k) => `i.tab('s${k}/', 'S${k}'); i.page('s${k}/', () => ({ title: 'S${k}', body: 'x' }));`).join(' ')} };`;
+    const six = build(await load(tabs(4)))['index.html'];
+    assert.match(six, /<header class="top many">/);
+    assert.doesNotMatch(six, /nav-side/);
+    const seven = build(await load(tabs(5)));
+    assert.doesNotMatch(seven['index.html'], /<nav class="tabs"/, 'never a row and a sidebar at once');
+    assert.match(seven['index.html'], /<body class="has-nav">/);
+    assert.deepEqual(sections(seven['index.html']), ['', '', 's0/', 's1/', 's2/', 's3/', 's4/', 'projects/'], 'the name, then Home and the sections');
+    assert.match(seven['s2/index.html'], /<summary>S2<\/summary>/, 'on a phone the menu names the current section');
+    assert.match(seven['s2/index.html'], /<a href="..\/s2\/" aria-current="page" class="on">S2<\/a>/);
+    assert.doesNotMatch(seven['s2/index.html'], /scrollLeft/);
+
+    // Groups: ungrouped sections first, then each heading over its tabs in the order it lists them,
+    // the kit's own included. A group turns the sidebar on whatever the count.
+    const grouped = build(await load(`export default (i) => {
+      i.tab('rota/', 'Rota'); i.tab('rooms/', 'Rooms');
+      i.group('Volunteers', ['rooms/', 'rota/']);
+      i.group('Work', ['projects/']);
+    };`))['projects/index.html'];
+    assert.deepEqual(sections(grouped), ['../', '../', 'Volunteers', '../rooms/', '../rota/', 'Work', '../projects/']);
+    assert.match(grouped, /<summary>Projects<\/summary>/);
+    assert.match(grouped, /<aside class="side" aria-label="Projects">/, "a section's own pages keep their sidebar beside the page");
+
+    await assert.rejects(load("export default (i) => i.group('Volunteers', ['rota/']);"), /names "rota\/", which is no tab/);
+    await assert.rejects(load("export default (i) => { i.tab('rota/', 'Rota'); i.group('A', ['rota/']); i.group('B', ['rota/']); };"), /in two groups \(A and B\)/);
+    await assert.rejects(load("export default (i) => { i.tab('rota/', 'Rota'); i.group('A', ['rota/']); i.group('A', ['']); };"), /declared twice/);
+    await assert.rejects(load("export default (i) => i.group('A', []);"), /needs a label and a list/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
 test('the link check finds a page nobody built', () => {
   const page = (body) => `<a href="${body}">x</a>`;
   assert.deepEqual(brokenLinks({

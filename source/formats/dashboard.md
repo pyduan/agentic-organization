@@ -91,13 +91,21 @@ export default async function extend(intranet) {
   `local/` in a `--local` build and `null` in every other (below); `root`, `today`, and `data`, what the kit's build
   gathered (`projects`, `recap`, `org`).
 - `esc`, `inline`, `renderMarkdown` and `slugify` from `scripts/doc/markdown.mjs`.
-- `strings(words)`, `tab(path, label, { before, after })`, `page(path, render)`,
-  `home(slot, render)` and `css(source)`, below. The function may be `async`; the renders may not.
+- `strings(words)`, `tab(path, label, { before, after })`, `group(label, paths)`,
+  `page(path, render)`, `home(slot, render)` and `css(source)`, below. The function may be `async`; the renders may not.
 
 **A tab** is a folder path (`'rota/'`) and a label, a key of the strings or the text itself. Tabs
 go before the kit's Projects in the order they were added, unless `before` or `after` names another
 tab. There is still one row: past two tabs, on a phone, the organization's name takes its own line
 and the row scrolls sideways inside the header, opening with the current tab in view.
+
+**A group** puts tabs under a heading: `group('Volunteers', ['rota/', 'rooms/'])`, the kit's own
+`''` and `'projects/'` included. The sections leave the header for a sidebar down the left side
+from seven tabs or as soon as one group is declared (`source/formats/webapp.md` ▸ *One row of tabs,
+then a sidebar*). It lists the tabs no group names first, then each group in the order declared, its tabs in
+the order it lists them. On a phone the sidebar folds into one menu that names the current section.
+A section's own pages (`side`, below) keep their sidebar beside the page. A group that names no tab,
+or a tab in two groups, stops the build.
 
 **A page** is a path (`'rota/'` or `'rota/swaps/'` for a page, `'rota/feed.json'` for a file) and
 a render. The render gets `c`, the helpers above plus the pieces bound to where the page sits:

@@ -12,7 +12,9 @@
 //
 // Navigation follows source/formats/webapp.md ▸ One row of tabs, then a sidebar: the sections are
 // tabs in the header; a section with several pages (Projects) lists them in a sidebar, which folds
-// into one control above the title on a phone.
+// into one control above the title on a phone. When the sections outgrow one row (SIDEBAR_FROM of
+// them, or an extension that groups them), they move to a sidebar of their own, down the left side,
+// grouped under headings, and fold into one menu on a phone.
 //
 // An instance adds its own tabs, pages, home sections and styles through the extension point
 // (apps/dashboard/extend.mjs, documented in source/formats/dashboard.md ▸ Adding your own views),
@@ -27,6 +29,7 @@ export const LOCALE = 'en-GB';
 export const STRINGS = {
   'nav.home': 'Home',
   'nav.projects': 'Projects',
+  'nav.menu': 'Menu',
   'banner.hide': 'Hide',
   'banner.show': 'Show',
   'tiles.running': ['project running', 'projects running'],
@@ -61,8 +64,15 @@ export const STRINGS = {
 /** The sections, as [path from the root, label key]. One row of tabs, never two. */
 export const TABS = [['', 'nav.home'], ['projects/', 'nav.projects']];
 
+/**
+ * From this many sections, the row of tabs becomes a sidebar down the left side. Seven tabs no
+ * longer fit a laptop's header beside the organization's name, and a row that scrolls hides most of
+ * the sections from whoever is looking for one.
+ */
+export const SIDEBAR_FROM = 7;
+
 // What an extension adds to the chrome, for the length of one renderIntranet() call: its tabs placed
-// among the kit's, and its words over the kit's. Null renders exactly the kit's own.
+// among the kit's, its groups, and its words over the kit's. Null renders exactly the kit's own.
 let chrome = null;
 
 /** A word of the chrome: the extension's translation if it gave one, else the kit's. */
@@ -102,6 +112,22 @@ const label = (key) => {
   const v = t(key);
   return v === undefined ? key : v;
 };
+
+/** Whether the sections render as a sidebar rather than a row: groups asked for, or too many to fit. */
+export const sidebarNav = () => Boolean(chrome?.groups?.length) || tabs().length >= SIDEBAR_FROM;
+
+/**
+ * The sections as the sidebar shows them, [{ label, tabs }]: the tabs no group names first, under no
+ * heading and in the row's order, then each group in the order it was declared, its tabs in the
+ * order it lists them.
+ */
+export function navGroups() {
+  const all = tabs();
+  const grouped = new Set((chrome?.groups || []).flatMap((g) => g.paths));
+  const out = [{ label: null, tabs: all.filter(([to]) => !grouped.has(to)) }];
+  for (const g of chrome?.groups || []) out.push({ label: g.label, tabs: g.paths.map((p) => all.find(([to]) => to === p)).filter(Boolean) });
+  return out.filter((g) => g.tabs.length);
+}
 
 // ---------------------------------------------------------------- the owner's words
 
@@ -288,12 +314,16 @@ function toolCards(tools, base) {
  *
  * Past two tabs the row scrolls sideways inside the header on a phone instead of widening the page,
  * and a line of script brings the current tab into view; with the kit's own two, neither is there.
+ * From SIDEBAR_FROM tabs, or as soon as an extension groups them, the sections leave the header for
+ * a sidebar (sideNav below).
  */
 export function shell({ data, depth, tab, title, body, before = '' }) {
   const base = '../'.repeat(depth);
   const all = tabs();
-  const many = all.length > 2;
-  const row = all.map(([to, key]) => `<a href="${base}${to}"${to === tab ? ' aria-current="page" class="on"' : ''}>${label(key)}</a>`).join('');
+  const side = sidebarNav();
+  const many = !side && all.length > 2;
+  const link = ([to, key]) => `<a href="${base}${to}"${to === tab ? ' aria-current="page" class="on"' : ''}>${label(key)}</a>`;
+  const row = all.map(link).join('');
   const when = new Date(data.generated).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' });
   return `<!doctype html>
 <html lang="${LOCALE.slice(0, 2)}">
@@ -305,11 +335,11 @@ export function shell({ data, depth, tab, title, body, before = '' }) {
 <link rel="stylesheet" href="${base}tokens.css">
 <link rel="stylesheet" href="${base}intranet.css">
 </head>
-<body>
-<header class="top${many ? ' many' : ''}"><div class="wrap top-in">
+<body${side ? ' class="has-nav"' : ''}>
+${side ? sideNav({ data, base, tab, link }) : `<header class="top${many ? ' many' : ''}"><div class="wrap top-in">
   <a class="mark" href="${base}">${esc(data.org)}</a>
   <nav class="tabs" aria-label="Sections">${row}</nav>
-</div></header>
+</div></header>`}
 ${many ? `<script>
   // The row of tabs scrolls sideways on a phone: start it with the current tab in view.
   (() => {
@@ -326,6 +356,22 @@ ${body}
 </body>
 </html>
 `;
+}
+
+/**
+ * The sections as a sidebar: a column down the left side on a wide screen, the organization's name
+ * at its top, the sections under their group headings; on a phone, a bar with the name and one menu
+ * that names the current section and opens the same list. The two navs carry the same links, since
+ * only one shows at a time and a page must work without script.
+ */
+function sideNav({ data, base, tab, link }) {
+  const groups = navGroups().map((g) => `<div class="nav-group">${g.label ? `<p class="nav-group-label">${esc(label(g.label))}</p>` : ''}${g.tabs.map(link).join('')}</div>`).join('');
+  const here = tabs().find(([to]) => to === tab);
+  return `<aside class="nav-side"><a class="mark" href="${base}">${esc(data.org)}</a><nav aria-label="Sections">${groups}</nav></aside>
+<header class="top nav-bar"><div class="wrap top-in">
+  <a class="mark" href="${base}">${esc(data.org)}</a>
+  <details class="nav-fold"><summary>${here ? label(here[1]) : t('nav.menu')}</summary><nav aria-label="Sections">${groups}</nav></details>
+</div></header>`;
 }
 
 /**
@@ -419,7 +465,7 @@ ${(p.log || []).length ? `<h2>${t('projects.moved')}</h2>${feed(p.log, base)}` :
  * kit's own, byte for byte.
  */
 export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10), extension = null }) {
-  chrome = extension ? { tabs: extension.tabs, strings: extension.strings } : null;
+  chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings } : null;
   try {
     const ctx = (path) => extension.context({ data, today, path });
     const slots = {};

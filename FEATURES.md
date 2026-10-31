@@ -76,7 +76,9 @@ named slots (`top`, `before-tools`, `end`), its stylesheet is appended after the
 if it writes a colour instead of a token, and a `test.mjs` beside it runs inside the kit's
 `scripts/test-intranet.mjs`, which also builds the instance's intranet and fails on a link to a page
 nobody built. Past two tabs, the one row of tabs scrolls sideways on a phone and opens with the
-current tab in view. Without the file the build writes the kit's pages byte for byte.
+current tab in view; from seven, or once the extension groups them (`intranet.group`), the sections
+become a sidebar down the left side under group headings, one menu on a phone. Without the file the
+build writes the kit's pages byte for byte.
 **Why:** 2026-10-30, after two instances had each built an adapter that patched the kit at run time:
 pushing into the exported `TABS`, re-rendering the kit's pages from `dist/data.json`, splicing HTML
 after `<main class="wrap">`, copying the page shell and testing that the copy still matched, and
