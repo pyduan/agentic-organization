@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-10-31 · MINOR · A to-do's updates record events, and a fact changes at its source
+
+`source/formats/todo.md` ▸ *Updates record events; state lives at its source*: a to-do says what to
+do and where the facts are, and its dated updates are history, never the current state. When a fact
+changes (a booking, a date, what a decision became), your agent rewrites it where it lives instead
+of adding a note above the old one, and corrects or replaces with a pointer every copy of it in the
+same commit. The rule comes from a status cell that kept "flights not seen yet" under "flights
+received", so the next brief announced the flights missing.
+
+**What you need to do:** nothing. If a status column or a list in your repository has been
+collecting dated notes, ask your agent to rewrite it as the current state in one line.
+
 ## 2026-10-30 · MINOR · A seed infers where the material lives, which tools come first, and the design system
 
 Seeding a repository for another organization (`docs/seeding.md`) now starts with three inferences.

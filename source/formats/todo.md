@@ -129,6 +129,31 @@ the app's item row. Nothing is recorded before the server confirms, a refused in
 receipt, and a browser that refuses storage loses the receipts and nothing else. It is never a
 source: the file wins on content, always.
 
+### Updates record events; state lives at its source
+
+A to-do says what to do and where the facts are. Its updates record what happened, and they are
+append-only, but they are never where the current state lives. State (a booking, a date, what a
+decision became) has one home, and it is **rewritten there** when it changes, not appended under
+the old version. Any copy (a to-do's text, another list, a summary) is corrected in the same commit
+or, better, replaced by a pointer to the source.
+
+**Why.** A trips table had a status column meant to hold one line. Over two weeks it collected dated
+notes, newest on top: "flights to book", then "flights not seen yet". When the tickets for the trip
+to Lyon arrived, the session that filed them prepended "flights received" to the cell and left the
+rest. The next morning's brief read the whole cell and told `@sam` the flights had not arrived. Each
+line was true when it was written; appending in place of rewriting is what produced the
+contradiction. A "to book" list and the to-do "Book the Lyon flights" each held their own copy of
+the same state, and both drifted the same way.
+
+So when a fact changes:
+
+- Rewrite it at its source, in place. Its history goes in the prose around it, or in update lines
+  under the to-do, never in a status field.
+- Correct every copy in the same commit, or turn it into a pointer (`trips.md ▸ Lyon`).
+- Tick the to-do the change completed, or rewrite its text if what is left to do changed. An open
+  "Book the Lyon flights" with "booked" in an update under it gives two answers, and a reader takes
+  the first one they meet.
+
 ### Handing an item to an agent
 
 Each item can produce a one-line prompt to paste into an agent session:
