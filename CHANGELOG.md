@@ -10,6 +10,14 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-01 · MINOR · An upgrade finds its way back after the kit rewrote its history
+
+The kit rewrote one commit message on 2026-10-31, keeping every file identical. A project synced
+before that, upgraded from a fresh clone of the kit, stopped on "this clone does not have" its
+last sync point. `kit-sync` now follows that point to the commit that replaced it.
+
+**What you need to do:** nothing.
+
 ## 2026-11-01 · MAJOR · A session opened in a satellite runs the router's guards, and the workspace sees every skill
 
 When your organization has a router and satellites, a person who opened the agent inside one
