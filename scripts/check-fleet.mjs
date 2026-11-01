@@ -227,9 +227,9 @@ async function inspect(dir) {
   if (kind === 'satellite') {
     let relays = false;
     try {
-      const s = JSON.parse(await readFile(join(dir, '.claude/settings.json'), 'utf8'));
-      relays = JSON.stringify(s.hooks?.SessionStart || []).includes('satellite.mjs');
-    } catch { /* no settings, so a session there runs no hook */ }
+      relays = n.measure('.claude/settings.json',
+        (t) => JSON.stringify(JSON.parse(t).hooks?.SessionStart || []).includes('satellite.mjs'));
+    } catch { /* no settings, or a consent that refuses the read: a session there runs no hook we can see */ }
     const sref = (await git(dir, ['rev-parse', '--verify', '--quiet', 'origin/HEAD'])) ? 'origin/HEAD' : 'HEAD';
     return { name, origin, marker, kind, declaredKind, copiesMethod, relays, consent, problem: n.problem, ...(await peopleIn(n, sref)) };
   }
