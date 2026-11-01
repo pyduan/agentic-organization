@@ -222,10 +222,11 @@ How to run it:
   person invited for one repo can also read the restricted one. Give access per team or per repo
   instead, as `ORGANIGRAM.md` says, and read the setting back:
   `gh api orgs/<org> --jq .default_repository_permission` must answer `none`.
-- **Keep `STACK.md` current as you go**: the rows were approved in step 1; an account or service
-  this pass adds gets its row, its state and its way out, approved the same way, with the date and
-  who. The rows still *to decide* at the end of the pass are the infrastructure the organization has
-  not chosen yet, and the owner should see them.
+- **Keep `STACK.md` current as you go**, starting from the defaults it lists: the rows were approved
+  in step 1; an account or service this pass adds gets its row, its state and its way out, approved
+  the same way, with the date and who, and a row that departs from its default says why. The rows
+  still *to decide* at the end of the pass are the infrastructure the organization has not chosen
+  yet, and the owner should see them.
 - **Note what is still missing and who owes it.** An access the owner could not grant today, a token
   only they can create, a choice you made on their behalf (`source/decisions.md` ▸ *Only a person
   settles*): each becomes a dated `#decide` line in the to-do list with their name on it
