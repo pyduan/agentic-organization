@@ -1,0 +1,5 @@
+# Upstream sources whose licence does not allow redistribution (sources.json, "commit": false).
+# An organization that owns one of them may remove its line here and set "commit": true there.
+upstream/playbook-guide/
+upstream/playbook-index/
+upstream/taf-skills/
