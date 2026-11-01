@@ -8,6 +8,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, copyFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
@@ -112,4 +113,45 @@ test('a manual an older kit-sync stepped over is still delivered, since this rep
   git(proj, 'fetch', '-q', 'template');
   execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
   assert.equal(readFileSync(join(proj, 'AGENTS.md'), 'utf8'), '# the manual\n');
+});
+
+test('a sync point the template rewrote away is followed to its replacement, set-aside entries too', () => {
+  const ws = mkdtempSync(join(tmpdir(), 'kitsync-'));
+  const tpl = join(ws, 'template');
+  mkdirSync(tpl);
+  git(tpl, 'init', '-q', '-b', 'main');
+  write(tpl, 'docs/guide.md', 'kit v1\n');
+  const old = commit(tpl, 'v1, with a message the template later rewrote');
+  // The rewrite: same tree, new message, and the old commit gone from every ref.
+  git(tpl, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-q', '--amend', '-m', 'v1');
+  const replaced = git(tpl, 'rev-parse', 'HEAD').trim();
+  const key = createHash('sha256').update(old).digest('hex');
+  write(tpl, '.kit-rewrites.json', JSON.stringify({ '//': 'test', '2026-10-31': { [key]: replaced } }));
+  write(tpl, 'docs/guide.md', 'kit v2\n');
+  commit(tpl, 'v2');
+
+  // A fresh clone: it never receives the old commit.
+  const proj = join(ws, 'proj');
+  mkdirSync(proj);
+  git(proj, 'init', '-q', '-b', 'main');
+  write(proj, 'docs/guide.md', 'kit v1\nmy own line\n');
+  copyFileSync(SCRIPT, join(mkdirSync(join(proj, 'scripts'), { recursive: true }) || join(proj, 'scripts'), 'kit-sync.mjs'));
+  write(proj, '.kit-sync', JSON.stringify({ sha: old, setAside: [{ file: 'docs/guide.md', at: old }] }));
+  commit(proj, 'init');
+  git(proj, 'remote', 'add', 'template', tpl);
+  git(proj, 'fetch', '-q', 'template');
+  assert.throws(() => git(proj, 'cat-file', '-e', `${old}^{commit}`), 'the old commit must be absent for this to test anything');
+
+  assert.match(status(proj), /kit has changed them since you last reconciled \(1\)/);
+  execFileSync('node', ['scripts/kit-sync.mjs', 'apply'], { cwd: proj, encoding: 'utf8' });
+  const sync = JSON.parse(readFileSync(join(proj, '.kit-sync'), 'utf8'));
+  assert.equal(sync.sha, git(proj, 'rev-parse', 'template/main').trim());
+  assert.equal(sync.setAside[0].at, replaced, 'the set-aside base is followed too');
+});
+
+test('a sync point nobody replaced still stops with the error, rather than passing for a first run', () => {
+  const { proj } = setup({ legacy: false });
+  write(proj, '.kit-sync', JSON.stringify({ sha: 'f'.repeat(40), setAside: [] }));
+  commit(proj, 'a sha from nowhere');
+  assert.throws(() => execFileSync('node', ['scripts/kit-sync.mjs', 'status'], { cwd: proj, encoding: 'utf8', stdio: 'pipe' }), /does not have/);
 });

@@ -20,6 +20,7 @@
 // Zero dependencies. Nothing here writes to a colliding file, ever.
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -48,7 +49,10 @@ const REPORT_ONLY = ['AGENTS.md', 'CLAUDE.md', 'FEATURES.md', 'STACK.md', 'CONNE
 const git = (args, opts = {}) =>
   execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
 
-const tryGit = (args) => { try { return git(args); } catch { return null; } };
+const tryGit = (args, opts) => { try { return git(args, opts); } catch { return null; } };
+
+/** Whether this clone holds the commit, without git printing "fatal" when it does not. */
+const hasCommit = (sha) => tryGit(['cat-file', '-e', `${sha}^{commit}`], { stdio: ['ignore', 'pipe', 'ignore'] }) !== null;
 
 const show = (ref, file) => {
   try {
@@ -118,11 +122,35 @@ function readSync() {
   } else {
     sha = (raw.match(/\b[0-9a-f]{7,40}\b/) || [])[0] || null;
   }
-  setAside = setAside.map((e) => (typeof e === 'string' ? { file: e, at: null } : { file: e.file, at: e.at || null }));
+  setAside = setAside.map((e) => (typeof e === 'string' ? { file: e, at: null } : { file: e.file, at: resolveSha(e.at) }));
+  sha = resolveSha(sha);
   // A sha we cannot resolve is worse than none: it would silently behave as a
   // first run rather than as an error the operator can see.
-  if (sha && tryGit(['cat-file', '-e', `${sha}^{commit}`]) === null) return { missing: sha, setAside };
+  if (sha && !hasCommit(sha)) return { missing: sha, setAside };
   return { sha, setAside };
+}
+
+/**
+ * A sha this clone does not have, followed to the commit that replaced it.
+ *
+ * The template has rewritten its history, with every tree kept identical, so a
+ * project synced before the rewrite names a commit a fresh clone of the template
+ * never receives. Without this, `status` stopped on it and the only way out was
+ * deleting .kit-sync, which turns every customised file into "Cannot tell". The
+ * template publishes the old-to-new table in .kit-rewrites.json, keyed by the
+ * sha256 of the old sha so the table does not point at what was rewritten away.
+ */
+function resolveSha(sha) {
+  if (!sha || sha.length !== 40 || hasCommit(sha)) return sha || null;
+  const raw = show(REF, '.kit-rewrites.json');
+  if (!raw) return sha;
+  let table;
+  try { table = JSON.parse(raw); } catch { return sha; }
+  const key = createHash('sha256').update(sha).digest('hex');
+  for (const [date, map] of Object.entries(table)) {
+    if (date !== '//' && map && map[key]) return map[key];
+  }
+  return sha;
 }
 
 /** One entry per file; a later entry for the same file replaces the earlier one. */
