@@ -44,9 +44,11 @@ machine.
 - **`router`** — the same, plus it is *this* organization's core: it holds the recipes, the routing,
   this map, and everything the satellites point at.
 - **`satellite`** — carries only its own material (recipes specific to its project, data, sources of
-  truth) and points back at the router. There is nothing in it to be behind and nothing to wire, so
-  `check-fleet` lists it and never alarms it. A satellite that has acquired a copy of the framework
-  is a finding: see rule 3 of the star.
+  truth) and points back at the router. There is nothing in it to be behind, so `check-fleet` never
+  counts it with the instances. What it needs is a `.claude/settings.json` that runs the router's
+  hooks, written by `node scripts/install-workspace.mjs --satellites` and committed there, and
+  `check-fleet` names one that lacks it. A satellite that has acquired a copy of the framework is a
+  finding: see rule 3 of the star.
 
 One repo and no satellites is the normal shape, and `standalone` covers it forever. The star, and
 when it is worth having, is [`docs/one-repo-or-several.md`](docs/one-repo-or-several.md) ▸ *the star*.

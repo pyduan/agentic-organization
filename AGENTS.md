@@ -288,7 +288,7 @@ apps/dashboard/              the intranet (it began as the dashboard): intranet.
 apps/dashboard/extend.mjs    the intranet's extension point: an instance's own tabs, pages, home sections and styles
 apps/intranet-extend/        this instance's own views on the intranet, if it has any; never touched by kit updates
 scripts/check-workspace.mjs  does the repo map in ORGANIGRAM.md still match the disk?
-scripts/install-workspace.mjs  gives the parent folder this repo's guards (templates in docs/workspace/)
+scripts/install-workspace.mjs  gives the parent folder this repo's guards and skills, each satellite its relay to them (docs/workspace/)
 scripts/check-fleet.mjs      which projects run this kit, how stale each is, and who still works in them
 scripts/check-conflicts.mjs  what instructs this agent from outside the repo (--park moves it aside, never deletes)
 scripts/workspace-sync.mjs   keeps the clones current: fast-forwards a clean default branch, names the rest
