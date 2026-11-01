@@ -274,3 +274,21 @@ test('a repo whose name merely starts with the kit’s is not taken for the temp
     assert.match(out, /No clone of the template on this machine/);
   } finally { rmSync(ws, { recursive: true, force: true }); }
 });
+
+test('a sync point the template’s history no longer holds gets no figure', () => {
+  // The kit's history was rewritten on 2026-10-09. An instance synced before it keeps
+  // a commit its own clone still holds, so rev-list answered with the length of the
+  // whole new history: every such instance read "161 behind", whatever its age.
+  const { ws, proj, tplDir } = fleet();
+  const commit = (msg) => git(tplDir, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qm', msg);
+  try {
+    git(tplDir, 'checkout', '-q', '--orphan', 'rewritten');
+    commit('r0');
+    for (const i of [1, 2, 3]) { writeFileSync(join(tplDir, `r${i}.txt`), String(i)); git(tplDir, 'add', '-A'); commit(`r${i}`); }
+    git(tplDir, 'branch', '-M', 'rewritten', 'main');
+    const out = scan(proj, ws);
+    assert.match(out, /history no longer holds/);
+    assert.match(out, /synced at a commit the template no longer has: proj/);
+    assert.doesNotMatch(out, /\d+ template commit\(s\) behind/, 'a count across two histories means nothing');
+  } finally { rmSync(ws, { recursive: true, force: true }); }
+});
