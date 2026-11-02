@@ -12,7 +12,7 @@ import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'nod
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { encode } from './check-memory.mjs';
+import { encode, indexFindings, INDEX_LINES } from './check-memory.mjs';
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'check-memory.mjs');
 
@@ -114,5 +114,47 @@ test('paths the memory names are held against the disk, on a Mac or a Linux home
     assert.equal(by('/home/alex/Projects/site').severity, 'warn');
     assert.equal(by('~/Projects/old-archive').severity, 'info');
     assert.equal(by('(no date)').where, 'Projects-site ▸ undated.md');
+  } finally { rmSync(h, { recursive: true, force: true }); }
+});
+
+test('the index names the memories it does not link, and those it links past the cut', () => {
+  const files = ['printer.md', 'brochure.md', 'late.md'];
+  const short = '- [Printer](printer.md) — the printer wants files by Friday\n- [Brochure](brochure.md) — two folds\n';
+  const f = indexFindings(short, files);
+  assert.deepEqual(f.map((x) => x.what), ['late.md']);
+  assert.match(f[0].detail, /not linked/);
+
+  const long = short + Array.from({ length: INDEX_LINES + 10 }, (_, i) => `- line ${i}`).join('\n') + '\n- [Late](late.md) — added last\n';
+  const g = indexFindings(long, files);
+  assert.equal(g[0].what, 'MEMORY.md');
+  assert.match(g[0].detail, /stops at line 200/);
+  assert.match(g.find((x) => x.what === 'late.md').detail, /past the cut at line 200/);
+  assert.equal(g.length, 2, 'the two files linked before the cut are fine');
+
+  // The byte cut comes first when the lines are long.
+  const wide = Array.from({ length: 50 }, () => `- ${'x'.repeat(600)}`).join('\n') + '\n- [Printer](printer.md)\n';
+  assert.match(indexFindings(wide, ['printer.md']).find((x) => x.what === 'printer.md').detail, /past the cut/);
+
+  const exact = Array.from({ length: INDEX_LINES }, (_, i) => (i ? `- line ${i}` : '- [Printer](printer.md)')).join('\n') + '\n';
+  assert.deepEqual(indexFindings(exact, ['printer.md']), [], 'exactly 200 lines and a final newline fit');
+  assert.match(indexFindings(null, files)[0].detail, /none of the 3/);
+  assert.deepEqual(indexFindings(null, []), []);
+  assert.deepEqual(indexFindings('- [P](printer.md)', ['printer.md']), [], 'a name inside a longer one does not count, the link does');
+  assert.equal(indexFindings('- [P](old-printer.md)', ['printer.md']).length, 1);
+});
+
+test('the sweep reports the index findings under MEMORY.md', () => {
+  const { h, memory, repo } = home();
+  try {
+    const projects = join(h, 'Projects');
+    repo(join(projects, 'site'));
+    memory(projects, 'MEMORY.md', '- [Printer](printer.md) — checked 2026-10-01\n');
+    memory(projects, 'printer.md', 'Checked 2026-10-01.\n');
+    memory(projects, 'orphan.md', 'Checked 2026-10-01.\n');
+    const r = sweep(h, projects);
+    const orphan = r.json.findings.find((x) => x.what === 'orphan.md');
+    assert.equal(orphan.where, 'Projects ▸ MEMORY.md');
+    assert.equal(orphan.severity, 'warn');
+    assert.equal(r.json.findings.find((x) => x.what === 'printer.md'), undefined);
   } finally { rmSync(h, { recursive: true, force: true }); }
 });

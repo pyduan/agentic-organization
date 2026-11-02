@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-02 · MINOR · The memory sweep names the memories no session loads
+
+`check:memory` now warns for each memory file that `MEMORY.md` does not link, and when the index is
+longer than what a session loads (the first 200 lines and 25,000 bytes, as Claude Code reads it
+today), it names the memories linked past that cut. In an owner's error register, most memories
+were missing from the index every session loaded, and nothing said so.
+
+**What you need to do:** nothing; the next sweep reports it.
+
 ## 2026-11-02 · MAJOR · The end-of-turn check can hold your agent to your language, and a commit to your trailer rule
 
 Three additions to the guards, from an owner's error register.

@@ -6,6 +6,10 @@
 // wrong about three facts at once (the repo's visibility, the architecture and the
 // deployment URL) and nothing said so.
 //
+// It also checks the index. A session loads MEMORY.md, and only its head: a memory file
+// that the index does not link, or links past the cut, is never seen, and nothing says so.
+// On one machine most memories were absent from the index every session loaded.
+//
 // This script does not reread the prose. It extracts what can be CHECKED and holds it
 // against reality: repos, URLs, local paths. The rest is left to a person's judgement,
 // and the script says so instead of pretending.
@@ -90,6 +94,48 @@ const LOCAL_PATH = /(?:~|\/Users\/[A-Za-z0-9._-]+|\/home\/[A-Za-z0-9._-]+)\/[A-Z
 // Words with which a memory says itself that a path is gone.
 const GONE = /quarantaine|quarantine|retir[ée]|removed|doublon|duplicate|archiv|n'existe plus|no longer exists|pas de clone|not cloned|renomm|renamed|déplac|moved|ancien(?:ne)? (?:nom|chemin)|old (?:name|path)/i;
 
+// What a session loads of MEMORY.md: the first 200 lines and the first 25,000 bytes,
+// whichever comes first. Those are the constants of the Claude Code CLI as read in its own
+// code (version 2.1.306, November 2026); a later version may change them, and these stay
+// the conservative reading until someone checks again.
+export const INDEX_LINES = 200;
+export const INDEX_BYTES = 25000;
+
+/**
+ * What is wrong with an index: the memory files it does not link, and those it links only
+ * past the cut a session reads. `index` is the text of MEMORY.md, or null when there is none.
+ * Returns [{ severity, what, detail }].
+ */
+export function indexFindings(index, files) {
+  const out = [];
+  if (index === null) {
+    if (files.length) out.push({ severity: 'warn', what: 'MEMORY.md', detail: `missing: none of the ${files.length} memory file(s) here is loaded at session start` });
+    return out;
+  }
+  const lines = index.replace(/\n$/, '').split('\n');      // a final newline is not a line
+  let cut = lines.length, bytes = 0;
+  for (let i = 0; i < lines.length; i++) {
+    bytes += Buffer.byteLength(lines[i], 'utf8') + 1;
+    if (i >= INDEX_LINES || bytes > INDEX_BYTES) { cut = i; break; }
+  }
+  const total = Buffer.byteLength(index, 'utf8');
+  if (cut < lines.length) {
+    out.push({ severity: 'warn', what: 'MEMORY.md', detail: `${lines.length} lines, ${total} bytes: a session reads the first ${INDEX_LINES} lines and ${INDEX_BYTES} bytes, so it stops at line ${cut}. Shorten the index to one short line per memory.` });
+  }
+  const linked = (f, text) => new RegExp(`(^|[(\\[/\\s\`'"])${f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}($|[)\\]\\s\`'",;:#])`, 'm').test(text);
+  const head = lines.slice(0, cut).join('\n');
+  for (const f of files) {
+    if (linked(f, head)) continue;
+    if (linked(f, index)) {
+      const at = lines.findIndex((l) => linked(f, l)) + 1;
+      out.push({ severity: 'warn', what: f, detail: `linked from MEMORY.md line ${at}, past the cut at line ${cut}: no session sees it` });
+    } else {
+      out.push({ severity: 'warn', what: f, detail: 'not linked from MEMORY.md: no session loads it, and none will look for it' });
+    }
+  }
+  return out;
+}
+
 const isMain = (() => {
   try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
 })();
@@ -172,9 +218,13 @@ async function main() {
     let files = [];
     try { files = (await readdir(dir)).filter((f) => f.endsWith('.md') && f !== 'MEMORY.md'); } catch { continue; }
 
+    const short = key.startsWith(homeKey) ? key.slice(homeKey.length) : key;
+    const index = await readFile(join(dir, 'MEMORY.md'), 'utf8').catch(() => null);
+    for (const f of indexFindings(index, files)) add(f.severity, `${short} ▸ MEMORY.md`, f.what, f.detail);
+
     for (const file of files) {
       scanned++;
-      const where = `${key.startsWith(homeKey) ? key.slice(homeKey.length) : key} ▸ ${file}`;
+      const where = `${short} ▸ ${file}`;
       const text = await readFile(join(dir, file), 'utf8');
       // A line is not a unit of meaning: markdown wraps, so a repo's name and the words
       // about it can sit on two lines. Context is the BLOCK, the bullet or the paragraph.
