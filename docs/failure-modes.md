@@ -36,10 +36,12 @@ Three findings about the *shape* of these errors, before the list:
   mechanisms above), say so in the register's own words: *nothing guards this yet*.
 - **Two of the commonest misses are now refused by the harness rather than by this page.**
   `.claude/hooks/send-guard.mjs` makes any message leaving in someone's name wait for a person's yes
-  at the moment it leaves. `.claude/hooks/turn-check.mjs` refuses to end a turn whose answer asserts
-  an absence nobody searched for, a silence nobody checked, a verification nobody ran, a success over
-  a failing command, or a conclusion drawn from a source read only in part. A block is answered by
-  doing the check, or by saying exactly what was and was not looked at.
+  at the moment it leaves, and, where a project forbids a commit trailer, holds a commit carrying it.
+  `.claude/hooks/turn-check.mjs` refuses to end a turn whose answer asserts an absence nobody
+  searched for, a silence nobody checked, a verification nobody ran, two figures that agree with no
+  computation done, a success over a failing command, or a conclusion drawn from a source read only
+  in part; opted in, it also refuses a sentence written in another language than the owner's. A
+  block is answered by doing the check, or by saying exactly what was and was not looked at.
 
 - **Thoroughness is not coverage, and it disguises the gap.** The starkest incident in that register
   was an archive verified for days — hash by hash, restart, throughput, disk — and parked in cloud
@@ -119,11 +121,15 @@ and its absence cost hours, and once, files.
 - **A search tool says how far it sees, and a zero is read against that.** An index built once
   and never refreshed answered "no result" for three weeks of mail exactly as it answers for a
   message that does not exist. Anything that answers with an absence prints the date or extent it
-  covers; a zero beyond it is not an answer.
+  covers; a zero beyond it is not an answer. **A sweep that filters says what it left out**, and
+  never calls itself complete: one restricted to messages carrying a date marker reported "all
+  answered" over a thread whose last mail had none.
 - **Bound a search by the question, never by convenience.** A file search cut at its first thirty
   results, a mailbox read to a fixed number of recent messages, a date filter comparing a number with
   text: each returned nothing and each was read as an absence. Run the same query without its filter
-  first; a zero on a source you know is live is a broken query.
+  first; a zero on a source you know is live is a broken query. Before concluding absence, search
+  case-insensitively and with no cap per thread. Then search again by the probable author and by the
+  period of the facts: a reply sat under the sender's assistant's name, a month before the date searched.
 - **Before carrying out a procedure a third party fixed, reopen their text and tick each item.** A
   claim went out with one of the two documents an insurer listed, because it was written from the
   project's own summary of the procedure.
@@ -162,6 +168,11 @@ and the second copies only the number.
 - **Never explain a discrepancy with a plausible guess.** Trace it to its cause, or write that you
   do not know. A guess left in the file becomes the reason, and it makes a sound calculation look
   suspect.
+- **When the owner questions a figure and it turns out wrong, the default hypothesis is an omission,
+  never a choice.** Re-read what they already said on the subject before explaining anything. The
+  gravest case in one register: a step never done, explained after the fact as "deliberate", on a
+  point the owner had flagged before; it happened again within the hour after being named, and only
+  a hook stopped it. "I left it out" is the first sentence to try, because it is usually true.
 - **An assumption inherited from earlier work arrives without its status.** When you build on
   something you did not establish, say so in the same sentence, with what it changes if it is wrong.
 - **The form of the work fabricates authority the content has not earned.** This is the umbrella over
@@ -229,6 +240,10 @@ and the second copies only the number.
 - **An "ok" on a direction is not a decision on a result.** An owner's "ok" in the middle of a set of
   simulations was filed as decided, carried into two meeting notes and a deadline, and she had to say
   she had decided nothing. A decision is recorded with the words that took it and what they covered.
+  **A decision carrying an order ("A, failing which B") or an amount is shown back in one line before
+  it is written**: a paraphrase swapped the order of a large clause. Another session's paraphrase of
+  the owner is not their decision; go back to their words. And a "yes" to a sentence is not a ruling
+  on its substance: on law, tax or a calculation, cite the text or the computation, never the owner.
 - **A condition travels with what it conditions.** A block titled "if this happens after X" was
   copied into a guide and a task list without its title. A task list has no conditional mood, so a
   contingency became something the owner had to do.
@@ -322,6 +337,9 @@ and the second copies only the number.
   study was wrong; one counted earnings capped at a ceiling and the other gross earnings, and one mixed
   contributions with credits. A difference between two composites is an error only once each is broken
   into terms that measure the same thing.
+- **"They reconcile" is a subtraction, done and read.** A note said two documents "reconcile
+  exactly" with no difference ever computed; they differed threefold, and an unpaid third was carried
+  as paid. `turn-check` now refuses a concordance claim in a turn that ran nothing, so give the gap.
 - **An exact equality between two scenarios is suspect until explained.** Two options came out equal
   to the cent and it was presented as a finding; it was one allowance counted in the wrong one of two
   calculations. Equal results from different inputs are usually one input counted twice.
@@ -346,6 +364,9 @@ wrong.
 - **When a fact falls, sweep every occurrence of it** — every repo, every app, every summary, every
   decision that rested on it — not only the file where you noticed. Correcting the analysis in front
   of you and stopping there leaves the stale version reading like current information elsewhere.
+  **A rule the owner states as "everywhere" becomes a check in the generating program the same day**,
+  and the outputs already delivered are swept: a rounding rule applied to one page by hand was then
+  missed twice on the next ones.
 - **Retiring a routine means deleting or capping its instruction file, in the same change as the
   decision.** A superseded guide is a stale sentence; a superseded *automation* left on disk is a
   stale sentence something can still execute, and it carries the facts that were true when it was
@@ -441,6 +462,13 @@ list here, so it is split by the moment each rule applies.
   the current SSID against a forbidden pattern, and the OS only gives the SSID to programs holding a
   location permission — so the comparison ran against a masking string, matched nothing ever, and
   its silence read as safety.
+- **An alert is read where people look, and says once that things are back to normal.** An alert
+  written to a file nobody opens is not an alert, and one that repeats "still fine" every hour is
+  soon not read either. **A scheduler's "succeeded" means the session ended**, not that the work was
+  done: five weekly sends were missed, four of them marked successful. An independent check reads the
+  artefact itself (the sent message, the file, its date) after the scheduled time.
+- **A program that produces a delivered document lives in the repo from the first delivery.** One
+  kept in a temporary folder was lost at the next reboot, and the document could no longer be rebuilt.
 - **Before founding a rule on a system value, prove the program can obtain it in the conditions it
   will run in** — a scheduled job, not your interactive session. When the value is closed off,
   change lever rather than insist: the list of remembered networks was readable without permission,
@@ -466,6 +494,10 @@ list here, so it is split by the moment each rule applies.
 
 ### Before you destroy
 
+- **Accounts that control devices, mail or backups are not automated without the owner's consent
+  for that account.** The platform account of a phone or a computer, a password manager and its
+  components: no scripted sign-in, no stopping a component, until the stake has been stated (what
+  stops working, what can be locked out) and the owner has said yes for that one account.
 - **A safety guarantee from someone else's API is a claim.** Test it on one item, then in a small
   batch, before acting in bulk, and verify the real state independently afterwards — never trust the
   tool's own report of success.
@@ -570,16 +602,29 @@ list here, so it is split by the moment each rule applies.
 - **A check you have never seen say no checks nothing, and nor does one you have never seen say
   yes.** A process test matched an unanchored name that system services also carry, so it answered
   "still running" forever. A completeness test written as an equality could never pass once the agent
-  itself had renamed files. Exercise both answers once before relying on either.
+  itself had renamed files. Exercise both answers once before relying on either. **A guard's
+  pattern is tested for what it lets through, not only what it catches**: an unanchored "0 errors"
+  matched "10 errors", and the guard waved the failure through.
 - **Test a scheduled job through exactly what the scheduler runs.** A dry run called the send script
   directly, bypassing the entry script the job actually launches, which still read the attachment
   list in its old format; the mail did not go.
-- **A write is verified by reading the result back.** `open(p, 'w').write(open(p).read()…)` empties
-  the file before reading it and raises nothing; a notes file was committed empty that way, and the
-  agent then blamed a parallel session instead of reading the file's history.
+- **A write is verified by reading the result back, by another path than the write.**
+  `open(p, 'w').write(open(p).read()…)` empties the file before reading it and raises nothing; a
+  notes file was committed empty that way, twice, and the agent then blamed a parallel session
+  instead of reading the file's history. Read into a variable first, write, then check the file. And
+  a check through the same path as the write proves nothing: text put on the clipboard and read back
+  with the same wrong encoding was declared fine.
+- **A generator that reads its own previous output is run twice in a row before it is called
+  done**, and the second run must change nothing. Phrases appended again on every rebuild, rounding
+  applied on top of rounding, a one-off conversion left active: each passed its first run.
 - **A document the owner has open is not updated until the application holding it reloads it.** A
   workbook was rewritten six times while the owner read a stale copy on screen, and one save from that
   window would have erased every correction.
+- **The owner's own desktop apps are driven around them, never over them.** Check which app is in
+  front in a separate command before acting, and never take the foreground while they work: their
+  keystrokes went into a message field. Open a spreadsheet on a title cell, never a formula cell.
+  Never answer a dialog another session owns, tell a neighbour session before using an app you
+  share, and respect a refused screen access instead of routing around it.
 - **A global visual change is verified everywhere, by measurement.** Inverting a deck's dominant
   colour left its headline figures dark on dark, contrast 1.26, on the published version; a full sweep
   then found thirty more texts below the threshold. Measure every element, not the component you
@@ -593,7 +638,8 @@ list here, so it is split by the moment each rule applies.
 - **An exemption is held to the rule written above it.** An exemption list is where a check stops
   looking, and a false positive filed there becomes "someone's decision" nobody can trace. Read each
   exemption against its criterion when you touch the list, and before acting on a recorded debt,
-  open the thing it names: the note may be the stale part.
+  open the thing it names: the note may be the stale part. **Never switch a check off without doing
+  its job yourself**: a duplicate check disabled to avoid a dialog let the duplicates in.
 
 ## 6 · Handover and the relationship
 
@@ -712,7 +758,9 @@ useless — or it spends the owner's time on something that was yours to do.
   sent folder, never from the screen that was supposed to send it.
 - **A field another tool parses is an interface.** When a neighbour repo reads a page's `<title>`, a
   date in a file name or a frontmatter key, changing it is changing an API: change the reader in the
-  same commit, or leave the field alone.
+  same commit, or leave the field alone. **Before renaming a label, a sheet, a heading or a note,
+  search every program and every check that finds it by its text**, and accept both forms for one
+  transition: a renamed sheet tab made an import read nothing, and report it as an empty month.
 
 ## 7 · Parallel sessions
 

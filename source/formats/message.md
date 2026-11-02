@@ -48,6 +48,12 @@ block below for whoever is sending it.
   a price, a deliverable, an opinion about a third party) gets flagged to them in your response
   rather than buried in the draft.
 
+### A scheduled send names its day
+
+Between midnight and dawn, "tomorrow" is turned into a day and a date in the confirmation, before
+the send is scheduled. Said at one in the morning, it can mean the day that has just begun or the
+next one: the confirmation reads "Tuesday 4 March at 9:00", and the owner's yes is to that line.
+
 ## Plain text, and why
 
 An email draft is plain text with `– ` bullets, no markdown, links written bare. That rule and the

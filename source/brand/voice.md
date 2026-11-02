@@ -33,6 +33,9 @@ These start as sensible defaults; edit them to fit.
   like *only*, *just* or *barely* lends it one — and then the word is doing the arguing, not the
   measurement. If the real reason for a recommendation is elsewhere, say that reason instead of
   borrowing weight from an alarm.
+- **A closed question gets yes or no in the first sentence.** The reservations follow it, short. An
+  answer that opens on context makes the reader hunt for the verdict, and a reservation read first
+  gets taken for it.
 - **Links point straight at their destination.** A URL copied out of Google Docs, Gmail, or a notes
   tool arrives wrapped as `https://www.google.com/url?q=…`: decode it to the real target and drop
   the tracking params. A reader should see the real domain, not something that looks like tracking.

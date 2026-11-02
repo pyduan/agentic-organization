@@ -10,6 +10,36 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-02 · MAJOR · New rules from an owner's error register
+
+About three hundred entries of an owner's error register, added since late September, brought
+rules your agent now follows. `docs/failure-modes.md` gained the ones for every task:
+
+- when you question a figure and it turns out wrong, your agent assumes it left something out,
+  rereads what you already said, and never explains it as a deliberate choice;
+- a decision you give with an order ("A, failing which B") or an amount is shown back to you in one
+  line before it is written, and on law, tax or a calculation your "yes" to a sentence is never
+  cited as the authority;
+- a search that filters says what it left out, and a search for something missing also looks by
+  the probable author and by the period;
+- a check that goes through the same path as the write, or a guard tested only on what it
+  catches, proves nothing; a program that reads its own previous output is run twice before it is
+  called done;
+- a renamed label, sheet or heading is searched for in every program and check that finds it by
+  its text;
+- a rule you state as "everywhere" becomes a check in the program that generates, the same day;
+- alerts go where someone looks, and a scheduler's "succeeded" is checked against the thing it was
+  meant to produce (also in `routines/README.md`);
+- your desktop apps are driven around you, never over you, and accounts that control your devices,
+  mail or backups are never signed into or stopped without your yes for that account.
+
+Answers to a yes-or-no question now start with yes or no (`source/brand/voice.md`), and a send
+scheduled between midnight and dawn names its day and date instead of "tomorrow"
+(`source/formats/message.md`).
+
+**What you need to do:** if a program that builds a document you deliver lives in a temporary
+folder, ask your agent to move it into the repo.
+
 ## 2026-11-02 · MINOR · The memory sweep names the memories no session loads
 
 `check:memory` now warns for each memory file that `MEMORY.md` does not link, and when the index is
