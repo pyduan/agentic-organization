@@ -79,10 +79,14 @@ Find every row that matches the task at hand and read those files before produci
 - **Never write a confirmation next to a command. Deduce it from the result.** Reported twice from a live project on the same day: a publish announced as done, and a test suite announced green while it was failing — caught by a parallel session, not by the one that wrote the sentence. The failure is not carelessness, it is that "ran the command" and "the command succeeded" feel like one act while writing. So: read the exit code, read the output, fetch the live URL, count the passing tests. If you did not look, say you did not look. A confidently wrong "done" costs the owner more than an honest "I ran it, here is the output, I am not sure".
 - **Two hooks hold what these rules could not.** A message leaving in someone's name waits for a
   person's yes at the moment it leaves (`.claude/hooks/send-guard.mjs`), and a turn cannot end on an
-  absence nobody searched for, a silence nobody checked, a verification nobody ran, a success over a
-  failing command, or a source cited after reading only part of it (`.claude/hooks/turn-check.mjs`).
+  absence nobody searched for, a silence nobody checked, a verification nobody ran, two figures said
+  to agree with nothing computed, a success over a failing command, or a source cited after reading
+  only part of it (`.claude/hooks/turn-check.mjs`).
   When one blocks, do the check or say exactly what you did and did not look at; never argue past it.
-  A project tunes the second in `.claude/turn-checks.json` (example: `source/quality/turn-checks.example.json`).
+  A project tunes the second in `.claude/turn-checks.json` (example: `source/quality/turn-checks.example.json`),
+  where it can also hold every sentence to the owner's language (`"language"`) and hold a commit
+  carrying a trailer it forbids (`"commitTrailers"`). A project's rule there wins over a reminder
+  from the harness to add one.
 - **Verify before publishing.** Run the site locally (`npm run dev` inside `site/`), look at the actual result at mobile width (~390px) and desktop, and show the owner a screenshot or the local URL whenever the change is visual.
 - **Then publish — how much you pause depends on the mode the owner picked at setup** (recorded in `brief.md`; default is simplified). Commit with a clear message either way, and treat the index as shared with every session in this clone:
   `git branch --show-current` before staging, since another session can switch the checkout; stage the

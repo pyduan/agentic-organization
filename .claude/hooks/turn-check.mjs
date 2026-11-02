@@ -15,6 +15,19 @@
 //   verified   "verified", "c'est vérifié"                          nothing ran at all
 //   failed     "sent", "published", "tests pass"                    the last call errored
 //   partial    a file the answer names was read only in part, and never whole
+//   concordance "they reconcile exactly", "se recoupent"         nothing ran at all
+//
+// One more is opt-in, because only the project knows which language its owner reads:
+//
+//   language   with `"language": "fr"` (or "en") in `.claude/turn-checks.json`, a
+//              sentence written in another language anywhere in the turn's text,
+//              the short narration between tool calls included. A register logged
+//              six English transition sentences in one night ("Now let me check the
+//              file.") under a written rule to answer in French; a Stop check ended
+//              it. Code spans, fenced blocks, paths, commands, URLs, quotations,
+//              blockquotes and table rows are left out, and a sentence is judged on
+//              its function words only (the, and, is… against le, et, est…), so
+//              English technical words inside a French sentence never count.
 //
 // Each fires on the turn's final answer only, and blocks once: the second stop goes
 // through (stop_hook_active), so a false alarm costs one look, never a loop. The
@@ -44,6 +57,7 @@ export function currentTurn(jsonl) {
   const calls = [];
   const byId = new Map();
   let finalText = [];
+  const texts = [];                             // every text the turn wrote, narration included
   for (const l of turn) {
     const content = Array.isArray(l.message?.content) ? l.message.content : [];
     if (l.type === 'assistant') {
@@ -52,7 +66,7 @@ export function currentTurn(jsonl) {
           const call = { id: c.id, name: c.name, input: c.input || {}, error: false, output: '' };
           calls.push(call); byId.set(c.id, call);
           finalText = [];                       // the answer is what comes after the last call
-        } else if (c.type === 'text' && c.text) finalText.push(c.text);
+        } else if (c.type === 'text' && c.text) { finalText.push(c.text); texts.push(c.text); }
       }
     } else {
       for (const c of content) {
@@ -65,7 +79,7 @@ export function currentTurn(jsonl) {
       }
     }
   }
-  return { calls, answer: finalText.join('\n') };
+  return { calls, answer: finalText.join('\n'), texts };
 }
 
 // ------------------------------------------------------------------ what counts
@@ -154,6 +168,19 @@ export const DEFAULT_CHECKS = [
       'read. Run it, or say it comes from an earlier turn and when.',
   },
   {
+    id: 'concordance',
+    patterns: [
+      '\\b(match(es)?|agree|tally) (exactly|perfectly|to the (cent|penny|euro|dollar))\\b',
+      '\\b(reconcile[sd]?|add(s)? up|tie[sd]? out)\\b', '\\bto the rounding\\b', '\\b(up )?to rounding\\b',
+      '\\bse recoupent\\b', '\\b(concordent|coïncident|se rejoignent)\\b', '\\bcorrespond(ent)? exactement\\b',
+      "\\b(aux|à l'|à un) arrondis? près\\b", '\\btombent juste\\b', '\\b(sont|est) cohérente?s? (entre (eux|elles)|avec)\\b',
+    ],
+    requires: 'any-call',
+    say: 'says two sources or figures agree, and this turn computed nothing. A concordance is a subtraction ' +
+      'whose result you read: two documents said to "reconcile exactly" differed threefold, and an unpaid third ' +
+      'was carried as paid. Do the arithmetic now and give the gap, or say the comparison was not made.',
+  },
+  {
     id: 'failed',
     patterns: [
       '\\b(sent|published|deployed|pushed|merged|tests? pass(ed|es)?|all green|is live)\\b',
@@ -172,12 +199,81 @@ export const DEFAULT_CHECKS = [
   },
 ];
 
-function loadProjectChecks(dir) {
+function loadProjectConfig(dir) {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8'));
     const off = new Set(j.disable || []);
-    return [...DEFAULT_CHECKS.filter((c) => !off.has(c.id)), ...(j.checks || [])];
-  } catch { return DEFAULT_CHECKS; }
+    return { checks: [...DEFAULT_CHECKS.filter((c) => !off.has(c.id)), ...(j.checks || [])], language: j.language };
+  } catch { return { checks: DEFAULT_CHECKS }; }
+}
+
+// ------------------------------------------------------------------ the language check
+
+// Function words only: a technical term (build, commit, worktree) is not one, so it
+// never makes a French sentence look English. Words both languages write the same way
+// (a, on, me, son, or, but, as, an, en, ne…) are left out of both lists.
+const FUNCTION_WORDS = {
+  en: new Set(('the and is are was were be been being to of for with that this these those it its they them their ' +
+    'we you he she his her our your will would should could can cannot let now then there here what which when where ' +
+    'who why how have has had do does did not from into onto by at if so than also just only some any all each ' +
+    'about after before because while until again still yet very too').split(' ')),
+  fr: new Set(("le la les des du un une et est sont été être était étaient que qui quoi dans pour pas sur avec " +
+    "ce cette ces cet il ils elle elles nous vous je tu au aux mais ou où sa ses par plus se lui leur leurs " +
+    "déjà aussi très puis donc alors ainsi encore chez entre sans sous ça cela ceci mon ma mes ton ta tes " +
+    "notre nos votre vos été fait faut peut doit avons avez ont suis sommes êtes c'est j'ai n'est qu'il " +
+    "d'un d'une l'on").split(' ')),
+};
+export const LANGUAGES = Object.keys(FUNCTION_WORDS);
+
+/** The prose of a text with everything that is not the agent's own sentence taken out. */
+export function proseOf(text) {
+  return text
+    .replace(/```[\s\S]*?```/g, '\n')                       // fenced blocks
+    .replace(/`[^`\n]*`/g, ' ')                               // code spans
+    .split('\n').filter((l) => !/^\s*(>|\|)/.test(l)).join('\n')   // blockquotes, table rows
+    .replace(/https?:\/\/\S+/g, ' ')                           // URLs
+    .replace(/▸\s*\*[^*\n]+\*/g, ' ')                           // a heading cited after ▸
+    .replace(/"[^"\n]*"|“[^”\n]*”|«[^»\n]*»|‘[^’\n]*’/g, ' ')  // quotations
+    .replace(/(^|\s)[~.]?[\w.@-]*\/[\w.\/@~-]*/g, ' ')            // paths, owner/repo slugs
+    .replace(/\b[\w-]+\.(md|mjs|js|json|ts|tsx|css|html|py|sh|txt|csv|pdf|yml|yaml|toml)\b/g, ' ')
+    .replace(/(^|\s)--?[\w-]+/g, ' ');                          // command flags
+}
+
+/**
+ * Sentences written in another language than `lang`. Each is judged on its function
+ * words: at least four words, at least two function words of the other language, and
+ * three in four of the function words it has belong to that other language.
+ */
+export function foreignSentences(texts, lang) {
+  if (!FUNCTION_WORDS[lang]) return [];
+  const out = [];
+  for (const t of texts) {
+    for (const raw of proseOf(t).split(/(?<=[.!?:;])\s+|\n+/)) {
+      const sentence = raw.trim();
+      const words = sentence.toLowerCase().replace(/[’]/g, "'").match(/[\p{L}']+/gu) || [];
+      if (words.length < 4) continue;
+      const own = words.filter((w) => FUNCTION_WORDS[lang].has(w)).length;
+      for (const other of LANGUAGES) {
+        if (other === lang) continue;
+        const theirs = words.filter((w) => FUNCTION_WORDS[other].has(w)).length;
+        if (theirs >= 2 && theirs >= 3 * own) { out.push({ sentence: sentence.slice(0, 160), other }); break; }
+      }
+    }
+  }
+  return out;
+}
+
+export function checkLanguage({ texts = [] }, lang) {
+  const found = foreignSentences(texts, lang);
+  if (!found.length) return [];
+  const shown = found.slice(0, 3).map((f) => f.sentence).join('» «');
+  return [{
+    id: 'language', quote: shown + (found.length > 3 ? `» (+${found.length - 3} more) «` : ''),
+    say: `${found.length > 1 ? 'are' : 'is'} written in another language than the one this project reads (${lang}), ` +
+      'counting the short narration between tool calls. Write every sentence the owner sees in their language, ' +
+      'the transitions included. A name that has to stay in its language (a commit title, a label) goes in ' +
+      'quotation marks or in code, where this check does not read.',
+  }];
 }
 
 /** The sentence of the answer in which a pattern matched, for quoting back. */
@@ -257,7 +353,9 @@ if (isMain) {
   catch (e) { console.error(`turn-check: could not read the transcript (${e.message}); nothing was checked.`); process.exit(1); }
   // A session opened on the workspace folder passes the router, whose tuning this reads.
   const dir = process.argv[2] || process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
-  const findings = check(currentTurn(transcript), loadProjectChecks(dir));
+  const config = loadProjectConfig(dir);
+  const turn = currentTurn(transcript);
+  const findings = [...check(turn, config.checks), ...(config.language ? checkLanguage(turn, config.language) : [])];
   if (findings.length) {
     const reason = ['Before ending this turn — your answer:', ...findings.map((f) => `• «${f.quote}» ${f.say}`),
       'Do the check now, or rewrite the sentence to say exactly what was and was not looked at.'].join('\n');

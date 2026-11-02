@@ -13,8 +13,8 @@ import { mkdtempSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { classify } from '../.claude/hooks/send-guard.mjs';
-import { currentTurn, check } from '../.claude/hooks/turn-check.mjs';
+import { classify, forbiddenTrailers } from '../.claude/hooks/send-guard.mjs';
+import { currentTurn, check, checkLanguage, foreignSentences } from '../.claude/hooks/turn-check.mjs';
 
 const HOOKS = resolve(dirname(fileURLToPath(import.meta.url)), '../.claude/hooks');
 
@@ -66,6 +66,50 @@ test('send-guard speaks the PreToolUse protocol', () => {
   const j = JSON.parse(out);
   assert.equal(j.hookSpecificOutput.hookEventName, 'PreToolUse');
   assert.equal(j.hookSpecificOutput.permissionDecision, 'ask');
+});
+
+// ------------------------------------------------------------------ commit trailers
+
+const CO = 'Co-Authored-By';
+test('a forbidden trailer is found wherever the commit message is written', () => {
+  const hits = [
+    `git commit -m "Fix the totals" -m "Co-Authored-By: A Tool <tool@example.com>"`,
+    `git commit -m "Fix the totals\n\nCo-authored-by: A Tool <tool@example.com>"`,
+    `git commit -m "$(cat <<'EOF'\nFix the totals\n\nCo-Authored-By: A Tool <tool@example.com>\nEOF\n)"`,
+    `git -C ~/site commit --trailer "Co-authored-by: A Tool <tool@example.com>" -m "Fix"`,
+    `cd ~/site && git add a.md && git commit -m $'Fix\\n\\nCo-Authored-By: A Tool'`,
+  ];
+  for (const cmd of hits) assert.deepEqual(forbiddenTrailers(cmd, [CO]), [CO], cmd);
+
+  const dir = mkdtempSync(join(tmpdir(), 'commit-'));
+  writeFileSync(join(dir, 'msg.txt'), 'Fix the totals\n\nCo-Authored-By: A Tool <tool@example.com>\n');
+  assert.deepEqual(forbiddenTrailers('git commit -F msg.txt', [CO], dir), [CO]);
+  assert.deepEqual(forbiddenTrailers(`git commit --file=${join(dir, 'msg.txt')}`, [CO]), [CO]);
+});
+
+test('a commit without the trailer, or a command that is not a commit, goes through', () => {
+  const quiet = [
+    'git commit -m "Fix the totals"',
+    'git log --grep "Co-Authored-By:"',
+    'grep -rn "Co-Authored-By:" .git/COMMIT_EDITMSG',
+    'git commit -m "Credit the printer in the footer"',
+    'echo "Co-Authored-By: x" > note.txt',
+  ];
+  for (const cmd of quiet) assert.deepEqual(forbiddenTrailers(cmd, [CO]), [], cmd);
+  assert.deepEqual(forbiddenTrailers('git commit -m "x" -m "Co-Authored-By: y"', []), [], 'off unless configured');
+  assert.deepEqual(forbiddenTrailers('git commit -m "x" -m "Signed-off-by: y"', [CO, 'Signed-off-by']), ['Signed-off-by']);
+});
+
+test('the commit guard asks, only in a project that opted in', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'commit-'));
+  const event = JSON.stringify({ tool_name: 'Bash', tool_input: { command: 'git commit -m "x" -m "Co-Authored-By: y"' }, cwd: dir });
+  const run = () => execFileSync('node', [join(HOOKS, 'send-guard.mjs')], { input: event, encoding: 'utf8', env: { ...process.env, CLAUDE_PROJECT_DIR: dir } });
+  assert.equal(run(), '', 'no config, no question');
+  execFileSync('mkdir', ['-p', join(dir, '.claude')]);
+  writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({ commitTrailers: 'forbid' }));
+  const j = JSON.parse(run());
+  assert.equal(j.hookSpecificOutput.permissionDecision, 'ask');
+  assert.match(j.hookSpecificOutput.permissionDecisionReason, /Co-Authored-By/);
 });
 
 // ------------------------------------------------------------------ turn-check
@@ -154,4 +198,81 @@ test('a project can disable a check or add its own', () => {
   }));
   assert.match(out.reason, /cite the text/);
   assert.doesNotMatch(out.reason, /missing or does not exist/);
+});
+
+test('a concordance nobody computed is refused, in French and in English', () => {
+  assert.deepEqual(ids(transcript({ answer: 'Les deux relevés se recoupent, aux arrondis près.' })), ['concordance']);
+  assert.deepEqual(ids(transcript({ answer: 'The invoice and the statement reconcile exactly.' })), ['concordance']);
+  assert.deepEqual(ids(transcript({ answer: 'Les deux relevés concordent.', calls: [{ name: 'Bash', input: { command: 'node -e "console.log(1200-400)"' } }] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'Voici les deux relevés, je ne les ai pas encore comparés.' })), []);
+});
+
+// ------------------------------------------------------------------ language
+
+/** A turn with narration between calls, as Claude Code writes it. */
+function narrated(texts, answer) {
+  const L = [{ type: 'user', message: { role: 'user', content: 'la question' } }];
+  texts.forEach((t, i) => {
+    L.push({ type: 'assistant', message: { content: [{ type: 'text', text: t }, { type: 'tool_use', id: `n${i}`, name: 'Read', input: { file_path: '/d/x.md' } }] } });
+    L.push({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `n${i}`, content: 'ok' }] } });
+  });
+  L.push({ type: 'assistant', message: { content: [{ type: 'text', text: answer }] } });
+  return currentTurn(L.map((l) => JSON.stringify(l)).join('\n'));
+}
+
+// Realistic French answers, invented, dense in English technical words: none may be flagged.
+const FRENCH = [
+  "J'ai relancé le build, le commit est passé et le push sur main aussi.",
+  'Le hook PreToolUse bloque le merge tant que le check de la CI est rouge.',
+  'Le worktree est propre : `git status --porcelain` ne renvoie rien, et le diff est vide.',
+  "Le deploy du Worker a échoué sur un timeout ; je le relance avec `wrangler deploy --config apps/todos/wrangler.jsonc`.",
+  'La pull request est ouverte, le reviewer est assigné, il reste le changelog à écrire.',
+  "Le fichier source/brand/voice.md dit déjà « read the diff before you commit », donc je n'ajoute rien.",
+  'Les tests passent : 214 sur 214, et `npm run check` sort avec le code 0.',
+  "Pour le dashboard, j'ai mis les stat tiles en haut et le footer avec les liens vers les documents.",
+  "Le message d'erreur était \"permission denied (publickey)\", donc la clé SSH n'était pas chargée.",
+  "Voici le résultat :\n```\nAll checks passed. Nothing to commit, working tree clean.\n```\nTout est en ordre.",
+  "Le script lit le CSV export, fait le matching par email et écrit un JSON par contact.",
+  "Le README dit:\n> Run the setup script before you open the app.\nC'est ce que j'ai fait.",
+  '| Check | Result |\n|---|---|\n| tests | all green |\nLe tableau ci-dessus résume les contrôles.',
+  'OK, je regarde.',
+  'Commit 4f2a9c1, poussé.',
+];
+const ENGLISH = [
+  'Now let me check the file.',
+  'Let me read it.',
+  'The tests pass, so I will push the branch now.',
+  'Good, that worked. Next I need to update the changelog.',
+  "I'll look at the hook first and then fix the test.",
+  'This is the last step before the deploy.',
+];
+
+test('the language check flags English sentences in a French turn, narration included, and nothing else', () => {
+  for (const t of FRENCH) assert.deepEqual(foreignSentences([t], 'fr'), [], t);
+  for (const t of ENGLISH) assert.equal(foreignSentences([t], 'fr').length, 1, t);
+  const turn = narrated(['Je lis le fichier.', 'Now let me check the hook.'], 'Le hook est corrigé et les tests passent.');
+  const f = checkLanguage(turn, 'fr');
+  assert.equal(f.length, 1);
+  assert.match(f[0].quote, /Now let me check the hook/);
+  assert.deepEqual(checkLanguage(narrated(['Je lis le fichier.'], 'Le hook est corrigé.'), 'fr'), []);
+});
+
+test('the language check works the other way round, and ignores a language it does not know', () => {
+  assert.equal(foreignSentences(["Je regarde le fichier et je reviens vers vous."], 'en').length, 1);
+  assert.deepEqual(foreignSentences(['The owner signed the « bon pour accord » page and the deck went out.'], 'en'), []);
+  assert.deepEqual(foreignSentences(['Now let me check the file.'], 'xx'), []);
+});
+
+test('the language check is opt-in, through turn-checks.json', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'turn-'));
+  const path = join(dir, 't.jsonl');
+  writeFileSync(path, transcript({ answer: 'Now let me summarise the change. Le hook est en place.', calls: [{ name: 'Grep' }] }));
+  const run = () => execFileSync('node', [join(HOOKS, 'turn-check.mjs')], {
+    input: JSON.stringify({ transcript_path: path, stop_hook_active: false, cwd: dir }),
+    env: { ...process.env, CLAUDE_PROJECT_DIR: dir }, encoding: 'utf8',
+  });
+  assert.equal(run(), '', 'off by default');
+  execFileSync('mkdir', ['-p', join(dir, '.claude')]);
+  writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({ language: 'fr' }));
+  assert.match(JSON.parse(run()).reason, /Now let me summarise the change/);
 });

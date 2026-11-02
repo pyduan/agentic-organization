@@ -1,6 +1,10 @@
 {
   "_what": "Copy to .claude/turn-checks.json to add checks to the end-of-turn hook (.claude/hooks/turn-check.mjs) or disable a default one. Each check fires on the turn's final answer only, and blocks once.",
   "_requires": "search = a search ran this turn · look = a search ran or a file was read whole · any-call = any tool ran · last-call-ok = the last call did not error · cite = the sentence itself carries the `cite` pattern (a reference, an attribution, or a reservation)",
+  "_language": "Opt-in: \"fr\" or \"en\". Blocks a turn whose text, the short narration between tool calls included, holds a sentence in the other language. Code, paths, commands, URLs, quotations, blockquotes and table rows are not read. Brought by a register that logged six English transition sentences in one night under a written rule to answer in French. Leave the key out to keep it off.",
+  "language": "fr",
+  "_commitTrailers": "Opt-in: \"forbid\" holds any git commit carrying a Co-Authored-By trailer for a person's yes (.claude/hooks/send-guard.mjs); a list of keys holds those instead, e.g. [\"Co-Authored-By\", \"Signed-off-by\"]. Brought by an owner who forbade tool co-signatures in her repos, after one went in four times. Leave the key out to keep it off.",
+  "commitTrailers": "forbid",
   "disable": [],
   "checks": [
     {

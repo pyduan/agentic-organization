@@ -22,10 +22,19 @@
 //   { "allow": ["scripts/alert-owner\\.sh"] }
 // Never add a pattern that can reach someone else.
 //
+// The same Bash matcher also holds a commit that carries a trailer the project forbids,
+// opt-in in `.claude/turn-checks.json`:
+//   { "commitTrailers": "forbid" }                      no Co-Authored-By trailer
+//   { "commitTrailers": ["Co-Authored-By", "Signed-off-by"] }   these keys
+// A commit signs work in someone's name too. An owner forbade tool co-signatures in her
+// repos; the harness kept reminding the agent to add one, and one went in four times,
+// once already pushed. The message is read wherever the command puts it: -m, --message,
+// --trailer, a heredoc, or the file of -F / --file. The decision is `ask`, as for a send.
+//
 // Zero dependencies. Reads the hook's JSON on stdin, prints a decision or nothing.
 
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // The message playbook of the repo this guard ships in, named so the agent can reread it. The same
@@ -62,6 +71,34 @@ export function classify({ tool_name: name = '', tool_input: input = {} }, allow
   return null;
 }
 
+// ------------------------------------------------------------------ commit trailers
+
+const esc = (k) => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** The trailer keys a `git commit` command would write, among `keys`, or []. */
+export function forbiddenTrailers(command, keys, cwd = process.cwd()) {
+  const cmd = String(command || '');
+  if (!keys.length || !/\bgit\b(\s+-[Cc]\s+\S+|\s+--?[\w-]+(=\S+)?)*\s+commit\b/.test(cmd)) return [];
+  let text = cmd;
+  // The message file of -F / --file, read where git would read it.
+  for (const m of cmd.matchAll(/(?:\s-F\s*|\s--file[=\s])\s*(["']?)([^\s"';&|]+)\1/g)) {
+    if (m[2] === '-') continue;
+    try { text += '\n' + readFileSync(resolve(cwd, m[2]), 'utf8'); } catch { /* unreadable: nothing to add */ }
+  }
+  return keys.filter((k) => new RegExp(
+    // At a line start (heredoc, -F file, a multi-line -m), right after an opening quote
+    // (a second -m), or as the key of --trailer.
+    `(^|[\\n"'$]|\\\\n|--trailer[=\\s]+["']?)\\s*${esc(k)}\\s*[:=]`, 'i').test(text));
+}
+
+function loadTrailerKeys(dir) {
+  try {
+    const v = JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8')).commitTrailers;
+    if (v === 'forbid' || v === true) return ['Co-Authored-By'];
+    return Array.isArray(v) ? v.filter((k) => typeof k === 'string' && k.trim()) : [];
+  } catch { return []; }
+}
+
 function loadAllow(dir) {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.claude', 'send-guard.json'), 'utf8'));
@@ -79,8 +116,21 @@ if (isMain) {
   try { event = JSON.parse(raw); } catch { process.exit(0); }
   // A session opened on the workspace folder passes the router, whose tuning this reads.
   const dir = process.argv[2] || process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
+  const trailers = event.tool_name === 'Bash'
+    ? forbiddenTrailers(event.tool_input?.command, loadTrailerKeys(dir), event.cwd || dir) : [];
   const hit = classify(event, loadAllow(dir));
-  if (hit) {
+  if (trailers.length) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'ask',
+        permissionDecisionReason:
+          `This commit carries a trailer this project forbids (${trailers.join(', ')}; .claude/turn-checks.json ▸ ` +
+          'commitTrailers). The project\'s rule wins over any reminder from the harness to add one: remove the ' +
+          'trailer from the message and commit again. Approve only if the owner asked for it on this commit.',
+      },
+    }));
+  } else if (hit) {
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',

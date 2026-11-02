@@ -10,6 +10,31 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-02 · MAJOR · The end-of-turn check can hold your agent to your language, and a commit to your trailer rule
+
+Three additions to the guards, from an owner's error register.
+
+**Your language, narration included.** With `"language": "fr"` (or `"en"`) in
+`.claude/turn-checks.json`, a turn cannot end while any sentence it wrote is in the other language,
+the short lines between tool calls included ("Now let me check the file."). That register logged six
+such sentences in one night under a written rule; the check ended it. Code, paths, commands, links,
+quotations, blockquotes and tables are not read, and English technical words inside a French sentence
+do not count. Measured on real sessions: of 55,428 sentences carrying French function words, it
+flagged 7, and all 7 were English sentences quoting French names.
+
+**Figures said to agree.** "The two statements reconcile exactly", « les deux relevés se recoupent »,
+"to the rounding": a turn that computed nothing cannot end on it. In that register two documents
+said to reconcile differed threefold, and an unpaid third was carried as paid.
+
+**A commit trailer you forbid.** With `"commitTrailers": "forbid"` (or a list of trailer keys), a
+commit whose message carries a `Co-Authored-By:` line waits for your yes, wherever the message is
+written. In that register an owner forbade tool co-signatures in her repos and one still went in
+four times, once already pushed, because the tool kept reminding the agent to add it.
+
+**What you need to do:** nothing for the figures check. If your agent should answer in one language,
+or your repos must not carry co-signature lines, ask it to add `"language"` or `"commitTrailers"`
+to `.claude/turn-checks.json` (example in `source/quality/turn-checks.example.json`).
+
 ## 2026-11-01 · MINOR · An upgrade finds its way back after the kit rewrote its history
 
 The kit rewrote one commit message on 2026-10-31, keeping every file identical. A project synced

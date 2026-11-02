@@ -167,7 +167,9 @@ to know whether the rules work.
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an
-unchecked claim, and check every repository for unsaved work at the end.
+unchecked claim, and check every repository for unsaved work at the end. Opted in, they also hold a
+commit carrying a trailer the project forbids. They can refuse a sentence in another language than
+the owner's, including the narration between tool calls.
 **Why:** a rule in prose is re-read by someone who already believes it; a hook says no.
 
 ### A workspace of repositories, and the fleet
