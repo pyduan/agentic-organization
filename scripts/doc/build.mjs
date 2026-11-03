@@ -2,7 +2,7 @@
 // Documents: a markdown file becomes a standalone HTML page of real A4 pages, checked in Chrome,
 // and printed to PDF from the same build (source/formats/document.md).
 //
-//   node scripts/doc/build.mjs new <slug> [--onepager]    start documents/<slug>/document.md
+//   node scripts/doc/build.mjs new <slug> [--onepager|--letter]   start documents/<slug>/document.md
 //   node scripts/doc/build.mjs <slug>... | --all          build, then check in Chrome
 //     --pdf          also print documents/<slug>/dist/<slug>.pdf
 //     --no-check     build only
@@ -41,7 +41,9 @@ export function renderDocument(src, { tokens = '' } = {}) {
   const blanks = [];
   const ctx = { lang, blanks };
   const onepager = meta.type === 'one-pager';
-  const hero = `<header class="doc-hero">${meta.kicker ? `<div class="doc-kicker">${inline(meta.kicker, ctx)}</div>` : ''}<h1>${inline(meta.title || 'Untitled', ctx)}</h1>${
+  // A letter is on the sender's paper: its letterhead stands in for the title block and the running head.
+  const letter = meta.type === 'letter';
+  const hero = letter ? '' : `<header class="doc-hero">${meta.kicker ? `<div class="doc-kicker">${inline(meta.kicker, ctx)}</div>` : ''}<h1>${inline(meta.title || 'Untitled', ctx)}</h1>${
     meta.subtitle ? `<p class="doc-hero-dek">${inline(meta.subtitle, ctx)}</p>` : ''}${
     meta.date || meta.author ? `<div class="doc-hero-meta">${[meta.author, meta.date].filter(Boolean).map((x) => `<span>${inline(String(x), ctx)}</span>`).join('')}</div>` : ''}</header>`;
   const content = renderMarkdown(body, ctx);
@@ -52,7 +54,7 @@ export function renderDocument(src, { tokens = '' } = {}) {
 <html lang="${esc(lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex"><title>${esc(meta.title || 'Document')}</title>
 <style>${tokens}\n${css}</style></head>
-<body><div class="doc-shell doc-paged"${meta.brand ? ` data-brand="${esc(meta.brand)}"` : ''}${onepager ? ' data-onepager' : ''} data-mark="${esc(meta.mark || meta.title || '')}" data-kicker="${esc(meta['running-head'] || '')}" data-foot="${esc(meta.foot || '')}">
+<body><div class="doc-shell doc-paged"${meta.brand ? ` data-brand="${esc(meta.brand)}"` : ''}${onepager ? ' data-onepager' : ''}${letter ? ' data-letter' : ''} data-mark="${esc(meta.mark || meta.title || '')}" data-kicker="${esc(meta['running-head'] || '')}" data-foot="${esc(meta.foot || '')}">
 ${todo.length ? `<aside class="doc-todo"><b>To complete before this leaves</b><ul>${todo.map((x) => `<li>${inline(x, { lang })}</li>`).join('')}</ul></aside>` : ''}
 <div class="doc-flow">${hero}\n${content}</div><div class="doc-pages"></div></div>
 <script>${js}</script></body></html>`;
@@ -75,12 +77,51 @@ export async function checkDocument(htmlFile, port) {
 
 const rel = (p) => relative(process.cwd(), p) || '.';
 
-function start(slug, onepager) {
+// A letter starts on the sender's paper: every value is a blank, since a letterhead, an addressee or
+// a closing formula nobody gave is one the agent would be inventing.
+const LETTER = (date) => `---
+title: "[what the letter is about, for the file list]"
+type: letter
+lang: en
+to-complete: [the sender's letterhead, the addressee, the subject, the body, the signatory]
+---
+
+:::letterhead
+[the sender's name]
+[its department]
+Ref. [number]
+---
+[what the sender's paper prints on the right, if anything]
+:::
+
+:::recipient
+[the city], ${date}
+[the addressee, their title]
+[their address]
+:::
+
+:::subject Subject:
+[one line]
+:::
+
+[The salutation],
+
+[The body: short, one request or one piece of news per letter, the detail in an appendix.]
+
+[The closing formula.]
+
+:::signature
+[The signatory's title],
+[their name]
+:::
+`;
+
+function start(slug, onepager, letter) {
   if (!/^[a-z0-9-]+$/.test(slug || '')) { console.error('Name it with lowercase letters, digits and dashes.'); return 2; }
   const file = join(DOCS, slug, 'document.md');
   if (existsSync(file)) { console.error(`${rel(file)} exists already.`); return 1; }
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, `---
+  writeFileSync(file, letter ? LETTER(new Date().toISOString().slice(0, 10)) : `---
 title: ${slug.replace(/-/g, ' ')}
 subtitle: "[one sentence on what the reader will decide or do]"
 type: ${onepager ? 'one-pager' : 'document'}
@@ -100,7 +141,7 @@ to-complete: [the figures to confirm before it leaves]
 async function main(argv) {
   const flags = new Set(argv.filter((a) => a.startsWith('--')));
   const args = argv.filter((a) => !a.startsWith('--'));
-  if (args[0] === 'new') return start(args[1], flags.has('--onepager'));
+  if (args[0] === 'new') return start(args[1], flags.has('--onepager'), flags.has('--letter'));
   const slugs = flags.has('--all') ? (existsSync(DOCS) ? readdirSync(DOCS).filter((s) => existsSync(join(DOCS, s, 'document.md'))) : []) : args;
   if (!slugs.length) { console.error('Nothing to build. Name a document, or --all.'); return 2; }
   const tokens = existsSync(TOKENS) ? readFileSync(TOKENS, 'utf8') : '';

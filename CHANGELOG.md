@@ -10,6 +10,12 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-03 · MINOR · A letter on A4
+
+`node scripts/doc/build.mjs new <slug> --letter` starts a letter: your letterhead in two columns,
+the addressee on the right, the subject, the body and the signature, every value left blank until
+you give it, printed to PDF like any document.
+
 ## 2026-11-02 · MAJOR · New rules from an owner's error register
 
 About three hundred entries of an owner's error register, added since late September, brought

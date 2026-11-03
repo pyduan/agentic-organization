@@ -6,12 +6,19 @@
 // `:::` below. An unknown directive stops the build: a shape that is missing becomes a directive
 // here, never CSS inside a document.
 //
+// A letter (frontmatter `type: letter`) adds five: `letterhead` (two columns of centred lines, the
+// left one before a `---` line, the right one after), `centered` (centred lines, for a title or an
+// addressee), `recipient` (place, date and addressee, set to the right), `subject` (its argument as the
+// label, the body as the line) and `signature` (lines set to the right, the name last and bold). An
+// organization's letter is these five plus its own words, never a template
+// with CSS of its own.
+//
 // A blank is written `[what goes here]` and highlighted on screen, never filled with a guess
 // (source/formats/document.md ▸ Blanks). A real link `[label](url)` is not a blank.
 
 import { typo } from '../deck/text.mjs';
 
-export const DIRECTIVES = ['rows', 'cols', 'compare', 'steps', 'timeline', 'callout', 'quote', 'facts', 'fold', 'pagebreak'];
+export const DIRECTIVES = ['rows', 'cols', 'compare', 'steps', 'timeline', 'callout', 'quote', 'facts', 'fold', 'pagebreak', 'letterhead', 'centered', 'recipient', 'subject', 'signature'];
 
 export const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -85,6 +92,9 @@ function itemsOf(body) {
   });
 }
 
+/** The non-empty lines of a body, each one rendered on its own. */
+const linesOf = (body, il) => body.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => `<span>${il(l)}</span>`).join('');
+
 /** Sub-blocks opened by a `### ` heading, for columns and comparisons. */
 function sectionsOf(body) {
   const parts = body.split(/^### /m);
@@ -118,6 +128,18 @@ function renderDirective(name, arg, body, ctx) {
     // Folded on screen, opened by a click; printed open.
     case 'fold':
       return `<details class="doc-fold"><summary>${il(arg || 'Details')}</summary><div>${md(body)}</div></details>`;
+    case 'letterhead': {
+      const [left, right = ''] = body.split(/^-{3,}\s*$/m);
+      return `<div class="doc-letterhead"><div>${linesOf(left, il)}</div><div>${linesOf(right, il)}</div></div>`;
+    }
+    case 'centered':
+      return `<div class="doc-centered">${linesOf(body, il)}</div>`;
+    case 'recipient':
+      return `<div class="doc-recipient">${linesOf(body, il)}</div>`;
+    case 'subject':
+      return `<p class="doc-subject"><span>${il(arg)}</span> ${il(body.split('\n').map((l) => l.trim()).filter(Boolean).join(' '))}</p>`;
+    case 'signature':
+      return `<div class="doc-signature">${linesOf(body, il)}</div>`;
     case 'pagebreak':
       return '<div class="doc-pagebreak" data-pagebreak aria-hidden="true"></div>';
     default:

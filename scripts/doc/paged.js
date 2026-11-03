@@ -17,6 +17,7 @@
     const page = document.createElement('section');
     page.className = 'doc-page';
     if (root.hasAttribute('data-onepager')) page.classList.add('is-onepager');
+    if (root.hasAttribute('data-letter')) page.classList.add('is-letter');
     page.innerHTML = '<header class="doc-page-run"><span class="doc-page-mark"><i></i><span></span></span><span class="doc-page-kicker"></span></header>'
       + '<div class="doc-page-body doc-prose"></div>'
       + '<footer class="doc-page-foot"><span class="doc-page-left"></span><span class="doc-page-num"></span></footer>';

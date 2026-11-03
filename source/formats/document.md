@@ -6,7 +6,7 @@ A4 pages (`index.html` beside it) and a PDF from the same build. What the screen
 printer produces, because the pages have a physical size.
 
 ```sh
-node scripts/doc/build.mjs new <slug> [--onepager]   # start one
+node scripts/doc/build.mjs new <slug> [--onepager|--letter]   # start one
 node scripts/doc/build.mjs <slug> [--pdf]            # build, check in Chrome, print
 node scripts/doc/build.mjs --all --strict            # before anything leaves
 ```
@@ -18,7 +18,7 @@ Frontmatter, then markdown:
 | Key | What it does |
 |---|---|
 | `title`, `subtitle` | the title block. A title is a label: no dash splitting it, no comma outside a list |
-| `type` | `document` (default) or `one-pager`, which must fit on one page in two columns |
+| `type` | `document` (default), `one-pager`, which must fit on one page in two columns, or `letter`, on the sender's paper: no title block and no running head |
 | `lang` | the typography (French spaces, curly apostrophes) |
 | `kicker`, `author`, `date` | the lines around the title |
 | `mark`, `running-head`, `foot` | the running head on every page, and the footer's left side |
@@ -29,7 +29,10 @@ Frontmatter, then markdown:
 usual. The directives, each closed by `:::`: `rows` (label and text lines), `cols` and `compare`
 (sub-blocks opened by `###`; the last card of a comparison is the option the document argues for),
 `steps`, `timeline`, `callout`, `quote`, `facts`, `fold` (folded on screen, open in print), and
-`:::pagebreak`, which stands alone.
+`:::pagebreak`, which stands alone. A letter adds `letterhead` (two columns of centred lines, split
+by a `---` line), `centered` (a title), `recipient` (place, date and addressee, to the right), `subject` (its argument is the label) and
+`signature` (lines set to the right). `new <slug> --letter` starts one with every value blank: a
+letterhead, an addressee or a closing formula nobody gave is not the agent's to write.
 
 **A shape that is missing becomes a directive in `scripts/doc/markdown.mjs`, never CSS inside a
 document.** Five ways of drawing a table is how a set of documents stops looking like one

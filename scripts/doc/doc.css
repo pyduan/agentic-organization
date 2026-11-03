@@ -107,8 +107,23 @@ html, body { margin: 0; background: var(--color-bg, #f4f4f2); }
 .doc-fold summary { cursor: pointer; font-weight: 600; }
 .doc-pagebreak { display: none; }
 
+/* A letter: the sender's letterhead in two columns, a centred title, the subject, the signature on the
+   right. No running head and no numbered bands: the paper is the sender's. */
+.doc-page.is-letter .doc-page-run { display: none; }
+.doc-page.is-letter .doc-page-body { font-size: 13px; line-height: 1.55; }
+.doc-page.is-letter h2 { display: block; font-family: var(--doc-sans); font-weight: 700; font-size: 13.5px; border-top: 0; padding-top: 0; margin: 14px 0 6px; }
+.doc-page.is-letter h2::before { content: counter(band) ". "; font-size: inherit; letter-spacing: 0; color: inherit; }
+.doc-letterhead { display: grid; grid-template-columns: 1fr 1fr; gap: 10mm; margin: 0 0 12mm; }
+.doc-letterhead > div, .doc-centered { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; font-weight: 700; font-size: 11.5px; line-height: 1.35; }
+.doc-centered { margin: 6mm 0 8mm; font-size: 13px; text-transform: uppercase; letter-spacing: .02em; }
+.doc-recipient { display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: 2px; margin: 0 0 10mm auto; width: 60%; }
+.doc-subject { margin: 0 0 10px; }
+.doc-subject > span { font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+.doc-signature { display: flex; flex-direction: column; align-items: flex-end; text-align: right; gap: 2px; margin: 10mm 0 0 auto; width: 60%; }
+.doc-signature > span:last-child { font-weight: 700; margin-top: 14mm; }
+
 /* Blocks never cut in two, across pages or columns. */
-.doc-compare, .doc-cols, .doc-pull, .doc-callout, .doc-hero, figure, tr, .doc-steps li, .doc-timeline li, .doc-rows > div { break-inside: avoid; }
+.doc-compare, .doc-cols, .doc-pull, .doc-callout, .doc-hero, figure, tr, .doc-steps li, .doc-timeline li, .doc-rows > div, .doc-letterhead, .doc-recipient, .doc-signature { break-inside: avoid; }
 [data-overflow] { outline: 2px dashed #c0392b; outline-offset: 2px; }
 
 /* ------------------------------------------------------------------ print */

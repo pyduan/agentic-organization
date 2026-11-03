@@ -46,6 +46,25 @@ test('the build lists what is left to complete and shows it on screen only', () 
   assert.match(r.html, /<meta name="robots" content="noindex">/);
 });
 
+test('a letter: the letterhead in two columns, the signature to the right, no title block', () => {
+  const r = renderDocument([
+    '---', 'title: Letter', 'type: letter', '---', '',
+    ':::letterhead', 'THE SENDER', 'Ref. [number]', '---', 'THE COUNTRY', ':::', '',
+    ':::centered', 'MEMORANDUM', ':::', '',
+    ':::recipient', 'The city, [date]', ':::', '',
+    ':::subject Subject:', 'the review', ':::', '',
+    'The body.', '',
+    ':::signature', 'The Director,', '[name]', ':::', '',
+  ].join('\n'));
+  assert.doesNotMatch(r.html, /class="doc-hero"/);
+  assert.match(r.html, /data-letter/);
+  assert.match(r.html, /class="doc-letterhead"><div><span>THE SENDER<\/span><span>Ref\. <mark class="doc-blank">\[number\]<\/mark><\/span><\/div><div><span>THE COUNTRY<\/span><\/div><\/div>/);
+  assert.match(r.html, /class="doc-subject"><span>Subject:<\/span> the review<\/p>/);
+  assert.match(r.html, /class="doc-signature"><span>The Director,<\/span>/);
+  assert.match(r.html, /class="doc-recipient"><span>The city, <mark/);
+  assert.deepEqual(r.blanks, ['number', 'date', 'name']);
+});
+
 const chrome = findChrome();
 test('in Chrome: a long document paginates with nothing taller than a page, a one-pager that runs over is caught', { skip: !chrome && 'no Chrome on this machine' }, async () => {
   const long = Array.from({ length: 80 }, (_, i) => `- Item ${i}: a line long enough to take some room on the page.`).join('\n');
