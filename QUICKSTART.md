@@ -126,7 +126,9 @@ real work, and a settings file holds your preferences alongside the parts that i
 Connect these under your own login, one at a time, and revoke any of them whenever you like. The
 agent has no sovereign access to anything: it borrows yours, on your machine. Which ones your
 organization allows, for what and how far, is written in `CONNECTORS.md`, one row each, approved in
-the first session like the stack: the agent uses a connector only once its row is approved.
+the first session like the stack: the agent uses a connector only once its row is approved. On a
+Claude Team or Enterprise account, the owner can turn the approved ones on by default for everyone,
+which is the simplest path for the people who join after you (`CONNECTORS.md` ▸ *Default connectors*).
 
 **Your history comes in once, scoped.** A mail or drive connector is connected for an import with an
 edge (one person's mailbox, a date range, a folder), the agent records what matters in the

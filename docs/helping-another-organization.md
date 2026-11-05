@@ -70,7 +70,9 @@ is spent installing, structuring and running a first real task.
 5. **Connect what the first task needs, and only what `CONNECTORS.md` approved**, for the scope its
    row says: a history import limited to one person, a date range or a folder, then disconnected.
    A mail connector takes one account per login: a shared mailbox goes on the machine that
-   automates, a person's own mail through the browser. For the day to day, set up the agents'
+   automates, a person's own mail through the browser. If they use Claude on a Team or Enterprise
+   account, have the account's owner turn the approved connectors on by default for everyone first
+   (`CONNECTORS.md` ▸ *Default connectors*): the next installs then only need each person to sign in. For the day to day, set up the agents'
    inbox that people copy in, rather than mailbox-wide access.
 6. **The owner of the task says it to the agent**, end to end, with its exceptions. When they start
    explaining it to you, stop and turn them to the session: retold, it loses the exceptions. If a

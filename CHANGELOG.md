@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-05 · MINOR · Connectors on by default for a Claude team
+
+If your organization uses Claude on a Team or Enterprise account, its owner can now turn connectors
+on by default for every member (rolling out this month). The setup and the install guides prefer
+that to each person adding Gmail, Drive and the calendar by hand: newcomers only sign in with their
+work account. A connector still needs its approved row in `CONNECTORS.md`, and its limits still
+apply to each person.
+
+**What you need to do:** if you are on a Claude team account, ask your agent to list the connectors
+`CONNECTORS.md` authorizes, and turn those on by default in the account's settings.
+
 ## 2026-11-05 · MAJOR · Preview on your machine, then publish with the right link
 
 Your agent now shows you every page, deck or document on a preview that only your computer can

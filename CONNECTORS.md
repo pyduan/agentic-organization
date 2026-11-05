@@ -29,6 +29,19 @@ row, by the handles `ORGANIGRAM.md` uses.
 | Browser control | to decide | Named tasks only, each said in the session (a back office with no connector, a chat export), in a browser where the person is already signed in | the owner | |
 | Third-party WhatsApp servers | not allowed | They pair as a linked device through the unofficial protocol and keep a copy of messages; use an export or browser control instead (`QUICKSTART.md` ▸ 3) | the owner | |
 
+## Default connectors, for an organization on Claude
+
+When the organization uses Claude on a Team or Enterprise account, prefer the connectors its owner
+turns on by default for every member, now rolling out (November 2026), over each person adding
+them one by one. A new person then finds the approved connectors offered at first login and only
+signs in with their own work account: nobody picks a personal account by mistake, and an install
+no longer stops halfway through for a connector nobody knew to add.
+
+Turning a connector on by default changes who can connect it, not what this file allows. It still
+needs its approved row here, and its scope still applies to each person: available to everyone is
+not imported for everyone. Default the connectors whose row is *authorized*, and leave the others
+to be added one by one, for the person and the task their row names.
+
 ## Scoped imports
 
 An import of history is a task with an end. Before it starts, write down in the session what it

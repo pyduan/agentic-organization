@@ -262,7 +262,9 @@ Two things not to negotiate away, however keen the owner is to see a site:
 **Their history comes in through the connectors approved in step 1, and only those.** For each
 import, say what it covers before it starts (whose mailbox, which dates, which folder), ask the
 owner to connect that connector for it (the provider's own connector in Claude's settings, under
-their login; a token never goes through the conversation), import that scope and nothing more,
+their login; a token never goes through the conversation; on a Claude Team or Enterprise account,
+prefer turning the approved ones on by default for the whole organization, `CONNECTORS.md` ▸
+*Default connectors*), import that scope and nothing more,
 record what came in and where it went, then have them disconnect it or narrow it back. A source
 with no approved row is a new row in `CONNECTORS.md` first, *to decide*, or a file dropped in
 `source/inbox/`.
