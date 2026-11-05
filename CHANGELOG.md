@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-05 · MAJOR · Preview on your machine, then publish with the right link
+
+Your agent now shows you every page, deck or document on a preview that only your computer can
+open (`npm run intranet:preview` for the intranet, `npm run preview -- <folder>` for the rest),
+for as many rounds as you want. When you say "publish", it pushes to the repository the page
+belongs to and gives you the link that fits who will read it: the intranet for your organization,
+a page behind its own sign-in list for a smaller group, the public site only for a document you
+approved as shareable. Where you cannot write, it prepares a proposal for the repository's owner
+instead. The guides no longer claim that every push rebuilds your site: that is only true once the
+repository is connected to Cloudflare, and until then your agent tells you the page goes live at the
+next deploy and who runs it.
+
+**What you need to do:** nothing to install. Ask your agent once whether your site and intranet are
+connected so that a push deploys them (`docs/deploy-cloudflare.md` ▸ *Day-to-day*); if one is not,
+have it set up the connection or the GitHub Actions workflow.
+
 ## 2026-11-03 · MINOR · A letter on A4
 
 `node scripts/doc/build.mjs new <slug> --letter` starts a letter: your letterhead in two columns,

@@ -32,9 +32,23 @@ person's own voice on top.
 and a correction becomes a rule the next session reads.
 
 ### The website, published on every push
-An Astro site in `site/`, served by Cloudflare Workers, which rebuilds on every push to `main`.
+An Astro site in `site/`, served by Cloudflare Workers, which rebuilds on every push to `main`
+once the repo is connected (Workers Builds, or a deploying GitHub Actions workflow). Until it is, a
+push publishes nothing, and the agent says so rather than handing over a link.
 **Why:** free, fast, and the owner never touches a deploy. The host is replaceable: the source is
 the repo, and `docs/deploy-cloudflare.md` says how to move.
+
+### From a local preview to the right link
+Every page, deliverable and document is iterated on a `localhost` preview (`npm run
+intranet:preview`, `npm run preview -- <folder>`, `npm run dev` in `site/`), then published by a
+push to `main` of its own repo, and the person gets the link for its audience: the intranet, a
+Worker with its own Access list, or the public site for a validated, shareable document. A repo
+they cannot write to gets an issue for its owner instead. `scripts/preview.mjs` serves a built
+folder on `127.0.0.1` only.
+**Why (2026-11-05):** the people the kit serves are not technical and must never meet a branch, a
+merge or a command; a preview makes iteration free, and choosing the link by audience keeps a draft
+or a private page from being published wider than meant. Validated on an instance first, then made
+the kit default.
 
 ### Decks, composed and measured
 `decks/<slug>/deck.mdx`, composed from components, built into one shareable HTML file, then measured

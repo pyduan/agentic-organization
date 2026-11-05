@@ -1,6 +1,6 @@
 # Publishing with Cloudflare Workers
 
-One-time hosting setup, about 15 minutes, free. After this, every push to `main` rebuilds the live site automatically; nobody ever "deploys" by hand. The AI can walk you through these steps while you click.
+One-time hosting setup, about 15 minutes, free. Once the repo is connected (step 1, or the GitHub Actions workflow further down), every push to `main` rebuilds the live site automatically and nobody ever "deploys" by hand. Until then a push publishes nothing: see *Day-to-day*. The AI can walk you through these steps while you click.
 
 Cloudflare has two ways to host a site: **Workers** (the current default, actively developed) and **Pages** (older, now in maintenance mode). This kit uses **Workers**. If you set up on Pages before this change, your site still works and nothing breaks on its own; see [Already on Cloudflare Pages?](#already-on-cloudflare-pages) below.
 
@@ -113,6 +113,43 @@ There is no day-to-day **once the repo is connected**. Pushing is publishing: a 
 > **How to tell in ten seconds.** In **Deployments**, look at the source of the latest deployment: `wrangler` means by hand, a commit hash means Workers Builds. Or ask the AI to check the API — a Worker with no build trigger has none.
 >
 > **Until it is connected**, deploy explicitly after every push (`npm run deploy`), and verify **on the live URL**, never on the local build. `freshness.json` supports a `mustContain` claim for exactly this: name a string the live page must carry, and `scripts/check-freshness.mjs` fails when the repo is ahead of what is served. If the live site ever looks stale, open **Workers & Pages → your Worker → Deployments** for a failed build; the log says why. Any previous version can be restored from that same screen, and the AI can also revert the offending commit.
+
+## From preview to link
+
+The people this kit works for never see a branch, a merge or a command. Every page, deliverable
+and document goes the same way, whatever the repo:
+
+1. **Iterate on a local preview.** Build it and serve it on this machine, then show the person
+   `http://localhost:<port>/`, as many rounds as it takes. Nothing is pushed while it is a draft.
+   - the intranet: `npm run intranet:preview` (builds, then serves `apps/dashboard/dist` on
+     port 8789);
+   - a deck or a document: build it, then `npm run preview -- decks/<slug>` (or the document's
+     folder);
+   - the website: `npm run dev` inside `site/`.
+
+   `scripts/preview.mjs` listens on `127.0.0.1` only and serves nothing outside the folder it was
+   given, so a preview is never reachable from the network.
+2. **"Publish" means a push to `main` of the repo where the page lives.** No pull request, no
+   branch to merge later: the page's own repo, which may be a project repo rather than this one
+   (`ORGANIGRAM.md` holds the map).
+3. **The link matches who will read it.**
+
+   | Who reads it | Where it goes | Link to give |
+   |---|---|---|
+   | the whole organization | the intranet Worker (below) | the intranet URL, with the page's path |
+   | a narrower circle | a Worker with its own Access list, set by `scripts/protect-access.mjs` | that Worker's URL, after checking the list names exactly that circle |
+   | anyone | the public site, only for a document the person validated and marked as shareable | the public URL |
+
+   When in doubt, the narrower scope. A page is never made public because the private route took
+   longer to set up.
+4. **A repo the person cannot write to** gets a proposal to its owner instead of a push: an issue
+   (`gh issue create`) whose body holds the change ready to paste, and the person is told who will
+   decide.
+5. **No deploy trigger yet, no link yet.** If the repo is not connected (Workers Builds or a
+   deploying workflow, see *Day-to-day*), the push has changed nothing that is served. Say the page
+   will be live at the next deploy and name who runs it, then fetch the live URL once it is out
+   before calling it published. A link handed over while the old version is still served is the
+   failure this section exists to prevent.
 
 ## Publishing something private: the intranet Worker
 
