@@ -248,6 +248,9 @@ Two corollaries, because people get this wrong in both directions:
 One app = one self-contained folder at `apps/<slug>/` (see `apps/README.md`). Three shapes, chosen
 by the test above rather than by taste:
 
+Whatever the shape, a `<select>` takes its chevron from `source/brand/tokens.css` (*Dropdowns*):
+an app that copies the token values copies that rule too, and never styles the arrow itself.
+
 1. **A single static folder** — `index.html` + inline or co-located CSS/JS, no build step, no
    framework. Right for a **public** tool that computes and forgets; a single file someone could
    download and open still works. Never the shape for something behind the gate.
