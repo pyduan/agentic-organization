@@ -99,7 +99,7 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
   const extend = mod.default;
   if (typeof extend !== 'function') fail(`${relative(root, file)} must export a default function`);
 
-  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [] };
+  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [], news: [] };
   const repo = repoReader(root);
   // local/ on this machine, only in a --local build: null otherwise, so a view tests `if (intranet.local)`.
   const localReader = local ? repoReader(join(root, LOCAL_DIR), { refuseLocal: false }) : null;
@@ -146,6 +146,15 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
       if (!HOME_SLOTS.includes(slot)) fail(`no home slot "${slot}"; the slots are ${HOME_SLOTS.join(', ')}`);
       if (typeof render !== 'function') fail(`the home section at ${slot} needs a render function`);
       (reg.home[slot] ||= []).push(render);
+    },
+    /**
+     * News for the tab badges: `render(c)` returns [{ key, href, date }], `href` a path inside the
+     * intranet (the tab whose path it starts with gets the count), `date` YYYY-MM-DD. Something that
+     * moved, never an alert: an alert keeps its own signal.
+     */
+    news(render) {
+      if (typeof render !== 'function') fail('intranet.news needs a function returning [{ key, href, date }]');
+      reg.news.push(render);
     },
     /** Styles appended after the kit's intranet.css: a file (a URL) or the text. Tokens only. */
     css(source) {

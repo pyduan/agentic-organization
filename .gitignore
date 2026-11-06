@@ -21,6 +21,9 @@ team/*
 # check sees them as unsaved work on every turn: the harness's own local settings,
 # and the report scripts/error-report.mjs --email writes for attaching to a mail.
 .claude/settings.local.json
+# A machine's own settings: its address for the send guard, what the policy installed on it, the
+# backfill's state (lib/local-migrations.mjs).
+.claude/*.local.json
 error-report.md
 
 # A deck's build output that is rebuilt every time: the check's PNGs and contact sheet, and the

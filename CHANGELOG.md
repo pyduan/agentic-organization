@@ -10,6 +10,27 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-06 · MAJOR · One view for everyone: routines, a backfill and self-updating machine settings
+
+Your organization can now decide, in one file, that a few routines run for everyone: a morning import
+of each person's mail and files, and a short briefing each person mails to themselves. Write the
+decision in `source/organization-policy.json` (who decided, when, which routines); at each person's
+next session their agent installs them, starts their backfill (their history brought into the
+repositories, once) and resumes it if it stopped. Without that decision, nothing changes: routines are
+still offered, never installed on their own. The same file declares your internal mail domain (a
+message to a colleague then leaves after a reread without the extra question), your restricted
+repositories (a routine running alone can never push to them), and who heads each unit's repository.
+
+Also new: settings kept on each machine update themselves at the next session; the send guard lets a
+briefing to your own address through and refuses, rather than asks, when nobody is at the machine; the
+intranet's tabs show how many things moved since your last visit; and a suggestion to a repository
+someone cannot write to becomes a pull request or an issue, doubled by a plain mail to its head.
+
+**What you need to do:** nothing, unless you want one view for everyone. Then copy
+`source/organization-policy.example.json` to `source/organization-policy.json` with your own values,
+and record the decision in `source/decisions.md`. Install each routine's scheduled task with
+`CLAUDE_CODE_SESSION_ATTENDED=0` in its environment.
+
 ## 2026-11-06 · MINOR · When the repositories become everyone's source of truth
 
 The guide for installing the kit at another organization has a new section for the weeks after:

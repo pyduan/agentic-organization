@@ -253,6 +253,52 @@ sign-in (a redirect to Access or a `403` is green, a `200` is red).
 remembers is redone or forgotten. The address is read from the file the setup writes it in, so the
 check needs no configuration of its own.
 
+### One view for everyone: a leadership policy, routines and a backfill per person
+`source/organization-policy.json` holds the organization's internal mail domains, its restricted
+repositories, the head of each unit's repository, and, when leadership decided it, a policy: which
+routines run on every machine (`routines/morning-import`, `routines/self-briefing`), whether each
+person's backfill starts on its own (`.claude/skills/backfill`), and which shared repositories it
+pushes without a per-batch yes. At each session start, `scripts/workspace-sync.mjs` records on the
+machine what the policy names and tells the agent what to install or resume, in attended sessions
+only (`lib/local-migrations.mjs` ▸ `pending`).
+**Why:** decided 2026-11-06 after an installation where each person's view drifted from the others'
+because one had imported last week and another never had. A routine is still offered rather than
+installed, unless leadership decided otherwise in writing; the decision never widens what a routine
+may do, and the hooks hold its limits when nobody attends.
+
+### Machine settings that migrate themselves
+`lib/local-migrations.mjs` runs after every session-start sync: id'd migrations that add a missing key
+to a `.claude/*.local.json` and never replace a value, the kit's own and an instance's
+(`source/local-migrations.mjs`). It is imported after the pull, so a migration arriving with that pull
+runs in the same session.
+**Why:** decided 2026-11-06. A pull updates what git tracks, never a machine's own settings, so a new
+rule reached new installs and none of the old ones, though every one had pulled.
+
+### The send guard knows the owner's own address, and refuses when nobody attends
+A new message whose every recipient is the person (`.claude/send-guard.local.json` ▸ `self`), or at
+an internal domain the policy declares, leaves without the question. In a session nobody attends
+(`CLAUDE_CODE_SESSION_ATTENDED=0`), the guard refuses instead of asking: any message except to the
+person's own address, and a push from a restricted repository.
+**Why:** decided 2026-11-06 for routines that mail their owner a briefing. A question in an
+unattended session has nobody to answer it; a refusal is the honest answer, and an internal domain is
+not enough there because nobody reread the message.
+
+### Badges on the tabs for what is new
+The intranet's build writes `news.json` (each project's dated log entries, plus an extension's
+`intranet.news()`) and `badges.js` counts, per tab, what this viewer has not seen since their last
+visit to it, kept in their browser as keys only.
+**Why:** decided 2026-11-06. Alerts had to stay rare (very late and very important only), and people
+still wanted to see at a glance where things moved; a count that clears on opening says that without
+pretending anything needs them.
+
+### A suggestion to a repository one cannot write to
+`scripts/suggestion.mjs` picks the route from the person's rights on GitHub (push, a pull request
+from a fork, an issue labelled `suggestion`) and drafts the plain mail to the repository's head that
+doubles it.
+**Why:** decided 2026-11-06. People improved each other's recipes in conversation and the agent
+stopped at "no write access". Forking private repos is off by default on GitHub, so the issue is the
+usual fallback; the mail exists because a pull request alone reaches nobody who does not read GitHub.
+
 ## This organization's own
 
 <!-- Add an entry per feature this repository has beyond the kit: what it does, and **Why:** the

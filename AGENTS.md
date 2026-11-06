@@ -56,6 +56,7 @@ Find every row that matches the task at hand and read those files before produci
 | A decision **retires a route** (where something is built, which tool holds what) | sweep the guides in the same change, then add the old wording to `source/quality/retired-claims.json`; `node scripts/check-retired.mjs` fails when a guide says it again |
 | Showing someone a page **before** it is published, or the owner says "publish" | `docs/deploy-cloudflare.md` ▸ *From preview to link*: a `localhost` preview first, then a push to `main` of the page's own repo and the link for its audience |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
+| A suggestion to **a repository you cannot write to** (another unit's recipe, template or rule) | `node scripts/suggestion.mjs route <owner/repo>`: push if you can, else a pull request from a fork, else an issue labelled `suggestion`, never a push to its `main`; then draft the plain mail to its head (`suggestion.mjs` ▸ `mail`) for the person to reread and send |
 | A **scheduled task**: writing one, retiring one, or "what runs on its own around here" | `routines/README.md` — versioned because the scheduler's own folder is not, offered at setup rather than installed (unless a written leadership policy installs a few for everyone, within fixed limits), and retiring one means deregistering it **and** deleting its file in the same change |
 | Onboarding someone onto the kit, or "is everyone on the current version", "why did X not get the update" | `node scripts/check-fleet.mjs` — per instance: how far behind the template, whether it is wired to announce its own news, and who last pushed. A project onboarded before a mechanism cannot announce that mechanism exists |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks — including whether the `.gitignore` rules are true, since one added after the files were committed protects nothing |
@@ -267,6 +268,7 @@ lib/provenance.mjs           what a tool read, which version, and what each figu
 lib/register.mjs             the incident register: find it, read it, and the schema it must keep
 lib/workspace.mjs            the repo map in ORGANIGRAM.md, and where each repo sits on this machine
 lib/neighbour.mjs            what another repo lets a script read of it (.read-consent), held in one place
+lib/local-migrations.mjs     a machine's own .claude/*.local.json brought up to date, and what the organization policy installs on it
 lib/setup-checks.mjs         the setup checks any layout can run: git, GitHub, identity, clones, outside instructions
 lib/setup-stage.mjs          where the setup stands (brief, STACK.md, CONNECTORS.md, intranet) and the one next step every script prints
 source/formats/deck.md       deck playbook: decks are composed, built and measured
@@ -306,6 +308,8 @@ scripts/vendor-sync.mjs      code co-owned with another repo: pull, push-back, v
 scripts/check-ai-tics.mjs    does this read as machine-written? the voice guide's tics as a check (--stdin, --strict, --self-test)
 scripts/check-retired.mjs    no guide still gives a route a decision retired (source/quality/retired-claims.json)
 scripts/check-leaks.mjs      no name from .leak-terms (gitignored) in what leaves the repo
+scripts/suggestion.mjs       a suggestion to a repo you cannot write to: the route by your rights, and the plain mail to its head
+source/organization-policy.json  internal mail domains, restricted repos, unit heads, and leadership's policy for routines (example beside it)
 scripts/check-access-config.mjs  every Access-gated Worker fails closed: no workers.dev, the Worker runs first
 docs/seeding.md              preparing another organization's repository before their workshop
 docs/helping-another-organization.md  installing the kit at someone else's: before, during, after

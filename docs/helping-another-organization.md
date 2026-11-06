@@ -173,6 +173,13 @@ dozen people, in this order:
    chat, grouped with the push.
 4. **The daily routine takes over** from the backfill.
 
+In the kit: the policy is `source/organization-policy.json` (example beside it), the routines are
+`routines/morning-import` and `routines/self-briefing`, the backfill is `.claude/skills/backfill`, and
+the session-start sync installs and resumes them through `lib/local-migrations.mjs`. A suggestion's
+route and mail come from `scripts/suggestion.mjs`; the tab badges from `apps/dashboard/badges.js`. The
+per-unit home is an instance's own view (`apps/intranet-extend/`), since the kit does not know an
+organization's units.
+
 **Local settings migrate themselves.** A pull updates what git tracks, never a machine's own
 `*.local.json`. So the sync that runs at every session start also runs small migrations, each with
 an id recorded once applied, that add a missing key and never overwrite the person's value. That is
@@ -201,8 +208,8 @@ or a comment on the intranet. Each one comes with a mail to the unit's head, in 
 suggested, what triggered it, what it changes, and one link to accept it. The person rereads and
 sends it.
 
-**The backfill template**, pasted (or launched) per person, angle brackets filled from the
-repositories:
+**The backfill template** (`.claude/skills/backfill/SKILL.md` holds it with its method), angle
+brackets filled from the repositories:
 
 > Do my backfill: I want the repositories to become the source of truth for my work, instead of my
 > files and my exchanges. Sources, read-only: my mailbox (received and sent) and my Drive since

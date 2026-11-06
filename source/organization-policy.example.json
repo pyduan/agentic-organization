@@ -1,0 +1,14 @@
+{
+  "internalDomains": ["example.org"],
+  "restrictedRepos": ["acme-finance", "acme-people"],
+  "heads": { "acme-events": "sam@example.org" },
+  "policy": {
+    "decidedBy": "@sam, director",
+    "date": "2026-01-15",
+    "record": "source/decisions.md ▸ 2026-01-15, one view for everyone",
+    "routines": ["morning-import", "self-briefing"],
+    "backfill": true,
+    "inviteHomes": true,
+    "sharedWritesWithoutBatchYes": ["acme-shared", "acme-events"]
+  }
+}

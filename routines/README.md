@@ -35,6 +35,13 @@ routine may do. Its limits stay written in the routine and enforced by the hooks
 attending: sources read-only, mail only to oneself, nothing pushed to a restricted repository and
 no personal data anywhere without the person's yes in a session they attend.
 
+The policy is `source/organization-policy.json` ▸ `policy` (an example: `source/organization-policy.example.json`).
+At each session start, `scripts/workspace-sync.mjs` records on the machine what the policy names and
+tells the agent what to install, in an attended session only (`lib/local-migrations.mjs`). Install each
+scheduled task with `CLAUDE_CODE_SESSION_ATTENDED=0` in its environment, so the send guard refuses
+rather than asks; without it the guard asks, which stalls the run rather than letting anything
+through. Read the first run's report to see which happened.
+
 ## A routine is thin. The method lives in its recipe.
 
 **A routine carries five things and nothing else:**
@@ -151,4 +158,6 @@ and what replaced it, so anything that reads it stops at the first line.
 
 | Routine | Cadence | What it does |
 |---|---|---|
+| [`morning-import`](morning-import/SKILL.md) | every working morning | What arrived in the person's own mailbox and files goes into the repositories, read-only on the sources, by the backfill's method. |
+| [`self-briefing`](self-briefing/SKILL.md) | every working morning | Each person mails themselves their day: priority work, what to unblock first, the countdown to the next deadline. |
 | [`freshness-sweep`](freshness-sweep/SKILL.md) | monthly | Is what we published still there, and is what we wrote about it still true? Dead links, a repo that went private, an instance drifting behind the kit, memories asserting things that stopped being so. |

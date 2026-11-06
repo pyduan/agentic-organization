@@ -23,6 +23,7 @@
 
 import { renderMarkdown, inline, esc, slugify } from '../../scripts/doc/markdown.mjs';
 import { isOverdue } from '../../lib/todo.mjs';
+import { readFileSync } from 'node:fs';
 
 export const LOCALE = 'en-GB';
 
@@ -46,6 +47,7 @@ export const STRINGS = {
   'who.more': (n) => `and ${n} more`,
   'badge.decide': 'to decide',
   'badge.late': 'late',
+  'badge.new': 'new since your last visit',
   'card.counts': (open, done) => `${open} open · ${done} done`,
   'card.nothing': 'nothing listed yet',
   'card.private': 'details kept in its own repo',
@@ -74,6 +76,8 @@ export const SIDEBAR_FROM = 7;
 // What an extension adds to the chrome, for the length of one renderIntranet() call: its tabs placed
 // among the kit's, its groups, and its words over the kit's. Null renders exactly the kit's own.
 let chrome = null;
+// Whether this build has news for the tab badges (badges.js), for the length of one renderIntranet().
+let withNews = false;
 
 /** A word of the chrome: the extension's translation if it gave one, else the kit's. */
 export const t = (key, ...args) => {
@@ -353,7 +357,7 @@ ${body}
   <p>${esc(t('foot.built', when))}</p>
   <p><a href="/cdn-cgi/access/logout">${t('foot.signout')}</a></p>
 </footer>
-</body>
+${withNews ? `<script src="${base}badges.js" data-base="${base}" data-label="${esc(t('badge.new'))}" defer></script>\n` : ''}</body>
 </html>
 `;
 }
@@ -464,10 +468,27 @@ ${(p.log || []).length ? `<h2>${t('projects.moved')}</h2>${feed(p.log, base)}` :
  * extension registered (apps/dashboard/extend.mjs ▸ loadExtension); without one the output is the
  * kit's own, byte for byte.
  */
+/** A short, stable key for an item of news: identifiers only reach the viewer's browser storage. */
+const keyOf = (s) => { let h = 5381; for (const c of String(s)) h = ((h * 33) ^ c.codePointAt(0)) >>> 0; return h.toString(36); };
+
+/**
+ * What the tab badges count, as [{ key, href, date }]: every dated entry of a project's log that has a
+ * page (data.recap), and what an extension adds with intranet.news(). An item without an href or a
+ * date is dropped, since no tab could own it and no visit could clear it.
+ */
+export function newsItems(data, extra = []) {
+  const recap = (data.recap || []).filter((r) => r.page && r.date)
+    .map((r) => ({ key: keyOf(`${r.date}|${r.page}|${r.text}`), href: r.page, date: r.date }));
+  const more = extra.filter((x) => x && x.href && x.date).map((x) => ({ key: String(x.key || keyOf(`${x.date}|${x.href}`)), href: String(x.href), date: String(x.date) }));
+  return [...recap, ...more];
+}
+
 export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10), extension = null }) {
   chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings } : null;
   try {
     const ctx = (path) => extension.context({ data, today, path });
+    const news = newsItems(data, (extension?.news || []).flatMap((fn) => fn(ctx('')) || []));
+    withNews = news.length > 0;
     const slots = {};
     for (const [name, renders] of Object.entries(extension?.home || {})) slots[name] = renders.map((render) => render(ctx('')));
     const files = {
@@ -481,9 +502,14 @@ export function renderIntranet({ data, home, tools, css, today = new Date().toIS
       if (file in files) throw new Error(`intranet extension: ${file} is already a page of the kit's; give yours another path`);
       files[file] = pageFrom(pg, file, ctx(pg.path), data);
     }
+    if (withNews) {
+      files['news.json'] = `${JSON.stringify({ today, items: news })}\n`;
+      files['badges.js'] = readFileSync(new URL('./badges.js', import.meta.url), 'utf8');
+    }
     return files;
   } finally {
     chrome = null;
+    withNews = false;
   }
 }
 

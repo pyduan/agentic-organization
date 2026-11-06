@@ -285,6 +285,23 @@ export function statusReport(result) {
   return out.join('\n');
 }
 
+/**
+ * The machine's own settings, after the pull: lib/local-migrations.mjs is imported only now, so a
+ * migration that arrived with this very pull runs in this session rather than the next. Returns the
+ * lines for the agent: what was updated, and what waits on this machine (routines to install, a
+ * backfill to start or resume). A failure here never fails the sync.
+ */
+export async function machineSettings(root) {
+  try {
+    const lm = await import(pathToFileURL(join(root, 'lib', 'local-migrations.mjs')).href);
+    const migrations = [...lm.KIT_MIGRATIONS, ...await lm.instanceMigrations(root)];
+    const text = lm.summary(lm.migrate(root, { migrations }));
+    return [...(text ? [text] : []), ...lm.pending(root)];
+  } catch (e) {
+    return [`Machine settings: not checked (${e.message.split('\n')[0]}).`];
+  }
+}
+
 const isMain = (() => {
   try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
 })();
@@ -306,6 +323,7 @@ if (isMain) {
     if (warning) console.log(warning);
     const notice = command === 'sync' && flags.has('--siblings') ? await workspaceNotice(root) : null;
     if (notice) console.log(notice);
+    if (command === 'sync') for (const line of await machineSettings(root)) console.log(line);
   }
   const failed = command === 'sync' && result.repos.some((r) => FAILED.has(r.state));
   process.exit(failed && !flags.has('--quiet') ? 1 : 0);

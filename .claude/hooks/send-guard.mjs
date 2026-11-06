@@ -22,6 +22,23 @@
 //   { "allow": ["scripts/alert-owner\\.sh"] }
 // Never add a pattern that can reach someone else.
 //
+// A message to oneself (a briefing mailed to its owner) passes by address, from
+// `.claude/send-guard.local.json`, which stays on that machine and is never committed:
+//   { "self": ["owner@example.org"] }
+// An organization may also let a message to its own addresses leave without the question, by
+// declaring its domains in `source/organization-policy.json`:
+//   { "internalDomains": ["example.org"] }
+// Only a new message (a `send_message` tool, no draft, no reply, no forward) whose every recipient in
+// to, cc and bcc is one of those passes; one other address anywhere and the guard asks. The person's
+// reread before an internal message stays the rule (source/formats/message.md); the domain only stops
+// the harness asking on top of it.
+//
+// A session nobody attends (a scheduled routine: CLAUDE_CODE_SESSION_ATTENDED=0) has nobody to answer
+// the question, so there the guard refuses instead of asking: any message except one to the owner's
+// own address (an internal domain is not enough), and a `git push` from a repo the policy lists as
+// restricted (`restrictedRepos`, by folder name), which needs a person to reread it. A session where
+// the variable is absent counts as attended: the question then waits for a person.
+//
 // The same Bash matcher also holds a commit that carries a trailer the project forbids,
 // opt-in in `.claude/turn-checks.json`:
 //   { "commitTrailers": "forbid" }                      no Co-Authored-By trailer
@@ -55,11 +72,42 @@ const SHELL_SEND = [
   /(^|[;&|(]\s*)\.{0,2}\/[\w.\/~-]*send(?!-guard)[\w-]*\.(sh|py|rb|mjs|js)\b/i,
 ];
 
-export function classify({ tool_name: name = '', tool_input: input = {} }, allow = []) {
+/** The recipients of a new message, lower case; [] for anything else (a draft, a reply, a forward). */
+function recipients(tool, input = {}) {
+  if (!/(^|_)send_message$/i.test(tool) || input.draftId) return [];
+  return ['to', 'cc', 'bcc'].flatMap((k) => (Array.isArray(input[k]) ? input[k] : input[k] ? [input[k]] : []))
+    .map((a) => String(a).trim().toLowerCase().replace(/^.*<([^>]+)>$/, '$1'));
+}
+
+/** Does every recipient of this new message pass: one of `self`, or (when given) at one of `domains`? */
+export function toOwnAddresses(tool, input, self = [], domains = []) {
+  const all = recipients(tool, input);
+  const mine = new Set(self.map((a) => String(a).trim().toLowerCase()));
+  const doms = new Set(domains.map((d) => String(d).trim().toLowerCase().replace(/^@/, '')));
+  const ok = (a) => mine.has(a) || (/^[^\s@<>]+@[^\s@<>]+$/.test(a) && doms.has(a.split('@')[1]));
+  return all.length > 0 && all.every(ok);
+}
+
+/** The restricted repo a `git push` would leave from (cwd, `git -C`, or a `cd` first), or ''. */
+export function restrictedPush(cmd = '', cwd = '', restricted = []) {
+  if (!restricted.length || !/\bgit\b[^;&|]*\bpush\b/.test(cmd)) return '';
+  const names = restricted.map((r) => r.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  const inside = new RegExp(`(^|[\\/\\s"'])(${names})([\\/\\s"']|$)`);
+  const targets = [...cmd.matchAll(/\b(?:cd|git\s+-C)\s+("[^"]+"|'[^']+'|\S+)/g)].map((m) => m[1]);
+  for (const t of [...targets, cwd]) { const m = String(t || '').match(inside); if (m) return m[2]; }
+  return '';
+}
+
+/** Is nobody attending this session? Only when the app says so. */
+export const unattended = (env = process.env) =>
+  ['0', 'false', 'no'].includes(String(env.CLAUDE_CODE_SESSION_ATTENDED ?? '').toLowerCase());
+
+export function classify({ tool_name: name = '', tool_input: input = {} }, allow = [], { self = [], domains = [] } = {}) {
   if (name.startsWith('mcp__')) {
     const tool = name.split('__').slice(2).join('__');
     if (!MCP_SEND.test(tool)) return null;
     if (allow.some((re) => re.test(name))) return null;
+    if (toOwnAddresses(tool, input, self, domains)) return null;
     return { what: `the ${tool} tool of ${name.split('__')[1]}` };
   }
   if (name === 'Bash') {
@@ -99,6 +147,18 @@ function loadTrailerKeys(dir) {
   } catch { return []; }
 }
 
+function loadLocal(dir) {
+  const read = (f) => { try { return JSON.parse(readFileSync(join(dir, f), 'utf8')); } catch { return {}; } };
+  const local = read('.claude/send-guard.local.json');
+  const policy = read('source/organization-policy.json');
+  return {
+    self: (Array.isArray(local.self) ? local.self : []).filter((a) => /^[^\s@]+@[^\s@]+$/.test(String(a))),
+    domains: (Array.isArray(policy.internalDomains) ? policy.internalDomains : []).map((d) => String(d).replace(/^@/, ''))
+      .filter((d) => /^[a-z0-9-]+(\.[a-z0-9-]+)+$/i.test(d)),
+    restricted: (Array.isArray(policy.restrictedRepos) ? policy.restrictedRepos : []).map(String).filter(Boolean),
+  };
+}
+
 function loadAllow(dir) {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.claude', 'send-guard.json'), 'utf8'));
@@ -118,8 +178,23 @@ if (isMain) {
   const dir = process.argv[2] || process.env.CLAUDE_PROJECT_DIR || event.cwd || process.cwd();
   const trailers = event.tool_name === 'Bash'
     ? forbiddenTrailers(event.tool_input?.command, loadTrailerKeys(dir), event.cwd || dir) : [];
-  const hit = classify(event, loadAllow(dir));
-  if (trailers.length) {
+  const local = loadLocal(dir);
+  const alone = unattended();
+  // Alone, only the owner's own address passes: an internal domain needs a person who reread.
+  const hit = classify(event, loadAllow(dir), alone ? { self: local.self } : local);
+  const repo = alone && event.tool_name === 'Bash'
+    ? restrictedPush(String(event.tool_input?.command || ''), String(event.cwd || ''), local.restricted) : '';
+  if (alone && (hit || repo)) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: hit
+          ? `Refused: nobody is attending this session, and this would send a message in someone's name (${hit.what}). A routine only mails its owner, at their own address (.claude/send-guard.local.json ▸ self).`
+          : `Refused: nobody is attending this session, and this would push to ${repo}, a restricted repo (source/organization-policy.json ▸ restrictedRepos). Leave the change committed locally and say in the run report that a person must reread and push it.`,
+      },
+    }));
+  } else if (trailers.length) {
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'PreToolUse',
