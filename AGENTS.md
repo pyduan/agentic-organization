@@ -56,7 +56,7 @@ Find every row that matches the task at hand and read those files before produci
 | A decision **retires a route** (where something is built, which tool holds what) | sweep the guides in the same change, then add the old wording to `source/quality/retired-claims.json`; `node scripts/check-retired.mjs` fails when a guide says it again |
 | Showing someone a page **before** it is published, or the owner says "publish" | `docs/deploy-cloudflare.md` ▸ *From preview to link*: a `localhost` preview first, then a push to `main` of the page's own repo and the link for its audience |
 | Publishing, hosting, domains — including **which folder gets served**, since a host serves every file in it | `docs/deploy-cloudflare.md` (after any hosting change, confirm a private file 404s on the live URL) |
-| A **scheduled task**: writing one, retiring one, or "what runs on its own around here" | `routines/README.md` — versioned because the scheduler's own folder is not, offered at setup rather than installed, and retiring one means deregistering it **and** deleting its file in the same change |
+| A **scheduled task**: writing one, retiring one, or "what runs on its own around here" | `routines/README.md` — versioned because the scheduler's own folder is not, offered at setup rather than installed (unless a written leadership policy installs a few for everyone, within fixed limits), and retiring one means deregistering it **and** deleting its file in the same change |
 | Onboarding someone onto the kit, or "is everyone on the current version", "why did X not get the update" | `node scripts/check-fleet.mjs` — per instance: how far behind the template, whether it is wired to announce its own news, and who last pushed. A project onboarded before a mechanism cannot announce that mechanism exists |
 | "Check for dead links", "is anything still up", "stale stuff", or a recurring health sweep | `.claude/skills/freshness/SKILL.md` → `node scripts/check-freshness.mjs`. Asks whether what we published is still there and whether what we wrote about it is still true, which no build or test asks — including whether the `.gitignore` rules are true, since one added after the files were committed protects nothing |
 | The agent seems to ignore what this repo says, or someone is setting the kit up on a machine that has been used with Claude before | `node scripts/check-conflicts.mjs` — what is instructing the agent from OUTSIDE this repo: a user-level `CLAUDE.md`, installed plugins and global skills, globally declared MCP servers, scheduled tasks, a second clone. `--park` moves the safe ones aside, reversibly; it never deletes |
@@ -261,7 +261,7 @@ source/formats/webapp.md     web-app playbook (page vs app, the three shapes, st
 source/formats/todo.md       the to-do line format, and the rule that files are patched not rewritten
 source/formats/pack.md       how a project's good idea becomes installable elsewhere
 packs/<slug>/                installable bundles; the kit never touches this folder
-routines/<slug>/             the scheduled work, versioned; offered at setup, never auto-installed
+routines/<slug>/             the scheduled work, versioned; offered at setup; auto-installed only under a written leadership policy
 lib/todo.mjs                 the one parser: parse, patch by id, reorder, backfill ids
 lib/provenance.mjs           what a tool read, which version, and what each figure rests on
 lib/register.mjs             the incident register: find it, read it, and the schema it must keep

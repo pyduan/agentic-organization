@@ -25,6 +25,16 @@ on someone's machine and then acts while they are not looking, which is a side e
 computer rather than a file in their repo. Say what it would do and how often, then wait. This is the
 same rule as an update: never applied silently.
 
+**The one exception is a written policy from the organization's leadership.** When the repositories
+are meant to be the source of truth for everyone, a head of the organization can decide that a few
+routines run for every person, so that nobody's view drifts: a morning import of their mail and
+files, a briefing they mail to themselves. The decision is a file in the shared repository (who
+decided, the date, which routines, why), cited by the install prompts and by each person's setup
+page, so each person can see why it runs without asking them. The policy never widens what a
+routine may do. Its limits stay written in the routine and enforced by the hooks when nobody is
+attending: sources read-only, mail only to oneself, nothing pushed to a restricted repository and
+no personal data anywhere without the person's yes in a session they attend.
+
 ## A routine is thin. The method lives in its recipe.
 
 **A routine carries five things and nothing else:**

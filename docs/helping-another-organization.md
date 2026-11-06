@@ -146,6 +146,80 @@ a partner's team member. A few rules hold for every one of them.
 - **Hand over one consolidated prompt.** After each correction, send the whole prompt again with
   the correction folded in, never a section to swap in by hand.
 
+## When the repositories become everyone's source of truth
+
+Once a team works in the repositories daily, the risk changes: each person's view drifts from the
+others', because one imported last week and another never did. Learned on a government cabinet of a
+dozen people, in this order:
+
+1. **Leadership decides, in writing.** A head of the organization (a chief of staff, a director)
+   decides that the repositories are the source of truth and that a few routines run for everyone.
+   The decision is a file in the shared repository: who, when, which routines, which writes go
+   without a per-batch yes, and why. The install prompts and each person's setup page cite it, so
+   nobody wonders why something runs without asking (`routines/README.md` ▸ *Offered, never
+   installed on its own*).
+2. **The default routines install themselves** at the first session after an update: a morning
+   import of the person's mail and files, read-only, and a short briefing each person mails to
+   themselves (their priority work, what to unblock first, the countdown to the next deadline and
+   the link to the steering page). Both run in auto mode, within limits the hooks enforce when
+   nobody is attending: sources read-only, mail only to oneself, nothing pushed to a restricted
+   repository.
+3. **Each person's backfill starts on its own, once.** The template below, filled from what the
+   repositories already know about the person (their unit's repository, their restricted one if
+   any, their priority subjects), runs as far as it can alone and keeps its state on the machine, so
+   it resumes rather than restarts. Under the policy, writes to the shared repositories go out with
+   a trace (who, when, which sources and period) and flags on anomalies and inferred values;
+   restricted repositories, anomalies and what no rule settles wait for the person's yes in the
+   chat, grouped with the push.
+4. **The daily routine takes over** from the backfill.
+
+**Local settings migrate themselves.** A pull updates what git tracks, never a machine's own
+`*.local.json`. So the sync that runs at every session start also runs small migrations, each with
+an id recorded once applied, that add a missing key and never overwrite the person's value. That is
+how a new rule (an internal mail domain, a new routine) reaches machines already installed without
+anyone at them. What a migration cannot settle (a machine whose clone cannot fast-forward) goes on
+the steering page, with a manual procedure as the fallback.
+
+**Internal mail is a setup parameter.** The send hook takes the organization's own domain: a message
+to an internal address leaves after the person rereads it, or without on their express request; a
+message outside always waits.
+
+**Each unit's head shapes their own home.** The intranet home is a visual dashboard per person or
+unit (what matters to them, the steering of their activities, their alerts, their most used apps),
+held as a small config in the repository and changed by asking their agent. The invitation to
+personalise comes as a prompt in their next session, not as a mail.
+
+**Alerts stay rare; news gets a badge.** An alert means very late and very important (on the critical
+path and past a set delay), nothing else; assignments, reminders and completed watches are
+notifications. Each tab carries a count of what is new for this person since their last visit,
+cleared when opened, absent at zero.
+
+**A suggestion to a unit one cannot write to becomes a pull request, doubled by a plain mail.** The
+person's agent pushes when they have write access; otherwise it opens a pull request from a fork,
+or an issue labelled *suggestion* when the organization does not allow forking private repositories,
+or a comment on the intranet. Each one comes with a mail to the unit's head, in plain words: what is
+suggested, what triggered it, what it changes, and one link to accept it. The person rereads and
+sends it.
+
+**The backfill template**, pasted (or launched) per person, angle brackets filled from the
+repositories:
+
+> Do my backfill: I want the repositories to become the source of truth for my work, instead of my
+> files and my exchanges. Sources, read-only: my mailbox (received and sent) and my Drive since
+> <start date>, then on this machine the folders <paths>, the most important first. Check first that
+> this scope is approved in `CONNECTORS.md`; otherwise propose the row. My subjects first:
+> <priority subjects>; count the noise and skip it. Extract the latest real data, the history (who,
+> what, when, with its source), the templates of the documents I produce (emptied of names and
+> amounts) and the rules my files apply, in the formats the repository already describes. What the
+> whole organization may read goes to <shared repositories>; <confidential subject> only to
+> <restricted repository>, checked private first; personal data nowhere; what no rule settles to my
+> list to decide. Stage in a gitignored `local/` folder, attach each line to what exists rather than
+> creating a duplicate, check your totals against my files, list anomalies without fixing them,
+> and say "to confirm" for anything inferred. Leave a trace in each repository touched (who, when,
+> scope). Push the shared repositories as <the policy> says, and show me the rest batch by batch
+> before pushing. Send no message and change nothing in the mailbox or the Drive. At the end, tell
+> me in a few lines what went where, what waits for me, and what I still need to fill in.
+
 ## After the day, the same day
 
 1. **The guide for their next person**, written from the transcript read in full: what is installed,

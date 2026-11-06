@@ -10,6 +10,21 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-06 · MINOR · When the repositories become everyone's source of truth
+
+The guide for installing the kit at another organization has a new section for the weeks after:
+leadership decides in writing that a few routines run for everyone (a morning import, a briefing
+each person mails to themselves), each person's backfill starts on its own and resumes, local
+settings migrate themselves at the next session, internal mail is a setup parameter, each unit's
+head shapes their own intranet home, alerts stay rare while tabs carry a count of what is new, and a
+suggestion to a unit one cannot write to becomes a pull request with a plain mail to its head. The
+routines guide now allows the one exception to "offered, never installed on its own": a written
+leadership policy, which never widens what a routine may do.
+
+**What you need to do:** nothing, unless you run the kit for a team that should share one view; then
+read `docs/helping-another-organization.md` ▸ *When the repositories become everyone's source of
+truth*.
+
 ## 2026-11-05 · MINOR · Connectors on by default for a Claude team
 
 If your organization uses Claude on a Team or Enterprise account, its owner can now turn connectors
