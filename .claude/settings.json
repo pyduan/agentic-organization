@@ -79,6 +79,20 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/ux-pass.mjs"
+            ]
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

@@ -299,6 +299,15 @@ doubles it.
 stopped at "no write access". Forking private repos is off by default on GitHub, so the issue is the
 usual fallback; the mail exists because a pull request alone reaches nobody who does not read GitHub.
 
+### The Laws of UX pass, once per new screen piece
+A session that creates a component, a template, a layout or a page is asked, by the PostToolUse hook
+`.claude/hooks/ux-pass.mjs`, to review it against the Laws of UX on the running screen and to stamp
+it (`ux-pass: <date>`). Editing an existing file asks nothing; a stamped file is never asked again.
+**Why:** decided 2026-11-07. The first pass on a real screen caught two buttons with the same name and
+a save bar hidden under a floating button, which no build sees. Asked on every change or run in CI,
+the same review would be noise or blind, so it is asked at the one moment it pays and costs one git
+call per written file.
+
 ## This organization's own
 
 <!-- Add an entry per feature this repository has beyond the kit: what it does, and **Why:** the

@@ -31,6 +31,7 @@ beside its tokens, with what was inferred rather than given marked *to confirm*.
 - Generous whitespace; when in doubt, remove an element instead of shrinking everything.
 - Build a small set of components and reuse them. Keep an inventory here as they appear (hero, card, gallery grid...), with a pointer to where each lives. A new page should mostly assemble existing components. TODO as they're built.
 - Motion is subtle and purposeful, or absent. Never bouncy by default.
+- A new component or template gets the Laws of UX pass once, on the running screen, then a `ux-pass:` stamp: `source/formats/webapp.md` ▸ *The Laws of UX pass*.
 
 ## Charts and tables
 

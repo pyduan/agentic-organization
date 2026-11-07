@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-07 · MINOR · A Laws of UX review when a new screen piece is created
+
+When your agent creates a new component, template or page, it now reviews it once against the Laws
+of UX on the real screen (is the main button easy to reach, do two buttons share a name, is unsaved
+work protected) and marks the file as reviewed. Edits to existing screens are not affected, and
+nothing runs in CI.
+
+**What you need to do:** nothing. To turn it off, add `"uxPass": false` to `.claude/turn-checks.json`.
+
 ## 2026-11-06 · MAJOR · One view for everyone: routines, a backfill and self-updating machine settings
 
 Your organization can now decide, in one file, that a few routines run for everyone: a morning import

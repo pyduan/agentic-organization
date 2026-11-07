@@ -559,7 +559,43 @@ as a list, and ask only what no file can answer. Five rules to build in from the
 
 Same as the site: check it at ~390px and desktop, click everything, console clean, real alt text.
 Plus, for a tool: try wrong and empty inputs — a calculator that NaNs on a blank field isn't done.
+A new component, template, layout or page also gets the Laws of UX pass below, once.
 If the app shows data, its charts and tables follow the charts section of `design.md`. An app the
 owner doesn't want published follows the matching section of `website.md`.
 
 Record every app in `source/brief.md` under derivatives (what it is, where it lives, its URL).
+
+### The Laws of UX pass
+
+Jon Yablonski's [Laws of UX](https://lawsofux.com/) as a review, run **once per new screen piece**
+(a component, a template, a layout, a page) on the running screen, read on a screenshot at ~390px and
+at desktop, never from the code. Not on every edit, and not in CI: a build cannot see a screen, and a
+check that runs on every change becomes noise everyone learns to skip. The hook
+`.claude/hooks/ux-pass.mjs` asks for it when a session creates such a file, and stops asking once the
+file carries a stamp comment, `ux-pass: <date>` followed by the laws that raised something. A
+redesign removes the stamp and gets asked again. `"uxPass": false` in `.claude/turn-checks.json`
+turns the hook off.
+
+Each law is a question. A "no" gets fixed, or named in the delivery with the reason it stays. Report
+only the laws the screen raised: thirty ticks prove nothing.
+
+- **Jakob.** Does it behave like the tools people already use, and like the rest of this app? A new
+  gesture needs a reason.
+- **Hick, Choice overload, Occam.** How many choices show at once? The frequent action stays visible,
+  the rare ones go under "…". Can one control go without losing anything?
+- **Fitts.** Is the main action large, near where the hand already is, reachable by a thumb on a
+  phone, and clear of any floating button?
+- **Proximity, Common region, Similarity.** Does each control sit next to what it acts on? Do two
+  things that look alike do the same thing, and do two different actions have different names? Two
+  "Edit" buttons on one card fail this.
+- **Von Restorff, Selective attention.** Does exactly one thing stand out, and is it the right one?
+  What changed, what is pending and what failed show without searching.
+- **Doherty.** Does every action answer within about 400 ms, with a visible state ("Saving…", a
+  count) when the work takes longer?
+- **Goal-gradient, Zeigarnik, Peak-end.** Does a task in progress say how much is left, keep
+  unfinished work visible, and ask before throwing it away? Is the last moment (saved, sent) clear?
+- **Tesler, Postel.** Does the machine carry the complexity: sensible defaults, the most useful
+  version shown first, inputs that accept what people type and clean it up?
+- **Miller, Chunking, Cognitive load.** Is a long list or text cut into groups a person can scan?
+- **Aesthetic-usability.** Does a polished look hide a missing state (empty, error, offline)? Check
+  those states too.

@@ -276,3 +276,32 @@ test('the language check is opt-in, through turn-checks.json', () => {
   writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({ language: 'fr' }));
   assert.match(JSON.parse(run()).reason, /Now let me summarise the change/);
 });
+
+// ------------------------------------------------------------------ ux-pass
+
+test('ux-pass asks once for a new screen piece, and never for an edit, a stamp or a non-UI file', async () => {
+  const { isUiFile, reminder } = await import('../.claude/hooks/ux-pass.mjs');
+  for (const p of ['site/src/components/Card.astro', 'apps/x/web/src/Panel.jsx', 'src/templates/invoice.html', 'app/views/List.vue'])
+    assert.ok(isUiFile(p), p);
+  for (const p of ['scripts/build.mjs', 'site/dist/components/a.js', 'src/Card.test.jsx', 'decks/pitch/index.html', 'README.md', 'node_modules/x/Button.tsx'])
+    assert.ok(!isUiFile(p), p);
+  const base = { rel: 'site/src/components/Card.astro', content: '<div/>', inHead: false, alreadyAsked: false, disabled: false };
+  assert.match(reminder(base), /Laws of UX pass/);
+  assert.equal(reminder({ ...base, inHead: true }), null, 'an existing file is an edit');
+  assert.equal(reminder({ ...base, content: '<!-- ux-pass: 2026-11-07 (Fitts) -->' }), null, 'already stamped');
+  assert.equal(reminder({ ...base, alreadyAsked: true }), null, 'once per session');
+  assert.equal(reminder({ ...base, disabled: true }), null);
+});
+
+test('ux-pass, run as a hook on a new file in a fresh repo, prints the reminder once', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'uxpass-'));
+  execFileSync('git', ['init', '-q', dir]);
+  execFileSync('git', ['-C', dir, '-c', 'user.email=a@b', '-c', 'user.name=a', 'commit', '-q', '--allow-empty', '-m', 'init']);
+  const file = join(dir, 'src/components/Card.jsx');
+  const run = () => execFileSync('node', [join(HOOKS, 'ux-pass.mjs')], {
+    input: JSON.stringify({ session_id: 's1', tool_name: 'Write', tool_input: { file_path: file, content: 'export default 1' } }),
+  }).toString();
+  const first = run();
+  assert.match(JSON.parse(first).hookSpecificOutput.additionalContext, /src\/components\/Card\.jsx/);
+  assert.equal(run(), '', 'asked once per session');
+});
