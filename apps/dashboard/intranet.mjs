@@ -31,6 +31,7 @@ export const STRINGS = {
   'nav.home': 'Home',
   'nav.projects': 'Projects',
   'nav.menu': 'Menu',
+  'banner.title': 'Quickstart',
   'banner.hide': 'Hide',
   'banner.show': 'Show',
   'tiles.running': ['project running', 'projects running'],
@@ -73,6 +74,13 @@ export const TABS = [['', 'nav.home'], ['projects/', 'nav.projects']];
  */
 export const SIDEBAR_FROM = 7;
 
+/**
+ * What an extension may hide when it replaces it (intranet.hide): a section of the kit's home page,
+ * or the Projects tab. A closed list, so a typo stops the build instead of hiding nothing. The
+ * projects' pages are built either way, so a link to one keeps working.
+ */
+export const HIDE_KEYS = ['home.tiles', 'home.waiting', 'home.projects', 'home.moved', 'home.tools', 'tab.projects'];
+
 // What an extension adds to the chrome, for the length of one renderIntranet() call: its tabs placed
 // among the kit's, its groups, and its words over the kit's. Null renders exactly the kit's own.
 let chrome = null;
@@ -109,7 +117,8 @@ export function tabs() {
     }
     out.splice(at, 0, { to: x.path, key: x.label, after: x.after ?? null });
   }
-  return out.map((o) => [o.to, o.key]);
+  const gone = chrome?.hide?.includes('tab.projects') ? 'projects/' : null;
+  return out.filter((o) => o.to !== gone).map((o) => [o.to, o.key]);
 }
 
 const label = (key) => {
@@ -138,7 +147,8 @@ export function navGroups() {
 /**
  * The banner, from source/content/intranet-home.md: the first `#` heading is its title, what sits
  * between it and the first `##` its lede, and each `##` section a column. HTML comments are notes
- * for the agent and never shown. An empty or missing file gives no banner.
+ * for the agent and never shown. An empty or missing file gives no banner: that is how an instance
+ * turns it off.
  */
 export function parseHome(md) {
   const lines = String(md ?? '').replace(/<!--[\s\S]*?-->/g, '').split('\n');
@@ -161,6 +171,20 @@ export function parseHome(md) {
       .filter((s) => s.body),
   };
   return out.title || out.lede || out.sections.length ? out : null;
+}
+
+const fold = (s) => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
+/** The heading the kit shipped before the banner was called Quickstart, read as no heading. */
+const OLD_DEFAULT_TITLE = 'start here';
+
+/**
+ * The banner's title as it shows: the owner's heading, unless there is none, it repeats the
+ * organization's name the header already shows (case and accents aside), or it is the kit's old
+ * default; then the chrome's word, `banner.title` (Quickstart, translatable like any other).
+ */
+export function bannerTitle(title, org) {
+  const f = fold(title);
+  return !f || f === fold(org) || f === OLD_DEFAULT_TITLE ? null : title;
 }
 
 const TOOL = /^\s*[-*]\s+\[([^\]]+)\]\(([^)\s]*)\)\s*[·:—–-]?\s*(.*?)\s*$/;
@@ -278,11 +302,12 @@ export function feed(entries, base) {
     ? `<b>${r.page ? `<a href="${base}${esc(r.page)}">${esc(r.project)}</a>` : esc(r.project)}</b> · ` : ''}${esc(r.text)}</span></div>`).join('')}</div>`;
 }
 
-function banner(home) {
+function banner(home, org) {
   if (!home) return '';
+  const own = bannerTitle(home.title, org);
   const cols = home.sections.map((s) => `<section id="${esc(s.id)}"><h2>${inline(s.heading)}</h2>${renderMarkdown(s.body)}</section>`).join('');
   return `<details class="banner" id="start" open>
-  <summary><span class="wrap banner-head"><span class="banner-title">${inline(home.title || '')}</span><span class="banner-toggle" data-hide="${t('banner.hide')}" data-show="${t('banner.show')}"></span></span></summary>
+  <summary><span class="wrap banner-head"><span class="banner-title">${own ? inline(own) : esc(t('banner.title'))}</span><span class="banner-toggle" data-hide="${t('banner.hide')}" data-show="${t('banner.show')}"></span></span></summary>
   <div class="wrap banner-body">
     ${home.lede ? `<div class="banner-lede">${renderMarkdown(home.lede)}</div>` : ''}
     ${cols ? `<div class="banner-cols">${cols}</div>` : ''}
@@ -400,19 +425,22 @@ export const HOME_SLOTS = ['top', 'before-tools', 'end'];
 
 /**
  * The home page. `slots` holds an extension's sections as HTML, by slot: `top` under the banner and
- * above the numbers, `before-tools` after the kit's dashboards, `end` last in the page.
+ * above the numbers, `before-tools` after the kit's dashboards, `end` last in the page. `hide` lists
+ * the kit's sections the extension replaces (HIDE_KEYS); 'home.projects' takes the empty state and
+ * the line naming private repos with it, since both stand in for the project cards.
  */
-export function homePage({ data, home, tools, today, slots = {} }) {
+export function homePage({ data, home, tools, today, slots = {}, hide = [] }) {
   const base = '';
   const s = stats(data.projects, today);
   const parts = [];
+  const shown = (key) => !hide.includes(key);
   const slot = (name) => { for (const html of slots[name] || []) if (html) parts.push(html); };
   slot('top');
   if (!data.projects.length) {
-    parts.push(`<p class="empty">${esc(t('home.empty'))}</p>`);
+    if (shown('home.projects')) parts.push(`<p class="empty">${esc(t('home.empty'))}</p>`);
   } else {
-    parts.push(tiles(s));
-    const who = waiting(data.projects, today);
+    if (shown('home.tiles')) parts.push(tiles(s));
+    const who = shown('home.waiting') ? waiting(data.projects, today) : [];
     if (who.length) {
       parts.push(`<h2 id="waiting">${t('home.waiting')}</h2><p class="note">${t('home.waitingNote')}</p>
 <div class="people">${who.map((w) => `<article class="card">
@@ -421,14 +449,14 @@ export function homePage({ data, home, tools, today, slots = {} }) {
   ${w.items.length > 5 ? `<small>${t('who.more', w.items.length - 5)}</small>` : ''}
 </article>`).join('')}</div>`);
     }
-    parts.push(`<h2 id="projects">${t('home.projects')}</h2><div class="cards">${data.projects.map((p) => projectCard(p, base, today)).join('')}</div>`);
-    if (data.recap.length) parts.push(`<h2 id="moved">${t('home.moved')}</h2>${feed(data.recap, base)}`);
+    if (shown('home.projects')) parts.push(`<h2 id="projects">${t('home.projects')}</h2><div class="cards">${data.projects.map((p) => projectCard(p, base, today)).join('')}</div>`);
+    if (data.recap.length && shown('home.moved')) parts.push(`<h2 id="moved">${t('home.moved')}</h2>${feed(data.recap, base)}`);
   }
   slot('before-tools');
-  parts.push(toolCards(tools, base));
-  if (data.private?.length) parts.push(`<p class="empty">${esc(t('projects.private', data.private.join(', ')))}</p>`);
+  if (shown('home.tools')) parts.push(toolCards(tools, base));
+  if (data.private?.length && shown('home.projects')) parts.push(`<p class="empty">${esc(t('projects.private', data.private.join(', ')))}</p>`);
   slot('end');
-  return shell({ data, depth: 0, tab: '', title: null, before: banner(home), body: `<main class="wrap">${parts.join('\n')}</main>` });
+  return shell({ data, depth: 0, tab: '', title: null, before: banner(home, data.org), body: `<main class="wrap">${parts.join('\n')}</main>` });
 }
 
 function projectsSide(data, current) {
@@ -484,7 +512,7 @@ export function newsItems(data, extra = []) {
 }
 
 export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10), extension = null }) {
-  chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings } : null;
+  chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings, hide: extension.hide } : null;
   try {
     const ctx = (path) => extension.context({ data, today, path });
     const news = newsItems(data, (extension?.news || []).flatMap((fn) => fn(ctx('')) || []));
@@ -492,7 +520,7 @@ export function renderIntranet({ data, home, tools, css, today = new Date().toIS
     const slots = {};
     for (const [name, renders] of Object.entries(extension?.home || {})) slots[name] = renders.map((render) => render(ctx('')));
     const files = {
-      'index.html': homePage({ data, home, tools, today, slots }),
+      'index.html': homePage({ data, home, tools, today, slots, hide: extension?.hide || [] }),
       'projects/index.html': projectsPage({ data, today }),
       'intranet.css': extension?.css.length ? `${css}${extension.css.map((c) => `\n/* ---- ${c.from} ---- */\n${c.text}`).join('')}` : css,
     };

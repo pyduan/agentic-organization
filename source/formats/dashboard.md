@@ -35,8 +35,13 @@ the organization's own (*Adding your own views*).
   how the system works (one source of truth, every page a view of it, workflows over one-off
   outputs, every correction a rule, mail and drives as ingestion). Its words are
   `source/content/intranet-home.md`, which the owner edits like any other file: the first heading
-  is its title, the paragraph under it its opening line, each `##` a column. It is open on a first
-  visit, and a viewer who closes it keeps it closed on that browser; its title opens it again.
+  is its title, the paragraph under it its opening line, each `##` a column. The title never
+  repeats the organization's name, which the header already shows: no heading, a heading equal to
+  the name (case and accents aside) or the kit's old "Start here" shows as **Quickstart**, the
+  chrome's `banner.title`, translated with the chrome's other words (`strings()`, below). It is
+  open on a first visit, and a viewer who closes it keeps it closed on that browser; its title
+  opens it again. **To have no banner**, empty the file (comments may stay) or delete it: the home
+  page then starts with the numbers, and the kit's test of the banner's words is skipped.
 - **A few numbers**: projects running, things to do, late, decisions waiting (`#decide`). Counted
   from the data at build time, never written into prose.
 - **Who waits on what**: one card per person (`@slug` on the to-do lines), decisions first, then
@@ -92,7 +97,7 @@ export default async function extend(intranet) {
   gathered (`projects`, `recap`, `org`).
 - `esc`, `inline`, `renderMarkdown` and `slugify` from `scripts/doc/markdown.mjs`.
 - `strings(words)`, `tab(path, label, { before, after })`, `group(label, paths)`,
-  `page(path, render)`, `home(slot, render)` and `css(source)`, below. The function may be `async`; the renders may not.
+  `page(path, render)`, `home(slot, render)`, `hide(keys)` and `css(source)`, below. The function may be `async`; the renders may not.
 
 **A tab** is a folder path (`'rota/'`) and a label, a key of the strings or the text itself. Tabs
 go before the kit's Projects in the order they were added, unless `before` or `after` names another
@@ -121,6 +126,20 @@ render that returns a string writes that file as it is. A path the kit already u
 **A home section** goes at one of three slots: **`top`**, under the banner and above the numbers;
 **`before-tools`**, after the kit's dashboards; **`end`**, last on the page. The render gets the same
 `c` as a page at the root, and returns HTML.
+
+**Hiding the kit's pieces** an extension replaces: `hide(['home.tiles', 'home.waiting',
+'home.projects', 'home.moved', 'home.tools', 'tab.projects'])`, any of those six. A hidden home
+section is not rendered (`home.projects` takes the empty state and the line naming private repos
+with it, since both stand in for the project cards); `tab.projects` takes the Projects tab out of
+the row or the sidebar, while the projects' pages are still built, so a link to one keeps working,
+and a group may then no longer name `'projects/'`. The list is closed: an unknown key stops the
+build. Without `hide()`, the pages are what they would be without it, byte for byte. The banner is
+not on the list: it is turned off by emptying its file (*What it shows*).
+
+```js
+intranet.hide(['home.tiles', 'home.projects', 'tab.projects']);  // our own pipeline replaces them
+intranet.home('top', (c) => `<h2>Pipeline</h2>…`);
+```
 
 **Styles** (`css(new URL('./x.css', import.meta.url))`, or the text) are appended after the kit's,
 each under a comment naming its file. Tokens only: a stylesheet that writes a colour as a value

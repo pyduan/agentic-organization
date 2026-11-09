@@ -68,7 +68,9 @@ A private home page (`apps/dashboard/`, `npm run intranet`): a banner with a qui
 system works, then stat tiles, who waits on what, where each project stands, what moved, and a card
 per tool; a page per project behind a Projects tab with a sidebar. The banner's words are
 `source/content/intranet-home.md` and the tools `source/content/intranet-tools.md`, so changing
-them is editing a file. A viewer can close the banner and it stays closed on that browser.
+them is editing a file. A viewer can close the banner and it stays closed on that browser. Its
+title never repeats the organization's name: no heading, the name itself or the old "Start here"
+shows as Quickstart (`banner.title`, translatable). An empty or missing file gives no banner.
 **Why:** asked for on 2026-10-30, so that the first thing an organization sees of the kit is its own
 private page saying how to work with it, with everything else reached from there. It grew out of
 the dashboard rather than beside it (`webapp.md` ▸ *First cut*: an internal app that already works
@@ -79,7 +81,9 @@ publishes it within its first half-hour, before any `npm install`, and a read-on
 state that would need components. The company pack's intranet (`packs/company/templates/intranet`)
 was the reference for the shape (one header row of tabs, the chrome's words in one table, the
 sign-out link, "nothing is edited here"); its code was not reused because it is an Astro app built
-over five repos.
+over five repos. On 2026-11-09 the banner's default title became Quickstart, after instances titled
+it with their own name right under a header showing the same name; the old "Start here" is read as
+no heading so instances that never touched it follow without an edit.
 
 ### An instance's own views on the intranet
 An instance adds tabs, pages, home-page sections and styles to the intranet from one file of its
@@ -91,8 +95,10 @@ if it writes a colour instead of a token, and a `test.mjs` beside it runs inside
 `scripts/test-intranet.mjs`, which also builds the instance's intranet and fails on a link to a page
 nobody built. Past two tabs, the one row of tabs scrolls sideways on a phone and opens with the
 current tab in view; from seven, or once the extension groups them (`intranet.group`), the sections
-become a sidebar down the left side under group headings, one menu on a phone. Without the file the
-build writes the kit's pages byte for byte.
+become a sidebar down the left side under group headings, one menu on a phone. An extension that
+replaces the kit's home sections or its Projects tab hides them (`intranet.hide`, a closed list of
+six keys); the projects' pages are still built. Without the file the build writes the kit's pages
+byte for byte.
 **Why:** 2026-10-30, after two instances had each built an adapter that patched the kit at run time:
 pushing into the exported `TABS`, re-rendering the kit's pages from `dist/data.json`, splicing HTML
 after `<main class="wrap">`, copying the page shell and testing that the copy still matched, and
@@ -101,6 +107,9 @@ the copied shell was exactly the duplicate `AGENTS.md` warns about. The file sit
 `kit-sync` owns, so no update can overwrite it; the kit ships only an invented example
 (`apps/dashboard/example-extension/`), built in its tests and never by default. Renders are plain
 functions returning HTML, like the kit's own pages, so the intranet still builds with Node alone.
+`hide` came on 2026-11-09, when an instance replaced the project cards and the Projects tab with
+views of its own and had both on its home page; the keys are a closed list so a typo fails the build
+rather than hiding nothing, and the projects' pages stay built so no link breaks.
 
 ### A local-only intranet that cannot be deployed
 `npm run intranet -- --local` lets the extension read `local/`, a git-ignored folder of material

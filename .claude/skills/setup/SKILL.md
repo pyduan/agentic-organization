@@ -96,7 +96,8 @@ and its empty state tells the owner how to fill them; that is expected, and the 
    `apps/dashboard/access.txt`. That file is the whole grant.
 2. **The banner, in their words.** Read `source/content/intranet-home.md` with them. Translate it
    into their language if it is not English, and change what does not fit (a team that works in
-   Slack says so in the quickstart). The tools in `source/content/intranet-tools.md` stay as they
+   Slack says so in the quickstart). Its title stays generic ("Quickstart", or their word for
+   it), never the organization's name, which the header already shows. The tools in `source/content/intranet-tools.md` stay as they
    are until each app has an address.
 3. **Build it and look at it.** Set `name` in `apps/dashboard/wrangler.jsonc` to `<slug>-dashboard`.
    `npm run intranet`, then serve `apps/dashboard/dist/` locally and show it at phone width and on a

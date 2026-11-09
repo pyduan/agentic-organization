@@ -1,14 +1,18 @@
-# Start here
+# Quickstart
 
 <!-- The banner at the top of the intranet's home page (apps/dashboard, npm run intranet).
      The first heading is its title, the paragraph under it its opening line, and each `##` section
      a column. Edit it like any other file: the next build shows it. Keep it short enough to read
-     in a minute; a viewer who closes it can open it again from its title. -->
+     in a minute; a viewer who closes it can open it again from its title.
+     The title never repeats the organization's name, which the header already shows: a heading
+     equal to it, or no heading, shows as "Quickstart" (the chrome's `banner.title`, translated
+     with the other words of the chrome). To have no banner at all, empty this file, comments
+     aside. -->
 
 This is the organization's private intranet. Every page is built from the repository, so when
 something here is wrong, the file behind it is what needs fixing.
 
-## Quickstart
+## First steps
 
 1. To open a session, open the organization's folder in Claude Code, in the Code tab, or type
    `claude` in that folder.

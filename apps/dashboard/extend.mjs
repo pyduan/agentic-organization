@@ -19,6 +19,7 @@
 //     intranet.page('rota/', (c) => ({ title: 'Rota', body: `<h1>Rota</h1>…` }));
 //     intranet.home('top', (c) => `<h2>This week</h2>…`);   // top · before-tools · end
 //     intranet.css(new URL('./rota.css', import.meta.url)); // tokens only
+//     intranet.hide(['home.tiles', 'tab.projects']);        // the kit's pieces this one replaces
 //     const drafts = intranet.local?.list('drafts/');       // local/: a --local build only, never deployed
 //   }
 //
@@ -30,7 +31,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { esc, inline, renderMarkdown, slugify } from '../../scripts/doc/markdown.mjs';
 import { parse as parseTodos } from '../../lib/todo.mjs';
 import {
-  HOME_SLOTS, LOCALE, TABS, t, shell, withSide, tile, todoRow, projectCard, feed,
+  HOME_SLOTS, HIDE_KEYS, LOCALE, TABS, t, shell, withSide, tile, todoRow, projectCard, feed,
 } from './intranet.mjs';
 
 /** Where an instance keeps its extension, from the repository's root. Never shipped by the kit. */
@@ -99,7 +100,7 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
   const extend = mod.default;
   if (typeof extend !== 'function') fail(`${relative(root, file)} must export a default function`);
 
-  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [], news: [] };
+  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [], news: [], hide: [] };
   const repo = repoReader(root);
   // local/ on this machine, only in a --local build: null otherwise, so a view tests `if (intranet.local)`.
   const localReader = local ? repoReader(join(root, LOCAL_DIR), { refuseLocal: false }) : null;
@@ -156,6 +157,17 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
       if (typeof render !== 'function') fail('intranet.news needs a function returning [{ key, href, date }]');
       reg.news.push(render);
     },
+    /**
+     * The kit's pieces this extension replaces, from HIDE_KEYS: a home section is not rendered, and
+     * 'tab.projects' takes the Projects tab out of the navigation while its pages are still built.
+     */
+    hide(keys) {
+      if (!Array.isArray(keys) || !keys.length) fail(`intranet.hide needs a list of keys among ${HIDE_KEYS.join(', ')}`);
+      for (const k of keys) {
+        if (!HIDE_KEYS.includes(k)) fail(`nothing called ${JSON.stringify(k)} to hide; the keys are ${HIDE_KEYS.join(', ')}`);
+        if (!reg.hide.includes(k)) reg.hide.push(k);
+      }
+    },
     /** Styles appended after the kit's intranet.css: a file (a URL) or the text. Tokens only. */
     css(source) {
       const isFile = source instanceof URL;
@@ -172,7 +184,8 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
 
   // A group names tabs, which may be added after it: checked once everything is registered.
   const known = new Set([...TABS.map(([to]) => to), ...reg.tabs.map((x) => x.path)]);
-  for (const g of reg.groups) for (const p of g.paths) if (!known.has(p)) fail(`the group ${g.label} names ${JSON.stringify(p)}, which is no tab`);
+  if (reg.hide.includes('tab.projects')) known.delete('projects/');
+  for (const g of reg.groups) for (const p of g.paths) if (!known.has(p)) fail(`the group ${g.label} names ${JSON.stringify(p)}, which is no tab${p === 'projects/' && reg.hide.includes('tab.projects') ? ' once hidden' : ''}`);
 
   // What a page's or a section's render receives: the same helpers, and the pieces of the kit's
   // pages bound to where the page sits, so a link written `c.href('rota/')` works at any depth.

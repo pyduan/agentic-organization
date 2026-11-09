@@ -10,6 +10,21 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-09 · MINOR · The intranet's banner is called Quickstart, and an extension can hide the kit's sections
+
+The green banner at the top of the intranet no longer repeats your organization's name, which the
+header already shows. Without a heading of your own, or with your name or the old "Start here" as
+its heading, it is titled Quickstart; its first column is now called First steps. A heading of your
+own choosing stays. To have no banner at all, empty `source/content/intranet-home.md` (comments may
+stay) or delete it. An intranet extension that replaces the kit's numbers, its project cards, what
+moved, the tools or the Projects tab can now hide them with one line, `intranet.hide([...])`; the
+project pages are still built, so links to them keep working.
+
+**What you need to do:** nothing. If your banner's heading is your organization's name, it now shows
+as Quickstart (translate it with `'banner.title'` in your extension's `strings()` if you work in
+another language), and you may rename a `## Quickstart` column to `## First steps`. To hide a kit
+section your extension replaces, see `source/formats/dashboard.md` ▸ *Adding your own views*.
+
 ## 2026-11-09 · MINOR · The end-of-session check now sees unpushed commits in cloud sessions
 
 A cloud session starts on a detached checkout, with no branch to compare against, and the

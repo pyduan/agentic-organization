@@ -11,7 +11,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  parseHome, parseTools, waiting, stats, homePage, projectsPage, projectPage, renderIntranet,
+  parseHome, parseTools, waiting, stats, homePage, projectsPage, projectPage, renderIntranet, bannerTitle, HIDE_KEYS,
 } from '../apps/dashboard/intranet.mjs';
 import { loadExtension, brokenLinks, EXTENSION } from '../apps/dashboard/extend.mjs';
 
@@ -37,12 +37,42 @@ test('the banner: title, lede, one column per section, comments dropped', () => 
   assert.equal(parseHome('<!-- only a comment -->'), null);
 });
 
-test("the kit's own banner parses into a quickstart and the philosophy", () => {
-  const h = parseHome(readFileSync(join(ROOT, 'source/content/intranet-home.md'), 'utf8'));
-  assert.ok(h.title && h.lede);
+// This file is the instance's own once installed, and an instance may turn its banner off by
+// emptying it or deleting it: then there is nothing to check.
+const OWN_HOME = join(ROOT, 'source/content/intranet-home.md');
+const ownHome = existsSync(OWN_HOME) ? parseHome(readFileSync(OWN_HOME, 'utf8')) : null;
+test("this repository's banner parses into a quickstart and the philosophy", { skip: ownHome ? false : 'no banner: intranet-home.md is missing or empty' }, () => {
+  const h = ownHome;
+  assert.ok(h.lede);
   assert.ok(h.sections.length >= 2);
-  assert.ok(h.sections.some((s) => /quickstart|démarrage rapide/i.test(s.heading)), 'a quickstart section, in English or in French');
+  const quick = /quickstart|first steps|démarrage rapide|premiers pas/i;
+  assert.ok(quick.test(h.title || 'Quickstart') || h.sections.some((s) => quick.test(s.heading)), 'a quickstart, as the title or a column, in English or in French');
+  assert.equal(new Set(h.sections.map((s) => s.heading.toLowerCase())).has(String(h.title).toLowerCase()), false, 'no column repeats the title');
   assert.ok(!/TODO/.test(JSON.stringify(h)), 'the default banner ships ready to read');
+});
+
+test("the banner's title never repeats the organization's name", () => {
+  assert.equal(bannerTitle('Volunteer handbook', 'Riverside Co-op'), 'Volunteer handbook');
+  for (const title of [null, '', '  ', 'Riverside Co-op', 'riverside  CO-OP', 'Start here', 'start HERE']) assert.equal(bannerTitle(title, 'Riverside Co-op'), null, String(title));
+  assert.equal(bannerTitle('Crèche Les Étoiles', 'Creche les etoiles'), null, 'accents and case aside');
+  const title = (md, over = {}) => homePage({ data: data([], { org: 'Riverside Co-op' }), home: parseHome(md), tools: [], today: TODAY, ...over })
+    .match(/<span class="banner-title">(.*?)<\/span>/)[1];
+  assert.equal(title('# Riverside Co-op\nHi'), 'Quickstart');
+  assert.equal(title('Hi, no heading'), 'Quickstart');
+  assert.equal(title('# Start here\nHi'), 'Quickstart', "the kit's old default reads as no heading");
+  assert.equal(title('# Before your first shift\nHi'), 'Before your first shift');
+});
+
+test('the banner translates its default title through the extension\'s strings', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-title-'));
+  try {
+    const file = join(dir, 'ext.mjs');
+    writeFileSync(file, "export default (i) => i.strings({ 'banner.title': 'Démarrage rapide' });");
+    const d = data([], { org: 'Riverside Co-op' });
+    const extension = await loadExtension({ root: dir, data: d, today: TODAY, file });
+    const html = renderIntranet({ data: d, home: parseHome('# Riverside Co-op\nHi'), tools: [], css: '', today: TODAY, extension })['index.html'];
+    assert.match(html, /<span class="banner-title">Démarrage rapide<\/span>/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
 test('tools: a list line each, TODO and unsafe schemes unpublished, a relative path kept', () => {
@@ -309,6 +339,64 @@ test('sections that outgrow one row: a sidebar of grouped sections, one menu on 
     await assert.rejects(load("export default (i) => { i.tab('rota/', 'Rota'); i.group('A', ['rota/']); i.group('B', ['rota/']); };"), /in two groups \(A and B\)/);
     await assert.rejects(load("export default (i) => { i.tab('rota/', 'Rota'); i.group('A', ['rota/']); i.group('A', ['']); };"), /declared twice/);
     await assert.rejects(load("export default (i) => i.group('A', []);"), /needs a label and a list/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test("hide: an extension takes out the kit's sections it replaces, and the Projects tab", async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-hide-'));
+  const d = data([project({ counts: { open: 1, done: 0 }, open: [item('Pick the paper', { owners: ['rae'] })] })], {
+    recap: [{ date: '2026-10-28', text: 'Proof back', project: 'Spring brochure', page: 'projects/brochure/' }], private: ['grants'],
+  });
+  const tools = parseTools('- [Packs](packs/) The catalogue.');
+  const load = async (code) => {
+    const file = join(dir, `ext-${Math.random().toString(36).slice(2)}.mjs`);
+    writeFileSync(file, code);
+    return loadExtension({ root: dir, data: d, today: TODAY, file });
+  };
+  const build = (extension) => renderIntranet({ data: d, home: parseHome('# Quickstart\nHi'), tools, css: '', today: TODAY, extension });
+  const marks = {
+    'home.tiles': /class="tiles"/, 'home.waiting': /id="waiting"/, 'home.projects': /id="projects"|Not read here/,
+    'home.moved': /id="moved"/, 'home.tools': /id="tools"/,
+  };
+  try {
+    const none = await load("export default (i) => i.tab('rota/', 'Rota');");
+    assert.deepEqual(none.hide, []);
+    const plain = build(none);
+    for (const re of Object.values(marks)) assert.match(plain['index.html'], re);
+    assert.deepEqual((await load("export default (i) => { i.hide(['home.tiles']); i.hide(['home.tiles', 'home.moved']); };")).hide, ['home.tiles', 'home.moved'], 'two calls add up, once each');
+    for (const key of HIDE_KEYS.filter((k) => k.startsWith('home.'))) {
+      const html = build(await load(`export default (i) => { i.tab('rota/', 'Rota'); i.hide(['${key}']); };`))['index.html'];
+      assert.doesNotMatch(html, marks[key], `${key} hidden`);
+      for (const [other, re] of Object.entries(marks)) if (other !== key) assert.match(html, re, `${other} kept when ${key} is hidden`);
+      assert.match(html, /class="banner"/);
+    }
+    // An empty workspace: the empty state stands in for the project cards and goes with them.
+    assert.doesNotMatch(homePage({ data: data(), home: null, tools: [], today: TODAY, hide: ['home.projects'] }), /start tracking/);
+
+    const all = build(await load(`export default (i) => { i.hide(${JSON.stringify(HIDE_KEYS)}); i.home('top', () => '<h2>Ours</h2>'); };`));
+    assert.match(all['index.html'], /<main class="wrap"><h2>Ours<\/h2><\/main>/, 'only the banner and the extension\'s own sections');
+    const row = all['index.html'].match(/<nav class="tabs"[^>]*>(.*?)<\/nav>/)[1];
+    assert.deepEqual([...row.matchAll(/href="([^"]*)"/g)].map((m) => m[1]), [''], 'no Projects tab');
+    assert.ok(all['projects/index.html'] && all['projects/brochure/index.html'], 'the projects\' pages are still built');
+    assert.doesNotMatch(all['projects/brochure/index.html'], /class="on">Projects/);
+    assert.deepEqual(brokenLinks(all, { also: ['tokens.css'] }), []);
+
+    await assert.rejects(load("export default (i) => i.hide(['home.banner']);"), /nothing called "home\.banner" to hide; the keys are home\.tiles/);
+    await assert.rejects(load("export default (i) => i.hide('home.tiles');"), /needs a list of keys/);
+    await assert.rejects(load("export default (i) => { i.hide(['tab.projects']); i.group('Work', ['projects/']); };"), /names "projects\/", which is no tab once hidden/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('without hide(), the build is byte for byte what it was', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-nohide-'));
+  try {
+    const d = data([project({ counts: { open: 1, done: 0 }, open: [item('Pick', { owners: ['rae'] })] })], { recap: [{ date: '2026-10-28', text: 'x', project: 'Spring brochure', page: 'projects/brochure/' }] });
+    const file = join(dir, 'ext.mjs');
+    writeFileSync(file, "export default (i) => i.tab('rota/', 'Rota');");
+    const extension = await loadExtension({ root: dir, data: d, today: TODAY, file });
+    const args = { data: d, home: parseHome('# Quickstart\nHi'), tools: parseTools('- [Packs](packs/) x'), css: '', today: TODAY };
+    assert.deepEqual(renderIntranet({ ...args, extension }), renderIntranet({ ...args, extension: { ...extension, hide: [] } }));
+    assert.equal(homePage({ ...args }), homePage({ ...args, hide: [] }));
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 
