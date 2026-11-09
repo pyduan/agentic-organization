@@ -138,8 +138,17 @@ export function leftoversOf(repo) {
   });
   let upstream = true;
   try { gitIn(repo, 'rev-parse', '--abbrev-ref', '@{upstream}'); } catch { upstream = false; }
-  if (upstream) {
-    for (const line of gitIn(repo, 'log', '@{upstream}..HEAD', '--format=%H %ct').split('\n').filter(Boolean)) {
+  // A detached HEAD (how a cloud session starts) or a branch never pushed has no upstream: its
+  // unpushed commits are the ones on no remote branch. A repo with no remote at all has nothing
+  // to push to, and says nothing.
+  let range = upstream ? ['@{upstream}..HEAD'] : null;
+  if (!upstream) {
+    let remotes = '';
+    try { remotes = gitIn(repo, 'for-each-ref', '--count=1', '--format=%(refname)', 'refs/remotes').trim(); } catch { /* none */ }
+    if (remotes) range = ['HEAD', '--not', '--remotes'];
+  }
+  if (range) {
+    for (const line of gitIn(repo, 'log', ...range, '--format=%H %ct').split('\n').filter(Boolean)) {
       const [sha, ct] = line.split(' ');
       out.push({ repo, commit: sha.slice(0, 7), time: Number(ct) * 1000 });
     }

@@ -10,6 +10,14 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-09 · MINOR · The end-of-session check now sees unpushed commits in cloud sessions
+
+A cloud session starts on a detached checkout, with no branch to compare against, and the
+end-of-session check let it finish with commits that were never pushed. It now counts any commit that
+is on no remote branch as unpushed, so the agent is asked to push before it stops.
+
+**What you need to do:** nothing.
+
 ## 2026-11-07 · MINOR · A Laws of UX review when a new screen piece is created
 
 When your agent creates a new component, template or page, it now reviews it once against the Laws
