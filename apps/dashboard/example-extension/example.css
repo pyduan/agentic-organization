@@ -2,3 +2,7 @@
 .coop-week .tiles { margin-top: var(--space-2); }
 .coop-notice { margin-bottom: var(--space-2); }
 .coop-notice p { margin: 0; font-size: var(--text-sm); }
+.coop-plan { margin: var(--space-3) 0; }
+.coop-plan h2 { margin: 0; font-size: var(--text-base); }
+.ui-checks .ui-av { margin-left: var(--space-1); }
+.coop-list .card-top h2 { margin: 0; }

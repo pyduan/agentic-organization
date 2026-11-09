@@ -10,6 +10,27 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-09 · MAJOR · Intranet progress cards, a Gantt chart, tick boxes that save, French typography
+
+An intranet extension can now draw progress the way a dashboard should: cards with a progress ring
+or a big figure, bars split by status, initials, state chips, and a Gantt chart with one row per
+project or person, today marked, in a compact version for the top of a page. Lines of a to-do file
+(next steps, a roadmap, a checklist) can be ticked straight from an intranet page and the tick is
+saved in the repository, once the intranet runs the to-do app's Worker. A French intranet now keeps
+« : ; ! ? » and « » on the line of their word, as your decks and documents already do. And the
+sections no longer move to a sidebar on the left when a section already has its own sidebar of
+pages: two vertical menus side by side left people unsure which one they were in.
+
+**What you need to do:** nothing for the intranet as it is. To use the new pieces, see
+`source/formats/dashboard.md` ▸ *Adding your own views* (Components, Tick boxes, Language). Three
+optional steps: copy the new tokens (`--color-ok`, `--color-warn`, `--color-late`, `--color-info`,
+`--text-xs`, `--text-2xs`, `--shadow-card`) from the kit's `source/brand/tokens.css` into yours and
+set them to your brand (without them the pieces use your accent and ink colours); for a French
+intranet, add `intranet.locale('fr-FR')` to your extension; for tick boxes that save, follow the
+block in the comment of `apps/dashboard/wrangler.jsonc`, then `npm run check` and
+`npm run deploy:intranet`. If your intranet had more than six sections in a sidebar and a section
+with its own sidebar, the sections are back in one row across the top: that is intended.
+
 ## 2026-11-09 · MINOR · The intranet's banner is called Quickstart, and an extension can hide the kit's sections
 
 The green banner at the top of the intranet no longer repeats your organization's name, which the

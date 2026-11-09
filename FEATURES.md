@@ -95,7 +95,9 @@ if it writes a colour instead of a token, and a `test.mjs` beside it runs inside
 `scripts/test-intranet.mjs`, which also builds the instance's intranet and fails on a link to a page
 nobody built. Past two tabs, the one row of tabs scrolls sideways on a phone and opens with the
 current tab in view; from seven, or once the extension groups them (`intranet.group`), the sections
-become a sidebar down the left side under group headings, one menu on a phone. An extension that
+become a sidebar down the left side under group headings, one menu on a phone, but only in a build
+where no page has a sidebar of its own: two navigation levels never share an orientation, so with
+section sidebars the sections stay a row (groups kept in order, a rule between them). An extension that
 replaces the kit's home sections or its Projects tab hides them (`intranet.hide`, a closed list of
 six keys); the projects' pages are still built. Without the file the build writes the kit's pages
 byte for byte.
@@ -109,7 +111,41 @@ the copied shell was exactly the duplicate `AGENTS.md` warns about. The file sit
 functions returning HTML, like the kit's own pages, so the intranet still builds with Node alone.
 `hide` came on 2026-11-09, when an instance replaced the project cards and the Projects tab with
 views of its own and had both on its home page; the keys are a closed list so a typo fails the build
-rather than hiding nothing, and the projects' pages stay built so no link breaks.
+rather than hiding nothing, and the projects' pages stay built so no link breaks. The orientation
+rule came on 2026-11-09 from Paul (« ça c'est une règle de pas avoir deux niveaux de nav pareil »):
+an instance with many sections had them in a vertical sidebar beside the vertical sidebar of a
+section's pages, and nobody could tell which level the highlighted entry belonged to.
+
+### Progress cards, a Gantt chart and tick boxes for an instance's views
+`apps/dashboard/components.mjs` gives an extension the pieces a view of progress is built from:
+`ring`, `stackedBar`, `gauge`, `kpi` (a key-figure card), `initials`, `statusChip`, `checkbox`,
+`span` (the days a due date covers) and `gantt` (one row per group, a label column that stays put,
+weekly columns, this week highlighted, a line at today, items stacked on sub-lanes, a `compact` mode
+for a card at the top of a section). They reach a render as `c.ui`, are styled in `extension.css`
+with tokens only (state colours `--color-ok`, `-warn`, `-late`, `-info` in `tokens.css`, each falling
+back to a token every instance already has), and take their words from the chrome's strings. A tick
+box writes the line back to its file when the intranet's Worker runs the to-do app
+(`apps/todos/worker.js` as `main`, `ASSETS` binding, `run_worker_first`, `TODO_SOURCES` printed by
+`scripts/todo-sources.mjs --intranet`); `check-access-config` refuses the combinations that would
+leave a page open or every page refused. Without the API a box is disabled with a sentence saying so.
+**Why:** Paul, 2026-11-09: each thing a card, with progress scores and bars to see what progresses
+or blocks, and the actions checkable through the kit's to-do system. An instance had built these in
+its own extension; they are generic, so they live in the kit, where every instance gets the same
+tested pieces instead of a copy per instance. The tick boxes reuse the to-do app's Worker rather than
+a second write path: one place checks identity, one place commits, and a line is named by its `^id`
+so a tick survives an edit above it. The Gantt chart replaced a timeline of free-floating bars
+(« fais le plus comme un gantt dans le dash la timeline »): rows by project read faster than bars
+placed wherever there was room.
+
+### French typography on a French intranet
+`intranet.locale('fr-FR')` sets the language of every page of the intranet (`<html lang>`, dates),
+and in French applies the typography the decks and documents already apply (`scripts/deck/text.mjs`
+▸ `typo`) to the text of each page, never inside tags, attributes, `<script>`, `<style>`, `<code>` or
+`<pre>`: a no-break space before « : ; ! ? », inside « », between the groups of a large number. An
+English intranet is unchanged byte for byte.
+**Why:** Paul, 2026-11-09, « règle de jamais linebreak avec une ponctuation en français »: a colon or
+a question mark alone at the start of a line reads as a typo. The rule is in `voice.md`; the build
+applies the documents' own function so a page and a PDF of the same text agree.
 
 ### A local-only intranet that cannot be deployed
 `npm run intranet -- --local` lets the extension read `local/`, a git-ignored folder of material

@@ -14,11 +14,20 @@
   --color-accent: #1a3a2e;      /* links, emphasis, primary buttons */
   --color-accent-ink: #faf9f7;  /* text on accent */
 
+  /* States, for scores, chips, bars and the Gantt chart (apps/dashboard/components.mjs). Never the
+     meaning alone: the word or the number is always written beside the colour. */
+  --color-ok: #2e7d4f;          /* done, on track */
+  --color-warn: #9a6400;        /* in progress, waiting */
+  --color-late: #b3261e;        /* late, blocking: kept for what needs someone now */
+  --color-info: #2f5f9e;        /* informative, neither good nor bad */
+
   /* Type */
   --font-display: ui-serif, Georgia, serif;
   --font-text: system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Type scale (rem). One scale for the whole site. */
+  --text-2xs: 0.6875rem;        /* labels in capitals, a chart's axis */
+  --text-xs: 0.8125rem;         /* metadata: a date, a count beside a title */
   --text-sm: 0.875rem;
   --text-base: 1.0625rem;
   --text-lg: 1.375rem;
@@ -35,6 +44,7 @@
 
   /* Shape and layout */
   --radius: 4px;
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.06);  /* a card lifted off the page, barely */
   --max-width: 68rem;
 }
 

@@ -20,6 +20,8 @@
 //     intranet.home('top', (c) => `<h2>This week</h2>…`);   // top · before-tools · end
 //     intranet.css(new URL('./rota.css', import.meta.url)); // tokens only
 //     intranet.hide(['home.tiles', 'tab.projects']);        // the kit's pieces this one replaces
+//     intranet.locale('fr-FR');                             // dates, <html lang>, French typography
+//     const { ring, gantt, checkbox } = intranet.ui;        // components.mjs, also c.ui in a render
 //     const drafts = intranet.local?.list('drafts/');       // local/: a --local build only, never deployed
 //   }
 //
@@ -31,8 +33,12 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { esc, inline, renderMarkdown, slugify } from '../../scripts/doc/markdown.mjs';
 import { parse as parseTodos } from '../../lib/todo.mjs';
 import {
-  HOME_SLOTS, HIDE_KEYS, LOCALE, TABS, t, shell, withSide, tile, todoRow, projectCard, feed,
+  HOME_SLOTS, HIDE_KEYS, LOCALE, TABS, t, locale, shell, withSide, tile, todoRow, projectCard, feed,
 } from './intranet.mjs';
+import * as components from './components.mjs';
+
+/** The components (components.mjs), as an extension receives them: intranet.ui and c.ui. */
+export const ui = Object.freeze({ ...components });
 
 /** Where an instance keeps its extension, from the repository's root. Never shipped by the kit. */
 export const EXTENSION = 'apps/intranet-extend/index.mjs';
@@ -100,7 +106,7 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
   const extend = mod.default;
   if (typeof extend !== 'function') fail(`${relative(root, file)} must export a default function`);
 
-  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [], news: [], hide: [] };
+  const reg = { file: shownPath(root, file), strings: {}, tabs: [], groups: [], home: {}, pages: [], css: [], news: [], hide: [], locale: null };
   const repo = repoReader(root);
   // local/ on this machine, only in a --local build: null otherwise, so a view tests `if (intranet.local)`.
   const localReader = local ? repoReader(join(root, LOCAL_DIR), { refuseLocal: false }) : null;
@@ -112,8 +118,18 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
     today,
     html,
     ...html,
+    ui,
     /** local/, read only in a `--local` build (never deployed); null in every other build. */
     local: localReader,
+    /**
+     * The language of every page (a BCP 47 tag, 'fr-FR'): dates and months, <html lang>, and in
+     * French the typography that keeps : ; ? ! and « » on the line of their word. The words stay
+     * the strings' (strings() translates them).
+     */
+    locale(tag) {
+      if (typeof tag !== 'string' || !/^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(tag)) fail(`intranet.locale needs a language tag such as 'fr-FR', not ${JSON.stringify(tag)}`);
+      reg.locale = tag;
+    },
     /** Words for the chrome: new keys for your tabs, or the kit's own keys translated. */
     strings(words) { Object.assign(reg.strings, words); },
     /** A tab in the one row: `label` is a key of the strings or the text itself. */
@@ -202,7 +218,9 @@ export async function loadExtension({ root, data, today, file = join(root, EXTEN
       path,
       base,
       LOCALE,
+      locale: locale(),
       t,
+      ui,
       href: (to = '') => `${base}${to}`,
       tile,
       todoRow: (item, opts = {}) => todoRow(item, day, { base, ...opts }),

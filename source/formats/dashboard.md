@@ -96,7 +96,8 @@ export default async function extend(intranet) {
   `local/` in a `--local` build and `null` in every other (below); `root`, `today`, and `data`, what the kit's build
   gathered (`projects`, `recap`, `org`).
 - `esc`, `inline`, `renderMarkdown` and `slugify` from `scripts/doc/markdown.mjs`.
-- `strings(words)`, `tab(path, label, { before, after })`, `group(label, paths)`,
+- `ui`, the components (*Components*, below), also `c.ui` in a render.
+- `strings(words)`, `locale(tag)`, `tab(path, label, { before, after })`, `group(label, paths)`,
   `page(path, render)`, `home(slot, render)`, `hide(keys)` and `css(source)`, below. The function may be `async`; the renders may not.
 
 **A tab** is a folder path (`'rota/'`) and a label, a key of the strings or the text itself. Tabs
@@ -105,12 +106,20 @@ tab. There is still one row: past two tabs, on a phone, the organization's name 
 and the row scrolls sideways inside the header, opening with the current tab in view.
 
 **A group** puts tabs under a heading: `group('Volunteers', ['rota/', 'rooms/'])`, the kit's own
-`''` and `'projects/'` included. The sections leave the header for a sidebar down the left side
-from seven tabs or as soon as one group is declared (`source/formats/webapp.md` ▸ *One row of tabs,
-then a sidebar*). It lists the tabs no group names first, then each group in the order declared, its tabs in
-the order it lists them. On a phone the sidebar folds into one menu that names the current section.
-A section's own pages (`side`, below) keep their sidebar beside the page. A group that names no tab,
-or a tab in two groups, stops the build.
+`''` and `'projects/'` included. It lists the tabs no group names first, then each group in the
+order declared, its tabs in the order it lists them. A group that names no tab, or a tab in two
+groups, stops the build.
+
+**Sections across, pages down.** Two navigation levels never share an orientation
+(`source/formats/webapp.md` ▸ *One row of tabs, then a sidebar*): two vertical menus side by side
+leave the reader unable to tell which level they are in. So the sections leave the header for a
+sidebar down the left side (from seven tabs, or as soon as one group is declared) only in a build
+where no page has a sidebar of its own. As soon as one page does (an extension page with `side`, or
+the kit's Projects pages once a project has a page), the sections stay one row in the header,
+scrolling sideways when they outgrow it, and groups keep their order in that row with a thin rule
+between them, their headings dropped. The Projects page with no project page to list has no sidebar:
+one link to itself is no navigation. On a phone the sidebar of sections folds into one menu that
+names the current section.
 
 **A page** is a path (`'rota/'` or `'rota/swaps/'` for a page, `'rota/feed.json'` for a file) and
 a render. The render gets `c`, the helpers above plus the pieces bound to where the page sits:
@@ -146,6 +155,82 @@ each under a comment naming its file. Tokens only: a stylesheet that writes a co
 (`#c00`, `rgb(…)`) stops the build. The kit's classes are there to use (`cards`, `card`, `tiles`,
 `pill`, `badge`, `todo`, `feed`, `empty`, `note`, `page-head`); add a class only for what they do
 not cover.
+
+**Components** (`apps/dashboard/components.mjs`, `intranet.ui` and `c.ui`, or an import of that
+file) are the pieces a view of progress is built from, each a function returning HTML, styled by
+`extension.css` (classes `ui-…`) with tokens only. Call them inside a render, so their words follow
+your `strings()` and their months your `locale()`:
+
+| Function | What it draws |
+|---|---|
+| `ring(pct, { size, sub, tone })` | a progress ring, the percentage (clamped to 0..100) in the middle, `sub` under it (`'3/7'`) |
+| `stackedBar(segments, { legend })` | one bar split by status, `[{ n, label, tone }]`, each part counted in a legend |
+| `gauge(done, total, { tone })` | a thin bar for one line; inside a `[data-group]`, ticking a box moves it |
+| `kpi({ visual, label, line, href, tone })` | a key-figure card: a ring or `<b class="ui-big">12</b>`, what it counts, a line under it; `tone` colours its left edge |
+| `initials(name)` | a person's initials on a round badge, the name on hover and for screen readers |
+| `statusChip(word, tone)` | a state as a chip, the word always written |
+| `checkbox(item, sourceId, { text, extra })` | a tick box for a line of a to-do file (*Tick boxes*); read-only without `item.id` or `sourceId` |
+| `span(due)` | the days a due date covers, `[first, last]`: `2026-11-09`, `2026-W46`, `2026-11`, `2026`, `2026-11-02..2026-11-20` |
+| `gantt(items, { today, compact, weeks, max, legend })` | a Gantt chart by weeks (below) |
+| `pct(a, b)`, `todoSourceId(rel)` | a whole percentage; the TODO_SOURCES id of a file (`projects/rota/next-steps.md` → `projects-rota-next-steps`) |
+
+Tones are `ok`, `warn`, `late`, `info` and `none`, from the state tokens of `tokens.css`
+(`--color-ok`, `--color-warn`, `--color-late`, `--color-info`); colour never carries the meaning
+alone, so the word or the number is always beside it. Lay key figures out in `<div class="ui-kpis">`
+and tick boxes in `<div class="ui-checks">`.
+
+`gantt(items, { today })` takes items `{ text, start, end }` or `{ text, due }`, with an optional
+`group` (the row: a project, a person; items without one go on a first *Calendar* row), `kind`
+(`event`, `milestone`, `action`, `done`, `late`, each with its colour and its word in the legend),
+`sub`, `href` and `done`. One row per group, its label in a column that stays visible while the weeks
+scroll sideways inside the chart's own box (never the page); the months named over weekly columns,
+this week highlighted, a line at today across every row. Each item is a bar from its start week to
+its end week, a one-day item a marker; the items of a group stack on sub-lanes so no two overlap;
+past and done items are faded. `compact: true` fits a card at the top of a section: lower rows, one
+line per bar with the full text on hover, narrower weeks and labels, no legend. `weeks: 8` shows
+last week and the eight coming ones; without it the chart spans the items, from a month back at
+most, up to `max` (16) weeks. It returns `''` when nothing falls in view.
+
+```js
+intranet.page('rota/', (c) => {
+  const { gantt, kpi, ring, pct } = c.ui;
+  const chart = gantt(items, { today: c.today, compact: true, weeks: 8 });
+  return { title: 'Rota', body: `<h1>Rota</h1>${chart ? `<section class="card">${chart}</section>` : ''}…` };
+});
+```
+
+**Tick boxes.** A page can tick a line of a to-do file (`source/formats/todo.md`) when the
+intranet's Worker runs the to-do app's code, which checks the Access token of every request, serves
+the built pages and answers `/api/todos`, committing the line by its `^id`. In
+`apps/dashboard/wrangler.jsonc` (its comment holds the block to copy):
+
+- `"main": "../todos/worker.js"`, `"workers_dev": false`;
+- `"assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": true, "not_found_handling": "404-page", "html_handling": "auto-trailing-slash" }`;
+- in `vars`, `TEAM_DOMAIN` and `POLICY_AUD` of the intranet's Access application, `TODO_BRANCH`, and
+  `TODO_SOURCES`, the files the pages may tick. `node scripts/todo-sources.mjs --intranet` prints
+  that list for this repository (the root `next-steps.md`, each project's `next-steps.md` and
+  `roadmap.md`, and every `--file=path/to/checklist.md` named), to paste under `vars`;
+- the GitHub token once, as a secret: `wrangler secret put GITHUB_TOKEN --config apps/dashboard/wrangler.jsonc`.
+
+`npm run check` refuses a config that would serve a page before the check, run the to-do Worker
+without `TEAM_DOMAIN` and `POLICY_AUD` (it would refuse every page), or bind the assets under another
+name (`scripts/check-access-config.mjs`); `npm run deploy:intranet` deploys it unchanged. On the page,
+`checkbox(item, todoSourceId('projects/rota/next-steps.md'))` draws the box; the shell adds the
+script to any page that has one. It loads the live state of each source, sends a toggle on each tick
+and says what happens in a line at the top: saving, saved, not saved (the box goes back), or, when
+the API does not answer (a local preview, an intranet without the Worker), every box disabled with a
+sentence saying the page shows the last build. A block marked `data-group` recounts its
+`<span data-count>` (`3/7`) and its `gauge()` as boxes are ticked. A line with no `^id` is drawn
+read-only. The words are the strings `checks.offline`, `checks.saving`, `checks.saved` and
+`checks.failed`.
+
+**Language.** `intranet.locale('fr-FR')` sets the language of every page for the build: `<html
+lang>`, dates and months. In French it also applies French typography to the text of every page
+(never to tags, attributes, URLs or what is inside `<script>`, `<style>`, `<code>`, `<pre>`): a no-break
+space before « : ; ! ? », inside « », and between the groups of a large number, so a sign never
+starts a line (`source/brand/voice.md` ▸ *Languages*). The words of the chrome are still the
+strings: translate them with `strings()`. Without `locale()`, or with an English tag, the pages are
+the same byte for byte.
 
 **Tests.** A `test.mjs` beside the extension runs inside `scripts/test-intranet.mjs`, so `npm test`
 runs it with no change to `package.json`. The kit's test also builds this instance's intranet with

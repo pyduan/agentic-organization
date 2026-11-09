@@ -10,6 +10,18 @@
   // Then attach Access once, in the dashboard: Workers & Pages → this Worker →
   // Access → Protect this Worker. See docs/deploy-cloudflare.md ▸ private.
   //
+  // Tick boxes (source/formats/dashboard.md ▸ Tick boxes): for pages that tick a line of a to-do
+  // file, this Worker runs the to-do app's code, which checks the Access token of every request,
+  // serves these pages and answers /api/todos. Then add, in this file:
+  //   "main": "../todos/worker.js",
+  //   "workers_dev": false,
+  //   "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": true,
+  //               "not_found_handling": "404-page", "html_handling": "auto-trailing-slash" },
+  //   "vars": { "TEAM_DOMAIN": "https://<team>.cloudflareaccess.com", "POLICY_AUD": "<this app's AUD>",
+  //             "TODO_BRANCH": "main", "TODO_SOURCES": [ … from `node scripts/todo-sources.mjs --intranet` ] }
+  // and the token once: wrangler secret put GITHUB_TOKEN --config apps/dashboard/wrangler.jsonc
+  // `npm run check` refuses the combination that would leave a page open or every page refused.
+  //
   // Set `name` during setup: <your-slug>-dashboard, unique in your account. It is
   // also its <name>.<subdomain>.workers.dev hostname, which Access covers too.
   "$schema": "../../node_modules/wrangler/config-schema.json",

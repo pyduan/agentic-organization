@@ -11,9 +11,12 @@ import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
-  parseHome, parseTools, waiting, stats, homePage, projectsPage, projectPage, renderIntranet, bannerTitle, HIDE_KEYS,
+  parseHome, parseTools, waiting, stats, homePage, projectsPage, projectPage, renderIntranet, bannerTitle, HIDE_KEYS, typeset,
 } from '../apps/dashboard/intranet.mjs';
 import { loadExtension, brokenLinks, EXTENSION } from '../apps/dashboard/extend.mjs';
+import {
+  ring, stackedBar, gauge, kpi, initials, statusChip, checkbox, checkboxScript, span, gantt, pct, todoSourceId,
+} from '../apps/dashboard/components.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const TODAY = '2026-10-30';
@@ -231,10 +234,10 @@ test('no extension: the pages are the kit\'s own, with two tabs and no script fo
 test('the example extension: its tabs in the one row, its pages in the kit\'s shell, its sections in their slots', () => {
   const b = coop();
   try {
-    assert.match(b.out, /\+ .*example-extension\/index\.mjs: 3 tab\(s\), 4 page\(s\), 2 home section\(s\), its styles/);
+    assert.match(b.out, /\+ .*example-extension\/index\.mjs: 4 tab\(s\), 5 page\(s\), 2 home section\(s\), its styles/);
     const home = b.read('index.html');
     const row = home.match(/<nav class="tabs"[^>]*>(.*?)<\/nav>/)[1];
-    assert.deepEqual([...row.matchAll(/href="([^"]*)"/g)].map((m) => m[1]), ['', 'rota/', 'rooms/', 'projects/', 'notices/'],
+    assert.deepEqual([...row.matchAll(/href="([^"]*)"/g)].map((m) => m[1]), ['', 'rota/', 'rooms/', 'checklist/', 'projects/', 'notices/'],
       'added before Projects by default, in the order added; `after` places one behind');
     assert.equal((home.match(/<nav class="tabs"/g) || []).length, 1, 'one row of tabs');
     assert.match(home, /<header class="top many">/);
@@ -260,7 +263,7 @@ test('the example extension: its tabs in the one row, its pages in the kit\'s sh
     assert.match(css, /\/\* ---- \S*example-extension\/example\.css ---- \*\//);
     // Every internal link resolves to a built page.
     const files = {};
-    for (const rel of ['index.html', 'projects/index.html', 'projects/brochure/index.html', 'rota/index.html', 'rota/swaps/index.html', 'rooms/index.html', 'notices/index.html', 'intranet.css', 'tokens.css']) files[rel] = b.read(rel);
+    for (const rel of ['index.html', 'projects/index.html', 'projects/brochure/index.html', 'rota/index.html', 'rota/swaps/index.html', 'rooms/index.html', 'checklist/index.html', 'notices/index.html', 'intranet.css', 'tokens.css']) files[rel] = b.read(rel);
     assert.deepEqual(brokenLinks(files, { also: ['packs/index.html'] }), []);
   } finally { b.done(); }
 });
@@ -333,7 +336,7 @@ test('sections that outgrow one row: a sidebar of grouped sections, one menu on 
     };`))['projects/index.html'];
     assert.deepEqual(sections(grouped), ['../', '../', 'Volunteers', '../rooms/', '../rota/', 'Work', '../projects/']);
     assert.match(grouped, /<summary>Projects<\/summary>/);
-    assert.match(grouped, /<aside class="side" aria-label="Projects">/, "a section's own pages keep their sidebar beside the page");
+    assert.doesNotMatch(grouped, /<aside class="side"/, 'Projects with no project page has no sidebar of its own: one link to itself is no navigation');
 
     await assert.rejects(load("export default (i) => i.group('Volunteers', ['rota/']);"), /names "rota\/", which is no tab/);
     await assert.rejects(load("export default (i) => { i.tab('rota/', 'Rota'); i.group('A', ['rota/']); i.group('B', ['rota/']); };"), /in two groups \(A and B\)/);
@@ -397,6 +400,209 @@ test('without hide(), the build is byte for byte what it was', async () => {
     const args = { data: d, home: parseHome('# Quickstart\nHi'), tools: parseTools('- [Packs](packs/) x'), css: '', today: TODAY };
     assert.deepEqual(renderIntranet({ ...args, extension }), renderIntranet({ ...args, extension: { ...extension, hide: [] } }));
     assert.equal(homePage({ ...args }), homePage({ ...args, hide: [] }));
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+// ---------------------------------------------------------------- the components (components.mjs)
+
+test('components: a ring clamps to 0..100, bars and gauges count, a chip and initials escape', () => {
+  assert.match(ring(140), />100%</);
+  assert.match(ring(-5), />0%</);
+  assert.doesNotMatch(ring(0), /ui-ring-val/, 'nothing drawn at zero');
+  assert.match(ring(42.4, { sub: '3/7', tone: 'late' }), /aria-label="42% done, 3\/7".*ui-t-late.*stroke-dasharray="42 58"/s);
+  assert.match(ring(50, { tone: 'nonsense' }), /ui-t-ok/, 'an unknown tone falls back');
+  assert.equal(stackedBar([{ n: 0, label: 'x', tone: 'ok' }]), '');
+  assert.match(stackedBar([{ n: 1, label: 'held', tone: 'ok' }, { n: 3, label: 'to fill', tone: 'late' }]), /width:25\.00%.*width:75\.00%.*<b>1<\/b> held.*<b>3<\/b> to fill/s);
+  assert.match(gauge(2, 8), /aria-label="2 of 8".*width:25%/s);
+  assert.match(gauge(0, 0), /width:0%/);
+  assert.equal(pct(1, 3), 33);
+  assert.match(initials('Ada Lovelace-King'), />AL</);
+  assert.match(initials('<b>'), /aria-label="&lt;b&gt;"/);
+  assert.match(statusChip('<late>', 'late'), /class="ui-chip ui-chip-late">&lt;late&gt;</);
+  assert.match(kpi({ visual: ring(10), label: 'Shifts', line: 'x', href: 'rota/', tone: 'warn' }), /^<a class="card ui-kpi ui-edge-warn" href="rota\/">/);
+  assert.match(kpi({ label: 'Rooms' }), /^<div class="card ui-kpi">/);
+  assert.equal(todoSourceId('projects/rota/next-steps.md'), 'projects-rota-next-steps');
+});
+
+test('components: a tick box without an id or a source is read-only, with both it is wired', () => {
+  const ro = checkbox({ text: 'Lock up', done: true }, 'checklist');
+  assert.doesNotMatch(ro, /<input/);
+  assert.match(ro, /class="ui-check is-done is-static".*✓.*Lock up/s);
+  assert.doesNotMatch(checkbox({ text: 'x', id: 'ab12' }, ''), /<input/);
+  const live = checkbox({ text: 'Lock <up>', id: 'ab12', done: false }, 'checklist', { extra: '<em>x</em>' });
+  assert.match(live, /^<label class="ui-check"><input type="checkbox" data-todo-source="checklist" data-todo-id="ab12">.*Lock &lt;up&gt;.*<em>x<\/em><\/label>$/s);
+  const script = checkboxScript();
+  for (const w of ['Saving', 'Saved in the repository', 'Not saved', 'do not save']) assert.ok(script.includes(w), w);
+  assert.match(script, /\/api\/todos\?source=/);
+  assert.match(script, /op: 'toggle'/);
+});
+
+test('components: span reads a day, an ISO week, a month, a year and a range', () => {
+  assert.deepEqual(span('2026-11-09'), ['2026-11-09', '2026-11-09']);
+  assert.deepEqual(span('2026-W46'), ['2026-11-09', '2026-11-15']);
+  assert.deepEqual(span('2027-W01'), ['2027-01-04', '2027-01-10']);
+  assert.deepEqual(span('2026-02'), ['2026-02-01', '2026-02-28']);
+  assert.deepEqual(span('2028-02'), ['2028-02-01', '2028-02-29']);
+  assert.deepEqual(span('2026'), ['2026-01-01', '2026-12-31']);
+  assert.deepEqual(span('2026-11-02..2026-11-20'), ['2026-11-02', '2026-11-20']);
+  assert.deepEqual(span('2026-11-20..2026-11-02'), ['2026-11-02', '2026-11-20']);
+  for (const bad of ['', null, 'soon', '2026-13-45x']) assert.equal(span(bad), null, String(bad));
+});
+
+/** The bars of a Gantt chart as [{ text, a, b, row }], columns as grid lines. */
+const bars = (html) => [...html.matchAll(/class="ui-gantt-i[^"]*" style="grid-column:(\d+) \/ (\d+);grid-row:(\d+)"[^>]*><b>([^<]*)<\/b>/g)]
+  .map(([, a, b, row, text]) => ({ text, a: Number(a), b: Number(b), row: Number(row) }));
+
+test('the Gantt chart: a row per group, the calendar first, lanes that never overlap, today across', () => {
+  assert.equal(gantt([], { today: '2026-11-09' }), '');
+  assert.equal(gantt([{ text: 'no date' }], { today: '2026-11-09' }), '');
+  const items = [
+    { text: 'Paint day', start: '2026-11-14', kind: 'event' },
+    { text: 'Fix the boiler', due: '2026-W46', group: 'Building', kind: 'action' },
+    { text: 'Quote', start: '2026-11-10', end: '2026-11-25', group: 'Building', kind: 'milestone' },
+    { text: 'Gutters', due: '2026-11', group: 'Building', kind: 'late' },
+    { text: 'Old one', start: '2026-11-02', group: 'Building', kind: 'done', done: true },
+    { text: 'Fair', due: '2026-12-05..2026-12-06', group: 'Events' },
+  ];
+  const html = gantt(items, { today: '2026-11-09' });
+  const b = bars(html);
+  assert.equal(b.length, items.length, 'every item placed');
+  for (const x of b) for (const y of b) {
+    if (x === y || x.row !== y.row) continue;
+    assert.ok(x.b <= y.a || y.b <= x.a, `${x.text} and ${y.text} overlap on row ${x.row}`);
+  }
+  const labels = [...html.matchAll(/class="ui-gantt-label" style="grid-column:1;grid-row:(\d+) \/ span (\d+)"[^>]*>([^<]*)</g)].map((m) => [m[3], Number(m[1]), Number(m[2])]);
+  assert.deepEqual(labels.map((l) => l[0]), ['Calendar', 'Building', 'Events'], 'the ungrouped items on a first row');
+  assert.ok(labels[1][2] >= 3, 'the four Building items stack on sub-lanes');
+  assert.match(html, /class="ui-gantt-h is-now"[^>]*>.*?<em>this week<\/em>/);
+  assert.match(html, /class="ui-gantt-now" style="grid-column:\d+;grid-row:2 \/ \d+;--at:/);
+  assert.match(html, /ui-gantt-done is-past/);
+  assert.match(html, /ui-gantt-event[^"]* is-point/);
+  assert.match(html, /<ul class="ui-legend ui-gantt-legend">.*event.*milestone.*dated action.*done.*late/s);
+  assert.match(html, /<div class="ui-gantt-wrap" role="region" aria-label="Timeline" tabindex="0">/);
+});
+
+test('the compact Gantt chart places the same items, only its classes and sizes change', () => {
+  const items = [
+    { text: 'Paint day', start: '2026-11-14' },
+    { text: 'Fix the boiler with a long label', sub: 'the old one', due: '2026-W46', group: 'Building' },
+    { text: 'Quote', start: '2026-11-10', end: '2026-11-25', group: 'Building' },
+    { text: 'Far away', start: '2027-06-01', group: 'Building' },
+  ];
+  const full = gantt(items, { today: '2026-11-09', weeks: 8 });
+  const compact = gantt(items, { today: '2026-11-09', weeks: 8, compact: true });
+  assert.deepEqual(bars(compact), bars(full));
+  assert.equal(bars(full).length, 3, 'weeks: 8 shows last week and the eight coming ones, nothing beyond');
+  assert.match(full, /--n:9;/);
+  assert.match(compact, /class="ui-gantt-wrap is-compact"/);
+  assert.doesNotMatch(compact, /ui-gantt-legend/, 'no legend in a compact chart');
+  assert.doesNotMatch(compact, /<small>the old one<\/small>/, 'one line per bar');
+  assert.match(compact, /title="Fix the boiler with a long label · the old one · 2026-11-09 → 2026-11-15"/, 'the full text on hover');
+  const strip = (h) => h.replace(/<ul class="ui-legend[\s\S]*$/, '').replace(/ is-compact/g, '').replace(/<small>[^<]*<\/small>/g, '');
+  assert.equal(strip(compact), strip(full));
+});
+
+test("the components' styles are tokens only, and honour reduced motion", () => {
+  const css = readFileSync(join(ROOT, 'apps/dashboard/extension.css'), 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b|\b(?:rgba?|hsla?|hwb|lab|lch|oklab|oklch)\(/i);
+  assert.match(css, /prefers-reduced-motion: reduce/);
+  assert.match(css, /\.ui-ring-txt[^}]*tabular-nums/);
+  const tokens = readFileSync(join(ROOT, 'source/brand/tokens.css'), 'utf8');
+  for (const tk of ['--color-ok', '--color-warn', '--color-late', '--color-info', '--text-xs', '--text-2xs', '--shadow-card']) assert.match(tokens, new RegExp(`${tk}:`), tk);
+});
+
+test('the example extension: key figures, a compact Gantt chart, and tick boxes on the checklist', () => {
+  const day = (n) => new Date(Date.now() + n * 864e5).toISOString().slice(0, 10);
+  const b = coop({ files: {
+    'rota.md': `- ${day(2)} · @sam · Opening shift\n- ${day(3)} · @nobody · Evening close\n`,
+    'checklist.md': `- [ ] Check the fire exits @rae due:${day(10)} ^k3p9\n- [x] Order the paint ^m4q2\n- [ ] Ask about the keys #decide\n`,
+  } });
+  try {
+    const home = b.read('index.html');
+    assert.match(home, /class="card ui-kpi ui-edge-late" href="rota\/swaps\/"/);
+    assert.match(home, /aria-label="50% done, 1\/2"/);
+    assert.match(home, /aria-label="33% done, 1\/3"/);
+    const rota = b.read('rota/index.html');
+    assert.match(rota, /<section class="card coop-plan"><h2>The next eight weeks<\/h2><div class="ui-gantt-wrap is-compact"/);
+    assert.deepEqual(bars(rota).map((x) => x.text).sort(), ['Check the fire exits', 'Evening close', 'Opening shift']);
+    const list = b.read('checklist/index.html');
+    assert.equal((list.match(/<input type="checkbox" data-todo-source="checklist"/g) || []).length, 2, 'a line without ^id is read-only');
+    assert.match(list, /data-todo-id="m4q2" checked/);
+    assert.match(list, /<section class="card coop-list" data-group>.*data-count>1\/3</s);
+    assert.equal((list.match(/\/api\/todos\?source=/g) || []).length, 1, 'the script once, added by the shell');
+    assert.doesNotMatch(b.read('rooms/index.html'), /\/api\/todos/, 'and only where there is a box');
+  } finally { b.done(); }
+});
+
+// ---------------------------------------------------------------- one orientation per level
+
+test('two navigation levels never share an orientation: a build with side pages keeps the sections in a row', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-orient-'));
+  const empty = { generated: '2026-10-30T10:00:00Z', org: 'Riverside Co-op', repos: [], private: [], projects: [], recap: [] };
+  const load = async (code, d = empty) => {
+    const file = join(dir, `ext-${Math.random().toString(36).slice(2)}.mjs`);
+    writeFileSync(file, code);
+    return loadExtension({ root: dir, data: d, today: TODAY, file });
+  };
+  const build = (extension, d = empty) => renderIntranet({ data: d, home: null, tools: [], css: '', today: TODAY, extension });
+  const tabs = (n, side = false) => `export default (i) => { ${Array.from({ length: n }, (_, k) => `i.tab('s${k}/', 'S${k}'); i.page('s${k}/', () => ({ title: 'S${k}', body: 'x'${side && k === 0 ? ", side: { label: 'S0', links: [{ to: 's0/', label: 'One' }, { to: 's0/two/', label: 'Two' }] }" : ''} }));`).join(' ')} };`;
+  try {
+    const flat = build(await load(tabs(6)));
+    assert.match(flat['index.html'], /<body class="has-nav">/, 'seven sections and no side page: the sidebar, as before');
+    const sided = build(await load(tabs(6, true)));
+    for (const f of ['index.html', 's0/index.html', 's3/index.html']) {
+      assert.doesNotMatch(sided[f], /nav-side|has-nav/, f);
+      assert.match(sided[f], /<header class="top many">/, f);
+    }
+    assert.match(sided['s0/index.html'], /<aside class="side" aria-label="S0">/, 'the section keeps its vertical sidebar');
+    assert.match(sided['index.html'], /scrollLeft/, 'the row scrolls with the current tab in view');
+    // The kit's own Projects pages count as side pages once a project has a page.
+    const withProject = data([project()]);
+    const proj = build(await load(tabs(6), withProject), withProject);
+    assert.doesNotMatch(proj['index.html'], /has-nav/);
+    assert.match(proj['projects/brochure/index.html'], /<aside class="side" aria-label="Projects">/);
+    // Groups and side pages: one row, in the groups' order, a rule between groups, no headings.
+    const grouped = build(await load(`export default (i) => {
+      i.tab('rota/', 'Rota'); i.tab('rooms/', 'Rooms');
+      i.page('rota/', () => ({ body: 'x', side: { label: 'Rota', links: [{ to: 'rota/', label: 'Coming' }] } }));
+      i.group('Volunteers', ['rooms/', 'rota/']);
+    };`));
+    const row = grouped['index.html'].match(/<nav class="tabs"[^>]*>(.*?)<\/nav>/)[1];
+    assert.deepEqual([...row.matchAll(/href="([^"]*)"|class="(tab-sep)"/g)].map((m) => m[1] ?? m[2]), ['', 'projects/', 'tab-sep', 'rooms/', 'rota/']);
+    assert.doesNotMatch(grouped['index.html'], /nav-group-label/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+// ---------------------------------------------------------------- French typography
+
+test('a French intranet keeps : ; ? ! and « » on the line of their word; an English one is untouched', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'intranet-fr-'));
+  const d = data([project({ counts: { open: 1, done: 0 }, open: [item('Choisir le papier : mat ou brillant ?')] })]);
+  const load = async (code) => {
+    const file = join(dir, `ext-${Math.random().toString(36).slice(2)}.mjs`);
+    writeFileSync(file, code);
+    return loadExtension({ root: dir, data: d, today: TODAY, file });
+  };
+  const body = `<h1>Rota : la semaine</h1><p title="garde : ceci">Qui ? Quoi ! Où ; « ici » pour 12 000 personnes</p><code>a : b</code><pre>c ? d</pre><a href="x/?q=1 : 2">lien</a><script>const s = 'e : f';</script><style>.x::before { content: " :"; }</style>`;
+  const page = `i.tab('rota/', 'Rota'); i.page('rota/', () => ({ title: 'Rota : semaine', body: ${JSON.stringify(body)} }));`;
+  const build = (extension) => renderIntranet({ data: d, home: null, tools: [], css: '', today: TODAY, extension });
+  try {
+    await assert.rejects(load("export default (i) => i.locale('French');"), /needs a language tag/);
+    const fr = build(await load(`export default (i) => { i.locale('fr-FR'); ${page} };`));
+    const html = fr['rota/index.html'];
+    assert.match(html, /<html lang="fr">/);
+    const text = html.replace(/<(script|style|code|pre)\b[\s\S]*?<\/\1>/g, '').replace(/<[^>]*>/g, '');
+    assert.doesNotMatch(text, / [:;?!»]|« /, 'no plain space before a sign or inside guillemets');
+    assert.match(html, /Rota : la semaine/);
+    assert.match(html, /12 000/);
+    assert.match(html, /<title>Rota : semaine/);
+    for (const kept of ['title="garde : ceci"', '<code>a : b</code>', '<pre>c ? d</pre>', 'href="x/?q=1 : 2"', "const s = 'e : f';", 'content: " :";']) assert.ok(html.includes(kept), kept);
+    assert.match(fr['projects/brochure/index.html'], /papier : mat ou brillant \?/, "the kit's own pages too");
+    // English: the same build with and without an explicit English locale, byte for byte.
+    const en = build(await load(`export default (i) => { ${page} };`));
+    assert.deepEqual(build(await load(`export default (i) => { i.locale('en-GB'); ${page} };`)), en);
+    assert.ok(en['rota/index.html'].includes('Rota : la semaine'));
+    assert.equal(typeset(en['rota/index.html'], 'en'), en['rota/index.html']);
   } finally { rmSync(dir, { recursive: true, force: true }); }
 });
 

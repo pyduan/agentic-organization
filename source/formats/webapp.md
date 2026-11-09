@@ -309,14 +309,22 @@ title that names the section and the page (« Clients · Invoices ▾ ») and op
 become a scrolling strip of tabs. Tabs inside a page that switch between views of the same thing are
 content, not navigation, and stay.
 
-When the sections no longer fit one row, they become a sidebar of their own. Past six or so, or once
+**Two navigation levels never share an orientation.** The sections and a section's own pages are
+two levels: one runs across, the other down. Two stacked rows of tabs, or a sidebar of sections next
+to a sidebar of pages, leave the reader unable to tell which level they are in, and which one the
+highlighted entry belongs to.
+
+So when the sections no longer fit one row, what happens depends on the pages. When no section has
+pages of its own in a sidebar, the sections may become a sidebar themselves: past six or so, or once
 they fall into families (the daily pages, the work, the tools), the row moves to a column down the
-left side, the sections grouped under short headings and the current one marked. A section's own
-pages keep their sidebar beside the page. On a phone the column folds into one menu at the top that
-names the current section. Never a row of tabs and a sidebar of sections at once. A header that had
-grown to fourteen entries wrapped onto two lines on a laptop: the two rows this rule forbids, reached
-by another route. The kit's intranet switches at seven sections, or as soon as its extension groups
-them (`source/formats/dashboard.md` ▸ *Adding your own views*).
+left side, grouped under short headings, the current one marked, folded into one menu on a phone.
+When any section has its own sidebar, the sections stay a horizontal row whatever their number: it
+scrolls sideways inside the header and opens with the current one in view, as it already does on a
+phone. Never a row of tabs and a sidebar of sections at once. A header that had grown to fourteen
+entries wrapped onto two lines on a laptop: the two rows this rule forbids, reached by another route.
+The kit's intranet switches to a sidebar of sections at seven, or as soon as its extension groups
+them, only in a build where no page has a sidebar of its own; otherwise groups stay in the row,
+separated by a thin rule (`source/formats/dashboard.md` ▸ *Adding your own views*).
 
 ### Every tab and every block has an address
 

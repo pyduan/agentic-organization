@@ -12,6 +12,11 @@
 //   error    assets without run_worker_first: true
 //   warning  workers_dev not set to false (fine only if Access is attached to the Worker)
 //
+// A Worker whose `main` is the to-do app's (apps/todos/worker.js), as an intranet that ticks lines
+// runs it (source/formats/dashboard.md ▸ Tick boxes), must also declare TEAM_DOMAIN and POLICY_AUD
+// (without them it answers 500 to every page, on purpose) and serve its pages through an assets
+// binding named ASSETS, the name the Worker hands every request that is not /api/.
+//
 //   node scripts/check-access-config.mjs [--json]
 //
 // Exit 1 on an error, 0 otherwise.
@@ -42,8 +47,16 @@ export function parseJsonc(text) {
 export function inspect(cfg) {
   const vars = cfg.vars || {};
   const gated = 'TEAM_DOMAIN' in vars || 'POLICY_AUD' in vars;
-  if (!gated) return [];
   const out = [];
+  if (/(^|\/)todos\/worker\.js$/.test(String(cfg.main || ''))) {
+    if (!('TEAM_DOMAIN' in vars && 'POLICY_AUD' in vars)) {
+      out.push({ severity: 'error', detail: 'runs the to-do app\'s Worker without TEAM_DOMAIN and POLICY_AUD in vars, so it refuses every request' });
+    }
+    if (cfg.assets && cfg.assets.binding !== 'ASSETS') {
+      out.push({ severity: 'error', detail: 'runs the to-do app\'s Worker with assets not bound as "ASSETS", the binding it serves the pages through' });
+    }
+  }
+  if (!gated) return out;
   if (cfg.assets && cfg.assets.run_worker_first !== true) {
     out.push({ severity: 'error', detail: 'has assets without "run_worker_first": true, so a matching file is served before the identity check runs' });
   }

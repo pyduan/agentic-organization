@@ -17,6 +17,13 @@
 //
 //   node scripts/todo-sources.mjs   → apps/todos/sources.json
 //
+// An intranet whose Worker runs the to-do app, so its pages can tick lines (source/formats/
+// dashboard.md ▸ Tick boxes), lists the files it may tick in TODO_SOURCES, in its own wrangler.jsonc.
+// This prints that list for this repository: next-steps.md at the root, each project's next-steps.md
+// and roadmap.md, and every --file named, with the ids components.mjs ▸ todoSourceId gives a page:
+//
+//   node scripts/todo-sources.mjs --intranet [--file=rota/checklist.md ...]   → JSON on stdout
+//
 // Zero dependencies. Run it before deploying the app.
 
 import { readFile, writeFile } from 'node:fs/promises';
@@ -91,6 +98,31 @@ async function sourcesIn(repo) {
     found.push({ id: `${repo.slug}-${name}`, label: titleCase(name), repo: gh, path, branch, dir: repo.dir });
   }
   return { found };
+}
+
+/** The checklists of this repository, as TODO_SOURCES entries for the intranet's Worker. */
+async function intranetSources(extra) {
+  const { existsSync, readdirSync } = await import('node:fs');
+  const { todoSourceId } = await import('../apps/dashboard/components.mjs');
+  const gh = await ghSlug(ROOT);
+  if (!gh) throw new Error('this repository has no GitHub origin: the Worker writes through the GitHub API');
+  let projects = [];
+  try { projects = readdirSync(join(ROOT, 'projects'), { withFileTypes: true }).filter((e) => e.isDirectory() && !e.name.startsWith('_')).map((e) => e.name).sort(); } catch {}
+  const paths = ['next-steps.md', ...projects.flatMap((p) => [`projects/${p}/next-steps.md`, `projects/${p}/roadmap.md`]), ...extra];
+  const missing = extra.filter((p) => !existsSync(join(ROOT, p)));
+  if (missing.length) throw new Error(`no such file: ${missing.join(', ')}`);
+  return [...new Set(paths)].filter((p) => existsSync(join(ROOT, p)))
+    .map((path) => ({ id: todoSourceId(path), label: path.replace(/\.md$/, ''), repo: gh, path }));
+}
+
+if (process.argv.includes('--intranet')) {
+  const extra = process.argv.filter((a) => a.startsWith('--file=')).map((a) => a.slice(7).replace(/^\.\//, ''));
+  try {
+    const list = await intranetSources(extra);
+    console.log(JSON.stringify(list, null, 2));
+    console.error(`${list.length} file(s): paste the array as vars.TODO_SOURCES in the intranet's wrangler.jsonc`);
+  } catch (e) { console.error(`todo sources: ${e.message}`); process.exitCode = 1; }
+  process.exit();
 }
 
 const { repos: list, rows, skipped: unreadable } = await repos();

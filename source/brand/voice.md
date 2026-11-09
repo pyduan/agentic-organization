@@ -214,6 +214,12 @@ to avoid is matching the language of the file you happen to be editing: a task w
 a French project is still read by a model, and a rule added to it goes in English. The output that
 task produces for its owner follows the owner's language, as ever.
 
+**French typography: a line never breaks before « : ; ! ? » or inside « guillemets ».** A no-break
+space goes before those signs, inside « », and between the groups of a large number (12 000), because
+a « : » or a « ? » left alone at the start of a line reads as a typo. Decks, documents with `lang: fr`
+and a French intranet (`intranet.locale('fr-FR')`) apply it at build time
+(`scripts/deck/text.mjs` ▸ `typo`); text typed anywhere else follows the same rule by hand.
+
 ## Notation
 
 TODO: how the project's name is written, exactly, including capitalization and any punctuation that is part of the mark. Add other named things (product names, series titles) as they appear. These notations are non-negotiable; the AI applies them everywhere without exception.

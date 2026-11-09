@@ -2,7 +2,8 @@
 //
 // Static HTML on purpose: the intranet is the first thing the setup publishes, minutes into the
 // first session, and it must build with Node alone, before anything has been installed. Every page
-// is complete without JavaScript; the only script remembers whether this viewer closed the banner.
+// is complete without JavaScript; the scripts remember whether this viewer closed the banner, keep the
+// current tab in view, and, on a page with tick boxes (components.mjs), save a tick.
 //
 // What is the owner's to edit lives in source/content/, never here:
 //   intranet-home.md   the banner at the top of the home page (quickstart, how this works)
@@ -23,8 +24,11 @@
 
 import { renderMarkdown, inline, esc, slugify } from '../../scripts/doc/markdown.mjs';
 import { isOverdue } from '../../lib/todo.mjs';
+import { typo, baseLang } from '../../scripts/deck/text.mjs';
+import { checkboxScript } from './components.mjs';
 import { readFileSync } from 'node:fs';
 
+/** The kit's language. An extension sets its own with intranet.locale('fr-FR'), for one build. */
 export const LOCALE = 'en-GB';
 
 export const STRINGS = {
@@ -62,6 +66,22 @@ export const STRINGS = {
   'tool.unpublished': 'not published yet',
   'foot.built': (when) => `Built from the repository on ${when}. Nothing is edited here: when a page is wrong, the file behind it is.`,
   'foot.signout': 'Sign out',
+  // The components an extension uses (components.mjs).
+  'ui.done': 'done',
+  'ui.of': (done, total) => `${done} of ${total}`,
+  'checks.offline': 'These boxes do not save from here yet: they show the state of the last build.',
+  'checks.saving': 'Saving…',
+  'checks.saved': 'Saved in the repository.',
+  'checks.failed': 'Not saved. Try again.',
+  'gantt.label': 'Timeline',
+  'gantt.events': 'Calendar',
+  'gantt.thisWeek': 'this week',
+  'gantt.today': 'today',
+  'gantt.event': 'event',
+  'gantt.milestone': 'milestone',
+  'gantt.action': 'dated action',
+  'gantt.done': 'done',
+  'gantt.late': 'late',
 };
 
 /** The sections, as [path from the root, label key]. One row of tabs, never two. */
@@ -121,13 +141,21 @@ export function tabs() {
   return out.filter((o) => o.to !== gone).map((o) => [o.to, o.key]);
 }
 
+/** The language pages are built in: the extension's (intranet.locale), else the kit's LOCALE. */
+export const locale = () => chrome?.locale || LOCALE;
+
 const label = (key) => {
   const v = t(key);
   return v === undefined ? key : v;
 };
 
-/** Whether the sections render as a sidebar rather than a row: groups asked for, or too many to fit. */
-export const sidebarNav = () => Boolean(chrome?.groups?.length) || tabs().length >= SIDEBAR_FROM;
+/**
+ * Whether the sections render as a sidebar rather than a row: groups asked for, or too many to fit,
+ * and no page of the build has a sidebar of its own. Two navigation levels never share an
+ * orientation (webapp.md ▸ One row of tabs, then a sidebar): when a section's pages are a vertical
+ * sidebar, the sections stay a horizontal row, scrolling sideways when they outgrow it.
+ */
+export const sidebarNav = () => !chrome?.sided && (Boolean(chrome?.groups?.length) || tabs().length >= SIDEBAR_FROM);
 
 /**
  * The sections as the sidebar shows them, [{ label, tabs }]: the tabs no group names first, under no
@@ -257,7 +285,7 @@ export function stats(projects, today) {
 
 // ---------------------------------------------------------------- pieces
 
-const day = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(LOCALE, { day: 'numeric', month: 'short' });
+const day = (iso) => new Date(`${iso}T12:00:00Z`).toLocaleDateString(locale(), { day: 'numeric', month: 'short' });
 
 export function todoRow(item, today, { project = null, base = '', notes = false } = {}) {
   const bits = [`<span class="todo-text">${esc(item.text)}</span>`];
@@ -344,7 +372,8 @@ function toolCards(tools, base) {
  * Past two tabs the row scrolls sideways inside the header on a phone instead of widening the page,
  * and a line of script brings the current tab into view; with the kit's own two, neither is there.
  * From SIDEBAR_FROM tabs, or as soon as an extension groups them, the sections leave the header for
- * a sidebar (sideNav below).
+ * a sidebar (sideNav below), unless a page of the build has a sidebar of its own (sidebarNav). A page
+ * holding a tick box gets the boxes' script (components.mjs ▸ checkboxScript).
  */
 export function shell({ data, depth, tab, title, body, before = '' }) {
   const base = '../'.repeat(depth);
@@ -352,10 +381,14 @@ export function shell({ data, depth, tab, title, body, before = '' }) {
   const side = sidebarNav();
   const many = !side && all.length > 2;
   const link = ([to, key]) => `<a href="${base}${to}"${to === tab ? ' aria-current="page" class="on"' : ''}>${label(key)}</a>`;
-  const row = all.map(link).join('');
-  const when = new Date(data.generated).toLocaleString(LOCALE, { dateStyle: 'medium', timeStyle: 'short' });
+  // Groups kept in a row (a build whose pages have their own sidebar): the groups' order, a rule between them.
+  const row = !side && chrome?.groups?.length
+    ? navGroups().map((g) => g.tabs.map(link).join('')).join('<span class="tab-sep" aria-hidden="true"></span>')
+    : all.map(link).join('');
+  const when = new Date(data.generated).toLocaleString(locale(), { dateStyle: 'medium', timeStyle: 'short' });
+  const ticks = /data-todo-source=/.test(body) || /data-todo-source=/.test(before);
   return `<!doctype html>
-<html lang="${LOCALE.slice(0, 2)}">
+<html lang="${locale().slice(0, 2)}">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -382,7 +415,7 @@ ${body}
   <p>${esc(t('foot.built', when))}</p>
   <p><a href="/cdn-cgi/access/logout">${t('foot.signout')}</a></p>
 </footer>
-${withNews ? `<script src="${base}badges.js" data-base="${base}" data-label="${esc(t('badge.new'))}" defer></script>\n` : ''}</body>
+${withNews ? `<script src="${base}badges.js" data-base="${base}" data-label="${esc(t('badge.new'))}" defer></script>\n` : ''}${ticks ? `${checkboxScript()}\n` : ''}</body>
 </html>
 `;
 }
@@ -469,12 +502,16 @@ function projectsSide(data, current) {
   };
 }
 
+/** Whether the Projects section has pages to list beside the page: one link to itself is no sidebar. */
+const projectsSided = (data) => data.projects.some((p) => p.page);
+
 export function projectsPage({ data, today }) {
   const base = '../';
   const inner = `<h1>${t('projects.title')}</h1>
 ${data.projects.length ? `<div class="cards">${data.projects.map((p) => projectCard(p, base, today)).join('')}</div>` : `<p class="empty">${esc(t('home.empty'))}</p>`}
 ${data.private?.length ? `<p class="empty">${esc(t('projects.private', data.private.join(', ')))}</p>` : ''}`;
-  return shell({ data, depth: 1, tab: 'projects/', title: t('projects.title'), body: withSide(projectsSide(data, null), base, inner) });
+  const body = projectsSided(data) ? withSide(projectsSide(data, null), base, inner) : `<main class="wrap">${inner}</main>`;
+  return shell({ data, depth: 1, tab: 'projects/', title: t('projects.title'), body });
 }
 
 export function projectPage({ data, project: p, today }) {
@@ -512,9 +549,13 @@ export function newsItems(data, extra = []) {
 }
 
 export function renderIntranet({ data, home, tools, css, today = new Date().toISOString().slice(0, 10), extension = null }) {
-  chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings, hide: extension.hide } : null;
+  chrome = extension ? { tabs: extension.tabs, groups: extension.groups, strings: extension.strings, hide: extension.hide, locale: extension.locale || null } : null;
   try {
     const ctx = (path) => extension.context({ data, today, path });
+    // The extension's pages render first: whether any has a sidebar of its own decides, for every
+    // page, whether the sections may be a sidebar too (sidebarNav).
+    const rendered = (extension?.pages || []).map((pg) => ({ pg, out: pg.render(ctx(pg.path)) }));
+    if (chrome) chrome.sided = projectsSided(data) || rendered.some(({ out }) => out && typeof out === 'object' && out.side);
     const news = newsItems(data, (extension?.news || []).flatMap((fn) => fn(ctx('')) || []));
     withNews = news.length > 0;
     const slots = {};
@@ -525,15 +566,16 @@ export function renderIntranet({ data, home, tools, css, today = new Date().toIS
       'intranet.css': extension?.css.length ? `${css}${extension.css.map((c) => `\n/* ---- ${c.from} ---- */\n${c.text}`).join('')}` : css,
     };
     for (const p of data.projects.filter((x) => x.page)) files[`${p.page}index.html`] = projectPage({ data, project: p, today });
-    for (const pg of extension?.pages || []) {
+    for (const { pg, out } of rendered) {
       const file = pg.path.endsWith('/') || pg.path === '' ? `${pg.path}index.html` : pg.path;
       if (file in files) throw new Error(`intranet extension: ${file} is already a page of the kit's; give yours another path`);
-      files[file] = pageFrom(pg, file, ctx(pg.path), data);
+      files[file] = pageFrom(pg, file, out, data);
     }
     if (withNews) {
       files['news.json'] = `${JSON.stringify({ today, items: news })}\n`;
       files['badges.js'] = readFileSync(new URL('./badges.js', import.meta.url), 'utf8');
     }
+    if (baseLang(locale()) === 'fr') for (const f of Object.keys(files)) if (f.endsWith('.html')) files[f] = typeset(files[f], 'fr');
     return files;
   } finally {
     chrome = null;
@@ -541,9 +583,8 @@ export function renderIntranet({ data, home, tools, css, today = new Date().toIS
   }
 }
 
-/** An extension's page: its render gives a whole file (a string) or { title, body, side, tab }. */
-function pageFrom(pg, file, c, data) {
-  const out = pg.render(c);
+/** An extension's page: its render gave a whole file (a string) or { title, body, side, tab }. */
+function pageFrom(pg, file, out, data) {
   if (typeof out === 'string') return out;
   if (!out || typeof out.body !== 'string') throw new Error(`intranet extension: the page ${pg.path} rendered no body`);
   const depth = file.split('/').length - 1;
@@ -553,4 +594,28 @@ function pageFrom(pg, file, c, data) {
     ? withSide({ current: pg.path, ...out.side }, base, out.body)
     : `<main class="wrap">${out.body}</main>`;
   return shell({ data, depth, tab, title: out.title ?? null, body });
+}
+
+// Tags, and the elements whose text is code or script: their insides are never typeset.
+const RAW = /^<(script|style|code|pre|textarea)\b/i;
+
+/**
+ * The typography of a language applied to the text of an HTML page, never to its tags, attributes,
+ * URLs or to what sits in <script>, <style>, <code>, <pre> or <textarea>. In French
+ * (scripts/deck/text.mjs ▸ typo, the documents' and decks' own rule) a no-break space goes before
+ * : ; ? ! and inside « », and between the groups of a large number, so a line never starts with a
+ * sign or splits a figure. Any other language is returned as it came, byte for byte.
+ */
+export function typeset(html, lang = locale()) {
+  if (baseLang(lang) !== 'fr') return html;
+  const out = [];
+  let raw = null; // the element whose end closes a stretch left as is
+  for (const part of String(html).split(/(<!--[\s\S]*?-->|<[^>]*>)/)) {
+    if (part.startsWith('<')) {
+      if (!raw) { const m = part.match(RAW); if (m) raw = m[1].toLowerCase(); }
+      else if (part.toLowerCase().startsWith(`</${raw}`)) raw = null;
+      out.push(part);
+    } else out.push(raw ? part : typo(part, lang));
+  }
+  return out.join('');
 }
