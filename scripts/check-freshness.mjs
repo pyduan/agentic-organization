@@ -50,6 +50,12 @@ const SKIP = new Set([
   ...(config.skipDirs || []),
 ]);
 
+// .claude/worktrees/ holds Claude Code's agent worktrees: full checkouts of other branches,
+// untracked here. Walking them listed every reference and placeholder once per worktree
+// (three times in a repo with two agents, 2026-11-10). Only that path is skipped: a content
+// folder that happens to be called "worktrees" elsewhere is still read.
+const SKIP_PATHS = new Set([join(ROOT, '.claude', 'worktrees')]);
+
 async function walk(dir, out = []) {
   let entries;
   try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
@@ -57,6 +63,7 @@ async function walk(dir, out = []) {
     if (e.name.startsWith('.') && e.name !== '.claude') continue;
     if (SKIP.has(e.name)) continue;
     const p = join(dir, e.name);
+    if (SKIP_PATHS.has(p)) continue;
     if (e.isDirectory()) await walk(p, out);
     else out.push(p);
   }

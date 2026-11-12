@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-12 · MINOR · The freshness check no longer reads Claude Code's agent worktrees
+
+`check-freshness` skips `.claude/worktrees/`, where Claude Code keeps full copies of other branches
+for its agents. It used to read them too, so every dead link and every placeholder showed up once
+per copy. A folder of your own called `worktrees` elsewhere is still checked.
+
+**What you need to do:** nothing. If you added `"skipDirs": ["worktrees"]` to `freshness.json` to
+work around this, you can remove it.
+
 ## 2026-11-09 · MAJOR · Intranet progress cards, a Gantt chart, tick boxes that save, French typography
 
 An intranet extension can now draw progress the way a dashboard should: cards with a progress ring
