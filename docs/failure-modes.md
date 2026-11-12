@@ -104,7 +104,10 @@ and its absence cost hours, and once, files.
   independent and none announces the next, so the sub-point that answers your question is not the
   last word. In a thread, the answer almost always arrives after the question: a dunning notice was
   taken for a quarterly charge and a decade of costs built on it, while the real quarterly figure
-  sat two messages further down.
+  sat two messages further down. **In a group thread, join each message to its author before
+  concluding**, and write a missing name as missing rather than leaving a sentence with no subject: a
+  refusal in a five-person thread was put in the treasurer's mouth because the quoted reply had lost
+  its header.
 - **A correction is verified against the authority, never against a second document of the same
   kind.** Told a figure was wrong, the fix replaced it with another figure from the same email
   thread rather than opening the deed. The second version was wrong too, and travelled further
@@ -130,6 +133,10 @@ and its absence cost hours, and once, files.
   first; a zero on a source you know is live is a broken query. Before concluding absence, search
   case-insensitively and with no cap per thread. Then search again by the probable author and by the
   period of the facts: a reply sat under the sender's assistant's name, a month before the date searched.
+  **Search a figure in its numeric form as well as in words** (50 % as well as *half*). Open the
+  working attachments of the thread too, spreadsheets included, version by version: a cost split
+  agreed in a shared workbook was reported as never discussed, because only the mail bodies had been
+  read. Then say apart what the signed texts say and what the working documents say.
 - **Before carrying out a procedure a third party fixed, reopen their text and tick each item.** A
   claim went out with one of the two documents an insurer listed, because it was written from the
   project's own summary of the procedure.
@@ -167,7 +174,9 @@ and the second copies only the number.
   own notes are the first place to look for the refutation, not the last.
 - **Never explain a discrepancy with a plausible guess.** Trace it to its cause, or write that you
   do not know. A guess left in the file becomes the reason, and it makes a sound calculation look
-  suspect.
+  suspect. **An explanation of the gap between two figures is recomputed from the cells**, never
+  deduced from the text around them: a gap put down to a fee described two lines above came from a
+  row summed twice.
 - **When the owner questions a figure and it turns out wrong, the default hypothesis is an omission,
   never a choice.** Re-read what they already said on the subject before explaining anything. The
   gravest case in one register: a step never done, explained after the fact as "deliberate", on a
@@ -175,6 +184,10 @@ and the second copies only the number.
   a hook stopped it. "I left it out" is the first sentence to try, because it is usually true.
 - **An assumption inherited from earlier work arrives without its status.** When you build on
   something you did not establish, say so in the same sentence, with what it changes if it is wrong.
+  **A trial or a simulation lists, at its top, every setting that takes effect in the new case
+  without having been asked for.** A run on a new scenario kept the model's other settings, one of
+  which assumed a sale the owner had never raised, and the result was read as the effect of the one
+  change she had asked about.
 - **The form of the work fabricates authority the content has not earned.** This is the umbrella over
   most of this section, and it took an owner five cases in one document to name it. An exact count
   invites a false conclusion; a blocking check carries a guarantee word no document supports;
@@ -254,7 +267,9 @@ and the second copies only the number.
 - **A check that examined nothing returns no verdict.** A verifier pointed one folder too deep found
   no file, computed no hash, and printed "everything written is intact", with "0 verified" two lines
   above. A favourable verdict needs "no anomaly AND at least one thing checked"; otherwise it says
-  what it could not see and exits in error.
+  what it could not see and exits in error. **A check that runs only in a sub-case says, in its
+  output, that it is silent in the others**: a comparison between two sections ran only when a
+  purchase was fully financed by a loan, which was never the case where the error sat.
 
 ## 3 · Producing and reading figures
 
@@ -268,6 +283,13 @@ and the second copies only the number.
 - **A reconstruction only verifies something if it predicts more values than it consumes free
   parameters.** Solving for the unknown that makes the answer come out is not a check, however
   satisfying the arithmetic looks.
+- **A check that recomputes a figure with the same logic, or the same assumption, as the thing it
+  checks cannot see its errors.** The independent check takes another path (another program, another
+  session, another decomposition) and reads each case as the end reader will. In one register four
+  errors passed the automatic control because it reused the model's own logic: a value set to zero
+  for a new case, a tax saving counted twice, a cost added at one event and forgotten at the next, a
+  debt dropped in a second section. All four were caught by reviewers who recalculated with their
+  own program.
 - **The first measured point that shows an effect is not the threshold.** Derive the boundary, then
   use measurement to confirm the derivation.
 - **Ask what your measuring tool measures.** A size, a count, a quota can each be reported in a unit
@@ -286,7 +308,9 @@ and the second copies only the number.
   do not understand it is not data. And before comparing two things by a ratio, establish what
   distinguishes them other than size — two flats in one building, one to gut and one immaculate. A
   list of caveats underneath does not neutralise a heading that says the opposite; the heading is
-  what stays.
+  what stays. **One expression names one amount in a page**: "what is left to her" named a monthly
+  income in one line and a remaining capital two lines down. A review follows the thread of amounts
+  from step to step, not only each sentence.
 - **Anything that depends on an order expires like a count.** Rank, maximum, majority, "the main
   one", "the second most": these read as words rather than numbers, which is why they survive the
   regrouping that makes them false. Compute them at display time, in the same pass as the table
@@ -343,6 +367,10 @@ and the second copies only the number.
 - **An exact equality between two scenarios is suspect until explained.** Two options came out equal
   to the cent and it was presented as a finding; it was one allowance counted in the wrong one of two
   calculations. Equal results from different inputs are usually one input counted twice.
+- **Two more signals stop you before a result is written.** An extreme result (*none*, *never*,
+  *beyond the last column*) is checked against the neighbouring rows first: a formula offset by one
+  row claimed a threshold was never reached while the row above showed it reached. And a total that
+  does not move after a decision that should move it is a defect, not a confirmation.
 - **Two readings are not a trend.** A date was forecast from two observations taken two days apart;
   the next one showed the series moves in steps.
 - **A counterfactual is labelled every time it appears, and a figure shown then invalidated is
@@ -366,7 +394,9 @@ wrong.
   of you and stopping there leaves the stale version reading like current information elsewhere.
   **A rule the owner states as "everywhere" becomes a check in the generating program the same day**,
   and the outputs already delivered are swept: a rounding rule applied to one page by hand was then
-  missed twice on the next ones.
+  missed twice on the next ones. And a rounding rule carries the grain it was set for: its step
+  stays under a tenth of the smallest line it rounds. A step meant for yearly totals, applied
+  everywhere, zeroed the lines of a monthly table whose title announced its own grain.
 - **Retiring a routine means deleting or capping its instruction file, in the same change as the
   decision.** A superseded guide is a stale sentence; a superseded *automation* left on disk is a
   stale sentence something can still execute, and it carries the facts that were true when it was
@@ -426,6 +456,10 @@ wrong.
 - **"Follow up if nothing arrives" is closed by looking, not by its date.** Two answers sat in the
   inbox for a week while the file said "awaiting reply". Before touching a matter that waits on
   someone, search their messages since the day you wrote to them.
+- **A contact found in mail is dated.** Before naming someone as the current counterpart, read the
+  message date and look for the same role in the last twelve months; a name older than two years is
+  presented as old, or not at all. A letter was addressed to a bank adviser who had left four years
+  earlier, found in the only thread that matched the bank's name.
 - **A document signed online is filed the day it is signed.** The platform sends a link, not the
   document, and the link expires; two weeks later the document has to be asked for again.
 
@@ -562,7 +596,11 @@ list here, so it is split by the moment each rule applies.
   is not enough while its install file remains.
 - **A lock belongs to the program doing the work, not to the one that calls it.** A parent that dies
   releases a lock its child is still working under. Put the process id in the lock so an abandoned
-  one can be recognised and lifted rather than blocking forever.
+  one can be recognised and lifted rather than blocking forever. **A generator two launchers can
+  start takes one**: a scheduled build and a hand-started one erased each other's work folder. The
+  same incident sent the owner a false outage alert, then an all-clear, because the alerting device
+  had only ever been tested on its live channel. Anything that alerts the owner is tested in a mode
+  that cannot write to them.
 - **When you optimise one quantity, instrument the resource that bounds the problem.** Prefetching
   tripled throughput and ate the free disk that was the whole constraint. The gain was measured and
   announced; its cost was not. The same applies to the fix: measure it on the quantity it was meant
@@ -619,7 +657,9 @@ list here, so it is split by the moment each rule applies.
   applied on top of rounding, a one-off conversion left active: each passed its first run.
 - **A document the owner has open is not updated until the application holding it reloads it.** A
   workbook was rewritten six times while the owner read a stale copy on screen, and one save from that
-  window would have erased every correction.
+  window would have erased every correction. What the owner just did in it is read from the
+  application too, never from the file on disk: an unsaved manual reordering of rows was lost twice
+  when the file was rewritten from the saved copy.
 - **The owner's own desktop apps are driven around them, never over them.** Check which app is in
   front in a separate command before acting, and never take the foreground while they work: their
   keystrokes went into a message field. Open a spreadsheet on a title cell, never a formula cell.
@@ -761,6 +801,10 @@ useless — or it spends the owner's time on something that was yours to do.
   same commit, or leave the field alone. **Before renaming a label, a sheet, a heading or a note,
   search every program and every check that finds it by its text**, and accept both forms for one
   transition: a renamed sheet tab made an import read nothing, and report it as an empty month.
+  **Moving or archiving a file in a shared space is a rename for whoever reads it**, so search its
+  readers first. And a pipeline checks at its start that its source exists, and names what is
+  missing: one produced nothing for a day, silently, after another session archived the folder it
+  read.
 
 ## 7 · Parallel sessions
 
@@ -852,3 +896,6 @@ in a single session, and they get more likely exactly when work is going well.
 - **On resuming a matter, read the decisions and the files changed since your last turn there before
   reasoning about the state of anything.** A task struck through but left unticked by another session
   still read as "to do", and the instruction it carried outlived the decision that cancelled it.
+  **A message from a parallel session says what its sender knew when it wrote**: check it against
+  the day's decisions log before putting it in front of the owner. A figure was relayed an hour after
+  the owner had withdrawn the line it rested on.

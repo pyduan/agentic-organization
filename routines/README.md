@@ -136,7 +136,9 @@ A scheduled job that fails stays silent unless something makes it loud. Three sh
 - **A job whose only output is a pull request** fails by producing no pull request, which looks
   exactly like a quiet week. Give it a run log or a line in a report that says it ran.
 - **A degraded success is worse than a failure**: a run that skipped half its sources and said "done"
-  is trusted. Make the run count what it read and say what it skipped.
+  is trusted. Make the run count what it read and say what it skipped. A run whose source has been
+  moved or archived stops at its start and names what is missing (`docs/failure-modes.md` ▸ *A field
+  another tool parses is an interface*).
 - **The scheduler's "succeeded" means the session ended**, not that the work was done: five weekly
   sends were missed, four of them marked successful. A check of its own reads the artefact (the
   message in the sent folder, the file and its date) after the scheduled time, and says so when it

@@ -33,10 +33,18 @@ block below for whoever is sending it.
   backs this up: `.claude/hooks/send-guard.mjs` holds every send-like tool call and shell command for
   a person's approval, so the approval is given at the moment the message leaves, on the exact call.
 
+  **"Send this:" ending on a colon, or followed by text that may still come, waits for the rest.**
+  When you are unsure what will leave, ask. A draft went out a minute before the owner pasted her own
+  text, and the recipient got two mails.
+
   When a task involves reading someone's mail, **say in one line what you did and did not do**
   ("read only, nothing was sent"), and if you are asked, verify it rather than answering from
   memory: a sent-items and drafts search for the recipients in question is a fact, your recollection
-  is not.
+  is not. **Before saying something was not sent**, read the headers of the period's sent messages
+  (recipient address and time), never only the list of subjects; search the address as well as the
+  name; and read the transcripts of the parallel sessions, since a request made to one session binds
+  the others. A mail reported as never sent had left from another session, under a subject the owner
+  had reworded.
 
   **An owner may relax this**, deliberately and for their own account, once they understand what
   they are trading away. A session never may, and never infers it from a hurried instruction or an
@@ -195,7 +203,10 @@ _Drafted with help from TODO's agentic workflows._
 **If the person has no block, ask.** The `tu`/`vous` choice, the language and the sign-off all show
 on the first line, so a wrong guess is a correction the sender makes by hand. Their own register is
 a reasonable clue and not a reliable one: someone who vouvoies the owner may well be someone the
-owner tutoies. Ask, then write the block so nobody asks twice.
+owner tutoies. To read the choice from the record instead, open a message the owner wrote to that
+one person and read it: a *vous* in a message to several people proves nothing, since French uses
+*vous* for any group, and a block was once filled with *vous* on the strength of a group invitation.
+Ask, then write the block so nobody asks twice.
 
 One block per person who sends messages drafted here. Keep each one short: it is a diff against
 `voice.md` and this file, never a copy. Split a block into its own `source/brand/voice-<name>.md`

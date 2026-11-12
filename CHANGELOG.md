@@ -10,6 +10,21 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-12 · MINOR · More rules from an owner's error register: checks by another path, searches, parallel sessions
+
+Your agent now checks a figure by recomputing it another way, never with the logic that produced
+it; says when a check only covers some cases; stops on an extreme result or a total that did not
+move; keeps one expression for one amount; lists what a simulation assumed without being asked; and
+keeps a rounding step small against the lines it rounds. Before saying something was not sent or
+never discussed, it reads the sent headers, searches figures as numbers and opens the attachments.
+It dates a contact before naming them, and joins each message of a group thread to its author.
+Moving a shared file counts as a rename, a generator two launchers can start takes a lock, and what
+you just did in an open document is read from the application. In messages, "send this:" waits for
+the text that follows, and tu/vous is read from a message to that one person
+(`docs/failure-modes.md`, `source/formats/message.md`, `routines/README.md`).
+
+**What you need to do:** nothing.
+
 ## 2026-11-12 · MINOR · The freshness check no longer reads Claude Code's agent worktrees
 
 `check-freshness` skips `.claude/worktrees/`, where Claude Code keeps full copies of other branches
