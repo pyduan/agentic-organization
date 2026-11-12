@@ -16,4 +16,4 @@
 4. Do whatever the drop was for (add the gallery piece, update the bio, build the deck).
 5. Leave this folder empty. An empty inbox means everything has been handled.
 
-Never leave files here "for later" without telling the owner what's pending.
+Never leave files here "for later" without telling the owner what's pending. A note left here is often a correction the repo still contradicts, so `scripts/open-decisions.mjs` raises a non-empty inbox at every session start with the age of its oldest item: file it in that session.

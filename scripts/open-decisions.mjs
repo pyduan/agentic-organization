@@ -18,6 +18,13 @@
 // A hypothesis, or a choice forced by circumstances, needs a date on which
 // somebody looks again.
 //
+// A third thing, from a personal instance (reported 2026-11-12): the inbox. A note the
+// owner drops there is usually a correction, and a note left unfiled leaves the repo
+// asserting the opposite of what they said. One inbox sat six weeks with a date, a
+// dose and a trip in it, while five sessions each logged an incident about it and
+// none filed it. So a non-empty `source/inbox/` is raised with the age of its oldest
+// item, and an empty one (README aside) says nothing.
+//
 // So two markers, and deliberately only two:
 //
 //   #decide   an open decision that waits only on a gesture from a person. Raised
@@ -35,7 +42,7 @@
 // Usage:  node scripts/open-decisions.mjs [--json] [--all]
 // Docs:   source/formats/todo.md ▸ Two tags that get re-raised
 
-import { readFile, readdir } from 'node:fs/promises';
+import { readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -75,6 +82,22 @@ async function todoLib() {
   throw new Error(`todo.mjs introuvable (essayé ${essais.join(', ')}) : ${derniere?.message}`);
 }
 
+/** Files waiting in source/inbox (README and dotfiles aside), with the oldest one's date. */
+async function inbox(dir = join(ROOT, 'source/inbox'), acc = { count: 0, oldest: null }) {
+  let entries = [];
+  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return acc; }
+  for (const e of entries) {
+    if (e.name.startsWith('.') || /^readme\.md$/i.test(e.name)) continue;
+    const p = join(dir, e.name);
+    if (e.isDirectory()) { await inbox(p, acc); continue; }
+    let m;
+    try { m = (await stat(p)).mtime.toISOString().slice(0, 10); } catch { continue; }
+    acc.count += 1;
+    if (!acc.oldest || m < acc.oldest) acc.oldest = m;
+  }
+  return acc;
+}
+
 async function collect() {
   const { parse, dueEnd, isOverdue } = await todoLib();
   const decisions = [];
@@ -107,10 +130,10 @@ async function collect() {
     }
   }
   const age = (a, b) => (b.lateBy ?? -1) - (a.lateBy ?? -1);
-  return { decisions: decisions.sort(age), revisits: revisits.sort(age), struck };
+  return { decisions: decisions.sort(age), revisits: revisits.sort(age), struck, inbox: await inbox() };
 }
 
-let out = { decisions: [], revisits: [], struck: [] };
+let out = { decisions: [], revisits: [], struck: [], inbox: { count: 0, oldest: null } };
 // Un rappel ne casse jamais une session, mais il ne doit pas non plus mourir
 // sans un mot : c'est précisément le silence que ce script existe pour empêcher.
 try { out = await collect(); } catch (e) {
@@ -123,7 +146,7 @@ if (AS_JSON) {
 }
 
 // Silence is the default, and it is what keeps the notice worth reading.
-if (!out.decisions.length && !out.revisits.length && !out.struck.length) process.exit(0);
+if (!out.decisions.length && !out.revisits.length && !out.struck.length && !out.inbox.count) process.exit(0);
 
 const line = (x, kind) => {
   const who = x.owners && x.owners.length ? ` — ${x.owners.map((o) => `@${o}`).join(' ')}` : '';
@@ -158,5 +181,12 @@ if (out.struck.length) {
   for (const x of out.struck.slice(0, MAX)) console.log(`  · ${x.text}${x.id ? `  ^${x.id}` : ''}\n    ${x.where}`);
   console.log('  Tick each one with a dated update saying why it was dropped, or remove the strike if');
   console.log('  it still stands. A struck line keeps whatever instruction it carried alive.');
+  console.log();
+}
+if (out.inbox.count) {
+  const d = days(out.inbox.oldest, today);
+  console.log(`${out.inbox.count} item(s) waiting in source/inbox, the oldest dropped ${out.inbox.oldest} (${d}d ago).`);
+  console.log('  A note there is often a correction the repo still contradicts. File it in this session');
+  console.log('  (source/inbox/README.md), or tell the owner what is pending and why.');
   console.log();
 }

@@ -10,7 +10,7 @@ Read this before acting on real data, before a figure or a claim leaves the repo
 are about to build a tool. The incident register files every entry under the same seven names
 (`lib/register.mjs`), so the families here and the register there stay one vocabulary.
 
-Three findings about the *shape* of these errors, before the list:
+Findings about the *shape* of these errors, before the list:
 
 - **A large share were caught by the owner, not by the AI.** Those were the ones visible from their
   screen, and there was no reason they should have been the first to see them. Every rule below
@@ -59,8 +59,10 @@ and its absence cost hours, and once, files.
 
 - **When something seems missing, the default hypothesis is "I searched badly", never "it does not
   exist".** Absence of evidence in what you happened to read is not evidence of absence.
-- **Search by question, not by topic.** A corpus chosen because it is "about" the subject will miss
-  the folder named for the exact document.
+- **Search by question, not by topic or by correspondent.** A corpus chosen because it is "about"
+  the subject will miss the folder named for the exact document. What a call decided sits in its
+  notes and its transcript, sent by a notetaker or attached to the calendar event: three points were
+  reported unknown, and put back to the owner, after a search of the mails with the other party only.
 - **Never comment on a document without looking for its successor**: search its name plus
   *amendment*, *new*, *v2*, *replaces*. That is part of reading it, not a finishing touch.
 - **Do not offer to search. Search.** "I can look through your files if you like" asks the owner to
@@ -94,12 +96,18 @@ and its absence cost hours, and once, files.
   while three deliverables said the figure it carried "exists in no document in the file". Before
   writing *missing*, *not found* or *to request*, list what the project already holds on the subject
   and open it — including the owner's own working files. An attachment can also look absent because
-  the mail client only downloads it when you open it.
+  the mail client only downloads it when you open it. **A count someone will decide on is made by
+  opening each item**, not by the search that found the candidates: six scripts "reading a
+  neighbour's files" were five once read, and not the same five. Without the time to read, give
+  them as candidates.
 - **A summary never founds a conclusion; quote the clause word for word.** An internal extract
   faithfully summarised a contract article and dropped six words of preamble — the six that reversed
   its meaning. A published date rested on the summary for days. And **verify the article that
   carries the conclusion first**, not the easy ones around it: checking the peripheral links of an
-  argument gives false confidence about its central one.
+  argument gives false confidence about its central one. **A closed list is quoted, never
+  summarised**: a generic term put in its place widens it, and "local public companies" let in two
+  kinds of body an eligibility rule did not name. Two acronyms one letter apart are written out in
+  full the first time, or the review validates the neighbour.
 - **Read to the end of the list, and to the end of the thread.** Each item of an enumeration is
   independent and none announces the next, so the sub-point that answers your question is not the
   last word. In a thread, the answer almost always arrives after the question: a dunning notice was
@@ -111,7 +119,9 @@ and its absence cost hours, and once, files.
 - **A correction is verified against the authority, never against a second document of the same
   kind.** Told a figure was wrong, the fix replaced it with another figure from the same email
   thread rather than opening the deed. The second version was wrong too, and travelled further
-  because it now looked verified.
+  because it now looked verified. **A correction that removes is the riskiest kind**, because only
+  what you add gets checked: a source giving someone one title does not refute the other, and a
+  public official holding two posts lost the true one from her file.
 - **Name a document by what it is, not by what carried it.** "The letter" was a board resolution —
   which changes who decides, how often, and what protections apply. Same for versions: a document
   found is not the document. Say which version you kept and why the others are set aside.
@@ -208,6 +218,10 @@ and the second copies only the number.
   gap. And where a fix relaxes a check on the strength of such a classification, print the
   classification in the output: the dangerous direction is a real case quietly exempted, because an
   exemption produces no signal at all.
+- **A delegated agent's finding is a lead, not a fact.** Its summary arrives in the same confident
+  register as a verified result, and relaying it costs nothing while checking it costs a read: a
+  device was named to the owner as a blocker on a subagent's word, and the registry said otherwise.
+  Open the file that settles a specific claim before passing it on, or present it as the agent's.
 - **Information about yourself, received from someone else, is verified like anything else.**
 - **When something rests on an account, name the account, not an adjective.** "Personal" was written
   into a project's founding rules and recopied from file to file for days. It answered *who owns
@@ -245,10 +259,6 @@ and the second copies only the number.
   the right term with the distinction and what it changes rather than a silent fix: the owner is the
   one who will use the word where you are not. Reported by an owner running this kit, who had built
   a file on the wrong one of two neighbouring legal terms.
-- **A test suite's verdict is its exit code**, read with no pipe in between, never the presence or
-  absence of a pattern in its output. A filter that assumes it knows every failure format needs only
-  one new format to turn a failure into silence — and a confirmation written beside the command
-  turns that silence into a positive claim.
 
 - **An "ok" on a direction is not a decision on a result.** An owner's "ok" in the middle of a set of
   simulations was filed as decided, carried into two meeting notes and a deadline, and she had to say
@@ -277,7 +287,9 @@ and the second copies only the number.
 
 - **One place produces a number; every other place points at it.** A reference points to where the
   figure is computed and tested, never to another display of it. Copying is the cheapest gesture at
-  writing time and the most expensive at the first correction.
+  writing time and the most expensive at the first correction. **A bug fixed in one view is fixed
+  in every place that computes the same quantity**, searched for before calling it done: a curve
+  was corrected to follow one exercise, and a ratio written the same hour still compared two.
 - **Provenance is not precision.** A genuine document can mention a figure in passing. Before using
   it, ask whether the document *had that figure as its subject*.
 - **A reconstruction only verifies something if it predicts more values than it consumes free
@@ -367,10 +379,13 @@ and the second copies only the number.
 - **An exact equality between two scenarios is suspect until explained.** Two options came out equal
   to the cent and it was presented as a finding; it was one allowance counted in the wrong one of two
   calculations. Equal results from different inputs are usually one input counted twice.
-- **Two more signals stop you before a result is written.** An extreme result (*none*, *never*,
+- **More signals stop you before a result is written.** An extreme result (*none*, *never*,
   *beyond the last column*) is checked against the neighbouring rows first: a formula offset by one
   row claimed a threshold was never reached while the row above showed it reached. And a total that
-  does not move after a decision that should move it is a defect, not a confirmation.
+  does not move after a decision that should move it is a defect, not a confirmation. A universal
+  claim about people (*none of the founders is paid*) is checked by counting the named list, and
+  hardest when the conclusion suits you: the page that contradicted it had been quoted in the same
+  answer.
 - **Two readings are not a trend.** A date was forecast from two observations taken two days apart;
   the next one showed the series moves in steps.
 - **A counterfactual is labelled every time it appears, and a figure shown then invalidated is
@@ -451,7 +466,9 @@ wrong.
   hides rows weeks apart in age: carry each row's own date, taken from its source. A check that only
   reports leaves every fix to a hand edit, sits red, and stops being read. When the fix is one
   command with no judgement in it, let CI run the generator itself; keep the failure for what needs
-  a person.
+  a person. **A literal written among extracted fields is the one value the pipeline cannot
+  verify**: a "not confirmed" typed as a constant stayed on a page for weeks after the source held
+  the date. Extract it, or print that the source is silent.
 
 - **"Follow up if nothing arrives" is closed by looking, not by its date.** Two answers sat in the
   inbox for a week while the file said "awaiting reply". Before touching a matter that waits on
@@ -495,7 +512,9 @@ list here, so it is split by the moment each rule applies.
   distinguishes a net that works from an inert one: fire it for real, once. A network ban compared
   the current SSID against a forbidden pattern, and the OS only gives the SSID to programs holding a
   location permission — so the comparison ran against a masking string, matched nothing ever, and
-  its silence read as safety.
+  its silence read as safety. **An access rule is in place when the application's own policy list is
+  read back** and a person on the list gets through: a policy created and never attached left two
+  people locked out for two days while the decisions file said both had access.
 - **An alert is read where people look, and says once that things are back to normal.** An alert
   written to a file nobody opens is not an alert, and one that repeats "still fine" every hour is
   soon not read either. **A scheduler's "succeeded" means the session ended**, not that the work was
@@ -503,6 +522,8 @@ list here, so it is split by the moment each rule applies.
   artefact itself (the sent message, the file, its date) after the scheduled time.
 - **A program that produces a delivered document lives in the repo from the first delivery.** One
   kept in a temporary folder was lost at the next reboot, and the document could no longer be rebuilt.
+  A session's scratch folder, worktrees made in it included, dies with the session: push before the
+  turn ends.
 - **Before founding a rule on a system value, prove the program can obtain it in the conditions it
   will run in** — a scheduled job, not your interactive session. When the value is closed off,
   change lever rather than insist: the list of remembered networks was readable without permission,
@@ -510,7 +531,9 @@ list here, so it is split by the moment each rule applies.
 - **Probe the system rather than assuming it**, especially for permissions and paths. Three lines of
   probe beats a confident model, and it is the owner who pays for a wrong one. Read a permission at
   its source before forming any hypothesis about a denial, and remember that editing an approved
-  program can silently revoke the approval the owner just granted it.
+  program can silently revoke the approval the owner just granted it. **A probe is read-only only if
+  you know it is**: on some systems a command name is a shim that installs its package on first
+  call, and a "look" installed and started a service on the owner's server.
 - **Stop at the first explanation that fits the symptom and you will spend the day on variants of
   it.** Access denied, therefore permission missing — and hours went into which interpreter to
   authorise, while an identical manual probe was succeeding the whole time. When two supposedly
@@ -532,6 +555,12 @@ list here, so it is split by the moment each rule applies.
   for that account.** The platform account of a phone or a computer, a password manager and its
   components: no scripted sign-in, no stopping a component, until the stake has been stated (what
   stops working, what can be locked out) and the owner has said yes for that one account.
+- **What crosses a privacy boundary is checked before it crosses, comments included.** A disclosure
+  cannot be taken back, and three shapes slipped through. Code ported to a public repo carried a
+  comment with the owner's body measurements, pushed before the check ran. Names masked by a list of
+  names to hide went out unmasked when that list was absent from the machine: mask by what may show,
+  and sample the output for names before it leaves. And an ignore rule binds git only: copying a
+  project folder to a server carried its `.env` and local files, so copy what `git ls-files` lists.
 - **A safety guarantee from someone else's API is a claim.** Test it on one item, then in a small
   batch, before acting in bulk, and verify the real state independently afterwards — never trust the
   tool's own report of success.
@@ -614,7 +643,9 @@ list here, so it is split by the moment each rule applies.
   backup that continues without its destination does not back anything up: it destroys what it had
   already done.** Check the mount point before each file, stop hard, and exit with a distinct code.
 - **Measure a shared resource before consuming it, and give it back.** Disk, quota, bandwidth: other
-  work, and other sessions, are using the same machine.
+  work, and other sessions, are using the same machine. **A job that holds a live service stopped
+  carries a time limit, and is timed on a short input first**: a benchmark that paused a production
+  service ran for hours, and the owner found out by asking where it was.
 - **Calendar dates are local.** Converting to UTC is the ordinary way to get a short date and is
   right everywhere you timestamp an event. Compare against a *calendar* and it is wrong for the
   hours between local midnight and UTC midnight — today's deadline announced for tomorrow. One
@@ -635,7 +666,11 @@ list here, so it is split by the moment each rule applies.
   yourself, since the rule is the part that was never in doubt.
 - **A single name or keyword is never a matching criterion.** Recognising collaborators by surname
   swept in a press subscription and people from unrelated organisations. Require context, and
-  measure the false-positive rate on the real corpus — it was measurable immediately.
+  measure the false-positive rate on the real corpus — it was measurable immediately. **Matching
+  stays inside the entity's own sources**: a company's books are reconciled against its bank, its
+  invoices and its mailbox, never the owner's personal accounts unless asked. An amount and a date
+  that coincide across that line read as evidence, and one was carried into a reply to the
+  accountant and raised twice more after the owner had answered.
 
 - **A check you have never seen say no checks nothing, and nor does one you have never seen say
   yes.** A process test matched an unanchored name that system services also carry, so it answered
@@ -651,7 +686,12 @@ list here, so it is split by the moment each rule applies.
   notes file was committed empty that way, twice, and the agent then blamed a parallel session
   instead of reading the file's history. Read into a variable first, write, then check the file. And
   a check through the same path as the write proves nothing: text put on the clipboard and read back
-  with the same wrong encoding was declared fine.
+  with the same wrong encoding was declared fine. **A generated file is checked for its content,
+  not only its shape**: search the output for the template's own delimiters, since an interpolation
+  that never happened passes every overflow and contrast check (a placeholder for a non-breaking
+  space reached a slide thirty-seven times). A machine-read format (vector paths, JSON, CSV) is
+  validated with that format's own parser, never by eye at thumbnail size: a rounding that dropped a
+  minus sign broke eight paths nobody saw.
 - **A generator that reads its own previous output is run twice in a row before it is called
   done**, and the second run must change nothing. Phrases appended again on every rebuild, rounding
   applied on top of rounding, a one-off conversion left active: each passed its first run.
@@ -672,9 +712,19 @@ list here, so it is split by the moment each rule applies.
 
 - **Suspect the instrument first.** When a check disagrees with something that just worked, reproduce
   the result a second way before fixing the code. Assert that each scripted substitution matched
-  exactly once, since a pattern that matched nothing is a silent no-op that ships. And a check's
+  exactly once, since a pattern that matched nothing is a silent no-op that ships; and a count of one
+  says the pattern is unique, not that it sits where you think, so read the markup it produced (a
+  class landed outside its attribute, another on a breadcrumb four slides share). A check's
   conclusion is computed from what it checked: a reassurance a script prints unconditionally is
-  not a result.
+  not a result. The shell may be zsh, where an unquoted `$list` is not split into words and a
+  variable named `path` overwrites `PATH`.
+- **A test suite's verdict is its exit code**, read with no pipe in between, never the presence or
+  absence of a pattern in its output. A filter that assumes it knows every failure format needs only
+  one new format to turn a failure into silence, and a confirmation written beside the command turns
+  that silence into a positive claim. **The step that publishes depends on that exit code, and so
+  does the commit that records an edit**: chain them (`set -e`, `&&`), or a script that crashed on
+  its second file leaves a valid half-change that builds, tests green, and goes out under a message
+  describing the whole. Before pushing, hold the message against the diff's file list.
 - **An exemption is held to the rule written above it.** An exemption list is where a check stops
   looking, and a false positive filed there becomes "someone's decision" nobody can trace. Read each
   exemption against its criterion when you touch the list, and before acting on a recorded debt,
@@ -735,12 +785,8 @@ useless — or it spends the owner's time on something that was yours to do.
   deleting it, so it does not come back next week.
 - **A wrong answer you gave, once corrected, stays visible with its correction.** Deleting it costs
   the owner the ability to trust the rest.
-- **A settings screen at a provider is never handed to the owner.** Three attempts in a row —
-  numbered steps, a login page opened in a panel they could not see, then eye-on-screen guidance —
-  before anyone looked for the engineering path that avoided the screen entirely. It had been
-  available from the first attempt. Either the action is within your reach and you do it, or you
-  send them one mail saying precisely what to click and why. Click-by-click guidance is not a
-  fallback option.
+- **A settings screen at a provider is never handed to the owner** (`AGENTS.md` ▸ *You run all the
+  git*): look for the path that avoids the screen, or send one mail saying what to click and why.
 - **Check an instruction against the problem that caused it, not only against its wording, and say
   so when what you deliver leaves that problem standing.** A disk was full; the work faithfully
   copied everything to the cloud and freed not one byte. Nobody said so, the owner found out three
@@ -775,6 +821,13 @@ useless — or it spends the owner's time on something that was yours to do.
   so the sentence lands as "there is nothing for this". What can be missing is a purpose-built tool
   — a simulator, a timeline, a set of documents — and that is what to call it.
 
+- **Ask the one question a short brief leaves open, before building.** When a request can name two
+  surfaces ("my site" for a public page or a private app), two levels (each section or each page),
+  or points at a model ("like that one"), say in one line which you read and which property you
+  borrow; weigh the clues in the message and the target's own guide first. A redesign was built for
+  the wrong one of two sites. And a correction to a record rests on a fact the owner stated, or it
+  waits: "the document I sent" misread spread to a registry, a check and a pull request in twenty
+  minutes, and all of it was reverted.
 - **A decision expected from the owner is written with its question, its options and what each one
   changes.** "Pending the owner's answer" followed by a field name made her ask twice in one night
   which question she was meant to answer.
@@ -787,7 +840,9 @@ useless — or it spends the owner's time on something that was yours to do.
 - **Never complete a person's name from a login, a handle or an address.** Those are abbreviations
   chosen by an IT department or by the person. If the full name is not found, write the identifier.
 - **A link to a private repository reads as broken to anyone not signed in.** The host answers "not
-  found", not "forbidden". Say that access is needed, or send the document itself.
+  found", not "forbidden". Say that access is needed, or send the document itself. A cost on your
+  side (an attachment that is expensive to encode) is never moved onto the recipient and presented
+  as a choice: the owner received "this page does not exist" and sent the file himself.
 - **A document signed on screen leaves with its signatures flattened into the page.** A viewer stored
   them as form fields some readers do not display, and the recipient saw an unsigned page in a file
   identical, byte for byte, to the one that had been checked.
@@ -829,7 +884,8 @@ in a single session, and they get more likely exactly when work is going well.
   changed markdown bullet (a removed `- item` shows as `-- item`), and a report's diff looked like a
   date bump that way. `git commit --only -- <paths>` still keeps whatever a neighbour staged in other
   files out of your commit (a new file needs its `git add` first); nothing but the reading keeps their
-  lines in your file out.
+  lines in your file out. A move between two files lands in one commit, destination included, or the
+  deletion can ship in a neighbour's commit while the addition is still untracked.
 - **`HEAD` can move between the reading and the commit.** A session read a clean staged diff, and in
   the seconds before its commit a neighbour committed and pushed from the same checkout; the commit
   landed on top and silently reverted the neighbour's correction. Where another session may be
@@ -870,7 +926,8 @@ in a single session, and they get more likely exactly when work is going well.
   repo with several hands, the state changes faster than a session reads it: a register meant to
   settle every fact recorded a major document as missing while a neighbouring session had read it
   that morning, and it contradicted several conclusions. Re-read the inputs immediately before
-  writing, not once at the beginning. That error happened while building the very tool meant to
+  writing, not once at the beginning, and above all before asking the owner a question: another
+  session may have settled it since. That error happened while building the very tool meant to
   prevent it, which is the clearest sign it is structural rather than careless.
 - **A session's scope is a confidentiality boundary, not just a division of labour.** Full details
   of a private transaction were sent to a session that was not on the file, on an identification

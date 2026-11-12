@@ -33,6 +33,9 @@ These start as sensible defaults; edit them to fit.
   like *only*, *just* or *barely* lends it one — and then the word is doing the arguing, not the
   measurement. If the real reason for a recommendation is elsewhere, say that reason instead of
   borrowing weight from an alarm.
+- **A status is stated by its stage, never by what is missing.** "Pricing in progress", "date to be
+  set", rather than a sentence about what has not been done: the absence reads as a lack or a
+  reproach, above all in a document for a partner.
 - **A closed question gets yes or no in the first sentence.** The reservations follow it, short. An
   answer that opens on context makes the reader hunt for the verdict, and a reservation read first
   gets taken for it.

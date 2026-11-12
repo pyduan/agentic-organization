@@ -131,7 +131,7 @@ this kit and have it make sense, it is not a kit routine.
 
 ## A routine that fails quietly
 
-A scheduled job that fails stays silent unless something makes it loud. Three shapes to watch:
+A scheduled job that fails stays silent unless something makes it loud. The shapes to watch:
 
 - **A job whose only output is a pull request** fails by producing no pull request, which looks
   exactly like a quiet week. Give it a run log or a line in a report that says it ran.
@@ -145,9 +145,16 @@ A scheduled job that fails stays silent unless something makes it loud. Three sh
   is missing.
 - **An alert goes where someone looks, and announces the return to normal once.** One written to a
   file nobody opens is not an alert; one that repeats "still fine" every run stops being read.
-- **On an unprotected `main`, red is advisory**: it blocks nothing, so somebody has to look. Before
-  fixing a red `main`, check the open pull requests and the other sessions: someone may already be
-  on it, and two fixes collide.
+- **A routine writes where someone merges from.** A cloud run starts on a branch of its own, and one
+  that commits its work there delivers nothing: thirty such branches piled up over six weeks, filing
+  the same notes again each morning, while `main` kept facts the owner had corrected. A routine
+  pushes to `main`, or its output names the branch it stopped on.
+- **On an unprotected `main`, red is advisory**: it blocks nothing, so somebody has to look, and
+  after a push that is the session that pushed. Read the run for your commit, and fix a red cause in
+  the same session, never by loosening or skipping the check; most owners never open the CI page, so
+  a red they have to notice is a red nobody fixes. Before fixing a red `main` you did not cause,
+  check the open pull requests and the other sessions: someone may already be on it, and two fixes
+  collide.
 
 ## Retiring one
 

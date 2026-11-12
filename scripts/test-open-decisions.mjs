@@ -18,7 +18,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync, existsSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, cpSync, existsSync, utimesSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -114,4 +114,29 @@ test('a line struck through but never ticked is reported, not read as closed', (
     assert.match(out, /Empty the second backup/);
     assert.doesNotMatch(out, /An old one/, 'a ticked line is closed whatever its formatting');
   });
+});
+
+// ------------------------------------------------------------ the inbox
+
+test('a waiting inbox note is raised with the age of the oldest one', () => {
+  const dir = workshop('');
+  try {
+    mkdirSync(join(dir, 'source/inbox/photos'), { recursive: true });
+    writeFileSync(join(dir, 'source/inbox/README.md'), '# Inbox\n');
+    writeFileSync(join(dir, 'source/inbox/note.txt'), 'the trip was cancelled');
+    writeFileSync(join(dir, 'source/inbox/photos/scan.jpg'), 'x');
+    const old = new Date('2020-03-01T12:00:00Z');
+    utimesSync(join(dir, 'source/inbox/note.txt'), old, old);
+    const out = run(dir);
+    assert.match(out, /2 item\(s\) waiting in source\/inbox, the oldest dropped 2020-03-01/);
+  } finally { rmSync(dir, { recursive: true, force: true }); }
+});
+
+test('an inbox holding only its README is silent', () => {
+  const dir = workshop('');
+  try {
+    mkdirSync(join(dir, 'source/inbox'), { recursive: true });
+    writeFileSync(join(dir, 'source/inbox/README.md'), '# Inbox\n');
+    assert.equal(run(dir).trim(), '');
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

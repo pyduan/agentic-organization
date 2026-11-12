@@ -231,6 +231,13 @@ commit carrying a trailer the project forbids. They can refuse a sentence in ano
 the owner's, including the narration between tool calls.
 **Why:** a rule in prose is re-read by someone who already believes it; a hook says no.
 
+### What waits on a person, raised at session start
+At every session start, `scripts/open-decisions.mjs` names what waits on a person: the decisions
+tagged `#decide`, the `#revisit` items past their date, the lines struck through but never ticked,
+and a non-empty `source/inbox/` with the age of its oldest item. It is silent otherwise.
+**Why:** a point written in a file is not raised by being written; an eight-day open decision and a
+six-week unfiled inbox note (2026-11-12) were both correctly recorded and both invisible.
+
 ### A workspace of repositories, and the fleet
 Repositories cloned side by side in one folder, kept current at session start; `ORGANIGRAM.md` maps
 them; `check-fleet` says which projects run the kit and how far behind each is.

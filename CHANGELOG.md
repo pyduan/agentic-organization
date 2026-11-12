@@ -10,6 +10,24 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-12 · MINOR · Your inbox raised at session start, and rules tightened from the instances' registers
+
+When `source/inbox/` holds anything, each session now opens by saying how many items wait there and
+how old the oldest is, so a note you dropped is filed rather than forgotten. The rules gain what the
+instances' own registers taught since September: a count you decide on is made by opening each item;
+a closed list is quoted, never summarised; a correction that removes something is checked hardest;
+a subagent's finding is a lead; a bug fixed in one view is fixed wherever the same figure is
+computed; a generated file is searched for its template's leftovers and parsed by its own format; an
+edit and the commit that records it fail together; a probe that might install something is not a
+look; what crosses into a public repo or onto another machine is checked first, comments and
+ignored files included. A short brief gets its one open question asked before building, a reply
+answers only what was asked, a status is written by its stage ("pricing in progress"), and a
+routine pushes to `main` or says which branch it stopped on
+(`docs/failure-modes.md`, `routines/README.md`, `source/formats/message.md`,
+`source/brand/voice.md`, `docs/deploy-cloudflare.md`).
+
+**What you need to do:** nothing.
+
 ## 2026-11-12 · MINOR · More rules from an owner's error register: checks by another path, searches, parallel sessions
 
 Your agent now checks a figure by recomputing it another way, never with the logic that produced

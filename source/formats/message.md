@@ -55,6 +55,9 @@ block below for whoever is sending it.
 - **The sender owns the words.** Anything that commits them to something they have not said (a date,
   a price, a deliverable, an opinion about a third party) gets flagged to them in your response
   rather than buried in the draft.
+- **A reply answers what was asked, in every part it travels in.** Questions and remarks of your own,
+  in the covering message too, go to the sender beside the draft, and into the message only if they
+  decide: three unasked questions had to be stripped from a reply to an accountant.
 
 ### A scheduled send names its day
 
@@ -206,7 +209,9 @@ a reasonable clue and not a reliable one: someone who vouvoies the owner may wel
 owner tutoies. To read the choice from the record instead, open a message the owner wrote to that
 one person and read it: a *vous* in a message to several people proves nothing, since French uses
 *vous* for any group, and a block was once filled with *vous* on the strength of a group invitation.
-Ask, then write the block so nobody asks twice.
+The rest of the register comes from the same place: a voice learned from one formal exchange turned
+two drafts to a close contact into memos with headings, while the owner's own mails to him sat in
+the mailbox. Ask, then write the block so nobody asks twice.
 
 One block per person who sends messages drafted here. Keep each one short: it is a diff against
 `voice.md` and this file, never a copy. Split a block into its own `source/brand/voice-<name>.md`

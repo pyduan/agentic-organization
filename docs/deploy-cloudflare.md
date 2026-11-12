@@ -129,6 +129,9 @@ and document goes the same way, whatever the repo:
 
    `scripts/preview.mjs` listens on `127.0.0.1` only and serves nothing outside the folder it was
    given, so a preview is never reachable from the network.
+   So a `localhost` link works only on this machine and only while its server runs: fetch it
+   yourself before handing it over. One was given as the page's address with no server behind it,
+   and the owner opened a dead link.
 2. **"Publish" means a push to `main` of the repo where the page lives.** No pull request, no
    branch to merge later: the page's own repo, which may be a project repo rather than this one
    (`ORGANIGRAM.md` holds the map).
@@ -141,7 +144,9 @@ and document goes the same way, whatever the repo:
    | anyone | the public site, only for a document the person validated and marked as shareable | the public URL |
 
    When in doubt, the narrower scope. A page is never made public because the private route took
-   longer to set up.
+   longer to set up. A page rendered from a restricted source is checked at its rendered path against
+   the gate, not assumed closed because its source is: one restricted repo's pages landed under a
+   path the gate did not cover.
 4. **A repo the person cannot write to** gets a proposal to its owner instead of a push: an issue
    (`gh issue create`) whose body holds the change ready to paste, and the person is told who will
    decide.
