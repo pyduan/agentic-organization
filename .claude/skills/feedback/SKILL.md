@@ -54,8 +54,10 @@ total, a share, or a "most of these" — that is the one thing the generator exi
 
 ## Send it
 
-The owner decides, always, and the default is the anonymized form. Show them what will leave the
-machine before it does: run `--anonymized`, let them read it, then use the `mailto:` line the script
+The owner decides, always, and the default is the anonymized form. It refuses to be written when a
+lesson names the project or a term from the gitignored `.leak-terms`, so put the owner's name, their
+clients and the people around them in that list once; an agent's generic lesson carries a first name
+more easily than anyone expects. Show them what will leave the machine before it does: run `--anonymized`, let them read it, then use the `mailto:` line the script
 prints and attach the file. The full form goes out only if they explicitly say so, having seen it.
 
 Two things not to do: never send anything without being asked in that session, and never paste the

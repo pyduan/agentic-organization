@@ -222,7 +222,10 @@ An incident register (`source/quality/incidents.json`), the failure families it 
 (`docs/failure-modes.md`), a preflight before delivery, and an anonymized report for the kit's
 maintainer.
 **Why:** the rules record what to do; the register records what went wrong, which is the only way
-to know whether the rules work.
+to know whether the rules work. The report names in its headline any entry whose severity the
+schema does not define, and the anonymized form refuses to be written when it holds the project's
+name or a term from `.leak-terms`: an owner's summary froze for a week on drifted severity words,
+and her first name reached the maintainer inside an anonymized lesson (2026-11-13).
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an

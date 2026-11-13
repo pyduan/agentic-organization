@@ -62,6 +62,24 @@ test('an entry outside the seven families is rendered, not dropped', () => {
   assert.equal(rows.reduce((a, b) => a + b, 0), MIXED.length);
 });
 
+test('a severity outside the schema is named in the headline, not silently left out of it', () => {
+  const dir = project(MIXED);
+  const out = execFileSync('node', [REPORT], { cwd: dir, encoding: 'utf8' });
+  assert.match(out, /2 major or critical/);
+  assert.match(out, /1 more carries a severity the schema does not define \(high\)/);
+});
+
+test('the anonymized form refuses to be written when a lesson names a listed term', () => {
+  const dir = project([entry('a-1', { generic: 'Camille caught a total that did not move' })]);
+  writeFileSync(join(dir, '.leak-terms'), '# people\ncamille\n');
+  const r = spawnSync('node', [REPORT, '--anonymized', '--out=out.md'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(r.status, 1);
+  assert.match(r.stderr, /"camille"/);
+  assert.throws(() => readFileSync(join(dir, 'out.md')), 'nothing written');
+  // The full form stays the owner's and is not checked.
+  assert.equal(spawnSync('node', [REPORT], { cwd: dir, encoding: 'utf8' }).status, 0);
+});
+
 test('the report finds a register kept under a translated path', () => {
   const dir = project(MIXED, { path: 'source/qualite/incidents.json' });
   const out = execFileSync('node', [REPORT], { cwd: dir, encoding: 'utf8' });

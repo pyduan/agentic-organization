@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-13 · MINOR · The error report says when its headline misses entries, and the anonymized form checks for names
+
+The report's headline count of major and critical errors now says how many entries it could not
+count because their severity is not one of critical, major or minor (an agent writing "high" or
+"serious" instead), so the summary can no longer freeze while the register grows. The anonymized
+form, the one sent to the kit's maintainer, refuses to be written when a lesson names the project or
+anyone in `.leak-terms` (`scripts/error-report.mjs`).
+
+**What you need to do:** if you send your error report, add your own first name, your clients and
+the people you work with to `.leak-terms`, one per line. It stays on your machine.
+
 ## 2026-11-12 · MINOR · Your inbox raised at session start, and rules tightened from the instances' registers
 
 When `source/inbox/` holds anything, each session now opens by saying how many items wait there and
