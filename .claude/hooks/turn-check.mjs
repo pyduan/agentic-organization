@@ -29,6 +29,18 @@
 //                → a tool output this turn shows the check examined nothing
 //                ("0 files", "0 tests", "no tests found", "nothing to verify")
 //   partial      a file the answer cites as a source was read only in part, never whole
+//   correction   the owner's message corrects or redirects the agent ("non, c'est pas ça",
+//                "je t'avais dit", "that's wrong", "you forgot", "from now on")
+//                → this turn wrote nothing to the guides, the register or decisions.md.
+//                Read on the owner's own words (a task notification, a pasted command
+//                output or a resumed-session summary is not them). The words per language
+//                and the files that count as notes are set in `.claude/turn-checks.json`
+//                ("correction": { "words": { "fr": […] }, "notes": […] }). Measured on 5,113
+//                owner messages from real sessions: the words matched 82 (1.6%), 15 of whose
+//                turns had already written a note, so 67 would have been held. Read one by
+//                one, about one in six of the 82 was no correction (a decision, a quoted
+//                brief), and several more were facts for the task at hand, which need no
+//                rule: the agent then says so in one line.
 //
 // One more is opt-in, because only the project knows which language its owner reads:
 //
@@ -67,6 +79,8 @@ export function currentTurn(jsonl) {
   let start = 0;
   for (let i = lines.length - 1; i >= 0; i--) if (isPrompt(lines[i])) { start = i + 1; break; }
   const turn = lines.slice(start);
+  const asked = start > 0 ? lines[start - 1].message?.content : '';
+  const prompt = typeof asked === 'string' ? asked : Array.isArray(asked) ? asked.map((c) => c.text || '').join('\n') : '';
 
   const calls = [];
   const byId = new Map();
@@ -93,7 +107,18 @@ export function currentTurn(jsonl) {
       }
     }
   }
-  return { calls, answer: finalText.join('\n'), texts };
+  return { calls, answer: finalText.join('\n'), texts, prompt };
+}
+
+/**
+ * The owner's own words in a prompt, or '' when the prompt is not theirs: a task notification,
+ * a shell command they ran from the prompt and its output, a scheduled task, a resumed
+ * session's summary. System reminders the harness put around the words are taken out.
+ */
+export function ownerWords(prompt) {
+  const t = String(prompt || '').replace(/<system-reminder>[\s\S]*?<\/system-reminder>/g, '').trim();
+  if (/^(<(task-notification|bash-|local-command|command-|scheduled-task|cross-session)|This session is being continued|\[Request interrupted|Caveat:)/.test(t)) return '';
+  return t;
 }
 
 // ------------------------------------------------------------------ what counts
@@ -323,6 +348,41 @@ export const DEFAULT_CHECKS = [
       'nothing was checked.',
   },
   {
+    id: 'correction',
+    on: 'prompt',
+    // Measured on 5,113 owner messages (see the header): each pattern kept had most of its hits on
+    // a real correction. Dropped for firing mostly on requests or quotations: "corrige", "il
+    // manque", "chez nous", "toujours pas", "I said", "remember to", "next time", "never put".
+    words: {
+      en: [
+        "^\\s*no\\b[,.!]", "\\bthat['’]s (wrong|not (right|it|what i))\\b", '\\bnot what i (asked|meant|said|wanted)\\b',
+        "\\bi (already )?told you\\b", '\\byou forgot\\b', '\\byou (missed|ignored|misread|misunderstood)\\b',
+        "\\bdon['’]t ever\\b", '\\bstop (doing|using|adding|writing|saying)\\b', '\\bfrom now on\\b', '\\bremember that\\b',
+        '^\\s*actually\\b', '\\bwhy did you\\b',
+      ],
+      fr: [
+        "^\\s*non\\b(?![- ]?(merci|pas besoin))",
+        "\\bc['’]est (faux|pas (ça|bon|vrai|correct|exact))\\b", "\\bc['’]est une erreur\\b", "\\bce n['’]est pas (ça|bon|correct|exact|vrai)\\b",
+        '\\bpas (tout à fait|exactement) ça\\b', "\\b(c['’]est|ce n['’]est) pas ce que (je|j['’])",
+        "\\bje (t['’]ai|vous ai|te l['’]ai) (déjà )?dit\\b", "\\bje t['’]avais (déjà )?dit\\b", "\\bcomme je (te )?l['’]ai dit\\b",
+        '\\barrête de\\b', '\\bne (fais|mets|écris|utilise|dis|ajoute) (plus|jamais)\\b', '\\bplus jamais\\b',
+        '\\btu as oublié\\b', "\\btu t['’]es trompée?\\b", '\\btu te trompes\\b', "\\bt['’]as (oublié|pas compris|encore)\\b",
+        "\\btu n['’]as pas compris\\b", '\\btu as mal (compris|interprété|lu)\\b', "\\bpourquoi (tu as|t['’]as|as-tu)\\b",
+        "\\bla règle (est|c['’]est)\\b", '\\bretiens (que|bien)\\b', "\\bn['’]oublie (pas|plus|jamais)\\b", "\\bà l['’]avenir\\b", '\\bdorénavant\\b',
+      ],
+    },
+    // Where a lesson is kept: the guides, the register, the decisions, the manual, the skills, and
+    // Claude Code's own memory folder. A path ending in / is a folder; one starting with / is
+    // matched anywhere in the path.
+    notes: ['source/brand/', 'source/formats/', 'source/brief.md', 'source/decisions.md', 'source/quality/', 'source/facts/',
+      'docs/troubleshooting.md', 'AGENTS.md', 'CLAUDE.md', '.claude/skills/', '.claude/turn-checks.json', '/memory/'],
+    requires: 'wrote-notes',
+    say: 'is the owner correcting or redirecting you, and this turn wrote nothing to the guides, the register or ' +
+      'source/decisions.md. If it changes how you should work next time, write it now where it will be read (the reflect ' +
+      'skill says where: voice, design, a format guide, the brief, decisions.md, and source/quality/incidents.json when ' +
+      'the mistake cost something), then say in one line what you wrote. If it is a fact for this task only, say so in one line.',
+  },
+  {
     id: 'partial',
     requires: 'whole-read-of-named-files',
     say: 'names a file that this turn read only in part (an offset or limit, head, tail, sed -n) and never ' +
@@ -331,12 +391,21 @@ export const DEFAULT_CHECKS = [
   },
 ];
 
+/** The correction check with a project's own words (added per language) and note files (added). */
+export function tuneCorrection(check, extra) {
+  if (!extra || typeof extra !== 'object') return check;
+  const words = { ...check.words };
+  for (const [lang, list] of Object.entries(extra.words || {})) if (Array.isArray(list)) words[lang] = [...(words[lang] || []), ...list];
+  return { ...check, words, notes: [...check.notes, ...(Array.isArray(extra.notes) ? extra.notes : [])], tuned: true };
+}
+
 export function loadProjectConfig(dir) {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8'));
     const off = new Set(j.disable || []);
+    const defaults = DEFAULT_CHECKS.filter((c) => !off.has(c.id)).map((c) => (c.id === 'correction' ? tuneCorrection(c, j.correction) : c));
     return {
-      checks: [...DEFAULT_CHECKS.filter((c) => !off.has(c.id)), ...(j.checks || []).map((c) => ({ ...c, project: true }))],
+      checks: [...defaults, ...(j.checks || []).map((c) => ({ ...c, project: true }))],
       language: j.language, disabled: [...off],
     };
   } catch { return { checks: DEFAULT_CHECKS, disabled: [] }; }
@@ -344,7 +413,7 @@ export function loadProjectConfig(dir) {
 
 /** The active checks of a project, one line each, for `--list`. */
 export function listChecks(config) {
-  const lines = config.checks.map((c) => `${c.id.padEnd(12)} ${c.project ? 'project' : 'default'}  ` +
+  const lines = config.checks.map((c) => `${c.id.padEnd(12)} ${c.project ? 'project' : c.tuned ? 'tuned  ' : 'default'}  ` +
     `${(c.requires || '').padEnd(15)} ${String(c.say || '').split(/(?<=\.)\s/)[0].slice(0, 120)}`);
   if (config.language) lines.push(`${'language'.padEnd(12)} project  ${''.padEnd(15)} every sentence of the turn in ${config.language}`);
   for (const id of config.disabled || []) lines.push(`${String(id).padEnd(12)} off      (disabled in .claude/turn-checks.json)`);
@@ -473,16 +542,35 @@ function failedClaim(text, calls, claims) {
   return null;
 }
 
+/** Whether a path a call wrote is one of the note files (`notes`: folder/, file, or /anywhere/). */
+export const isNote = (path, notes) => {
+  const p = String(path || '').split('\\').join('/');
+  return notes.some((n) => (n.startsWith('/') ? p.includes(n)
+    : n.endsWith('/') ? p.startsWith(n) || p.includes(`/${n}`) : p === n || p.endsWith(`/${n}`)));
+};
+/** Whether the turn wrote a note: an edit to one, or a shell command that writes and names one. */
+export const wroteNote = (calls, notes) => calls.some((k) => (EDITS.has(k.name) && isNote(k.input.file_path || k.input.notebook_path, notes))
+  || (k.name === 'Bash' && WRITES.test(cmdOf(k)) && cmdOf(k).split(/[\s"'`=<>|;&()]+/).some((w) => isNote(w, notes))));
+
 /**
  * Returns the findings for a turn: [{ id, quote, say }]. Pure, so it is tested
  * on fixture transcripts.
  */
-export function check({ calls, answer }, checks = DEFAULT_CHECKS) {
+export function check({ calls, answer, prompt = '' }, checks = DEFAULT_CHECKS) {
   if (!answer.trim()) return [];
   const text = answer.replace(/```[\s\S]*?```/g, ' ');     // code blocks are not claims
   const out = [];
   const searched = calls.some(isSearch);
   for (const c of checks) {
+    if (c.on === 'prompt') {
+      const said = ownerWords(prompt);
+      const words = Object.values(c.words || {}).flat();
+      if (!said || !words.length) continue;
+      const m = new RegExp(words.map((w) => `(?:${w})`).join('|').replaceAll('\\b', UB), 'iu').exec(said);
+      if (!m || (c.requires === 'wrote-notes' && wroteNote(calls, c.notes || []))) continue;
+      out.push({ id: c.id, quote: said.slice(Math.max(0, m.index - 40), m.index + 120).replace(/\s+/g, ' ').trim(), say: c.say });
+      continue;
+    }
     if (c.requires === 'whole-read-of-named-files') {
       // Naming a file the turn itself edited is reporting the change, not citing a
       // source: it is excluded, or every summary of an edit would be flagged.

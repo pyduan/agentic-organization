@@ -10,6 +10,22 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MAJOR · Your corrections are written down when you make them, and every session that worked reflects once
+
+When your message corrects your agent ("non, c'est pas ça", "je t'avais dit", "you forgot",
+"from now on"), it can no longer end its answer without either writing the lesson where the next
+session will read it (your guides, `source/decisions.md`, the error register) or telling you in one
+line that it was a fact for this task only. And a session that changed something is now asked for
+the end-of-session reflection once, even when it had already saved and published everything; before,
+only a session with work left unsaved was asked (`.claude/hooks/turn-check.mjs`,
+`.claude/hooks/session-end.mjs`).
+
+**What you need to do:** nothing. Your agent will sometimes answer a correction with one more line
+saying what it wrote down. To add the phrases you use, or the folders where your project keeps its
+rules, ask your agent to set `"correction"` in `.claude/turn-checks.json`; to turn it off, put
+`"correction"` in its `disable` list. If your project already has its own reflection or correction
+hook, remove it so the question is not asked twice.
+
 ## 2026-11-14 · MAJOR · Your repos are brought up to date before each message, not only at the start
 
 A long session used to work from the copy it pulled when it started, while another session

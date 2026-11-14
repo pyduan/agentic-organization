@@ -233,3 +233,33 @@ test('on the default branch, a pushed commit is not a leftover and an unpushed o
   assert.match(reason, /commit [0-9a-f]{7} in notes not pushed/);
   assert.doesNotMatch(reason, /side branch/);
 });
+
+test('a session that wrote and saved everything is asked for the reflection once; one that only read is not', () => {
+  const ws = workspace();
+  const now = Date.now();
+  const id = `reflect-${process.pid}-${now}`;
+  const path = join(ws, 't.jsonl');
+  writeFileSync(path, transcript([[now - 20000, now - 15000, 'Read', { file_path: join(ws, 'notes/README.md') }]]));
+  assert.equal(stop(ws, { transcript_path: path, session_id: id }), '', 'a session that only read: nothing to reflect on');
+
+  writeFileSync(path, transcript([[now - 20000, now - 15000, 'Edit', { file_path: join(ws, 'notes/README.md'), old_string: 'a', new_string: 'b' }]]));
+  const out = JSON.parse(stop(ws, { transcript_path: path, session_id: id }));
+  assert.equal(out.decision, 'block');
+  assert.match(out.reason, /^End-of-session reflection: this session changed things, and everything is saved\./);
+  assert.match(out.reason, /acme-ops\/\.claude\/skills\/reflect\/SKILL\.md|acme-ops\/AGENTS\.md/);
+  assert.match(out.reason, /nothing to keep from this session/);
+  assert.equal(stop(ws, { transcript_path: path, session_id: id }), '', 'asked once per session');
+  assert.match(JSON.parse(stop(ws, { transcript_path: path, session_id: `${id}-b` })).reason, /reflection/, 'another session is asked too');
+});
+
+test('a session asked to save its leftovers, reflection included, is not asked for the reflection again', () => {
+  const ws = workspace();
+  const now = Date.now();
+  const id = `leftover-${process.pid}-${now}`;
+  const path = join(ws, 't.jsonl');
+  writeFileSync(path, transcript([[now - 20000, now - 15000, 'Write', { file_path: join(ws, 'sales/lead.md'), content: 'x' }]]));
+  touch(join(ws, 'sales/lead.md'), now - 17000);
+  assert.match(JSON.parse(stop(ws, { transcript_path: path, session_id: id })).reason, /unsaved or unpublished changes.*run the reflection pass/);
+  unlinkSync(join(ws, 'sales/lead.md'));
+  assert.equal(stop(ws, { transcript_path: path, session_id: id }), '', 'the reflection was already asked');
+});

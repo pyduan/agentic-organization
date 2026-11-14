@@ -14,7 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classify, forbiddenTrailers } from '../.claude/hooks/send-guard.mjs';
-import { currentTurn, check, checkLanguage, foreignSentences, DEFAULT_CHECKS } from '../.claude/hooks/turn-check.mjs';
+import { currentTurn, check, checkLanguage, foreignSentences, DEFAULT_CHECKS, loadProjectConfig } from '../.claude/hooks/turn-check.mjs';
 import { readFileSync } from 'node:fs';
 
 const HOOKS = resolve(dirname(fileURLToPath(import.meta.url)), '../.claude/hooks');
@@ -271,6 +271,63 @@ test('a concordance nobody computed is refused, in French and in English', () =>
   }
   assert.deepEqual(ids(transcript({ answer: 'Les deux relevés concordent.', calls: [{ name: 'Bash', input: { command: 'node -e "console.log(1200-400)"' } }] })), []);
   assert.deepEqual(ids(transcript({ answer: 'Voici les deux relevés, je ne les ai pas encore comparés.' })), []);
+});
+
+// ------------------------------------------------------------------ correction
+
+/** A turn whose prompt is `prompt`, with these calls and this answer. */
+function asked(prompt, calls = [], answer = 'Done: the brochure is updated.') {
+  const L = [{ type: 'user', message: { role: 'user', content: prompt } }];
+  calls.forEach((c, i) => {
+    L.push({ type: 'assistant', message: { content: [{ type: 'tool_use', id: `c${i}`, name: c.name, input: c.input || {} }] } });
+    L.push({ type: 'user', message: { content: [{ type: 'tool_result', tool_use_id: `c${i}`, content: 'ok' }] } });
+  });
+  L.push({ type: 'assistant', message: { content: [{ type: 'text', text: answer }] } });
+  return currentTurn(L.map((l) => JSON.stringify(l)).join('\n'));
+}
+const edit = (file_path) => ({ name: 'Edit', input: { file_path, old_string: 'a', new_string: 'b' } });
+
+test('an owner correcting the agent holds the turn until something is written down, in French and in English', () => {
+  const brochure = edit('/w/acme/site/src/pages/brochure.astro');
+  for (const p of ["non, c'est pas ça : la brochure garde l'ancien logo", 'je t’avais dit de ne pas mettre de tiret dans les titres',
+    "That's wrong, the printer needs bleed marks.", 'You forgot the opening hours again.', 'From now on, quote prices without tax.']) {
+    const f = check(asked(p, [brochure]));
+    assert.deepEqual(f.map((x) => x.id), ['correction'], p);
+    assert.match(f[0].say, /wrote nothing to the guides, the register or source\/decisions\.md/);
+  }
+  assert.match(check(asked('Bien, mais tu as oublié le numéro de téléphone.', [brochure]))[0].quote, /tu as oublié le numéro/);
+});
+
+test('a correction written into a guide, the register, decisions.md or the memory folder lets the turn end', () => {
+  const p = "non, c'est pas ça : on écrit les prix hors taxe";
+  for (const f of ['/w/acme/source/brand/voice.md', '/w/acme/source/decisions.md', '/w/acme/source/quality/incidents.json',
+    '/w/acme/.claude/skills/brochure/SKILL.md', '/Users/sam/.claude/projects/-w-acme/memory/prices.md']) {
+    assert.deepEqual(check(asked(p, [edit(f)])), [], f);
+  }
+  assert.deepEqual(check(asked(p, [{ name: 'Bash', input: { command: "printf '%s\\n' '- Prices without tax.' >> source/brand/voice.md" } }])), [], 'a shell append names it');
+  assert.deepEqual(check(asked(p, [{ name: 'Bash', input: { command: 'cat source/brand/voice.md' } }])).map((x) => x.id), ['correction'], 'reading a guide is not writing it');
+});
+
+test('a request, a yes, or words that are not the owner\'s hold nothing', () => {
+  for (const p of ['corrige les tests et pousse', 'Non merci, ça ira.', 'oui, pousse', 'ok, next step: the menu',
+    "<task-notification>non, c'est pas ça</task-notification>", '<bash-input>git log</bash-input><bash-stdout>no, nothing</bash-stdout>',
+    'This session is being continued from a previous conversation. You forgot the menu.']) {
+    assert.deepEqual(check(asked(p)), [], p);
+  }
+  assert.deepEqual(check(asked("<system-reminder>context</system-reminder>\nnon, c'est pas ça")).map((x) => x.id), ['correction'],
+    'a reminder the harness put around the words is taken out');
+});
+
+test('a project adds its own correction words and note files, or turns the check off', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'turn-'));
+  execFileSync('mkdir', ['-p', join(dir, '.claude')]);
+  writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({ correction: { words: { fr: ['\\bpas comme ça\\b'] }, notes: ['regles/'] } }));
+  const { checks } = loadProjectConfig(dir);
+  assert.deepEqual(check(asked('pas comme ça, la marge est de 5 mm'), checks).map((x) => x.id), ['correction']);
+  assert.deepEqual(check(asked('pas comme ça, la marge est de 5 mm', [edit('/w/printer/regles/marges.md')]), checks), []);
+  assert.deepEqual(check(asked("non, c'est pas ça"), checks).map((x) => x.id), ['correction'], 'the defaults stay');
+  writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({ disable: ['correction'] }));
+  assert.deepEqual(check(asked("non, c'est pas ça"), loadProjectConfig(dir).checks), []);
 });
 
 // ------------------------------------------------------------------ language
