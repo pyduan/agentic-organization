@@ -161,7 +161,7 @@ it while you click. Your **intranet** is already live by then: it went up at the
 session, as its own Worker behind a login (`npm run deploy:intranet`, plus one click in the
 Cloudflare dashboard to turn on Zero Trust), and it never goes on a public URL.
 
-For the public site, in short: connect the GitHub repo to Cloudflare Workers (free, via Workers Builds), keep the root directory at `/` (the repo already ships the `wrangler.jsonc` that points Workers at the built site), add the custom domain, adjust DNS. From then on every push publishes automatically.
+For the public site, in short: connect the GitHub repo to Cloudflare Workers (free, via Workers Builds), keep the root directory at `/` (the repo already ships the `wrangler.jsonc` that points Workers at the built site), add the custom domain, adjust DNS. Once it is connected, every push publishes automatically.
 
 ## Hand over
 

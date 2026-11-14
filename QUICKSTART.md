@@ -12,7 +12,7 @@ Four, and two of them are free.
 |---|---|---|
 | **GitHub**, yours | The repo belongs to you: that is what owning your source of truth means. It is also the identity your agent reads and writes with. | Free |
 | **An AI subscription** ([Claude Code](https://claude.com/claude-code) by default) | The operator. Installed on your machine rather than run in the cloud, so it can cross your repos, your files and your logins. | The one running cost |
-| **Cloudflare** | Publishing. Every push rebuilds the site, in about a minute. Skip it if your organization already has a build system: the source is the repo, the host is repluggable. | Free |
+| **Cloudflare** | Publishing. Once the repo is connected, every push rebuilds the site, in about a minute. Skip it if your organization already has a build system: the source is the repo, the host is repluggable. | Free |
 | **A domain name** | When you want a real address. Not needed on day one. | A few euros a year |
 
 **For an organization, every account is in its name, not a person's.** The hosting account gets
@@ -358,7 +358,7 @@ them to use: the intranet, and the recipes behind it.
 
 | Door | Where it goes | Who sees it |
 |---|---|---|
-| **Public** | Every push to `main` rebuilds the site on Cloudflare, free, in a minute. Nobody "deploys" | Everyone. A page shared with one person carries an unguessable, unindexed address |
+| **Public** | Once the repo is connected, every push to `main` rebuilds the site on Cloudflare, free, in a minute. Nobody "deploys" | Everyone. A page shared with one person carries an unguessable, unindexed address |
 | **Private** | The intranet and apps like the to-do one, published as their own Worker behind Cloudflare Access | You, and whoever you name |
 | **Confidential** | Financial models, personal data, a draft that is not ready: git-ignored, never committed | Your machine only |
 

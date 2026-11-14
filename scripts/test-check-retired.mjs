@@ -31,3 +31,19 @@ test('a claim without what to say instead, or with a broken pattern, is refused'
   assert.throws(() => claimsOf(JSON.stringify({ claims: [{ id: 'x', pattern: 'y' }] })), /without "say"/);
   assert.throws(() => claimsOf(JSON.stringify({ claims: [{ id: 'x', pattern: '(', say: 'z' }] })));
 });
+
+test('the shipped list: "every push rebuilds the site" is retired, its conditional and its history are not', async () => {
+  const { readFileSync } = await import('node:fs');
+  const shipped = claimsOf(readFileSync(new URL('../source/quality/retired-claims.json', import.meta.url), 'utf8'));
+  const push = shipped.filter((c) => c.id === 'push-rebuilds-site');
+  assert.equal(push.length, 1);
+  const guide = file('docs/hosting.md', [
+    'Every push rebuilds the site in a minute.',
+    'Workers builds and publishes it on every push to `main`.',
+    'The public site, rebuilt on every push.',
+    'Once the repo is connected, every push rebuilds the site.',
+    'The guide said Cloudflare rebuilt on every push; nothing was connected.',
+    'Until then, every push publishes nothing.',
+  ].join('\n'));
+  assert.deepEqual(scan(push, [guide], top).map((h) => h.line), [1, 2, 3]);
+});

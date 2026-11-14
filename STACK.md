@@ -20,7 +20,7 @@ gets a new date and handle, and the reason goes in `source/decisions.md`.
 | Source of truth: knowledge, skills, data | Git, a private repository on GitHub | in place | any Git host, same model | |
 | Operator | Claude Code, on the repositories cloned locally | in place | any agent that reads `AGENTS.md` and the skills | |
 | Private pages (the intranet first) | Cloudflare Access in front of a Worker, `apps/dashboard` | TODO | Access on a hostname once a domain arrives; any host with a sign-in gate | |
-| Website | Cloudflare Workers, rebuilt from `site/` on every push | TODO | any static host with a build on push | |
+| Website | Cloudflare Workers, rebuilt from `site/` on every push once connected | TODO | any static host with a build on push | |
 | Records and documents (the default store) | Markdown and JSON files in the Git repository: the repo is the store, every change a commit (`source/formats/webapp.md` ▸ *State without a database*) | in place | any Git host | |
 | Relational data, when files are not enough | Cloudflare D1 (SQLite), read and written only by a Worker | TODO | any SQLite or Postgres; D1 exports to SQL | |
 | Large files and uploads | Cloudflare R2, private by default, served through a Worker | TODO | any S3-compatible bucket | |
@@ -78,8 +78,8 @@ pipeline with no judgement in it runs on a schedule in CI (GitHub Actions by def
 its result; one that needs the agent's judgement is a routine (`routines/README.md`). *Way out:* the
 front is files any static host serves, and the pipelines are scripts any CI runs.
 
-**A build on every push.** The host rebuilds the site and the apps from the repository on every
-push, so nobody deploys by hand. Cloudflare Workers is the default: free for static sites, with the
+**A build on every push, once connected.** The host rebuilds the site and the apps from the
+repository on each push once the repo is connected to it, so nobody deploys by hand. Cloudflare Workers is the default: free for static sites, with the
 domain, the private pages, R2 and D1 in one account the organization owns. Vercel, Netlify or
 GitHub Pages work the same way (`docs/deploy-cloudflare.md` ▸ *Why Cloudflare (and how
 to swap it)*). If the organization already has a build platform, use it. *Way out:* repoint the

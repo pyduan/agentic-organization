@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · No guide says "every push rebuilds your site" any more
+
+The ten sentences still saying it now add "once the repo is connected", and
+`node scripts/check-retired.mjs` fails if a guide says it again unconditionally
+(`source/quality/retired-claims.json`).
+
+**What you need to do:** nothing. If your own guides say it, run `node scripts/check-retired.mjs` after
+updating and reword what it lists.
+
 ## 2026-11-14 · MINOR · Your agent asks before sweeping changes from every session into one commit
 
 `git add -A`, `git add .`, `git commit -a` and `git stash` now wait for your yes, with the reason:

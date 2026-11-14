@@ -31,9 +31,9 @@ person's own voice on top.
 **Why:** an owner maintains a guide once instead of prompting the same preference in every session,
 and a correction becomes a rule the next session reads.
 
-### The website, published on every push
-An Astro site in `site/`, served by Cloudflare Workers, which rebuilds on every push to `main`
-once the repo is connected (Workers Builds, or a deploying GitHub Actions workflow). Until it is, a
+### The website, published from the repo
+An Astro site in `site/`, served by Cloudflare Workers. Once the repo is connected (Workers Builds,
+or a deploying GitHub Actions workflow), every push to `main` rebuilds it. Until it is, a
 push publishes nothing, and the agent says so rather than handing over a link.
 **Why:** free, fast, and the owner never touches a deploy. The host is replaceable: the source is
 the repo, and `docs/deploy-cloudflare.md` says how to move.
@@ -286,7 +286,7 @@ seeded draft spends its first hour correcting rather than dictating.
 ### The infrastructure, written down
 `STACK.md`: one row per brick, its state, its way out, and who approved it when, filled from the
 defaults it lists (a code agent for everyone, knowledge in Git, files in object storage, a database
-only for state, a static front with the logic in back-office pipelines, a build on every push).
+only for state, a static front with the logic in back-office pipelines, a build on push once connected).
 **Why:** a brick nobody knows how to leave is a brick nobody chose, and another project's stack is
 never this one's. The defaults keep everything as light as possible, so an organization runs it
 without an engineer; each says its reason and its way out, so moving away from one is a written
