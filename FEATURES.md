@@ -234,7 +234,8 @@ counting every new incident in a guarded family read new mistakes as failed fixe
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an
-unchecked claim, and check every repository for unsaved work at the end. Opted in, they also hold a
+unchecked claim, and check every repository for unsaved work at the end, counting a commit pushed
+to a side branch as undelivered until main has it. Opted in, they also hold a
 commit carrying a trailer the project forbids. They ask before `git add -A`, `git commit -a` or
 `git stash`, which reach into the index every session in a clone shares (opt-out:
 `"sharedIndex": false`). They can refuse a sentence in another language than

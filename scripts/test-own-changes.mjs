@@ -187,3 +187,49 @@ test('session-end holds a session to a file it copied in with an old date, using
   assert.match(JSON.parse(stop(ws, { transcript_path: path, session_id: 's-1' })).reason, /sales\/photo-1\.jpg/);
   assert.equal(stop(ws, { transcript_path: path, session_id: 'other' }), '', 'another session\'s baseline is not this one\'s');
 });
+
+test('a commit pushed to a side branch is not delivered: session-end says to bring it to main or to say where it stopped', () => {
+  const ws = workspace();
+  const origin = join(ws, 'origin.git');
+  git(ws, 'init', '-q', '--bare', origin);
+  const dir = join(ws, 'sales');
+  git(dir, 'branch', '-M', 'main');
+  git(dir, 'remote', 'add', 'origin', origin);
+  git(dir, 'push', '-q', '-u', 'origin', 'main');
+  git(dir, 'remote', 'set-head', 'origin', 'main');
+  git(dir, 'switch', '-q', '-c', 'cloud/brochure');
+  const path = join(ws, 't.jsonl');
+  const now = Date.now();
+  writeFileSync(path, transcript([[now - 60000, now + 60000]]));
+  writeFileSync(join(dir, 'brochure.md'), '# Brochure\n');
+  git(dir, 'add', 'brochure.md'); git(dir, 'commit', '-q', '-m', 'brochure');
+  git(dir, 'push', '-q', '-u', 'origin', 'cloud/brochure');
+
+  const reason = JSON.parse(stop(ws, { transcript_path: path })).reason;
+  assert.match(reason, /commit [0-9a-f]{7} in sales on cloud\/brochure, not on main/);
+  assert.match(reason, /a side branch delivers nothing/);
+  assert.match(reason, /git push origin HEAD:main/);
+  assert.match(reason, /stopped on cloud\/brochure \(sales\)/);
+  assert.doesNotMatch(reason, /not pushed/, 'the branch is pushed: only main lacks it');
+
+  git(dir, 'push', '-q', 'origin', 'HEAD:main');
+  assert.equal(stop(ws, { transcript_path: path }), '', 'once main has it, nothing is left');
+});
+
+test('on the default branch, a pushed commit is not a leftover and an unpushed one still is', () => {
+  const ws = workspace();
+  const origin = join(ws, 'origin.git');
+  git(ws, 'init', '-q', '--bare', origin);
+  const dir = join(ws, 'notes');
+  git(dir, 'branch', '-M', 'main');
+  git(dir, 'remote', 'add', 'origin', origin);
+  git(dir, 'push', '-q', '-u', 'origin', 'main');
+  const path = join(ws, 't.jsonl');
+  const now = Date.now();
+  writeFileSync(path, transcript([[now - 60000, now + 60000]]));
+  writeFileSync(join(dir, 'minutes.md'), '# Minutes\n');
+  git(dir, 'add', 'minutes.md'); git(dir, 'commit', '-q', '-m', 'minutes');
+  const reason = JSON.parse(stop(ws, { transcript_path: path })).reason;
+  assert.match(reason, /commit [0-9a-f]{7} in notes not pushed/);
+  assert.doesNotMatch(reason, /side branch/);
+});

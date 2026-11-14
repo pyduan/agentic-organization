@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · Work pushed to a side branch no longer counts as saved
+
+At the end of a session, commits on a branch other than main (a cloud session's working
+branch, a branch someone forgot to merge) are now reported until main has them, even when the
+branch itself is pushed. Your agent then either brings them to main or tells you plainly that the
+work stopped on that branch and is not live (`.claude/hooks/own-changes.mjs`,
+`.claude/hooks/session-end.mjs`).
+
+**What you need to do:** nothing. If your project has its own hook doing this, you can delete it.
+
 ## 2026-11-14 · MINOR · No guide says "every push rebuilds your site" any more
 
 The ten sentences still saying it now add "once the repo is connected", and

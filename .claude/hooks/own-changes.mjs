@@ -15,6 +15,11 @@
 //     SessionStart) and that is now deleted, or carries a date older than the session start
 //     (a `mv`, `cp -p`, `rsync -a` or unzip keeps the date of the original);
 //   - a commit made during one of its tool calls.
+// A commit counts as a leftover when no remote has it, and also, on a branch other than the
+// default one, when the default branch on origin lacks it: a cloud session works on a side
+// branch, pushes it, and the work reads as saved while main never sees it. One organization
+// running the kit piled up thirty such branches in six weeks, and its daily routine kept
+// filing the same notes again because main never received them.
 // Everything else belongs to someone else and is left alone. Doubts land on the side of
 // asking: a call that keeps running after it returns (a background command, a subagent)
 // covers everything up to now, a transcript that cannot be read makes every leftover this
@@ -129,13 +134,39 @@ export function dirtyPaths(repo) {
   return out;
 }
 
-/** Uncommitted files and unpushed commits of one repo (its root), with their times. */
+/** origin's default branch as this clone knows it (origin/HEAD, else main or master), or null. */
+export function defaultBranchOf(repo) {
+  try { return gitIn(repo, 'symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD').trim().replace(/^origin\//, ''); } catch { /* not recorded */ }
+  for (const b of ['main', 'master']) {
+    try { gitIn(repo, 'rev-parse', '--verify', '--quiet', `refs/remotes/origin/${b}`); return b; } catch { /* not this one */ }
+  }
+  return null;
+}
+
+/**
+ * Uncommitted files and undelivered commits of one repo (its root), with their times. A commit
+ * is { repo, commit, time }, plus `branch` and `base` when it sits on a side branch (or a
+ * detached HEAD) that origin's default branch lacks, and `pushed` when some remote has it.
+ */
 export function leftoversOf(repo) {
   const out = dirtyPaths(repo).map((path) => {
     let mtime = null;
     try { mtime = statSync(join(repo, path)).mtimeMs; } catch { /* deleted */ }
     return { repo, path, mtime };
   });
+  const base = defaultBranchOf(repo);
+  let branch = '';
+  try { branch = gitIn(repo, 'branch', '--show-current').trim(); } catch { /* detached */ }
+  if (base && branch !== base) {
+    // Off the default branch: what counts is what origin/<default> lacks, pushed elsewhere or not.
+    let unpushed = new Set();
+    try { unpushed = new Set(gitIn(repo, 'log', 'HEAD', '--not', '--remotes', '--format=%H').split('\n').filter(Boolean)); } catch { /* none */ }
+    for (const line of gitIn(repo, 'log', `origin/${base}..HEAD`, '--format=%H %ct').split('\n').filter(Boolean)) {
+      const [sha, ct] = line.split(' ');
+      out.push({ repo, commit: sha.slice(0, 7), time: Number(ct) * 1000, branch: branch || 'a detached HEAD', base, pushed: !unpushed.has(sha) });
+    }
+    return out;
+  }
   let upstream = true;
   try { gitIn(repo, 'rev-parse', '--abbrev-ref', '@{upstream}'); } catch { upstream = false; }
   // A detached HEAD (how a cloud session starts) or a branch never pushed has no upstream: its

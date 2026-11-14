@@ -51,6 +51,7 @@ export function endCheck(event, dir) {
   const where = single ? 'in this repo' : `in: ${[...new Set(mine.map((l) => nameOf.get(l.repo)))].join(', ')}`;
   const label = (l) => {
     const repo = single ? '' : nameOf.get(l.repo);
+    if (l.commit && l.branch) return `commit ${l.commit}${repo ? ` in ${repo}` : ''} on ${l.branch}, not on ${l.base}${l.pushed ? '' : ', not pushed'}`;
     if (l.commit) return `commit ${l.commit}${repo ? ` in ${repo}` : ''} not pushed`;
     return `${repo ? `${repo}/` : ''}${l.path}${l.mtime === null ? ' (deleted)' : ''}`;
   };
@@ -67,10 +68,20 @@ export function endCheck(event, dir) {
   const reflect = existsSync(join(HOOKS, '..', 'skills', 'reflect', 'SKILL.md'))
     ? `from ${at('.claude/skills/reflect/SKILL.md')}` : `at the end of ${at('AGENTS.md')}`;
 
+  // A side branch, even pushed, delivers nothing: only the default branch is read, built and pulled.
+  const side = mine.filter((l) => l.branch);
+  const branches = [...new Set(side.map((l) => `${l.branch}${single ? '' : ` (${nameOf.get(l.repo)})`}`))].join(', ');
+  const push = side.length
+    ? `(2) a side branch delivers nothing, pushed or not: ${side.length} commit(s) on ${branches} are not on ` +
+      `${side[0].base}. Bring them there (git fetch origin, git rebase origin/${side[0].base}, git push origin HEAD:${side[0].base}), ` +
+      `or, if they must stay on the branch (a review was asked, the push to ${side[0].base} is refused), say in your last ` +
+      `message that the work stopped on ${branches} and is not live; `
+    : '(2) push so the change goes live; ';
+
   return `End-of-session check: there are unsaved or unpublished changes ${where}. ${whose}${neighbours}. ` +
     'Before finishing: (1) stage the files you touched by name and read the body of git diff --cached, so ' +
     'nothing another session wrote rides along (in a checkout another session commits in, commit from your own ' +
-    `worktree); (2) push so the change goes live; (3) run the reflection pass ${reflect}, folding anything ` +
+    `worktree); ${push}(3) run the reflection pass ${reflect}, folding anything ` +
     'learned this session into the guides; (4) tell the owner in plain words what was published and saved. ' +
     'If a leftover is not yours to commit, say so to the owner instead of committing blindly.';
 }
