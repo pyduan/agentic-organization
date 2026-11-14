@@ -108,6 +108,17 @@ work stopped on that branch and is not live (`.claude/hooks/own-changes.mjs`,
 
 **What you need to do:** nothing. If your project has its own hook doing this, you can delete it.
 
+## 2026-11-14 · MINOR · failure-modes is shorter and each rule says how to check it
+
+`docs/failure-modes.md` keeps every rule as one claim and one test you can run, with a mark
+naming the mechanism that already refuses it; the stories behind each rule moved to
+`docs/failure-cases.md`. `node scripts/preflight.mjs --task "…"` now picks rules one by one
+(fifteen at most), lists each of your register's lessons once, and ranks the mistakes your
+project repeated most (`--broken`). A few rules that were written in several guides now live in
+one, with a pointer from the others.
+
+**What you need to do:** nothing.
+
 ## 2026-11-14 · MINOR · No guide says "every push rebuilds your site" any more
 
 The ten sentences still saying it now add "once the repo is connected", and

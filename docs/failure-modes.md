@@ -494,7 +494,7 @@ useless, or it spends the owner's time on something that was yours to do.
 single session, and they get likelier exactly when work goes well.
 
 - <a id="commit-named"></a>**Commit only the files you touched, named one by one.** Test: no
-  `git add -A`.
+  `git add -A`, `git add .` or `git commit -a`. ⛨ send-guard:shared-index
 - <a id="staged-belongs"></a>**A file left staged belongs to whoever commits next.** Test: stage
   right before committing; `git checkout <ref> -- <file>` counts as staging.
 - <a id="read-staged-diff"></a>**Reading the staged diff is the guard, not staging by path.** Test:
@@ -502,6 +502,7 @@ single session, and they get likelier exactly when work goes well.
 - <a id="head-moves"></a>**`HEAD` can move between the reading and the commit.** Test: commit from
   your own worktree, and `git log -2` before the push shows the parent you started from.
 - <a id="stash-shared"></a>**The stash is shared too.** Test: no stash in a shared checkout.
+  ⛨ send-guard:shared-index
 - <a id="branch-switch"></a>**Another session can switch the branch under you.** Test:
   `git branch --show-current` before each staging, and the push output read.
 - <a id="ownership-history"></a>**Ownership comes from a file's history, not its location.** Test:
