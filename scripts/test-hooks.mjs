@@ -14,7 +14,8 @@ import { tmpdir } from 'node:os';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classify, forbiddenTrailers } from '../.claude/hooks/send-guard.mjs';
-import { currentTurn, check, checkLanguage, foreignSentences } from '../.claude/hooks/turn-check.mjs';
+import { currentTurn, check, checkLanguage, foreignSentences, DEFAULT_CHECKS } from '../.claude/hooks/turn-check.mjs';
+import { readFileSync } from 'node:fs';
 
 const HOOKS = resolve(dirname(fileURLToPath(import.meta.url)), '../.claude/hooks');
 
@@ -141,15 +142,74 @@ test('a silence nobody checked is refused', () => {
   assert.deepEqual(ids(transcript({ answer: "L'associé n'a jamais répondu.", calls: [{ name: 'mcp__mail__search_threads' }] })), []);
 });
 
+test('a verification must run after the last edit, and a search or a reread is not one', () => {
+  const edit = { name: 'Edit', input: { file_path: '/d/site/config.json' } };
+  assert.deepEqual(ids(transcript({ answer: 'Verified: the config is right.', calls: [bash('npm test'), edit] })), ['verified']);
+  assert.deepEqual(ids(transcript({ answer: 'Verified: the config is right.', calls: [edit, { name: 'Grep' }, { name: 'Read', input: { file_path: '/d/site/config.json' } }] })), ['verified']);
+  assert.deepEqual(ids(transcript({ answer: 'Verified: the config is right.', calls: [edit, bash('grep -n port config.json | head')] })), ['verified']);
+  assert.deepEqual(ids(transcript({ answer: 'Verified: the config is right.', calls: [edit, bash('npm run build')] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'Vérifié : le registre ne contient rien.', calls: [{ name: 'Grep' }] })), [], 'no edit: a search is the check');
+});
+
+test('a success over a check that examined nothing is refused', () => {
+  assert.deepEqual(ids(transcript({ answer: 'Tout est en ordre.', calls: [bash('node scripts/check-links.mjs docs/', '0 files checked')] })), ['empty-check']);
+  assert.deepEqual(ids(transcript({ answer: 'The suite is all green.', calls: [bash('node --test', 'ℹ tests 0\nℹ pass 0\nℹ fail 0')] })), ['empty-check']);
+  assert.deepEqual(ids(transcript({ answer: 'Aucune anomalie.', calls: [bash('python3 -m pytest', 'collected 0 items\nno tests ran')] })), ['empty-check']);
+  assert.match(check(currentTurn(transcript({ answer: 'All good.', calls: [bash('x', 'scanned 0 records')] })))[0].say, /scanned 0 records/);
+  // A zero that is a result over a full input is not an empty check.
+  assert.deepEqual(ids(transcript({ answer: 'All good.', calls: [bash('git diff --stat', '0 files changed')] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'All good.', calls: [bash('node scripts/check-links.mjs', '120 files checked, 0 broken')] })), []);
+});
+
 test('a verification nobody ran is refused; one that ran, or a disclaimer, is not', () => {
   assert.deepEqual(ids(transcript({ answer: "C'est vérifié, tout est en ordre." })), ['verified']);
   assert.deepEqual(ids(transcript({ answer: "C'est vérifié.", calls: [{ name: 'Bash', input: { command: 'npm test' } }] })), []);
   assert.deepEqual(ids(transcript({ answer: 'Ce point reste non vérifié.' })), []);
 });
 
-test('a success announced over a failing last command is refused', () => {
-  assert.deepEqual(ids(transcript({ answer: 'Le courriel est envoyé.', calls: [{ name: 'Bash', input: { command: 'node x.mjs' }, error: true }] })), ['failed']);
-  assert.deepEqual(ids(transcript({ answer: 'Le courriel est envoyé.', calls: [{ name: 'Bash', input: { command: 'node x.mjs' } }] })), []);
+test('a success announced over the failing call it is about is refused', () => {
+  const send = { name: 'Bash', input: { command: 'node scripts/send-mail.mjs --to=sam@example.org' } };
+  assert.deepEqual(ids(transcript({ answer: 'Le courriel est envoyé.', calls: [{ ...send, error: true }] })), ['failed']);
+  assert.deepEqual(ids(transcript({ answer: 'Le courriel est envoyé.', calls: [send] })), []);
+  // A failing call that is not the send says nothing about the send.
+  assert.deepEqual(ids(transcript({ answer: 'Le courriel est envoyé.', calls: [send, { name: 'Bash', input: { command: 'node x.mjs' }, error: true }] })), []);
+});
+
+const bash = (command, output = 'ok', error = false) => ({ name: 'Bash', input: { command }, output, error });
+
+test('"pushed" is judged on the last git push, whatever ran after it', () => {
+  const rejected = bash('git push origin main', ' ! [rejected]        main -> main (fetch first)\nerror: failed to push some refs', true);
+  const pushed = bash('git push origin main', 'To github.com:acme/site.git\n   1a2b3c4..5d6e7f8  main -> main');
+  assert.deepEqual(ids(transcript({ answer: 'Pushed to main.', calls: [rejected, bash('git status')] })), ['failed']);
+  assert.deepEqual(ids(transcript({ answer: 'Pushed to main.', calls: [pushed, bash('node scripts/check.mjs', 'x', true)] })), []);
+  assert.deepEqual(ids(transcript({ answer: "C'est poussé sur main.", calls: [rejected, pushed] })), []);
+  // A rejection followed by a retry that went through, in one command.
+  assert.deepEqual(ids(transcript({ answer: 'Pushed.', calls: [bash('git push || (git pull --rebase && git push)',
+    ' ! [rejected] main -> main\n   1a2b3c4..5d6e7f8  main -> main')] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'Nothing is committed or pushed yet.', calls: [rejected] })), [], 'a negated claim');
+  assert.deepEqual(ids(transcript({ answer: 'Rien n\'est poussé.', calls: [rejected] })), []);
+  const refused = bash('git push', 'Permission for this action was denied by the auto mode classifier.', true);
+  assert.deepEqual(ids(transcript({ answer: 'Pushed earlier as 5d6e7f8.', calls: [refused] })), [], 'a refused call never ran');
+});
+
+test('"deployed" is judged on the last deploy', () => {
+  const failed = bash('npx wrangler deploy', '✘ [ERROR] A request to the Cloudflare API failed.', true);
+  const done = bash('npx wrangler deploy', 'Uploaded site (2.1 sec)\nDeployed site triggers (0.5 sec)\nCurrent Version ID: 0f0f');
+  assert.deepEqual(ids(transcript({ answer: 'The site is deployed.', calls: [failed, bash('git log -1')] })), ['failed']);
+  assert.deepEqual(ids(transcript({ answer: 'The site is deployed.', calls: [failed, done] })), []);
+});
+
+test('"tests pass" is judged on the last test run, and refused when it was piped into a filter', () => {
+  assert.deepEqual(ids(transcript({ answer: 'All tests pass.', calls: [bash('npm test', 'ℹ tests 40\nℹ pass 38\nℹ fail 2', true)] })), ['failed']);
+  assert.deepEqual(ids(transcript({ answer: 'All tests pass.', calls: [bash('npm test', 'ℹ tests 40\nℹ pass 40\nℹ fail 0')] })), []);
+  // The exit code read is tail's, and the output shows no count: nothing says they passed.
+  const piped = ids(transcript({ answer: 'Les tests passent.', calls: [bash('npm test 2>&1 | tail -3', 'npm notice New version available')] }));
+  assert.deepEqual(piped, ['failed']);
+  assert.match(check(currentTurn(transcript({ answer: 'Tests pass.', calls: [bash('npm test | grep -c ok', '12')] })))[0].say, /piped into grep/);
+  // Piped, but the count of failures is in the output: that is what was read.
+  assert.deepEqual(ids(transcript({ answer: 'Tests pass.', calls: [bash('npm test 2>&1 | grep -E "^ℹ (pass|fail)"', 'ℹ pass 40\nℹ fail 0')] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'Tests pass.', calls: [bash('set -o pipefail; npm test | tail -3', 'done')] })), []);
+  assert.deepEqual(ids(transcript({ answer: 'Les tests passent sauf un, sans rapport.', calls: [bash('npm test', 'ℹ fail 1', true)] })), []);
 });
 
 test('a source cited after a partial read is refused, unless it was read whole or written this turn', () => {
@@ -203,6 +263,12 @@ test('a project can disable a check or add its own', () => {
 test('a concordance nobody computed is refused, in French and in English', () => {
   assert.deepEqual(ids(transcript({ answer: 'Les deux relevés se recoupent, aux arrondis près.' })), ['concordance']);
   assert.deepEqual(ids(transcript({ answer: 'The invoice and the statement reconcile exactly.' })), ['concordance']);
+  // Reading both documents is not computing their difference.
+  assert.deepEqual(ids(transcript({ answer: 'The invoice and the statement reconcile exactly.',
+    calls: [{ name: 'Read', input: { file_path: '/d/invoice.md' } }, bash('cat statement.csv')] })), ['concordance']);
+  for (const command of ['python3 -c "print(1200-400)"', "awk -F, '{s+=$3} END {print s}' a.csv", 'echo "1200-400" | bc', 'node scripts/totals.mjs']) {
+    assert.deepEqual(ids(transcript({ answer: 'They reconcile exactly.', calls: [bash(command)] })), [], command);
+  }
   assert.deepEqual(ids(transcript({ answer: 'Les deux relevés concordent.', calls: [{ name: 'Bash', input: { command: 'node -e "console.log(1200-400)"' } }] })), []);
   assert.deepEqual(ids(transcript({ answer: 'Voici les deux relevés, je ne les ai pas encore comparés.' })), []);
 });
@@ -304,4 +370,24 @@ test('ux-pass, run as a hook on a new file in a fresh repo, prints the reminder 
   const first = run();
   assert.match(JSON.parse(first).hookSpecificOutput.additionalContext, /src\/components\/Card\.jsx/);
   assert.equal(run(), '', 'asked once per session');
+});
+
+// ------------------------------------------------------------------ --list
+
+test('the header is the one list of the checks, and --list prints what a project runs', () => {
+  const header = readFileSync(join(HOOKS, 'turn-check.mjs'), 'utf8').split('\nimport ')[0];
+  for (const c of DEFAULT_CHECKS) assert.match(header, new RegExp(`^//   ${c.id}\\b`, 'm'), `${c.id} is in the header`);
+  const dir = mkdtempSync(join(tmpdir(), 'turn-'));
+  execFileSync('mkdir', ['-p', join(dir, '.claude')]);
+  writeFileSync(join(dir, '.claude/turn-checks.json'), JSON.stringify({
+    disable: ['silence'], language: 'fr',
+    checks: [{ id: 'law', patterns: ['x'], requires: 'cite', say: 'cite the text.' }],
+  }));
+  const out = execFileSync('node', [join(HOOKS, 'turn-check.mjs'), '--list', dir], { encoding: 'utf8' });
+  assert.match(out, /^absence +default +look /m);
+  assert.match(out, /^empty-check +default /m);
+  assert.match(out, /^law +project +cite +cite the text\./m);
+  assert.match(out, /^language +project .* fr$/m);
+  assert.match(out, /^silence +off /m);
+  assert.doesNotMatch(out, /^silence +default/m);
 });

@@ -236,7 +236,11 @@ counting every new incident in a guarded family read new mistakes as failed fixe
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an
 unchecked claim, and check every repository for unsaved work at the end. Opted in, they also hold a
 commit carrying a trailer the project forbids. They can refuse a sentence in another language than
-the owner's, including the narration between tool calls.
+the owner's, including the narration between tool calls. A success claim is judged on the call
+it names (the last push, deploy, test run, merge or send), and `turn-check.mjs --list` prints
+what a project runs: judged on whatever ran last, the check fired on twenty-one of 6,459 real
+turns and nearly all were wrong; judged per claim it fires about as often and catches failures
+it used to miss (2026-11-14).
 **Why:** a rule in prose is re-read by someone who already believes it; a hook says no.
 
 ### What waits on a person, raised at session start

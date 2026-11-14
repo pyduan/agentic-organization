@@ -10,6 +10,20 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · The end-of-turn check judges each claim on the call it is about
+
+Your agent's end-of-turn check is stricter where it was too easy and quieter where it was wrong.
+"Pushed" is judged on the last push, "deployed" on the last deploy and "tests pass" on the last
+test run, instead of on whatever command came last; a test run piped into `grep`, `tail` or
+`head` with no count of failures in sight is refused, since the exit code read was the filter's.
+"Verified" needs something run after the last edit, a concordance needs an actual computation, and
+a new check refuses "all green" when a check in the same turn examined nothing ("0 files
+checked", "no tests found"). `node .claude/hooks/turn-check.mjs --list` prints the checks your
+project runs (`.claude/hooks/turn-check.mjs`).
+
+**What you need to do:** nothing. To turn the new check off, add `"empty-check"` to `disable` in
+`.claude/turn-checks.json`.
+
 ## 2026-11-14 · MINOR · The error report says whether a guard held, per mistake rather than per family
 
 An entry in the error register can now say which earlier entry it repeats (`repeat_of`: the same

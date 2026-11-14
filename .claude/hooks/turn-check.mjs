@@ -8,32 +8,46 @@
 // and on one day ten of thirteen. Its owner's conclusion: a written rule does not
 // change the gesture at the moment it is made; the only defences that held were in
 // the mechanism, "a hook that blocks the conclusion until the check is done". The
-// mistakes it caught most often have a signature in the answer itself:
+// mistakes it caught most often have a signature in the answer itself. This is the
+// one enumerated list of the checks; `node .claude/hooks/turn-check.mjs --list [dir]`
+// prints the ones active in a project (these defaults, less what it disables, plus its
+// own), and a test fails when a default is missing here.
 //
-//   absence    "no document says…", "not found", "il me manque…"   no search ran
-//   silence    "he never replied", "pas de réponse"                no search ran
-//   verified   "verified", "c'est vérifié"                          nothing ran at all
-//   failed     "sent", "published", "tests pass"                    the last call errored
-//   partial    a file the answer names was read only in part, and never whole
-//   concordance "they reconcile exactly", "se recoupent"         nothing ran at all
+//   absence      "no document says…", "not found", "il me manque…"
+//                → no search ran and no file was read whole
+//   silence      "he never replied", "pas de réponse"       → no search ran
+//   verified     "verified", "c'est vérifié"
+//                → nothing ran at all, or, after an Edit or Write, nothing ran after
+//                the last one but searches and rereads
+//   concordance  "they reconcile exactly", "se recoupent"
+//                → nothing computed (node -e, python, awk, bc, jq, a project script)
+//   failed       "pushed", "deployed", "tests pass", "sent"
+//                → the call that claim is about failed: the last git push, the last
+//                deploy, the last test run (or a test run piped into grep, tail or
+//                head, whose exit code is the filter's); otherwise the last call
+//   empty-check  "intact", "all green", "aucune anomalie", "✓"
+//                → a tool output this turn shows the check examined nothing
+//                ("0 files", "0 tests", "no tests found", "nothing to verify")
+//   partial      a file the answer cites as a source was read only in part, never whole
 //
 // One more is opt-in, because only the project knows which language its owner reads:
 //
-//   language   with `"language": "fr"` (or "en") in `.claude/turn-checks.json`, a
-//              sentence written in another language anywhere in the turn's text,
-//              the short narration between tool calls included. A register logged
-//              six English transition sentences in one night ("Now let me check the
-//              file.") under a written rule to answer in French; a Stop check ended
-//              it. Code spans, fenced blocks, paths, commands, URLs, quotations,
-//              blockquotes and table rows are left out, and a sentence is judged on
-//              its function words only (the, and, is… against le, et, est…), so
-//              English technical words inside a French sentence never count.
+//   language     with `"language": "fr"` (or "en") in `.claude/turn-checks.json`, a
+//                sentence written in another language anywhere in the turn's text,
+//                the short narration between tool calls included. A register logged
+//                six English transition sentences in one night ("Now let me check the
+//                file.") under a written rule to answer in French; a Stop check ended
+//                it. Code spans, fenced blocks, paths, commands, URLs, quotations,
+//                blockquotes and table rows are left out, and a sentence is judged on
+//                its function words only (the, and, is… against le, et, est…), so
+//                English technical words inside a French sentence never count.
 //
 // Each fires on the turn's final answer only, and blocks once: the second stop goes
 // through (stop_hook_active), so a false alarm costs one look, never a loop. The
 // answer to a block is to do the check, or to say exactly what was and was not
 // looked at. A project adds or disables checks in `.claude/turn-checks.json`;
-// `source/quality/turn-checks.example.json` holds a stricter one for legal claims.
+// `source/quality/turn-checks.example.json` holds a stricter one for legal claims, and
+// `--list` prints what is active.
 //
 // Zero dependencies. Never blocks on its own failure: a hook that cannot read the
 // transcript says so on stderr and lets the turn end.
@@ -92,6 +106,102 @@ export const isSearch = (c) =>
   SEARCH_TOOLS.test(c.name)
   || (c.name.startsWith('mcp__') && SEARCH_MCP.test(c.name.split('__').slice(2).join('__')))
   || (c.name === 'Bash' && SEARCH_SHELL.test(String(c.input.command || '')));
+
+const cmdOf = (c) => (c.name === 'Bash' ? String(c.input.command || '') : '');
+// The start of a shell command: the line, or after ; & | ( && || and an env assignment.
+const AT = '(?:^|[;&|(\\n]\\s*|\\bthen\\s+|\\bdo\\s+)(?:[A-Z_][A-Z0-9_]*=\\S*\\s+)*';
+const COMPUTE = new RegExp(AT + '(?:node\\s+(?:-e|-p|--eval|--print|--input-type)\\b|node\\s+[\\w.\\/~-]+\\.(?:m?js|cjs)\\b' +
+  '|python3?\\b|awk\\b|gawk\\b|bc\\b|dc\\b|jq\\b|perl\\s+-\\w*e|ruby\\s+-e|Rscript\\b|sqlite3\\b|duckdb\\b|qalc\\b' +
+  '|npm\\s+run\\b|npx\\s|deno\\s+(?:run|eval)\\b|bun\\s+(?:run|-e)\\b|\\.\\/[\\w.\\/-]+|(?:ba|z)?sh\\s+[\\w.\\/~-]+\\.sh\\b)', 'm');
+/** A call that computed something: a shell running an interpreter or a project script, or a code-running tool. */
+export const isCompute = (c) => (c.name === 'Bash' && COMPUTE.test(cmdOf(c)))
+  || (c.name.startsWith('mcp__') && /execute|javascript|run_code|repl|update_formulas/i.test(c.name.split('__').slice(2).join('__')));
+
+const EDITS = new Set(['Edit', 'Write', 'MultiEdit', 'NotebookEdit']);
+// Calls that neither look at nor run anything: bookkeeping.
+const BOOKKEEPING = /^(TodoWrite|TaskCreate|TaskUpdate|TaskList|TaskGet|Skill|SendMessage|mcp__ccd_session__\w+)$/;
+// A shell command made of looks only: every part is a search, a listing or a read.
+const LOOK_WORDS = /^(grep|rg|ag|find|fd|ls|cat|head|tail|sed|wc|sort|uniq|cut|tr|echo|printf|pwd|cd|true|stat|file|diff|less|mdfind|locate|git\s+(log|show|grep|diff|status|blame|ls-files|branch|rev-parse))\b/;
+const lookOnly = (c) => /^(Grep|Glob|LS|ToolSearch|WebSearch|Read)$/.test(c.name)
+  || (c.name === 'Bash' && cmdOf(c).split(/\|\||&&|[;|\n]/).map((p) => p.trim()).filter(Boolean)
+    .every((p) => LOOK_WORDS.test(p.replace(/^([A-Z_][A-Z0-9_]*=\S*\s+)+/, ''))));
+/**
+ * Did something run on the state the turn delivers? With no edit in the turn, any call.
+ * After an edit, a call after the last one that does more than
+ * look: rereading or grepping what you just wrote is not running it.
+ */
+export const ranAfterLastEdit = (calls) => {
+  let last = -1;
+  calls.forEach((c, i) => { if (EDITS.has(c.name)) last = i; });
+  if (last === -1) return calls.length > 0;
+  return calls.slice(last + 1).some((c) => !EDITS.has(c.name) && !BOOKKEEPING.test(c.name) && !lookOnly(c));
+};
+
+// What a check that examined nothing prints, matched on the outputs of the turn's calls.
+// A zero alone is not enough: "0 files changed", "0 items stale" or "0 pages over budget"
+// are results over a full input. Measured on 6,457 real turns, a bare "0 files|items|…"
+// fired on 32 answers and 31 were wrong; the zero has to be the count of what was examined.
+// "nothing checked" is left out too: a check that prints it on every run (no leak list on
+// this machine) made every answer about a green suite look empty.
+const EXAMINED_EN = '(?:checked|verified|scanned|examined|tested|read|found|matched|collected|processed|analy[sz]ed)';
+const EXAMINED_FR = '(?:vérifiée?s?|contrôlée?s?|analysée?s?|lue?s?|trouvée?s?|examinée?s?|testée?s?|traitée?s?)';
+const THINGS_EN = '(?:files?|entries|items|records|tests?|pages?|links?|rows|documents?|checks?)';
+const THINGS_FR = '(?:fichiers?|entrées?|éléments?|enregistrements?|tests?|pages?|liens?|lignes?|documents?)';
+const EMPTY = new RegExp([
+  `(?<![\\d.,])\\b0 ${THINGS_EN} ${EXAMINED_EN}\\b`, `\\b${EXAMINED_EN}:? 0 ${THINGS_EN}\\b`,
+  '\\bran 0 tests?\\b', '\\bcollected 0 items\\b', '^\\s*(?:ℹ|#)\\s*tests 0\\s*$', '\\bno tests? (?:found|ran|to run)\\b',
+  '\\bnothing to (?:check|verify|test)\\b',
+  `(?<![\\d.,])\\b0 ${THINGS_FR} ${EXAMINED_FR}`, `\\baucun(?:e|s|es)? ${THINGS_FR} ${EXAMINED_FR}`,
+  '\\brien (?:à (?:vérifier|contrôler)|(?:n\'a été )?vérifié)\\b',
+].join('|'), 'imu');
+
+// A test runner, a deploy, a push: the calls a success claim is about.
+const TEST_RUNNER = AT + '(?:npm\\s+(?:run\\s+)?test\\b|npm\\s+run\\s+check(?![:\\w-])|npx\\s+(?:vitest|jest|mocha|playwright)\\b|node\\s+--test\\b' +
+  '|pytest\\b|python3?\\s+-m\\s+(?:pytest|unittest)\\b|vitest\\b|jest\\b|go\\s+test\\b|cargo\\s+test\\b|node\\s+[\\w.\\/~-]*test[\\w.-]*\\.m?js\\b)';
+const PUSH = AT + 'git\\b[^;&|\\n]*\\spush\\b';
+const DEPLOY = AT + '(?:npx\\s+)?(?:wrangler\\b[^;&|\\n]*\\sdeploy\\b|npm\\s+run\\s+[\\w:-]*(?:deploy|publish)[\\w:-]*|node\\s+[\\w.\\/~-]*(?:deploy|publish)[\\w.-]*\\.m?js\\b|vercel\\b|netlify\\s+deploy\\b|firebase\\s+deploy\\b)';
+const MERGE = AT + 'gh\\s+pr\\s+merge\\b';
+const SEND = AT + '(?:(?:node|bash|sh|zsh|python3?|osascript)\\s+(?:-\\S+\\s+)*[\\w.\\/~-]*send[\\w-]*\\.\\w+|sendmail\\b|mail\\s+-s\\b)';
+const SEND_TOOL = '^mcp__.*(?:(?:^|_)(?:send|reply|forward)(?:_|$)|post_?message|send_draft)';
+// A runner piped into a filter: the exit code read is the filter's, and its output was cut.
+const PIPED = new RegExp(TEST_RUNNER + '[^;&|\\n]*\\|\\s*(grep|rg|tail|head)\\b', 'm');
+// What each kind of call prints when it worked (`ok`) and when it did not (`bad`). The
+// output decides before the exit code does, and the later of the two signs wins: a
+// compound command fails for a reason of its own after a push that went through, and
+// `git push || (git pull --rebase && git push)` prints a rejection, then a success.
+const VERDICT = {
+  push: {
+    ok: '\\b[0-9a-f]{7,}\\.\\.\\.?[0-9a-f]{7,}\\s+\\S+\\s+->\\s+\\S+|\\[new (branch|tag)\\]|Everything up-to-date',
+    bad: '\\[(remote )?rejected\\]|failed to push|^fatal: (unable to access|could not read from remote|Authentication failed|.*has no upstream|.*does not appear to be a git repository)',
+  },
+  deploy: {
+    ok: 'Current Version ID|Deployed \\S+ triggers|Uploaded \\S+ \\(|Deployment complete|✨ Success',
+    bad: '\\[ERROR\\]|^✘ ',
+  },
+  merge: { ok: '\\bMERGED\\b|(Squashed and merged|Merged|Rebased and merged) pull request', bad: 'is not mergeable|GraphQL: |Repository rule violations' },
+  send: { ok: '', bad: '' },
+  test: {
+    ok: '^\\s*(ℹ|#)\\s*fail\\s+0\\s*$|\\b0 (failed|failures|failing)\\b|^Tests:\\s+\\d+ passed, \\d+ total|^\\s*\\d+ passing\\b(?![\\s\\S]*\\d+ failing)' +
+      '|\\b(tests?|exit|test_exit|status)\\s*[=:]\\s*0\\b|^OK( \\(|$)',
+    bad: '^\\s*(ℹ|#)\\s*fail\\s+[1-9]|\\b[1-9]\\d* (failed|failing)\\b|^not ok\\b|^✖ |^FAILED \\(|\\b(tests?|test_exit)\\s*[=:]\\s*[1-9]',
+  },
+};
+const lastAt = (pattern, text) => { let at = -1; for (const m of text.matchAll(new RegExp(pattern, 'gmu'))) at = m.index; return at; };
+/**
+ * 'ok', 'bad' or 'unknown' for a call, from its output first and its exit code after.
+ * The exit code of a compound command (a; b, a && b, a || b) speaks for its last part,
+ * so it decides only for a command that is the call alone.
+ */
+function verdictOf(call, claim) {
+  const ok = claim.ok ? lastAt(claim.ok, call.output) : -1;
+  const bad = claim.bad ? lastAt(claim.bad, call.output) : -1;
+  if (ok > bad) return 'ok';
+  if (bad > -1) return /\|\|/.test(cmdOf(call)) && !call.error ? 'unknown' : 'bad';
+  if (call.error && !/[;&|\n]/.test(cmdOf(call).replace(/\s*2>&1/g, '').trim())) return 'bad';
+  return 'unknown';
+}
+// A call the harness refused never ran: it says nothing about the claim either way.
+const refused = (c) => c.error && /permission for this action was denied|denied by the|blocked by (a |the )?hook|user (doesn't|does not) want to proceed/i.test(c.output);
 
 /** Files a call read, and whether it read them whole. */
 export function reads(c) {
@@ -163,9 +273,11 @@ export const DEFAULT_CHECKS = [
       "(?<!not |never |un)\\b(verified|double-checked|i checked|i confirmed)\\b",
       "(?<!non |pas |pas encore |à )\\b(vérifiée?s?|je confirme|j'ai vérifié)\\b",
     ],
-    requires: 'any-call',
-    say: 'says something was verified, and this turn ran nothing. A verification is a call whose output you ' +
-      'read. Run it, or say it comes from an earlier turn and when.',
+    requires: 'run-after-edit',
+    say: 'says something was verified, and nothing ran on the state this turn delivers: no call at all, or ' +
+      'only searches and rereads after its last edit. ' +
+      'A verification is a call whose output you read, made on the state you deliver. Run it, or say it ' +
+      'comes from an earlier turn or from before the edit, and when.',
   },
   {
     id: 'concordance',
@@ -175,20 +287,40 @@ export const DEFAULT_CHECKS = [
       '\\bse recoupent\\b', '\\b(concordent|coïncident|se rejoignent)\\b', '\\bcorrespond(ent)? exactement\\b',
       "\\b(aux|à l'|à un) arrondis? près\\b", '\\btombent juste\\b', '\\b(sont|est) cohérente?s? (entre (eux|elles)|avec)\\b',
     ],
-    requires: 'any-call',
-    say: 'says two sources or figures agree, and this turn computed nothing. A concordance is a subtraction ' +
-      'whose result you read: two documents said to "reconcile exactly" differed threefold, and an unpaid third ' +
-      'was carried as paid. Do the arithmetic now and give the gap, or say the comparison was not made.',
+    requires: 'compute',
+    say: 'says two sources or figures agree, and this turn computed nothing (no node -e, python, awk, bc, jq or ' +
+      'project script ran). A concordance is a subtraction whose result you read: two documents said to ' +
+      '"reconcile exactly" differed threefold, and an unpaid third was carried as paid. Do the arithmetic now ' +
+      'and give the gap, or say the comparison was not made.',
   },
   {
     id: 'failed',
-    patterns: [
-      '\\b(sent|published|deployed|pushed|merged|tests? pass(ed|es)?|all green|is live)\\b',
-      '\\b(envoyée?s?|publiée?s?|déployée?s?|poussée?s?|en ligne|tests? (au vert|passent))\\b',
+    // Each claim is judged on the call it is about; a claim with no such call this
+    // turn falls back to the last call.
+    claims: [
+      { pattern: '\\b(pushed|poussée?s?)\\b', call: PUSH, what: 'git push', ...VERDICT.push },
+      { pattern: '\\b(deployed|is live|published|déployée?s?|en ligne|publiée?s?)\\b', call: DEPLOY, what: 'deploy', ...VERDICT.deploy },
+      {
+        pattern: '\\b(tests? (pass(ed|es)?|are (green|passing))|all green|tests? (au vert|passent))\\b', call: TEST_RUNNER,
+        what: 'test run', ...VERDICT.test, piped: true,
+      },
+      { pattern: '\\b(sent|envoyée?s?)\\b', call: SEND, tool: SEND_TOOL, what: 'send', ...VERDICT.send },
+      { pattern: '\\b(merged|fusionnée?s?)\\b', call: MERGE, what: 'merge', ...VERDICT.merge },
     ],
-    requires: 'last-call-ok',
-    say: 'announces a success, and the last command of this turn returned an error. Read its output: a ' +
-      'confirmation is deduced from the result, never written beside the command.',
+    requires: 'claim-call-ok',
+    say: 'announces a success, and the call it is about failed. Read its output: a confirmation is deduced from ' +
+      'the result, never written beside the command.',
+  },
+  {
+    id: 'empty-check',
+    patterns: [
+      '\\b(intact|all good|all green|no anomal(y|ies)|clean|passes|all (checks|tests) pass(ed)?)\\b', '✓|✅',
+      "\\b(tout est en ordre|aucune anomalie|rien à signaler|tout est (bon|vert|propre)|au vert|RAS)\\b",
+    ],
+    requires: 'nonempty-check',
+    say: 'reports a success, and a check this turn examined nothing. A check over zero items passes by ' +
+      'construction: find out why it saw nothing (a wrong path, a filter, an empty folder), or say that ' +
+      'nothing was checked.',
   },
   {
     id: 'partial',
@@ -199,12 +331,24 @@ export const DEFAULT_CHECKS = [
   },
 ];
 
-function loadProjectConfig(dir) {
+export function loadProjectConfig(dir) {
   try {
     const j = JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8'));
     const off = new Set(j.disable || []);
-    return { checks: [...DEFAULT_CHECKS.filter((c) => !off.has(c.id)), ...(j.checks || [])], language: j.language };
-  } catch { return { checks: DEFAULT_CHECKS }; }
+    return {
+      checks: [...DEFAULT_CHECKS.filter((c) => !off.has(c.id)), ...(j.checks || []).map((c) => ({ ...c, project: true }))],
+      language: j.language, disabled: [...off],
+    };
+  } catch { return { checks: DEFAULT_CHECKS, disabled: [] }; }
+}
+
+/** The active checks of a project, one line each, for `--list`. */
+export function listChecks(config) {
+  const lines = config.checks.map((c) => `${c.id.padEnd(12)} ${c.project ? 'project' : 'default'}  ` +
+    `${(c.requires || '').padEnd(15)} ${String(c.say || '').split(/(?<=\.)\s/)[0].slice(0, 120)}`);
+  if (config.language) lines.push(`${'language'.padEnd(12)} project  ${''.padEnd(15)} every sentence of the turn in ${config.language}`);
+  for (const id of config.disabled || []) lines.push(`${String(id).padEnd(12)} off      (disabled in .claude/turn-checks.json)`);
+  return lines;
 }
 
 // ------------------------------------------------------------------ the language check
@@ -287,6 +431,48 @@ const sentenceAt = (text, index) => {
   return text.slice(start, end).trim().slice(0, 240);
 };
 
+// A success claim negated or put in the future is not a claim: "not pushed", "nothing was
+// deployed", "will be sent", "pas encore poussé".
+const NEGATED = re("(\\w+n't|\\b(not|never|nothing|no|nor|will|to be|once|when|until|pas|jamais|rien|ni|ne sera|n'est|n'a|n'ont|une fois|quand|dès que|à|non)\\b)[-\\s\\p{L}'’]{0,20}$");
+// A claim that names its own exception reports a failure honestly: "pass except one".
+const EXCEPT = re("^[\\s,]*(\\(?\\d+ )?(sauf|hormis|à part|except|apart from|but (one|\\d+))\\b");
+
+/** The first success claim whose own call failed: { quote, say } or null. */
+function failedClaim(text, calls, claims) {
+  for (const claim of claims) {
+    const rx = new RegExp(re(claim.pattern).source, 'giu');
+    for (const m of text.matchAll(rx)) {
+      if (NEGATED.test(text.slice(Math.max(0, m.index - 24), m.index))) continue;
+      if (EXCEPT.test(text.slice(m.index + m[0].length, m.index + m[0].length + 24))) continue;
+      const quote = sentenceAt(text, m.index);
+      const callRe = claim.call ? new RegExp(claim.call, 'm') : null;
+      const toolRe = claim.tool ? new RegExp(claim.tool) : null;
+      const mine = calls.filter((k) => !refused(k)
+        && ((callRe && callRe.test(cmdOf(k))) || (toolRe && toolRe.test(k.name))));
+      const own = mine[mine.length - 1];
+      if (own) {
+        const v = verdictOf(own, claim);
+        // A last call that says nothing either way (a quiet push, a probe that filters the
+        // output: npm test | grep skipped) leans on an earlier one that showed it worked.
+        if (v === 'unknown' && mine.some((k) => verdictOf(k, claim) === 'ok')) break;
+        if (v === 'bad') {
+          return { quote, say: `announces a success, and the last ${claim.what} of this turn failed. Read its output: a ` +
+            'confirmation is deduced from the result, never written beside the command.' };
+        }
+        const pipe = claim.piped && v === 'unknown' && cmdOf(own).replace(/\d?>&\d/g, '').match(PIPED);
+        if (pipe && !/pipefail|PIPESTATUS|pipestatus/.test(cmdOf(own))) {
+          return { quote, say: `announces that tests pass, and the last ${claim.what} was piped into ${pipe[1]}: the exit ` +
+            `code read was ${pipe[1]}'s and the output was cut. Run it unpiped (or with set -o pipefail) and read ` +
+            'its exit code and its count of failures.' };
+        }
+      }
+      // No call of its own this turn: the claim is about earlier work, and nothing here judges it.
+      break;
+    }
+  }
+  return null;
+}
+
 /**
  * Returns the findings for a turn: [{ id, quote, say }]. Pure, so it is tested
  * on fixture transcripts.
@@ -320,6 +506,22 @@ export function check({ calls, answer }, checks = DEFAULT_CHECKS) {
       }
       continue;
     }
+    if (c.requires === 'claim-call-ok') {
+      const f = failedClaim(text, calls, c.claims || []);
+      if (f) out.push({ id: c.id, quote: f.quote, say: f.say || c.say });
+      continue;
+    }
+    if (c.requires === 'nonempty-check') {
+      const empty = calls.map((k) => (k.output.match(EMPTY) || [])[0]).find(Boolean);
+      if (!empty) continue;
+      for (const p of c.patterns || []) {
+        const m = re(p).exec(text);
+        if (!m) continue;
+        out.push({ id: c.id, quote: sentenceAt(text, m.index), say: `${c.say} (A tool output said «${empty.trim()}».)` });
+        break;
+      }
+      continue;
+    }
     for (const p of c.patterns || []) {
       const m = re(p).exec(text);
       if (!m) continue;
@@ -327,6 +529,8 @@ export function check({ calls, answer }, checks = DEFAULT_CHECKS) {
       if (c.requires === 'search' && searched) break;
       if (c.requires === 'look' && (searched || calls.some((k) => reads(k).some((r) => r.whole)))) break;
       if (c.requires === 'any-call' && calls.length) break;
+      if (c.requires === 'compute' && calls.some(isCompute)) break;
+      if (c.requires === 'run-after-edit' && ranAfterLastEdit(calls)) break;
       if (c.requires === 'last-call-ok' && !(calls.length && calls[calls.length - 1].error)) break;
       if (c.requires === 'cite' && re(c.cite || '$^').test(quote)) break;
       out.push({ id: c.id, quote, say: c.say });
@@ -342,7 +546,10 @@ const isMain = (() => {
   try { return realpathSync(process.argv[1]) === realpathSync(fileURLToPath(import.meta.url)); } catch { return false; }
 })();
 
-if (isMain) {
+if (isMain && process.argv.includes('--list')) {
+  const dir = process.argv.slice(2).find((a) => a !== '--list') || process.env.CLAUDE_PROJECT_DIR || process.cwd();
+  console.log(listChecks(loadProjectConfig(dir)).join('\n'));
+} else if (isMain) {
   let raw = '';
   for await (const chunk of process.stdin) raw += chunk;
   let event;
