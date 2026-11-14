@@ -265,7 +265,7 @@ a wrong fact.
 
 ### Code shared with another repository
 `scripts/vendor-sync.mjs` keeps files two repositories co-own byte for byte identical, with a
-manifest of hashes.
+manifest of hashes, and refuses a pull that would take them back to an older commit.
 **Why:** a library copied by hand forks the first week, and a fix in one place never reaches the
 other.
 

@@ -52,3 +52,27 @@ test('pull refuses while the kit has uncommitted changes, then takes the commit 
   assert.equal(Object.keys(one().files).length, 2);
   assert.equal(verify(host, quiet), 0);
 });
+
+test('pull refuses to roll back: a clone whose commit does not contain the recorded one is refused', () => {
+  const recorded = one().commit;
+  git(kit, 'switch', '-q', '-c', 'old-look', `${recorded}~1`);
+  assert.throws(() => pull(one(), host, quiet), /does not contain [0-9a-f]{7}, the commit these files were copied from/);
+  assert.equal(one().commit, recorded, 'the manifest is untouched');
+  git(kit, 'switch', '-q', 'main');
+});
+
+test('pull from a clone on another branch that contains the recorded commit goes through, with a warning', () => {
+  git(kit, 'switch', '-q', '-c', 'trial');
+  write(kit, 'paged.js', '// v3, on a trial branch\n');
+  git(kit, 'commit', '-q', '-am', 'trial');
+  const said = [];
+  pull(one(), host, (l) => said.push(l));
+  assert.ok(said.some((l) => /on trial, not main/.test(l)), said.join('\n'));
+  git(kit, 'switch', '-q', 'main');
+});
+
+test('a recorded commit the clone does not have is refused until it is fetched', () => {
+  const m = one();
+  writeFileSync(m.path, JSON.stringify({ ...JSON.parse(readFileSync(m.path, 'utf8')), commit: 'f'.repeat(40) }));
+  assert.throws(() => pull(one(), host, quiet), /is not in the clone/);
+});

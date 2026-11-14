@@ -10,6 +10,15 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · Shared files are never pulled back to an older version
+
+`node scripts/vendor-sync.mjs pull` now refuses when the shared repo's clone is at a commit that
+does not contain the one your files were copied from, which would take them back to an earlier
+state, and warns when that clone is on a branch other than its main one.
+
+**What you need to do:** nothing, unless you share files with another repo: if a pull is refused,
+bring that repo's clone up to date on its main branch and pull again.
+
 ## 2026-11-14 · MINOR · Work pushed to a side branch no longer counts as saved
 
 At the end of a session, commits on a branch other than main (a cloud session's working

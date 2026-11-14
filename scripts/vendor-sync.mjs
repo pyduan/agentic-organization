@@ -15,7 +15,9 @@
 //
 //   node scripts/vendor-sync.mjs pull [<kit>]       update the kit's clone, copy its files here, rewrite
 //                                                   the manifest; refuses while the kit has uncommitted
-//                                                   changes or a file here differs from what was copied
+//                                                   changes, while a file here differs from what was
+//                                                   copied, and when the clone's commit does not contain
+//                                                   the one recorded (a pull would roll the files back)
 //   node scripts/vendor-sync.mjs push-back [<kit>]  copy what was edited here into the kit's clone, to
 //                                                   commit and push there, then pull
 //   node scripts/vendor-sync.mjs verify             every embedded file is the kit's (run it in the tests)
@@ -74,10 +76,41 @@ function ready(kit, m) {
   try { git(kit, 'pull', '--ff-only', '--quiet'); } catch { /* offline or no upstream: work with the clone as it is, and say which commit */ }
 }
 
+/** The clone's default branch (origin/HEAD, else main or master) and the branch it is on. */
+function branches(kit) {
+  const tryGit = (...a) => { try { return git(kit, ...a); } catch { return ''; } };
+  const head = tryGit('symbolic-ref', '--quiet', '--short', 'refs/remotes/origin/HEAD').replace(/^origin\//, '');
+  const base = head || ['main', 'master'].find((b) => tryGit('rev-parse', '--verify', '--quiet', `refs/remotes/origin/${b}`) || tryGit('rev-parse', '--verify', '--quiet', `refs/heads/${b}`)) || '';
+  return { base, current: tryGit('branch', '--show-current') };
+}
+
+/**
+ * Why pulling from the clone as it stands would roll the embedded files back, or null. A
+ * clone left on an older branch, or reset, holds a commit the manifest's does not lead to, and
+ * copying from it takes the shared files back to an earlier state with no error anywhere.
+ */
+export function rollback(m, kit) {
+  if (!m.commit) return null;
+  const head = git(kit, 'rev-parse', 'HEAD');
+  if (head === m.commit) return null;
+  try { git(kit, 'cat-file', '-e', `${m.commit}^{commit}`); } catch {
+    return `the commit recorded here (${m.commit.slice(0, 7)}) is not in the clone at ${kit}: fetch it there (git fetch origin), then pull again`;
+  }
+  try { git(kit, 'merge-base', '--is-ancestor', m.commit, head); return null; } catch {
+    return `the clone at ${kit} is at ${head.slice(0, 7)}, which does not contain ${m.commit.slice(0, 7)}, the commit these files were copied from: ` +
+      'pulling would take them back. Bring the clone to a commit that has it (its default branch, up to date), then pull again. ' +
+      `If going back is really what you want, delete "commit" from vendor/${m.name}.json and pull`;
+  }
+}
+
 export function pull(m, host = ROOT, log = console.log) {
   const kit = kitDir(m, host);
   ready(kit, m);
   if (git(kit, 'status', '--porcelain')) throw new Error(`${m.name} has uncommitted changes at ${kit}: commit and push them there first`);
+  const back = rollback(m, kit);
+  if (back) throw new Error(`${m.name}: ${back}`);
+  const { base, current } = branches(kit);
+  if (base && current !== base) log(`  ▲ the clone of ${m.name} is on ${current || 'a detached HEAD'}, not ${base}: what is copied is that branch's, which other hosts may never get`);
   // An edit here that was pushed back and committed in the kit is no longer a divergence: the
   // kit's file is now the same bytes, and the pull records it.
   const before = divergences(m, host).filter((d) => !(d.why === 'edited here' && existsSync(join(kit, d.src)) && sha(join(kit, d.src)) === sha(join(host, d.here))));
