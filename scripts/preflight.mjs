@@ -5,7 +5,7 @@
 //   1. docs/failure-modes.md  the general families, from every project running this kit.
 //   2. source/quality/incidents.json  what THIS project got wrong, and what now guards it.
 //
-// The register is written at the end of a session by the `reflect` skill. Nothing read it
+// The register is written by the `feedback` skill when a mistake is caught. Nothing read it
 // at the start, which made it a diary rather than a test suite. This is the read side.
 //
 // A repeat of something already in the register is worse than a new mistake: it says the
@@ -200,8 +200,8 @@ if (!registerAt.path) {
   say();
 } else if (!incidents.length) {
   say(`Register read (${registerAt.path.replace(ROOT + '/', '')}): it is empty.`);
-  say('An empty register after weeks of work usually means the reflection pass is recording');
-  say(`lessons but not the misses that produced them (${schema}).`);
+  say('An empty register after weeks of work usually means lessons are recorded as rules');
+  say(`and the misses that produced them are not (${schema}).`);
   say();
 } else if (!mine.length) {
   say(`Register (${registerAt.path.replace(ROOT + '/', '')}): ${incidents.length} logged, none in these families.`);

@@ -186,3 +186,43 @@ test('register-guard blocks a write that leaves the register outside the schema,
   const translated = project([entry('a-1', { category: 'delivery' })], { path: 'qualite/incidents.json' });
   assert.match(JSON.parse(run(translated, 'qualite/incidents.json', 'MultiEdit').stdout).reason, /a-1 {2}category/);
 });
+
+test('repeat_of must name an earlier entry of the register', () => {
+  const problems = validate([
+    entry('r-1'),
+    entry('r-2', { repeat_of: 'r-1' }),
+    entry('r-3', { repeat_of: 'r-9' }),                        // nobody
+    { ...entry('r-4'), date: '2026-09-01', repeat_of: 'r-1' }, // the original is later
+    entry('r-5', { repeat_of: 'r-5' }),
+  ]).filter((p) => p.field === 'repeat_of');
+  assert.deepEqual(problems.map((p) => p.id), ['r-3', 'r-4', 'r-5']);
+});
+
+test('repeats are counted per mechanism, per day, before and after its first guard, by guard kind', () => {
+  const d = (day) => `2026-09-${String(day).padStart(2, '0')}`;
+  const reg = [
+    // A mechanism checked by a test from day 5: two repeats before (days 1-5), one after (days 5-21).
+    { ...entry('m-1'), date: d(1), guard: { kind: 'none' } },
+    { ...entry('m-2'), date: d(3), repeat_of: 'm-1', guard: { kind: 'none' } },
+    { ...entry('m-3'), date: d(5), repeat_of: 'm-2', guard: { kind: 'test', where: 'scripts/t.mjs' } },
+    { ...entry('m-4'), date: d(21), repeat_of: 'm-1', guard: { kind: 'none' } },
+    // A mechanism guarded by a rule only, from day 2: none before, two after.
+    { ...entry('n-1'), date: d(2), category: 'expiry' },
+    { ...entry('n-2'), date: d(10), repeat_of: 'n-1', category: 'expiry' },
+    { ...entry('n-3'), date: d(12), repeat_of: 'n-1', category: 'expiry' },
+    // Another incident in the guarded family, not a repeat: the old count took it for a failed guard.
+    { ...entry('o-1'), date: d(20), guard: { kind: 'none' } },
+  ];
+  const out = execFileSync('node', [REPORT], { cwd: project(reg), encoding: 'utf8' });
+  assert.match(out, /5 entries repeat the mechanism of an earlier one\*\* \(`repeat_of`, 2 mechanisms\)/);
+  assert.match(out, /\| a check, test or tool \| 1 \| 2 \| 0\.50 \| 1 \| 0\.06 \|/);
+  assert.match(out, /\| a written rule only \| 1 \| 0 \| 0\.00 \| 2 \| 0\.11 \|/);
+  assert.doesNotMatch(out, /family that already had an executable guard/);
+  assert.match(out, /#### m-4 · major · 2026-09-21 · repeats m-1/);
+});
+
+test('without repeat_of the report says the measure is missing, not that guards held', () => {
+  const out = execFileSync('node', [REPORT], { cwd: project([entry('a-1')]), encoding: 'utf8' });
+  assert.match(out, /No entry declares a repeat yet/);
+  assert.doesNotMatch(out, /## Repeats/);
+});

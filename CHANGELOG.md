@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · The error report says whether a guard held, per mistake rather than per family
+
+An entry in the error register can now say which earlier entry it repeats (`repeat_of`: the same
+mechanism, not just the same family). The report counts those repeats per day before and after the
+first guard each mistake received, split between guards that run (a check, a test, a tool) and
+written rules. It no longer counts every new mistake in a guarded family as a failed fix: a family
+is a wide bucket, and that figure read new mistakes as broken corrections
+(`source/quality/README.md`, `scripts/error-report.mjs`).
+
+**What you need to do:** nothing. Your agent sets `repeat_of` on new entries; ask it to set it on
+the old ones too if you want the measure to cover them.
+
 ## 2026-11-14 · MINOR · The error register is checked as it is written, and the report refuses one that drifted
 
 When your agent writes an entry into `source/quality/incidents.json` with a value the schema does

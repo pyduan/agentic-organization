@@ -17,8 +17,10 @@ It exists for three different readers, which is why it is data and not prose:
   why the `generic` and `guard` fields are worth writing carefully. Repeating something already in
   here is worse than a new mistake: it says the register is not working. See `docs/complex-tasks.md`.
 
-The `reflect` skill writes entries at the end of a session; the `feedback` skill generates and sends
-the report; `preflight` reads them back at the start of the next piece of work. Nothing here is ever
+The `feedback` skill writes entries when a mistake is caught, then generates and sends the report;
+`reflect` turns the same correction into a rule in a guide; `preflight` reads the entries back at
+the start of the next piece of work. The `register-guard` hook sends back a write that leaves an
+entry outside the schema. Nothing here is ever
 published: it lives in the repo, and the repo is private.
 
 ## One entry
@@ -48,6 +50,10 @@ published: it lives in the repo, and the repo is private.
 | `why` | the mechanism. "Extrapolating is cheaper than looking, and the result looks like a calculation" is a why; "I was not careful enough" is not. |
 | `detected_by` | `owner` · `self` · `another-session` · `check` · `outside-user` (someone running the kit on their own project). The most useful column in the file: the share caught by a person is the number that has to come down. |
 | `guard` | `kind` is one of exactly five values, and `where` names the thing. Something that runs and can refuse: `check` (an assertion inside the code that does the work), `test` (a case in a test file), `tool` (a script that has to be run). Something that does not: `rule`, with the guide it was written into. Or `none`. Nothing else is a legal value: `error-report.mjs` counts these and refuses to print a figure that does not add up, because a kind it cannot classify used to vanish from every total. |
+| `generic` | the lesson, transferable to any project, with nothing of yours in it. |
+| `sensitive` | the fields to drop when anonymizing. Default to listing `inputs` and `error` whenever they carry a name, an amount, or a document title. |
+| `tags` | optional list of free words, for the distinction the seven families are too wide to carry (`domain-accuracy`, `voice`, `fabrication`). Never counted, never compared across projects |
+| `repeat_of` | optional: the `id` of an earlier entry with the same mechanism (same `why`, not merely the same family). It must exist and be earlier. The report counts repeats per day before and after each mechanism's first guard, by guard kind: the only figure that says whether a guard held |
 
 **`none` and `rule` are worth leaving honest.** The temptation is to record the sentence you wrote as
 though it were a safeguard, and the report exists to resist exactly that: it prints the three
@@ -55,9 +61,6 @@ populations separately so the count of incidents guarded only by an attentive re
 rather than folded into the good news. An owner running this kit found the same flattery in her own
 register, six unguarded against an honest eighty-nine of a hundred and thirteen, and it was the
 document meant to stop her reassuring herself.
-| `generic` | the lesson, transferable to any project, with nothing of yours in it. |
-| `sensitive` | the fields to drop when anonymizing. Default to listing `inputs` and `error` whenever they carry a name, an amount, or a document title. |
-| `tags` | optional list of free words, for the distinction the seven families are too wide to carry (`domain-accuracy`, `voice`, `fabrication`). Never counted, never compared across projects |
 
 Keep entries short and keep them coming. A register of thirty honest lines is worth more than five
 essays, and the categories only earn their keep once there is enough in here to count.

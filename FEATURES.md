@@ -228,7 +228,9 @@ name or a term from `.leak-terms`: an owner's summary froze for a week on drifte
 and her first name reached the maintainer inside an anonymized lesson (2026-11-13). The report
 refuses a register outside the schema unless told `--accept-drift`, and the `register-guard` hook
 sends back the write that drifts: a detector named outside the five had counted as caught by the
-framework, flattering the one figure that has to come down (2026-11-14).
+framework, flattering the one figure that has to come down (2026-11-14). Whether a guard held is
+read from `repeat_of` links, per mechanism, never from a family: a family is a wide bucket, and
+counting every new incident in a guarded family read new mistakes as failed fixes (2026-11-14).
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an

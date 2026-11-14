@@ -31,7 +31,7 @@ import { writeFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import {
-  FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, DETECTED_BY, guardKind as kindOf, loadRegister, validate,
+  FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, DETECTED_BY, guardKind as kindOf, loadRegister, validate, repeatChains,
 } from '../lib/register.mjs';
 import { parseTerms } from './check-leaks.mjs';
 
@@ -142,19 +142,40 @@ if (checked.length + ruleOnly.length + unguarded.length + unclassified.length !=
   console.error('error-report: the guard buckets do not account for every incident. Refusing to print a figure that does not add up.');
   process.exit(1);
 }
-// Did a guard hold? An incident landing in a family that already had an executable
-// guard is the one signal that distinguishes "a correction failed" from "this
-// category is simply large". Chronological, because a guard only counts as prior.
 const byDate = all.slice().sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-const afterGuard = (() => {
-  const guarded = new Set();
-  const out = [];
-  for (const i of byDate) {
-    if (guarded.has(i.category)) out.push(i);
-    if (EXECUTABLE.has(kindOf(i))) guarded.add(i.category);
+
+// Did a guard hold? Asked of a mechanism, never of a family. This used to count every
+// incident landing in a family that already had an executable guard, and a family is a
+// wide bucket (docs/failure-modes.md says so): it counted new mistakes as failed fixes.
+// A repeat is now declared by the entry itself, `repeat_of` naming an earlier entry with
+// the same mechanism. For each mechanism, its guard date is the first entry of the chain
+// that carries a guard (an executable one if any did, else a rule), and its repeats are
+// counted per day before and after that date: a guard that works bends the rate down.
+const DAY = 86400000;
+const days = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / DAY);
+const lastDate = byDate.length ? byDate[byDate.length - 1].date : '';
+const repeats = (() => {
+  const chains = repeatChains(all);
+  const groups = {
+    executable: { label: 'a check, test or tool', mechanisms: 0, before: 0, beforeDays: 0, after: 0, afterDays: 0 },
+    rule: { label: 'a written rule only', mechanisms: 0, before: 0, beforeDays: 0, after: 0, afterDays: 0 },
+    none: { label: 'nothing', mechanisms: 0, before: 0, beforeDays: 0, after: 0, afterDays: 0 },
+  };
+  for (const rows of chains.values()) {
+    const guard = rows.find((i) => EXECUTABLE.has(kindOf(i))) || rows.find((i) => WRITTEN.has(kindOf(i)));
+    const g = groups[!guard ? 'none' : EXECUTABLE.has(kindOf(guard)) ? 'executable' : 'rule'];
+    g.mechanisms++;
+    const cut = guard ? guard.date : lastDate;
+    const reps = rows.filter((i) => i.repeat_of);
+    g.before += reps.filter((i) => !(i.date > cut)).length;
+    g.after += reps.filter((i) => i.date > cut).length;
+    g.beforeDays += Math.max(1, days(rows[0].date, cut));
+    if (guard) g.afterDays += Math.max(0, days(cut, lastDate));
   }
-  return out;
+  const total = all.filter((i) => i.repeat_of).length;
+  return { total, mechanisms: chains.size, groups };
 })();
+const perDay = (k, d) => (d > 0 ? (k / d).toFixed(2) : '—');
 
 // And is the share a person has to catch going down? Compare the older half of the
 // register with the newer half. This is what the owner's question was actually
@@ -198,9 +219,9 @@ say();
 if (!n) {
   say('The incident register is empty: nothing has been logged yet.');
   say();
-  say('That is either good news or a reporting gap. The register is written by the `reflect` skill');
-  say('at the end of a session, so an empty file after weeks of work usually means the reflection');
-  say('pass is recording lessons but not the misses that produced them.');
+  say('That is either good news or a reporting gap. The register is written by the `feedback` skill');
+  say('when a mistake is caught, so an empty file after weeks of work usually means the lessons are');
+  say('being recorded as rules but the misses that produced them are not.');
   say();
 } else {
   say(`${n} incident${n > 1 ? 's' : ''}, ${dates[0]} to ${dates[dates.length - 1]}. ` +
@@ -240,11 +261,13 @@ if (!n) {
       `${trend ? `${trend.text} ` : ''}` +
       'That is the number that has to come down: those were visible from someone\u2019s screen, and there is ' +
       'no reason they should have seen them first.');
-  say(`- **${afterGuard.length} happened in a family that already had an executable guard.** ` +
-      (afterGuard.length
-        ? 'A guard existed and did not hold, which is the only figure here that says a correction failed ' +
-          'rather than that a category is popular. Read those entries before writing another rule.'
-        : 'Nothing has yet recurred in a family that was already guarded.'));
+  say(repeats.total
+    ? `- **${repeats.total} entr${repeats.total > 1 ? 'ies repeat' : 'y repeats'} the mechanism of an earlier one** ` +
+      `(\`repeat_of\`, ${repeats.mechanisms} mechanism${repeats.mechanisms > 1 ? 's' : ''}). ` +
+      'Whether a guard held is read per mechanism, in the table under *Repeats*: a rate that does not ' +
+      'fall after the guard says the correction failed, which no family count can say.'
+    : '- **No entry declares a repeat yet** (`repeat_of`), so whether a guard held cannot be counted. ' +
+      'Set it on an entry whose mechanism an earlier entry already logged.');
   say(`- **${checked.length} of ${n} (${pct(checked.length)}%) produced something that runs and can refuse.** ` +
       `${ruleOnly.length} produced a written rule instead, and ${unguarded.length} produced nothing at all. ` +
       'A rule that depends on an attentive reader is exactly what failed in most of these, so the ' +
@@ -290,6 +313,21 @@ if (!n) {
     say();
   }
 
+  if (repeats.total) {
+    say('## Repeats');
+    say();
+    say('Per mechanism that repeated, by what guards it: repeats per day before the date of its first guard, and after.');
+    say();
+    say('| Guarded by | Mechanisms | Repeats before | Per day | Repeats after | Per day |');
+    say('|---|---:|---:|---:|---:|---:|');
+    for (const g of Object.values(repeats.groups)) {
+      if (!g.mechanisms) continue;
+      say(`| ${g.label} | ${g.mechanisms} | ${g.before} | ${perDay(g.before, g.beforeDays)} | ` +
+          (g.label === 'nothing' ? '— | — |' : `${g.after} | ${perDay(g.after, g.afterDays)} |`));
+    }
+    say();
+  }
+
   say('## The register');
   say();
   for (const c of byCat) {
@@ -303,7 +341,7 @@ if (!n) {
       for (const i of ordered) {
         const redact = new Set(i.sensitive || []);
         const show = (field) => (ANON && redact.has(field) ? null : i[field]);
-        say(`#### ${i.id} · ${i.severity} · ${i.date}`);
+        say(`#### ${i.id} · ${i.severity} · ${i.date}${i.repeat_of ? ` · repeats ${i.repeat_of}` : ''}`);
         say();
         if (i.generic) { say(`**The lesson.** ${i.generic}`); say(); }
         if (show('inputs')) { say(`**What it had.** ${i.inputs}`); say(); }
