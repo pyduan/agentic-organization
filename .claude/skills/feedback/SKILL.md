@@ -38,6 +38,10 @@ The four things to get right:
   agent on a project you know nothing about. If a lesson cannot be written that way, it is
   project-specific and belongs in a guide instead.
 
+After writing, run `node scripts/check-register.mjs` and fix what it lists before going on: the
+schema is closed, and an entry outside it is counted in no figure of the report. The
+`register-guard` hook sends a write back when it drifts, but only where the hooks are wired.
+
 Then, if the same mistake is now guarded, say which guide or which command guards it — and if it is
 not, say that plainly to the owner rather than implying it is handled.
 

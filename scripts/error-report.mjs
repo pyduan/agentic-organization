@@ -20,12 +20,18 @@
 //   node scripts/error-report.mjs                       # full, to stdout
 //   node scripts/error-report.mjs --anonymized --out=report.md
 //   node scripts/error-report.mjs --anonymized --email   # + the mail line, ready to send
+//   node scripts/error-report.mjs --accept-drift         # print despite entries outside the schema
+//
+// It exits 1, writing nothing, while `validate()` finds an entry outside the schema
+// (`node scripts/check-register.mjs` lists them): a figure computed over entries it
+// cannot classify flatters, and the report is the document meant to stop that.
+// `--accept-drift` prints anyway, every headline figure carrying its caveat.
 
 import { writeFile } from 'node:fs/promises';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import {
-  FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, guardKind as kindOf, loadRegister,
+  FAMILIES, SEVERITIES, EXECUTABLE, WRITTEN, NOTHING, HUMAN, DETECTED_BY, guardKind as kindOf, loadRegister, validate,
 } from '../lib/register.mjs';
 import { parseTerms } from './check-leaks.mjs';
 
@@ -37,6 +43,7 @@ const EMAIL = args.includes('--email');
 const OUT = (args.find((a) => a.startsWith('--out=')) || '').slice(6);
 const TO = (args.find((a) => a.startsWith('--to=')) || '').slice(5) || MAINTAINER;
 const REGISTER = (args.find((a) => a.startsWith('--register=')) || '').slice(11) || undefined;
+const ACCEPT_DRIFT = args.includes('--accept-drift');
 
 const CATEGORIES = Object.fromEntries(FAMILIES.map((f) => [f.key, f.label]));
 const DETECTORS = {
@@ -59,6 +66,21 @@ if (!['ok', 'empty'].includes(reg.state)) {
   console.error(`error-report: cannot read the register — ${why}.`);
   console.error('Point at it with --register=<path> or KIT_REGISTER. Schema: source/quality/README.md.');
   process.exit(2);
+}
+// An entry outside the schema stops the report before any figure is computed. Each ⚠
+// line below used to be the only sign, and a ⚠ inside a document read by someone
+// deciding whether the kit works is read past: the headline figure travels, the
+// caveat does not.
+const drift = validate(reg.incidents);
+if (drift.length && !ACCEPT_DRIFT) {
+  console.error(`error-report: ${drift.length} problem(s) across ${new Set(drift.map((p) => p.id)).size} entr` +
+    `${new Set(drift.map((p) => p.id)).size === 1 ? 'y' : 'ies'} of the register, so its figures would not add up. Nothing was written.`);
+  for (const p of drift.slice(0, 12)) {
+    console.error(`  ✘ ${p.id}  ${p.field}${p.value !== undefined ? ` = ${JSON.stringify(p.value)}` : ''} — ${p.why}`);
+  }
+  if (drift.length > 12) console.error(`  … and ${drift.length - 12} more: node scripts/check-register.mjs`);
+  console.error('Fix the entries, or rerun with --accept-drift to print a report whose figures carry the caveat.');
+  process.exit(1);
 }
 const raw = reg.raw;
 const all = reg.incidents.slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
@@ -99,7 +121,13 @@ const heavy = all.filter((i) => i.severity === 'critical' || i.severity === 'maj
 // output said the figure had stopped covering the register (2026-11-09).
 const offSeverity = all.filter((i) => !SEVERITIES.includes(i.severity));
 const offSeverityNames = [...new Set(offSeverity.map((i) => String(i.severity ?? '(none)')))];
-const byHuman = all.filter((i) => HUMAN.has(i.detected_by));
+// The same for who caught it. A detector outside the five ("Sam", "user", "review")
+// is not in HUMAN, so it used to count as caught by the framework: the one figure
+// that has to come down came down by itself as the words drifted.
+const offDetector = all.filter((i) => !DETECTED_BY.has(i.detected_by));
+const offDetectorNames = [...new Set(offDetector.map((i) => String(i.detected_by ?? '(none)')))];
+const isHuman = (i) => DETECTED_BY.has(i.detected_by) && HUMAN.has(i.detected_by);
+const byHuman = all.filter(isHuman);
 const checked = all.filter((i) => EXECUTABLE.has(kindOf(i)));
 const ruleOnly = all.filter((i) => WRITTEN.has(kindOf(i)));
 const unguarded = all.filter((i) => NOTHING.has(kindOf(i)));
@@ -134,7 +162,7 @@ const afterGuard = (() => {
 const trend = (() => {
   if (byDate.length < 6) return null;
   const cut = Math.floor(byDate.length / 2);
-  const share = (rows) => (rows.length ? Math.round((rows.filter((i) => HUMAN.has(i.detected_by)).length / rows.length) * 100) : 0);
+  const share = (rows) => (rows.length ? Math.round((rows.filter(isHuman).length / rows.length) * 100) : 0);
   const before = share(byDate.slice(0, cut));
   const after = share(byDate.slice(cut));
   const word = after < before ? 'down from' : after > before ? 'UP from' : 'unchanged from';
@@ -204,6 +232,11 @@ if (!n) {
   // So the two indicators that actually answer "is this improving" come first, and
   // the family count comes last carrying its own caveat (2026-09-03).
   say(`- **${byHuman.length} of ${n} (${pct(byHuman.length)}%) were caught by a person, not by the framework.** ` +
+      (offDetector.length
+        ? `⚠ ${offDetector.length} other entr${offDetector.length > 1 ? 'ies name' : 'y names'} a detector the schema does not define ` +
+          `(${offDetectorNames.join(', ')}) and ${offDetector.length > 1 ? 'are' : 'is'} counted as neither a person nor the framework: ` +
+          `set each to one of ${[...DETECTED_BY].join(', ')}. `
+        : '') +
       `${trend ? `${trend.text} ` : ''}` +
       'That is the number that has to come down: those were visible from someone\u2019s screen, and there is ' +
       'no reason they should have seen them first.');
@@ -247,8 +280,15 @@ if (!n) {
     say(`| ${c.label} | ${c.rows.length} | ${c.rows.filter((i) => heavy.includes(i)).length} | ` +
         `${c.rows.filter((i) => EXECUTABLE.has(kindOf(i))).length} |`);
   }
-  say(`| **Total** | **${n}** | **${heavy.length}** | **${checked.length}** |`);
+  say(`| **Total** | **${n}** | **${heavy.length}**${offSeverity.length ? ' ⚠' : ''} | **${checked.length}**${unclassified.length ? ' ⚠' : ''} |`);
   say();
+  if (offSeverity.length || unclassified.length) {
+    say(`⚠ ${[
+      offSeverity.length && `${offSeverity.length} entr${offSeverity.length > 1 ? 'ies' : 'y'} with a severity the schema does not define (${offSeverityNames.join(', ')}) ${offSeverity.length > 1 ? 'are' : 'is'} counted in the incidents but not in the major or critical column`,
+      unclassified.length && `${unclassified.length} with a guard kind it does not define ${unclassified.length > 1 ? 'are' : 'is'} counted in no guard column`,
+    ].filter(Boolean).join('; ')}.`);
+    say();
+  }
 
   say('## The register');
   say();
@@ -333,8 +373,11 @@ if (EMAIL) {
   const subject = encodeURIComponent(`agentic-organization: error report (${n} incident${n === 1 ? '' : 's'})`);
   const body = encodeURIComponent(
     `Hello,\n\nAttached is an ${ANON ? 'anonymized ' : ''}error report from a project running the ` +
-    `agentic-organization kit: ${n} incident${n === 1 ? '' : 's'}, ${heavy.length} major or critical, ` +
-    `${byHuman.length} caught by a person rather than by the framework.\n\n` +
+    `agentic-organization kit: ${n} incident${n === 1 ? '' : 's'}, ${heavy.length} major or critical` +
+    (offSeverity.length ? ` (${offSeverity.length} more with a severity outside the schema, counted in neither)` : '') +
+    `, ${byHuman.length} caught by a person rather than by the framework` +
+    (offDetector.length ? ` (${offDetector.length} others with a detector outside the schema, counted as neither)` : '') +
+    '.\n\n' +
     `The file is ${path} in the project folder — attach it before sending.\n\n`);
   console.log(`Report written to ${path}.`);
   console.log(`\nOpen a pre-filled mail to the maintainer:\n\n  mailto:${TO}?subject=${subject}&body=${body}\n`);

@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · The error register is checked as it is written, and the report refuses one that drifted
+
+When your agent writes an entry into `source/quality/incidents.json` with a value the schema does
+not know (a severity "high", a detector "Sam"), a new hook sends the write back with the list of
+what to fix (`.claude/hooks/register-guard.mjs`). The error report now stops on such a register
+instead of printing figures that leave those entries out, names a detector outside the schema
+instead of counting it as caught by the kit, and carries the same warning in its table and its mail.
+`--accept-drift` prints it anyway. Preflight lists a drifted severity even when families drift too.
+
+**What you need to do:** run `node scripts/check-register.mjs` once and fix what it lists; until
+then `node scripts/error-report.mjs` needs `--accept-drift`.
+
 ## 2026-11-13 · MINOR · The error report says when its headline misses entries, and the anonymized form checks for names
 
 The report's headline count of major and critical errors now says how many entries it could not

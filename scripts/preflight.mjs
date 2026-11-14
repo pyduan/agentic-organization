@@ -166,8 +166,13 @@ if (offSchema.length) {
   say('  whatever the task. Refile them under a family and keep the finer word in `tags`:');
   say('  `node scripts/check-register.mjs` lists every entry the schema does not allow.');
   say();
-} else if (problems.length) {
-  say(`⚠ ${problems.length} problem(s) in the register's entries — \`node scripts/check-register.mjs\` lists them.`);
+}
+// The other fields are reported whatever the families do: an `else` here once hid a
+// drifted severity or detector behind the family warning, until the families were fixed.
+const otherProblems = problems.filter((p) => p.field !== 'category');
+if (otherProblems.length) {
+  const fields = [...new Set(otherProblems.map((p) => p.field))].join(', ');
+  say(`⚠ ${otherProblems.length} problem(s) in the register's entries (${fields}) — \`node scripts/check-register.mjs\` lists them.`);
   say();
 }
 if (!registerAt.path) {

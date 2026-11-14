@@ -225,7 +225,10 @@ maintainer.
 to know whether the rules work. The report names in its headline any entry whose severity the
 schema does not define, and the anonymized form refuses to be written when it holds the project's
 name or a term from `.leak-terms`: an owner's summary froze for a week on drifted severity words,
-and her first name reached the maintainer inside an anonymized lesson (2026-11-13).
+and her first name reached the maintainer inside an anonymized lesson (2026-11-13). The report
+refuses a register outside the schema unless told `--accept-drift`, and the `register-guard` hook
+sends back the write that drifts: a detector named outside the five had counted as caught by the
+framework, flattering the one figure that has to come down (2026-11-14).
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an
