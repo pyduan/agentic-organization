@@ -2,23 +2,33 @@
 // Print the checks a task has to survive, before it is delivered — not after.
 //
 // Two lists, and the second is the one that matters:
-//   1. docs/failure-modes.md  the general families, from every project running this kit.
+//   1. docs/failure-modes.md  the general rules, from every project running this kit.
 //   2. source/quality/incidents.json  what THIS project got wrong, and what now guards it.
 //
 // The register is written by the `feedback` skill when a mistake is caught. Nothing read it
 // at the start, which made it a diary rather than a test suite. This is the read side.
 //
 // A repeat of something already in the register is worse than a new mistake: it says the
-// register is not working. So repeats are printed first and loudly.
+// register is not working. So the most repeated mistakes are printed first, computed from
+// the register's `repeat_of` links rather than written anywhere in prose.
+//
+// A task is matched against each rule, not each family: a whole family printed for one
+// cue word made a simple task print a hundred lines, and a list that long is not read.
+// So at most CAP rules, the ones whose words the task shares most; the rules a mechanism
+// already refuses on one line; register entries deduplicated by lesson, the unguarded
+// first, at most REGISTER_CAP. `--all` lifts both caps.
 //
 // Zero dependencies, Node built-ins only.
 //
 // Usage:
-//   node scripts/preflight.mjs                          # every family
-//   node scripts/preflight.mjs numbers destructive      # only these
 //   node scripts/preflight.mjs --task "check the price adjustment and publish it"
-//   node scripts/preflight.mjs --full                   # whole rule, not just its claim
+//   node scripts/preflight.mjs numbers destructive      # every rule of these families
+//   node scripts/preflight.mjs                          # every rule
+//   node scripts/preflight.mjs --broken                 # only the most-repeated ranking
+//   node scripts/preflight.mjs --all                    # no cap on rules or register entries
+//   node scripts/preflight.mjs --full                   # each rule's test, and where its case is
 //   node scripts/preflight.mjs --list                   # the family names and their keys
+//   node scripts/preflight.mjs --lint                   # the guide keeps the shape read here
 //   node scripts/preflight.mjs --register=<path>        # register kept somewhere else
 //   node scripts/preflight.mjs --families=<path>        # failure-modes guide kept somewhere else
 //
@@ -28,28 +38,87 @@
 
 import { readFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve } from 'node:path';
-import { FAMILIES as KEYS, findFile, loadRegister, validate } from '../lib/register.mjs';
+import { FAMILIES, findFile, loadRegister, repeatChains, validate } from '../lib/register.mjs';
 
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const FULL = args.includes('--full');
 const LIST = args.includes('--list');
+const ALL = args.includes('--all');
+const BROKEN = args.includes('--broken');
 const TASK = (args.find((a) => a.startsWith('--task=')) || '').slice(7)
   || (args.includes('--task') ? args[args.indexOf('--task') + 1] || '' : '');
 
-// The seven families come from lib/register.mjs, the one vocabulary shared with
-// source/quality/README.md and error-report.mjs. `cues` are what makes a task touch
-// a family, matched against the --task description.
+const CAP = 15;
+const REGISTER_CAP = 10;
+const BROKEN_TOP = 5;
+// A rule is printed when the words it shares with the task weigh at least this much. A word
+// found in one rule weighs about 5, a word found in a fifth of them about 1.6.
+const THRESHOLD = 2.5;
+
+// Words a task description uses for a rule that its own text does not say. Matched as
+// prefixes of the task's words, like the stems below. Keyed by the rule's id in
+// docs/failure-modes.md; a key that names no rule is reported by the test suite.
 const CUES = {
-  'searched-too-late': ['search', 'find', 'look', 'missing', 'absent', 'does not exist', 'no record', 'inventory', 'corpus', 'archive', 'document', 'contract', 'clause', 'read', 'summar', 'ask', 'question'],
-  'status-of-information': ['assum', 'hypothes', 'estimate', 'likely', 'probabl', 'to verify', 'to confirm', 'draft', 'plan', 'account', 'identity', 'deadline', 'test'],
-  numbers: ['calculat', 'comput', 'number', 'figure', 'amount', 'total', 'percent', '%', 'ratio', 'model', 'simulat', 'forecast', 'compare', 'count', 'measur', 'threshold', 'rank', 'price', 'cost', 'valu', 'budget'],
-  expiry: ['publish', 'update', 'deploy', 'live', 'page', 'summary', 'recap', 'dashboard', 'status', 'deadline', 'decision', 'correct', 'stale', 'refresh'],
-  destructive: ['delete', 'remove', 'move', 'rename', 'clean', 'purge', 'backup', 'restore', 'archive', 'sync', 'copy', 'migrat', 'disk', 'space', 'script', 'tool', 'cron', 'schedul', 'permission', 'watchdog', 'guard', 'safeguard'],
-  handover: ['deliver', 'report', 'note', 'brief', 'app', 'page', 'explain', 'next step', 'recommend', 'advice', 'present', 'send', 'draft', 'answer'],
-  'parallel-sessions': ['commit', 'push', 'publish', 'deploy', 'shared', 'token', 'stylesheet', 'session', 'branch', 'merge'],
+  absence: ['missing', 'absent', 'lost', 'record'],
+  'retrieving-not-reading': ['missing', 'invoice', 'attachment'],
+  'inherited-missing': ['missing'],
+  'search-bounds': ['missing', 'invoice', 'mail', 'inbox'],
+  'search-by-question': ['find', 'look', 'call', 'meeting'],
+  'own-files-first': ['email', 'mail', 'question', 'accountant', 'lawyer', 'ask'],
+  'contact-dated': ['email', 'mail', 'accountant', 'bank', 'lawyer', 'contact'],
+  'follow-up-looking': ['reply', 'answer', 'follow', 'waiting'],
+  'you-draft': ['email', 'mail', 'message', 'send', 'draft', 'reply', 'chat', 'slack'],
+  'sent-today': ['email', 'mail', 'message', 'send'],
+  'message-id': ['email', 'mail', 'send'],
+  'one-producer': ['price', 'figure', 'amount', 'total', 'number'],
+  'frame-of-reference': ['price', 'figure', 'amount', 'number'],
+  'status-field': ['figure', 'estimat', 'price', 'amount'],
+  'independent-check': ['calculat', 'comput', 'verif', 'formula'],
+  'subtract-contents': ['price', 'cost', 'value', 'amount'],
+  'adjustment-base': ['adjust', 'price', 'index'],
+  'reconcile-subtraction': ['reconcil', 'match', 'agree'],
+  'extreme-result': ['calculat', 'model', 'simulat', 'forecast'],
+  'sweep-fallen-fact': ['correct', 'update', 'fix', 'price', 'change'],
+  'pipeline-exists': ['publish', 'deploy', 'live', 'site'],
+  'repo-not-app': ['publish', 'deploy', 'live', 'site'],
+  'look-once': ['deploy', 'live', 'site'],
+  'publish-working-tree': ['publish', 'deploy'],
+  'gate-runnable': ['deploy', 'publish'],
+  'exit-code': ['test', 'publish', 'commit', 'deploy'],
+  'rename-aside': ['delete', 'remove', 'clean', 'purge', 'reset', 'wipe'],
+  'delete-forward': ['delete', 'remove', 'clean'],
+  'destination-backup': ['backup', 'delete', 'migrat'],
+  'copy-everything': ['backup', 'migrat'],
+  'safeguard-axis': ['backup', 'archive', 'safeguard', 'recover'],
+  'rescue-untracked': ['backup', 'save', 'stash'],
+  inventory: ['clean', 'disk', 'space', 'delete', 'move', 'backup', 'old'],
+  'measure-constraint': ['disk', 'space', 'quota', 'free'],
+  'instrument-bound': ['disk', 'space'],
+  'problem-behind-instruction': ['disk', 'space', 'free'],
+  'destination-each-write': ['backup', 'disk', 'drive'],
+  'integrity-source': ['backup', 'restore'],
+  'api-guarantee': ['bulk', 'delete', 'api'],
+  'absolute-number': ['disk', 'space', 'free'],
+  'claim-note': ['shared', 'session'],
+  'shared-consumers': ['token', 'stylesheet', 'helper', 'shared'],
+  'commit-named': ['commit'],
+  'read-staged-diff': ['commit'],
 };
-const FAMILIES = KEYS.map((f) => ({ ...f, cues: CUES[f.key] }));
+
+const STOP = new Set(('a an and or to of in on for it is be with about this that my our your from at by as its ' +
+  'their them they we i you before after every one never not no what which all any each then than only own ' +
+  'check is are was were do does did done has have had can will would should into out up so if else but ' +
+  'make makes made get gets new old some more most same other test').split(' '));
+
+// A crude stem: enough to make "publishing", "published" and "publish" one word.
+const stem = (w) => w.replace(/(ations?|ings?|ed|es|s|ly)$/, '').slice(0, 7);
+const words = (s) => (s.toLowerCase().match(/[a-z%][a-z%'-]*/g) || [])
+  .map((w) => w.replace(/'s$/, '').replace(/[-']/g, ''))
+  .filter((w) => w.length > 2 && !STOP.has(w));
+
+const firstSentence = (s) => (s.match(/^.+?[.!?](?=\s|$)/) || [s])[0];
+const short = (s, n = 88) => (s.length > n ? s.slice(0, n - 1).replace(/\s+\S*$/, '') + '…' : s);
 
 const byKey = Object.fromEntries(FAMILIES.map((f) => [f.key, f]));
 
@@ -57,20 +126,6 @@ if (LIST) {
   for (const f of FAMILIES) console.log(`${f.key.padEnd(24)} §${f.section}  ${f.label}`);
   process.exit(0);
 }
-
-// ------------------------------------------------------------ which families
-
-const named = args.filter((a) => byKey[a]);
-const cued = TASK
-  ? FAMILIES.filter((f) => f.cues.some((c) => TASK.toLowerCase().includes(c)))
-  : [];
-// A task description that matches nothing is a description too short to trust, not a task
-// with no failure modes. Fall back to everything rather than to silence.
-const selected = named.length
-  ? named.map((k) => byKey[k])
-  : cued.length
-    ? cued
-    : FAMILIES;
 
 // ---------------------------------------------------------- locate the two inputs
 // A workshop may translate the kit's paths (a French install keeps its register
@@ -95,28 +150,32 @@ if (!modesAt.path) {
   process.exit(2);
 }
 const md = await readFile(modesAt.path, 'utf8');
+const casesPath = join(dirname(modesAt.path), 'failure-cases.md');
+const cases = await readFile(casesPath, 'utf8').catch(() => '');
+const hasCase = (id) => new RegExp(`^### ${id}\\s*$`, 'm').test(cases);
 
-// Each `## N · Title` section holds `- **claim…**` bullets, sometimes under `### ` groups.
-// Take the bold lead of each bullet as its claim: that is the assertion to check.
-function rulesFor(section) {
-  const lines = md.split('\n');
-  const start = lines.findIndex((l) => l.startsWith(`## ${section} · `));
-  if (start === -1) return [];
-  let end = lines.findIndex((l, i) => i > start && /^## \d+ · /.test(l));
-  if (end === -1) end = lines.length;
-
+// Each `## N · Title` section holds `- <a id="…"></a>**claim** Test: … ⛨ mechanism`
+// bullets, sometimes under `### ` groups. A guide written before the ids existed still
+// parses: its rules get an id made from their first words.
+function parseRules(text) {
   const out = [];
-  let group = '';
-  let buf = null;
+  let section = null, group = '', buf = null;
   const flush = () => {
-    if (!buf) return;
-    const text = buf.join(' ').replace(/\s+/g, ' ').trim();
-    const claim = (text.match(/^- \*\*(.+?)\*\*/s) || [, text.replace(/^- /, '')])[1];
-    out.push({ group, claim: claim.replace(/\s+/g, ' ').trim(), text: text.replace(/^- /, '') });
+    if (!buf || section === null) { buf = null; return; }
+    const raw = buf.join(' ').replace(/\s+/g, ' ').trim().replace(/^- /, '');
+    const id = (raw.match(/^<a id="([^"]+)"><\/a>/) || [])[1];
+    const body = raw.replace(/^<a id="[^"]+"><\/a>/, '');
+    const claim = ((body.match(/^\*\*(.+?)\*\*/) || [, body])[1]).trim();
+    const mech = [...body.matchAll(/⛨ ([\w:.-]+)/g)].map((m) => m[1]);
+    const test = ((body.match(/Test: (.+?)(?: ⛨ |$)/) || [])[1] || '').trim();
+    const slug = claim.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter(Boolean).slice(0, 4).join('-');
+    out.push({ id: id || slug, section, group, claim, test, mech, text: body });
     buf = null;
   };
-  for (let i = start + 1; i < end; i++) {
-    const l = lines[i];
+  for (const l of text.split('\n')) {
+    const s = l.match(/^## (\d+) · /);
+    if (s) { flush(); section = Number(s[1]); group = ''; continue; }
+    if (/^## /.test(l)) { flush(); section = null; continue; }
     if (l.startsWith('### ')) { flush(); group = l.slice(4).trim(); continue; }
     if (l.startsWith('- ')) { flush(); buf = [l]; continue; }
     if (buf && l.startsWith('  ')) { buf.push(l.trim()); continue; }
@@ -125,6 +184,77 @@ function rulesFor(section) {
   flush();
   return out;
 }
+
+const RULES = parseRules(md);
+
+// --lint: the guide keeps the shape this script reads. Every rule has an id, once, and a
+// test; every cue names a rule; every case names a rule. A rule renamed without its cues
+// would stop being picked, and nothing would say so.
+if (args.includes('--lint')) {
+  const problems = [];
+  const ids = new Set();
+  for (const r of RULES) {
+    if (!/^<a id="/.test(r.text) && !md.includes(`<a id="${r.id}">`)) problems.push(`no id: ${short(r.claim, 70)}`);
+    if (ids.has(r.id)) problems.push(`id used twice: ${r.id}`);
+    ids.add(r.id);
+    if (!r.test) problems.push(`no "Test:" in ${r.id}`);
+  }
+  for (const k of Object.keys(CUES)) if (!ids.has(k)) problems.push(`a cue names no rule: ${k}`);
+  for (const m of cases.matchAll(/^### ([\w-]+)\s*$/gm)) if (!ids.has(m[1])) problems.push(`a case names no rule: ${m[1]}`);
+  for (const p of problems) console.log(`✘ ${p}`);
+  console.log(`preflight --lint: ${RULES.length} rule(s), ${problems.length} problem(s) in ${relative(ROOT, modesAt.path)}`);
+  process.exit(problems.length ? 1 : 0);
+}
+
+// ------------------------------------------------------------ which rules
+
+// Each rule's vocabulary: its id, its claim, its test, and its cues. A word's weight is
+// how rare it is among the rules, so "missing" picks out a few and "file" picks out none.
+const vocab = RULES.map((r) => new Set([
+  ...words(`${r.id.replace(/-/g, ' ')} ${r.claim} ${r.test}`).map(stem),
+  ...(CUES[r.id] || []).map(stem),
+]));
+const df = new Map();
+for (const v of vocab) for (const w of v) df.set(w, (df.get(w) || 0) + 1);
+const idf = (w) => Math.log(RULES.length / (df.get(w) || RULES.length));
+
+// Two stems are one word when they are equal, or when the shorter, five letters or more,
+// starts the longer.
+const same = (a, b) => a === b || (Math.min(a.length, b.length) >= 5 && (a.startsWith(b) || b.startsWith(a)));
+function score(task) {
+  const t = [...new Set(words(task).map(stem))];
+  return RULES.map((r, i) => {
+    let total = 0;
+    for (const w of t) {
+      const hit = [...vocab[i]].filter((v) => same(w, v));
+      if (hit.length) total += Math.max(...hit.map(idf));
+    }
+    return { rule: r, score: total };
+  });
+}
+
+const named = args.filter((a) => byKey[a]);
+let selected = [];
+let more = 0;
+let matched = true;
+if (named.length) {
+  const secs = new Set(named.map((k) => byKey[k].section));
+  selected = RULES.filter((r) => secs.has(r.section));
+} else if (TASK) {
+  const ranked = score(TASK).filter((s) => s.score >= THRESHOLD).sort((a, b) => b.score - a.score);
+  matched = ranked.length > 0;
+  const kept = ALL ? ranked : ranked.slice(0, CAP);
+  more = ranked.length - kept.length;
+  const keep = new Set(kept.map((s) => s.rule));
+  selected = RULES.filter((r) => keep.has(r));   // back in the guide's order
+} else {
+  selected = RULES;
+}
+const families = new Set(named.length
+  ? named
+  : matched && TASK ? selected.map((r) => FAMILIES.find((f) => f.section === r.section)?.key) : FAMILIES.map((f) => f.key));
+
+// ---------------------------------------------------------------- the register
 
 const registerAt = await loadRegister(ROOT, { override: flag('register') || process.env.KIT_REGISTER });
 // The schema sits beside the register this run read, wherever the project keeps it.
@@ -140,6 +270,37 @@ const shapeUnknown = registerAt.state === 'bare-array' || registerAt.state === '
 // family made it invisible here for good. It is printed whatever the task.
 const offSchema = incidents.filter((i) => !FAMILIES.some((f) => f.key === i.category));
 
+// The rule an entry points at, when its guard names one: docs/failure-modes.md#<id>.
+const ruleOf = (i) => {
+  const m = String(i.guard?.where || '').match(/failure-modes(?:\.md)?#([\w-]+)/);
+  return m ? m[1] : null;
+};
+const unguarded = (i) => !i.guard || !i.guard.kind || i.guard.kind === 'none';
+
+// One lesson, one line: several entries with the same `generic` are one rule broken several
+// times, and printing each made the list long without saying more. The unguarded first,
+// because there the reader is the only check; then the most recent.
+function pickEntries(list, cap = REGISTER_CAP) {
+  const sorted = [...list].sort((a, b) =>
+    (unguarded(b) - unguarded(a)) || String(b.date || '').localeCompare(String(a.date || '')));
+  const seen = new Map();
+  for (const i of sorted) {
+    const key = (i.generic || i.error || i.id || '').trim().toLowerCase();
+    if (seen.has(key)) seen.get(key).times++;
+    else seen.set(key, { entry: i, times: 1 });
+  }
+  const all = [...seen.values()];
+  return { shown: cap ? all.slice(0, cap) : all, more: cap ? Math.max(0, all.length - cap) : 0 };
+}
+
+// The most repeated mistakes, from `repeat_of` chains: a ranking computed every run, so
+// it cannot go stale the way a "top five" written in a guide does.
+function broken(list) {
+  return [...repeatChains(list).entries()]
+    .map(([root, rows]) => ({ root: rows[0], repeats: rows.length - 1, last: rows[rows.length - 1].date, rule: rows.map(ruleOf).find(Boolean) }))
+    .sort((a, b) => b.repeats - a.repeats || String(b.last).localeCompare(String(a.last)));
+}
+
 // ------------------------------------------------------------ render
 
 const say = (s = '') => console.log(s);
@@ -151,14 +312,39 @@ const wrap = (s, width, indent) =>
     return acc;
   }, []).join('\n' + indent);
 
+function printBroken(limit) {
+  const rows = broken(incidents);
+  if (!registerAt.path || registerError || shapeUnknown) return;
+  if (!rows.length) {
+    say('Most broken: no repeat logged yet (mark one with `repeat_of` in the register).');
+    say();
+    return;
+  }
+  say('── Most broken here, by repeats ───────────────────────────────────');
+  for (const r of rows.slice(0, limit)) {
+    const at = r.rule ? `  #${r.rule}` : '';
+    say(`   ${String(r.repeats).padStart(2)}× ${short(r.root.generic || r.root.error || r.root.id)}${at}`);
+  }
+  if (rows.length > limit) say(`   ${rows.length - limit} more: --broken`);
+  say();
+}
+
+if (BROKEN) {
+  say();
+  printBroken(Infinity);
+  if (!registerAt.path) say('No register found: nothing to rank.');
+  process.exit(0);
+}
+
 say();
 say('PREFLIGHT — the checks this task has to survive');
 if (TASK) say(`Task: ${TASK}`);
-say(`Families: ${selected.map((f) => f.key).join(', ')}`);
+say(`Families: ${[...families].join(', ')}`);
 say();
+printBroken(BROKEN_TOP);
 
 // This project's own past mistakes come first. They are the ones already paid for.
-const mine = [...incidents.filter((i) => selected.some((f) => f.key === i.category)), ...offSchema];
+const mine = [...incidents.filter((i) => families.has(i.category)), ...offSchema];
 const problems = validate(incidents);
 if (offSchema.length) {
   say(`⚠ ${offSchema.length} entr${offSchema.length > 1 ? 'ies are' : 'y is'} filed outside the seven families ` +
@@ -207,30 +393,50 @@ if (!registerAt.path) {
   say(`Register (${registerAt.path.replace(ROOT + '/', '')}): ${incidents.length} logged, none in these families.`);
   say();
 } else {
+  const { shown, more: rest } = pickEntries(mine, ALL ? 0 : REGISTER_CAP);
   say(`── Already made on this project, in these families (${mine.length}) ────────────`);
   say('   Repeating one of these is worse than a new mistake: it says the register is not working.');
   say();
-  for (const i of mine) {
-    const guard = !i.guard || i.guard.kind === 'none'
-      ? 'NOTHING GUARDS THIS — you are the check'
-      : `guarded by ${i.guard.kind}${i.guard.where ? ` (${i.guard.where})` : ''}`;
-    say(`   [${i.severity || '?'}] ${i.date || ''} ${i.category}`);
-    say(`   ${wrap(i.generic || i.error || '(no lesson recorded)', 92, '   ')}`);
-    say(`   ${guard}`);
-    say();
-  }
-}
-
-for (const f of selected) {
-  const rules = rulesFor(f.section);
-  say(`── §${f.section} ${f.label} (${rules.length}) ───────────────────────────────────`);
-  let group = '';
-  for (const r of rules) {
-    if (r.group && r.group !== group) { group = r.group; say(`   ${group}:`); }
-    say(`   [ ] ${wrap(FULL ? r.text : r.claim, 92, '       ')}`);
+  // One entry, two or three lines: the lesson's first sentence and what guards it. The whole
+  // lesson and the guard's full place with --full.
+  for (const { entry: i, times } of shown) {
+    const where = i.guard?.where ? ` (${FULL ? i.guard.where : short(i.guard.where, 60)})` : '';
+    const guard = unguarded(i) ? 'NOTHING GUARDS THIS — you are the check' : `guarded by ${i.guard.kind}${where}`;
+    const lesson = i.generic || i.error || '(no lesson recorded)';
+    say(`   [${i.severity || '?'}] ${i.date || ''} ${i.category}${times > 1 ? ` ×${times}` : ''} · ${guard}`);
+    say(`   ${wrap(FULL ? lesson : firstSentence(lesson), 92, '   ')}`);
   }
   say();
+  if (rest) { say(`   ${rest} more: --all`); say(); }
+}
+
+if (TASK && !named.length && !matched) {
+  say('No rule in docs/failure-modes.md shares a word with this task. Name the families instead');
+  say('(`node scripts/preflight.mjs --list`), or describe the task in more words.');
+  say();
+} else {
+  const held = selected.filter((r) => r.mech.length);
+  const open = selected.filter((r) => !r.mech.length);
+  let section = null, group = '';
+  for (const r of open) {
+    if (r.section !== section) {
+      section = r.section; group = '';
+      const f = FAMILIES.find((x) => x.section === section);
+      say(`── §${section} ${f ? f.label : ''} ───────────────────────────────────`);
+    }
+    if (r.group && r.group !== group) { group = r.group; say(`   ${group}:`); }
+    say(`   [ ] ${wrap(r.claim, 92, '       ')}`);
+    if (FULL && r.test) say(`       test: ${wrap(r.test, 86, '             ')}`);
+    if (FULL && hasCase(r.id)) say(`       case: docs/failure-cases.md#${r.id}`);
+  }
+  if (open.length) say();
+  if (held.length) {
+    say(`Held by a mechanism, so do the check when it blocks: ${held.map((r) => `${r.id} (${r.mech.join(', ')})`).join(', ')}.`);
+    say();
+  }
+  if (more) { say(`${more} more rule(s) share a word with this task: --all`); say(); }
 }
 
 say('Anything you cannot tick, say so in the handover rather than delivering past it.');
+say('Each rule\'s test: --full, or docs/failure-modes.md#<id>.');
 say();

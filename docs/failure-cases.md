@@ -1,0 +1,1319 @@
+# The cases behind the failure modes
+
+Each heading is the id of a rule in [failure-modes.md](failure-modes.md), which holds the rule and
+its test. This page holds what happened: the incidents that produced each rule, and the detail a
+one-line rule leaves out. The ids are stable, so an incident in a register can point at one
+(`docs/failure-modes.md#absence`) and `node scripts/preflight.mjs --broken` can count it. New cases
+are invented; the others come from real registers, with every name taken out.
+
+## About this page
+
+- **A large share were caught by the owner, not by the AI.** Those were the ones visible from their
+  screen, and there was no reason they should have been the first to see them. Every rule exists so
+  the next one is caught earlier, and the share the owner has to catch is the number that matters.
+- **Three mechanisms had no check when the list was first written.** A true sentence going false
+  with nobody touching it (§4), a "to verify" gaining authority each time it is requoted without
+  gaining evidence (§2), and a real document mistaken for a precise one (§3). Parts of them are now
+  held (`check-retired` refuses a retired route written back, `turn-check` refuses some claims made
+  with nothing run); where nothing refuses, a register says *nothing guards this yet*, which is its
+  most honest column, rather than dressing a rule up as a safeguard.
+- **A rule does not transmit by being written. It transmits by being executable.** The clearest
+  result from one register's second hundred cases: the families that receded are the ones whose fix
+  took the form of a tool or a control that refuses, and the ones that resist are the ones whose fix
+  took the form of a sentence, however good and however well placed. Measured on composition rather
+  than volume, the documentary families fell from 40% of incidents to 11% once the fix became a tool
+  that queries the source live; actions on files rose from 24% to 33%, because they are what is
+  left. On the very day the rule that a safeguard depending on what it guards against protects
+  nothing was written down, that owner's workshop built a monitor hooked to the activity of the
+  person it was meant to watch, silent during exactly the periods it existed to cover, and the
+  outage happened in one of them. So when you correct something, ask what would refuse, and fall
+  back to prose only when nothing can.
+- **Some of the commonest misses are refused by the harness rather than by a page.** `send-guard`
+  holds a message leaving in someone's name until a person says yes, and `turn-check` refuses to end
+  a turn on the claims listed by `node .claude/hooks/turn-check.mjs --list`. A block is answered by
+  doing the check, or by saying exactly what was and was not looked at.
+
+## 1 · Acting before looking
+
+### absence
+
+Absence of evidence in what you happened to read is not evidence of absence.
+
+**No search can prove an absence — not an index, not a keyword sweep, not a filtered inventory.** A
+search establishes that a term is present; a mechanism can be stipulated without using any of the
+words you looked for. A filtered index answers "is it on my map", never "does it exist": one built
+on a filename whitelist was read for two days as proof that documents were missing, and it had never
+indexed a message body. Before concluding from an empty result, **calibrate the search on a case you
+know should appear.** If your known case does not show up either, the instrument is at fault, not
+the data. To assert an absence, read the whole section and say how you checked.
+
+**A search tool says how far it sees, and a zero is read against that.** An index built once and
+never refreshed answered "no result" for three weeks of mail exactly as it answers for a message
+that does not exist. Anything that answers with an absence prints the date or extent it covers; a
+zero beyond it is not an answer. **A sweep that filters says what it left out**, and never calls
+itself complete: one restricted to messages carrying a date marker reported "all answered" over a
+thread whose last mail had none.
+
+### search-by-question
+
+A corpus chosen because it is "about" the subject will miss the folder named for the exact document.
+What a call decided sits in its notes and its transcript, sent by a notetaker or attached to the
+calendar event: three points were reported unknown, and put back to the owner, after a search of the
+mails with the other party only.
+
+### search-bounds
+
+A file search cut at its first thirty results, a mailbox read to a fixed number of recent messages,
+a date filter comparing a number with text: each returned nothing and each was read as an absence.
+Run the same query without its filter first; a zero on a source you know is live is a broken query.
+Before concluding absence, search case-insensitively and with no cap per thread. Then search again
+by the probable author and by the period of the facts: a reply sat under the sender's assistant's
+name, a month before the date searched. **Search a figure in its numeric form as well as in words**
+(50 % as well as *half*). Open the working attachments of the thread too, spreadsheets included,
+version by version: a cost split agreed in a shared workbook was reported as never discussed,
+because only the mail bodies had been read. Then say apart what the signed texts say and what the
+working documents say.
+
+### successor
+
+**Never comment on a document without looking for its successor**: search its name plus *amendment*,
+*new*, *v2*, *replaces*. That is part of reading it, not a finishing touch.
+
+### search-dont-offer
+
+"I can look through your files if you like" asks the owner to price a cost they cannot see. Do it in
+the same turn, then report. It only becomes a proposal if it is long or depends on a
+choice that is theirs.
+
+### inventory
+
+Before writing anything that moves, deletes or transforms files: list what exists, what is
+duplicated, what is already elsewhere, and what is actually taking the space. Machinery built blind
+acts on files whose status nobody established.
+
+### measure-constraint
+
+Elaborate exclusion rules to save space that was never scarce is work that looks careful and is not.
+
+### provider-settings
+
+A provider's configuration is a load-bearing fact about your design, and what it *refuses* to change
+tells you more than what it offers. A membership form was about to get a whole discipline — a new
+form each year, a rule about which link to circulate, a reminder not to send last year's. Opening
+the back office showed the validity period was a **rolling year and locked**, because payments were
+attached to it. There was never a yearly form to get wrong, and the discipline would have been pure
+ceremony. Two settings screens, four minutes. The same visit surfaced two limits no documentation
+mentions, both of which change what the product must say in words. **And when a constraint you find
+there decides a design, encode it as a check rather than a sentence**: the rolling year became a
+build failure on any membership link carrying a year.
+
+### own-files-first
+
+Told where the rule lives: `source/formats/message.md` ▸ *Every ask passes two tests*.
+
+### retrieving-not-reading
+
+A one-page note, downloaded and indexed from the start, sat unread while three deliverables said the
+figure it carried "exists in no document in the file". Before writing *missing*, *not found* or *to
+request*, list what the project already holds on the subject and open it — including the owner's own
+working files. An attachment can also look absent because the mail client only downloads it when you
+open it. **A count someone will decide on is made by opening each item**, not by the search that
+found the candidates: six scripts "reading a neighbour's files" were five once read, and not the
+same five. Without the time to read, give them as candidates.
+
+### quote-clause
+
+An internal extract faithfully summarised a contract article and dropped six words of preamble — the
+six that reversed its meaning. A published date rested on the summary for days. And **verify the
+article that carries the conclusion first**, not the easy ones around it: checking the peripheral
+links of an argument gives false confidence about its central one. **A closed list is quoted, never
+summarised**: a generic term put in its place widens it, and "local public companies" let in two
+kinds of body an eligibility rule did not name. Two acronyms one letter apart are written out in
+full the first time, or the review validates the neighbour.
+
+### read-to-end
+
+Each item of an enumeration is independent and none announces the next, so the sub-point that
+answers your question is not the last word. In a thread, the answer almost always arrives after the
+question: a dunning notice was taken for a quarterly charge and a decade of costs built on it, while
+the real quarterly figure sat two messages further down. **In a group thread, join each message to
+its author before concluding**, and write a missing name as missing rather than leaving a sentence
+with no subject: a refusal in a five-person thread was put in the treasurer's mouth because the
+quoted reply had lost its header.
+
+### correction-authority
+
+Told a figure was wrong, the fix replaced it with another figure from the same email thread rather
+than opening the deed. The second version was wrong too, and travelled further because it now looked
+verified. **A correction that removes is the riskiest kind**, because only what you add gets
+checked: a source giving someone one title does not refute the other, and a public official holding
+two posts lost the true one from her file.
+
+### name-document
+
+"The letter" was a board resolution — which changes who decides, how often, and what protections
+apply. Same for versions: a document found is not the document. Say which version you kept and why
+the others are set aside.
+
+### obstacles-by-nature
+
+Asked from when the owner could act, the file listed what stopped them legally and never opened what
+dissuaded them economically. The answer was exact, complete-looking, and a year early. Legal, tax,
+contractual, economic: say which you instructed and which you did not, and if any is missing the
+answer is an order of magnitude and presents itself as one.
+
+### third-party-procedure
+
+A claim went out with one of the two documents an insurer listed, because it was written from the
+project's own summary of the procedure.
+
+### trace-two-figures
+
+Two values that differed slightly came from the same document, one of them rounded; the owner chose
+the rounded one without anyone having looked.
+
+### current-edition
+
+A methodological guide was read whole, page by page, in an edition twenty years old; the current one
+had dropped the figures about to be quoted. Reading in full says nothing about whether it is the
+right document.
+
+### open-method
+
+A wrong number gets challenged, because numbers invite checking; a wrong method gets adopted,
+because it reads as craft. A technique attributed to a document nobody opened can be built on before
+anyone checks. And when the source is reachable, read it rather than asking its owner to confirm
+your reconstruction: a flagged guess travels with the text for as long as nobody answers the flag.
+
+### truncated-source
+
+A tool returned the first two hundred lines of a long lease, and the answer said the lease had no
+clause on early exit. The clause was on page eleven, past the cut, and the tool's output had said it
+was truncated, in one line at its end.
+
+### inherited-missing
+
+A handover note listed a signed contract as "missing, to request from the venue". Three sessions
+carried the line forward and one drafted the request. The contract had been in the inbox folder since
+the week the note was written, filed under the venue manager's name.
+
+## 2 · Status of information
+
+### status-field
+
+Make it a field, not a remark: every figure that leaves this repo carries `established` /
+`conditional` / `assumed`, in the data structure and in the sentence that displays it.
+
+### own-notes-refute
+
+Three wrong conclusions in one incident, and for each the contradicting observation was already
+written in the dossier, by the agent, days earlier: an antivirus extension blamed for a block it had
+been recorded as coexisting with; and "writing to a disk" argued as proof that mounting was
+permitted, five days after the same file noted a format succeeding while a mount failed. The root
+cause the agent named itself is worth keeping in its words: *I concluded faster than my own
+findings.* Your own notes are the first place to look for the refutation, not the last.
+
+### no-plausible-guess
+
+Trace it to its cause, or write that you do not know. A guess left in the file becomes the reason,
+and it makes a sound calculation look suspect. **An explanation of the gap between two figures is
+recomputed from the cells**, never deduced from the text around them: a gap put down to a fee
+described two lines above came from a row summed twice.
+
+### omission-first
+
+Re-read what they already said on the subject before explaining anything. The gravest case in one
+register: a step never done, explained after the fact as "deliberate", on a point the owner had
+flagged before; it happened again within the hour after being named, and only a hook stopped it. "I
+left it out" is the first sentence to try, because it is usually true.
+
+### inherited-assumption
+
+When you build on something you did not establish, say so in the same sentence, with what it changes
+if it is wrong. **A trial or a simulation lists, at its top, every setting that takes effect in the
+new case without having been asked for.** A run on a new scenario kept the model's other settings,
+one of which assumed a sale the owner had never raised, and the result was read as the effect of the
+one change she had asked about.
+
+### form-authority
+
+This is the umbrella over most of this section, and it took an owner five cases in one document to
+name it. An exact count invites a false conclusion; a blocking check carries a guarantee word no
+document supports; anomalies from the wrong file are imputed to the owner's document; a repair story
+is invented to explain an alert that merely stopped firing; a well-kept file passes for a decision
+that was handled. In all five the work *looked* quantified, checked and recorded, and that
+appearance did the persuading. The reader cannot separate what a document establishes from what the
+tool supposed, **so the tool has to separate it for them** — which is the whole reason a status is a
+field and not a remark, and why a severity is derived rather than chosen.
+
+### outside-report
+
+It arrives already argued, with its own evidence and its own conclusion, so it reads as a result
+rather than as a claim. A real case: an outside user reported that a tool was wrong to demand the
+framework of ten of her repos. Two of the three premises were checked in the code and held; the
+third, that those ten repos really were the thin kind, came only from her description and nobody
+opened them. Verifying most of the premises produced the confidence of having verified the
+conclusion, and the answer went out saying flatly that she was right. Separate, in writing, what you
+confirmed yourself from what you took from the reporter, and tell *them* which is which — they are
+the only one who can close the gap. And where a fix relaxes a check on the strength of such a
+classification, print the classification in the output: the dangerous direction is a real case
+quietly exempted, because an exemption produces no signal at all.
+
+### delegated-finding
+
+Its summary arrives in the same confident register as a verified result, and relaying it costs
+nothing while checking it costs a read: a device was named to the owner as a blocker on a subagent's
+word, and the registry said otherwise. Open the file that settles a specific claim before passing it
+on, or present it as the agent's.
+
+### name-account
+
+"Personal" was written into a project's founding rules and recopied from file to file for days. It
+answered *who owns this* and was read as answering *will it survive*. The two are independent, and
+neither had been put to the system. Write the identifier the system displays, and ask the system
+which account holds the service.
+
+### browser-account
+
+A daily sweep whose own instructions said to read the work mailbox through its Gmail connector ran
+against the owner's *personal* Chrome profile instead. Two rules come out of it. A task backed by an
+API stops and reports when the API fails; it never reaches for the logged-in browser to finish the
+job, because that silently changes whose data is being read. And when a browser is the
+right tool, **identify the session by what it is signed into**, not by the handle the tooling gives
+it: the connected-browser list here hands out display names assigned per connection, so the same
+machine was "Browser 1" one morning and "Browser 2" that evening. Anything that recorded "use
+Browser 2" was pointing at a different profile by the afternoon. Open a page that names the
+signed-in account, compare it to the one the task needs, and stop if they differ.
+
+### category-identity
+
+Metered interface, carrier prefix and signal strength together established *a phone hotspot*; they
+were written up as *this owner's phone*. Where the deciding value is unreadable, test membership
+without displaying it — compare, count, check against a list — rather than reasoning in its place.
+And admitting the gap in the same sentence as the conclusion does not license the conclusion; it
+just makes it look careful.
+
+### dated-document
+
+It establishes that the deadline exists. Before writing a date down, check on the document itself
+what that date measures — a diary entry for an evening someone attends is not a date that binds.
+Same trap between a threshold and its effects: a deadline whose label says *from*, *threshold* or
+*beyond* carries the date of crossing, and the consequences go in the text of the action.
+
+### term-of-art
+
+People name a thing with the word they have. In law, tax, contracts, medicine and engineering the
+neighbouring word is a different thing — a *replica* is not a *backup*, a founder's *loan* is not
+*capital* — and nobody announces the substitution, so the word arrives carrying the rank of an
+established classification it never earned. Everything downstream is then internally consistent and
+about an arrangement that does not exist, which is why re-reading the work never catches it. Verify
+the term against its definition before building on it, and when it is the wrong one, give the right
+term with the distinction and what it changes rather than a silent fix: the owner is the one who
+will use the word where you are not. Reported by an owner running this kit, who had built a file on
+the wrong one of two neighbouring legal terms.
+
+### ok-not-decision
+
+An owner's "ok" in the middle of a set of simulations was filed as decided, carried into two meeting
+notes and a deadline, and she had to say she had decided nothing. A decision is recorded with the
+words that took it and what they covered. **A decision carrying an order ("A, failing which B") or
+an amount is shown back in one line before it is written**: a paraphrase swapped the order of a
+large clause. Another session's paraphrase of the owner is not their decision; go back to their
+words. And a "yes" to a sentence is not a ruling on its substance: on law, tax or a calculation,
+cite the text or the computation, never the owner.
+
+### condition-travels
+
+A block titled "if this happens after X" was copied into a guide and a task list without its title.
+A task list has no conditional mood, so a contingency became something the owner had to do.
+
+### claim-withdrawal
+
+A correct statement of law was withdrawn because the owner contested it twice, and replaced by a
+quote from the project's own notes. Being contested is a reason to open the primary source, not a
+proof. The owner is the authority on the facts of their own affairs, not on a rule of law.
+
+### one-report-person
+
+A colleague's remark that a printer "never answers on time" became, two notes later, a line in a
+brief calling the printer unreliable. It rested on one late reply; the printer's file showed every
+other answer arriving within the day.
+
+### meeting-summary
+
+A notetaker's summary put a budget range of 10 to 15 thousand in the client's mouth, because the
+speaker labels had shifted after someone joined late. The transcript showed the owner had proposed
+the range and the client had answered "closer to ten". The summary had also rounded the upper bound.
+
+## 3 · Producing and reading figures
+
+### one-producer
+
+A reference points to where the figure is computed and tested, never to another display of it.
+Copying is the cheapest gesture at writing time and the most expensive at the first correction. **A
+bug fixed in one view is fixed in every place that computes the same quantity**, searched for before
+calling it done: a curve was corrected to follow one exercise, and a ratio written the same hour
+still compared two.
+
+### provenance-precision
+
+A genuine document can mention a figure in passing. Before using it, ask whether the document *had
+that figure as its subject*.
+
+### reconstruction
+
+Solving for the unknown that makes the answer come out is not a check, however satisfying the
+arithmetic looks.
+
+### independent-check
+
+The independent check takes another path (another program, another session, another decomposition)
+and reads each case as the end reader will. In one register four errors passed the automatic control
+because it reused the model's own logic: a value set to zero for a new case, a tax saving counted
+twice, a cost added at one event and forgotten at the next, a debt dropped in a second section. All
+four were caught by reviewers who recalculated with their own program.
+
+### threshold-derived
+
+Derive the boundary, then use measurement to confirm the derivation.
+
+### measuring-tool
+
+A size, a count, a quota can each be reported in a unit that is not the one that binds. Before
+announcing a gain, verify it on the quantity that matters.
+
+### owner-model-purpose
+
+A model answering a different question than yours is not a broken model, and they usually had a
+reason. Ask for it.
+
+### frame-of-reference
+
+**A figure without its frame of reference is worse than a wrong one**, because nothing looks
+incorrect and nothing can be corrected: give the date, the scope, and who it applies to.
+
+### subtract-contents
+
+Same unit and a similar order of magnitude was enough to make a purchase cost — fees included — get
+subtracted from a market value, and a property that had gained value was reported to its owner as
+having lost some. A cost compares to a cost. Posing the distinction earlier in the message does not
+protect you from dropping it at the line where you conclude.
+
+### figure-sentence
+
+A figure quoted by someone who says they do not understand it is not data. And before comparing two
+things by a ratio, establish what distinguishes them other than size — two flats in one building,
+one to gut and one immaculate. A list of caveats underneath does not neutralise a heading that says
+the opposite; the heading is what stays. **One expression names one amount in a page**: "what is
+left to her" named a monthly income in one line and a remaining capital two lines down. A review
+follows the thread of amounts from step to step, not only each sentence.
+
+### log-line
+
+**Before counting a machine log, establish what one line represents** and by which key two lines can
+mean the same fact. Logs are redundant in ways that are invisible in the file, because every line
+looks perfectly plausible: one response spread over several lines, a resumed session recopying its
+predecessor's events into its own log.
+
+### app-index
+
+A mail client keeps deleted messages as orphan files: counting them produced an alarming gap,
+published before its cause was established, and an order of magnitude past the real one. Do not
+publish a gap before you can explain it — an unexplained alarming figure costs more than the delay.
+
+### comparison-direction
+
+Two diffs run minutes apart with the arguments swapped, read with the same grid, produced a warning
+that entries had been destroyed when they were intact, and advice that would have lost the ones that
+really had. When a comparison is going to be reported to someone, name both sides in the output. And
+check an announced loss against an independent quantity first: the file described as truncated was
+the larger of the two.
+
+### adjustment-base
+
+Say what you are starting from before you say what you are taking out. A clause neutralising an
+accounting standard was written up twice as pushing a figure down through its contractual floor; it
+does the opposite, and the series it applied to were not on that basis at all. Apply the adjustment
+to the known series and check the result is still possible — a reversed sign almost always produces
+an absurd value somewhere, and that takes a minute.
+
+### balance-sheet
+
+Repaying a debt, reinvesting, contributing to a company, switching vehicles: these are neutral by
+construction, so their effect lives in tax or income, never in the net. Two striking amounts
+pointing opposite ways are not an alternative.
+
+### indicator-conclusion
+
+An owner asked whether her error register was worth resending to this framework's maintainer. The
+answer given was that the case count had risen but "the families are the same" — exact, and it
+produced the opposite of the truth: she concluded nothing had been fixed, while the share of errors
+she was catching herself had in fact fallen and the largest family was nearly extinguished. A
+category is a wide bucket, so it cannot disappear, and its persistence says nothing about whether a
+correction worked. The indicator cited was the one that computed without effort, not the one that
+answered the question — and the figure that would have contradicted it was one command away. **To
+measure the effect of a fix, measure what would change if it had worked**: who detects the error
+now, how fast, and whether the same *mechanism* recurs. Never the count of categories. Third time
+this register has met this shape in another form: an exact figure lies through what it lets you
+believe.
+
+### no-balancing-line
+
+A detail meant to justify a total did not sum to it, and the program filled the gap with a line
+called "adjustments" that nobody could open. If the lines do not fall on the total, stop and show
+the gap: a balancing line hides the one signal that the rule was misread.
+
+### decompose-total
+
+Two totals were opposed as proof that a study was wrong; one counted earnings capped at a ceiling
+and the other gross earnings, and one mixed contributions with credits. A difference between two
+composites is an error only once each is broken into terms that measure the same thing.
+
+### reconcile-subtraction
+
+A note said two documents "reconcile exactly" with no difference ever computed; they differed
+threefold, and an unpaid third was carried as paid. `turn-check` now refuses a concordance claim in
+a turn that ran nothing, so give the gap.
+
+### exact-equality
+
+Two options came out equal to the cent and it was presented as a finding; it was one allowance
+counted in the wrong one of two calculations. Equal results from different inputs are usually one
+input counted twice.
+
+### extreme-result
+
+An extreme result (*none*, *never*, *beyond the last column*) is checked against the neighbouring
+rows first: a formula offset by one row claimed a threshold was never reached while the row above
+showed it reached. And a total that does not move after a decision that should move it is a defect,
+not a confirmation. A universal claim about people (*none of the founders is paid*) is checked by
+counting the named list, and hardest when the conclusion suits you: the page that contradicted it
+had been quoted in the same answer.
+
+### two-readings
+
+A date was forecast from two observations taken two days apart; the next one showed the series moves
+in steps.
+
+### counterfactual
+
+A "what it would have cost without the cache" figure, four times the real cost, stayed on screen
+after an interrupted turn and was quoted back days later as the estimate.
+
+### pass-not-measure
+
+Everything green says the gate opened, not by how much. When all you have is a pass, write "passed,
+unmeasured" and name the case that was actually measured; an invented margin written next to a real
+one reads as evidence.
+
+## 4 · Silent expiry
+
+### number-in-prose
+
+Count it at display time, or phrase the sentence so it stays true without the number.
+
+**Anything that depends on an order expires like a count.** Rank, maximum, majority, "the main one",
+"the second most": these read as words rather than numbers, which is why they survive the regrouping
+that makes them false. Compute them at display time, in the same pass as the table they will sit
+next to.
+
+### sweep-fallen-fact
+
+**When a fact falls, sweep every occurrence of it** — every repo, every app, every summary, every
+decision that rested on it — not only the file where you noticed. Correcting the analysis in front
+of you and stopping there leaves the stale version reading like current information elsewhere. **A
+rule the owner states as "everywhere" becomes a check in the generating program the same day**, and
+the outputs already delivered are swept: a rounding rule applied to one page by hand was then missed
+twice on the next ones. And a rounding rule carries the grain it was set for: its step stays under a
+tenth of the smallest line it rounds. A step meant for yearly totals, applied everywhere, zeroed the
+lines of a monthly table whose title announced its own grain.
+
+### retire-routine
+
+Told where the rule lives: `routines/README.md` ▸ *Why they live here and not only in the scheduler*.
+
+### screen-decisions
+
+A decision cites its consequence, not the fact behind it, so no keyword search finds it. The owner
+keeps being asked to arbitrate something that no longer exists. Re-read open decisions against
+anything that changed today.
+
+### repo-not-app
+
+Having fixed a file says nothing about what the deployed page shows. To claim something is up to
+date, look at the thing itself.
+
+### pipeline-exists
+
+"Pushing publishes" is a claim about infrastructure, and infrastructure claims expire or were never
+true. On a real project the docs said Cloudflare rebuilt on every push; nothing was connected, and a
+corrected figure sat unpublished for six days while every summary reported it live. **A one-line
+assertion in a guide is not evidence.** Check the deployment source, or deploy explicitly and
+confirm on the live URL. Where a pipeline can fail silently, add a machine check that fails loudly —
+a string the live page must contain beats any amount of documentation.
+
+### reread-deliverable
+
+Written over hours, its opening paragraph knows less than its closing one. Three signals mean
+re-check a passage: it asks for something already obtained, it claims ignorance, or it quotes a
+figure from elsewhere.
+
+### claim-withdrawn
+
+Corrections are remembered where they were made; the person you are talking to is the same person in
+all of them. Fix the thing that produced the claim, rather than commenting on it.
+
+### retired-file
+
+An old export left in a folder still carries its `<script>` tags, its README, its "the brand lives
+in repo X": a session that opens it follows them to a repo that is dead. When something on disk says
+where to go or what to load, check the destination against `AGENTS.md` and `source/decisions.md`
+before following it. The hygiene half: clear the working folder of what no repo owns, inventory
+first, deletions to the trash and never `rm`, and what has no live counterpart into a dated
+quarantine folder with an index saying what each item was.
+
+### design-not-fact
+
+A plan, a pull request description, a commit message and a colleague's summary are claims about the
+future until the merge. Ask the system instead: the merged file for a mechanism, the host for a
+repo's visibility, the run for a deploy. A guide written from the plan describes a world that does
+not exist, and it is read first by every session.
+
+### look-once
+
+Wait on the build (the workflow run, the deploy log), then load the URL once with a cache-buster.
+Requesting a production host in a loop trips its bot protection, and the refusal looks exactly like
+a bug in your own work: pages served unstyled, stylesheets empty. Before debugging, diff the served
+bytes against the local build, and load a page you did not touch on the same host: when the control
+is broken the same way, the host is refusing you, not your work.
+
+### sweep-short-word
+
+Prose is wrapped by hand, so any phrase eventually straddles a line break and a phrase search
+reports it absent. When a route or a name is retired, add its old wording to
+`source/quality/retired-claims.json`, so `scripts/check-retired.mjs` stops the next session that
+writes it back.
+
+### short-lived-artifact
+
+Check how long a stale copy will live before costing someone a correction: a one-off deck that dies
+next week is not worth a fix, a page a partner keeps is. When a sweep is declined, write the choice
+down, or the next session proposes the same fix.
+
+### generated-needs-generator
+
+A table someone retypes every week from its sources fails the week they skip, and one date at the
+top hides rows weeks apart in age: carry each row's own date, taken from its source. A check that
+only reports leaves every fix to a hand edit, sits red, and stops being read. When the fix is one
+command with no judgement in it, let CI run the generator itself; keep the failure for what needs a
+person. **A literal written among extracted fields is the one value the pipeline cannot verify**: a
+"not confirmed" typed as a constant stayed on a page for weeks after the source held the date.
+Extract it, or print that the source is silent.
+
+### follow-up-looking
+
+Two answers sat in the inbox for a week while the file said "awaiting reply". Before touching a
+matter that waits on someone, search their messages since the day you wrote to them.
+
+### contact-dated
+
+Before naming someone as the current counterpart, read the message date and look for the same role
+in the last twelve months; a name older than two years is presented as old, or not at all. A letter
+was addressed to a bank adviser who had left four years earlier, found in the only thread that
+matched the bank's name.
+
+### signed-online-filed
+
+The platform sends a link, not the document, and the link expires; two weeks later the document has
+to be asked for again.
+
+### register-then-live
+
+A status page built from a register of venue bookings said the hall was confirmed. The register's
+last pass was nine days old, and the venue's own calendar showed the booking released. The answer had
+not said which part came from the register and which from the venue.
+
+## 5 · Actions on files and the machine
+
+
+### safeguard-axis
+
+It is one minute of work and it comes first, not last. An archive built to survive the loss of a
+work account was complete, hash-verified, auto-fed, mirrored to an external drive — and stored in
+cloud storage whose login was that same work account, which also held the password keychain and a
+dozen synced services. It protected against nothing. The owner found it themselves, two days later,
+by asking the common-sense question: *when the account goes, do I lose this too?* Ask it of every
+backup, every recovery path, every alert, every fallback: name what it protects against, then list
+what it needs in order to work, and check the two lists do not intersect.
+
+**Thoroughness is not coverage, and it disguises the gap.** The starkest incident in that register
+was an archive verified for days — hash by hash, restart, throughput, disk — and parked in cloud
+storage whose login was the very account the archive existed to survive. Every internal axis was
+checked and no external one was. Checking a great deal stood in for checking what mattered, and the
+profusion produced a confidence nothing supported.
+
+### ships-inside
+
+The kit's own update notifier runs from a `SessionStart` hook registered in a file in the repo. A
+project onboarded before that mechanism existed has neither the hook nor the script, so it never
+announces that an update exists, and it can only start announcing once someone has already done the
+update by hand. One real instance sat a month behind, silently, while its collaborator assumed his
+agent was current. When you roll something out, ask what reaches the installations that predate it:
+usually the answer is a person, and then say so rather than calling it automatic.
+
+### own-clock
+
+A watchdog hooked to session start and message send looks like a periodic task — both "run by
+themselves" — and covers exactly the hours the owner is at the keyboard, which are the hours that
+need no cover. The test: what does it do if nobody touches the machine for twenty-four hours?
+
+### seen-effect
+
+**Nothing is "in place" until it has been seen to produce its effect once**, measured on its result
+rather than on its installation. A check that rarely fires produces no trace, so nothing
+distinguishes a net that works from an inert one: fire it for real, once. A network ban compared the
+current SSID against a forbidden pattern, and the OS only gives the SSID to programs holding a
+location permission — so the comparison ran against a masking string, matched nothing ever, and its
+silence read as safety. **An access rule is in place when the application's own policy list is read
+back** and a person on the list gets through: a policy created and never attached left two people
+locked out for two days while the decisions file said both had access.
+
+### alert-where-looked
+
+Told where the rule lives: `routines/README.md` ▸ *A routine that fails quietly*.
+
+### program-in-repo
+
+One kept in a temporary folder was lost at the next reboot, and the document could no longer be
+rebuilt. A session's scratch folder, worktrees made in it included, dies with the session: push
+before the turn ends.
+
+### system-value
+
+**Before founding a rule on a system value, prove the program can obtain it in the conditions it
+will run in** — a scheduled job, not your interactive session. When the value is closed off, change
+lever rather than insist: the list of remembered networks was readable without permission, and
+removing one from it made the ban true by construction.
+
+### probe
+
+**Probe the system rather than assuming it**, especially for permissions and paths. Three lines of
+probe beats a confident model, and it is the owner who pays for a wrong one. Read a permission at
+its source before forming any hypothesis about a denial, and remember that editing an approved
+program can silently revoke the approval the owner just granted it. **A probe is read-only only if
+you know it is**: on some systems a command name is a shim that installs its package on first call,
+and a "look" installed and started a service on the owner's server.
+
+### second-hypothesis
+
+Access denied, therefore permission missing — and hours went into which interpreter to authorise,
+while an identical manual probe was succeeding the whole time. When two supposedly identical runs
+give opposite results, the difference between them is the cause. An observation that contradicts
+your explanation is the lead, not a curiosity to note in the margin.
+
+### one-parser
+
+A check carrying its own copy of the statuses, the fields or the grammar passes files the site then
+renders wrong, or that the service refuses at start. Import the renderer's parsing and the config's
+vocabulary into the check, and test a generated file against the loader of the service that will
+read it.
+
+### gate-runnable
+
+Every rule the deploy enforces runs in the author's own checks and in CI too, so a refusal is seen
+before the push and not as a 404 after it. And a gate refuses the item at fault, never the whole
+publication: one bad page should not take the others down with it.
+
+### build-is-write
+
+A build run to check a typo regenerated a lockfile and three bundled assets. The commit that followed
+carried them under a message about one word, and a dependency a neighbour had pinned changed with it.
+
+### coverage-expires
+
+A check that every page carried a consent banner listed its pages by hand when it was written. Two
+pages were added a month later and the check kept passing, because it never looked at them. Deriving
+the list from the folder again found both, and feeding it a page without the banner showed it would
+have refused.
+
+
+### device-accounts
+
+The platform account of a phone or a computer, a password manager and its components: no scripted
+sign-in, no stopping a component, until the stake has been stated (what stops working, what can be
+locked out) and the owner has said yes for that one account.
+
+### privacy-boundary
+
+A disclosure cannot be taken back, and three shapes slipped through. Code ported to a public repo
+carried a comment with the owner's body measurements, pushed before the check ran. Names masked by a
+list of names to hide went out unmasked when that list was absent from the machine: mask by what may
+show, and sample the output for names before it leaves. And an ignore rule binds git only: copying a
+project folder to a server carried its `.env` and local files, so copy what `git ls-files` lists.
+
+### api-guarantee
+
+Test it on one item, then in a small batch, before acting in bulk, and verify the real state
+independently afterwards — never trust the tool's own report of success.
+
+### first-push
+
+Local-only is a real decision with a real cost — one copy, on one machine — so giving those repos a
+remote is usually right. But nothing has ever forced a look at what is in them: an ignore rule added
+after the fact protects none of the files already tracked, and history keeps a credential that a
+later `git rm --cached` only hides. So the first push is the moment to look, in this order: run the
+`ignored` pass, read the tracked files and the history for secrets, decide, and only then create the
+remote — **private, and verified private by an unauthenticated fetch**, not by the flag you passed.
+Then prove the remote is worth something by cloning it somewhere else and checking the clone
+actually works: a folder that has only ever existed on one machine tends to depend on files nobody
+ever added.
+
+### untested-comment
+
+A reassuring comment in a script makes the assumption invisible to review, which is worse than not
+writing it.
+
+### rename-aside
+
+"Start over" used for what was really a resume has thrown away hours of finished work. Moving the
+file and its index to a timestamped name is instantaneous, costs not one byte since nothing changes
+disk, and makes the mistake reversible. Deleting then happens knowingly, never in the same gesture
+as a resume. A typed confirmation is not the guard here: whoever types YES is whoever just ran the
+command. Outside a terminal, require an explicit flag instead.
+
+### destination-backup
+
+If an option removes the safety net, that disqualifies it; it is not a trade-off to rank against
+speed. If the safe route is blocked, understand why rather than routing around it.
+
+### copy-everything
+
+Sorting is still possible on a complete copy. It is not on a partial one.
+
+### delete-forward
+
+**Never delete forward through an indexed collection** — each removal shifts the ranks below it and
+half your targets survive — and verify a cleanup by recounting the final state, never by reading the
+number of operations you requested.
+
+### restore-reference
+
+`git checkout`-style restores undo everything unsaved, not what you just did; in a workshop where
+several sessions write in parallel, unsaved is the normal state of work in progress. A dozen lines
+of another session's work went that way. The only safe undo returns exactly the bytes you read
+before acting, and the return path gets tested when it is free, not when you need it.
+
+### integrity-source
+
+Compare a mangled file against a mirror synced after the mangling and you are comparing the damage
+to itself. Check the reference's timestamp before you rely on it. Session transcripts keep the full
+text of every write, and are the last resort when nothing else kept a trace.
+
+### rescue-untracked
+
+Asked to put a week of unsaved work somewhere safe before an upgrade, the ordinary stash-and-branch
+path saves modifications to files already tracked and walks straight past files that were never
+added — the brand-new documents, which are usually the week's actual output. Five would have been
+lost, and nothing anywhere would have said so: the operation reports success, because by its own
+definition it succeeded. Enumerate what exists before saving it (`git status --porcelain` including
+untracked, counted and shown), save the untracked files explicitly, then re-read the tree and
+confirm it is clean for the reason you think. Two owners hit this on the same day; one of them
+caught it only by redoing the capture. And where several sessions may be writing at once, take the
+capture without touching any working tree, since the tidy-up half of a stash is itself a write.
+
+### throwaway-remote
+
+To test that a publish stopped on a missing file, a session made a branch from `origin/main` in a
+scratch copy and ran the publish. The branch tracked `origin/main`, the plain push went to the real
+`main`, and the test file shipped. A clone pointed at a local bare repository would have taken the
+push with nothing to undo.
+
+
+### empty-check
+
+A backup job denied access to its source got an empty listing rather than an error, reported "up to
+date", and exited zero — and that report was shown to the owner as proof the thing worked. Where the
+population's order of magnitude is known, a zero result is an anomaly that stops the program by
+name. And distrust any indicator that only ever takes one value: it is measuring nothing.
+
+**A check that examined nothing returns no verdict.** A verifier pointed one folder too deep found
+no file, computed no hash, and printed "everything written is intact", with "0 verified" two lines
+above. A favourable verdict needs "no anomaly AND at least one thing checked"; otherwise it says
+what it could not see and exits in error. **A check that runs only in a sub-case says, in its
+output, that it is silent in the others**: a comparison between two sections ran only when a
+purchase was fully financed by a loan, which was never the case where the error sat.
+
+### write-rename
+
+A rename is atomic, a rewrite is not, and an index read halfway through a rewrite looks exactly like
+an empty index — which reads as *start over*. That is how a second archiver re-fetched an entire
+corpus and filled the disk. Which is also why you **enumerate the scheduled jobs already installed
+before adding one**; disabling a job is not enough while its install file remains.
+
+### lock-owner
+
+A parent that dies releases a lock its child is still working under. Put the process id in the lock
+so an abandoned one can be recognised and lifted rather than blocking forever. **A generator two
+launchers can start takes one**: a scheduled build and a hand-started one erased each other's work
+folder. The same incident sent the owner a false outage alert, then an all-clear, because the
+alerting device had only ever been tested on its live channel. Anything that alerts the owner is
+tested in a mode that cannot write to them.
+
+### instrument-bound
+
+Prefetching tripled throughput and ate the free disk that was the whole constraint. The gain was
+measured and announced; its cost was not. The same applies to the fix: measure it on the quantity it
+was meant to preserve, and cadence periodic housekeeping on a counter rather than only on a
+threshold, or it reruns every pass and costs more than the work it protects.
+
+### destination-each-write
+
+A backup script held a mounted external volume as a stable path. The volume unmounted itself
+mid-write, on a machine where it had already done so once before; the script did not notice, wrote
+seven thousand files into a path that no longer existed, and the interrupted write corrupted the
+filesystem. The 245 GB already copied became unreadable and the disk had to be reformatted. **A
+backup that continues without its destination does not back anything up: it destroys what it had
+already done.** Check the mount point before each file, stop hard, and exit with a distinct code.
+
+### shared-resource
+
+Disk, quota, bandwidth: other work, and other sessions, are using the same machine. **A job that
+holds a live service stopped carries a time limit, and is timed on a short input first**: a
+benchmark that paused a production service ran for hours, and the owner found out by asking where it
+was.
+
+### calendar-local
+
+Converting to UTC is the ordinary way to get a short date and is right everywhere you timestamp an
+event. Compare against a *calendar* and it is wrong for the hours between local midnight and UTC
+midnight — today's deadline announced for tomorrow. One function, in the shared module, returning
+today in the owner's timezone written out in full.
+
+### ignore-with-output
+
+Writing the program and declaring its output are two halves of one gesture, and an untracked file
+costs nothing and says nothing right up to the day a blanket `git add` carries it into history.
+Match by pattern, not by exact name, and list untracked files with their weight before any wide
+staging.
+
+### ignore-after-fact
+
+A rule only ever applies to files not already tracked, so adding `*.xlsx` to a repo that has been
+committing spreadsheets for months changes nothing at all: the ones already in leave nothing red,
+keep being committed, and the rule sits above them looking like a guarantee. Found by an owner who
+had four files of a financial model tracked under a rule forbidding exactly that.
+`check-freshness.mjs` ▸ pass `ignored` now asks the question on every sweep. Two honesties when
+fixing one: untracking keeps the file on disk but does not remove it from the history already
+pushed, so a credential that was in there has to be **changed**, not hidden; and adding the rule is
+not the moment to congratulate yourself, since the rule is the part that was never in doubt.
+
+### single-keyword
+
+Recognising collaborators by surname swept in a press subscription and people from unrelated
+organisations. Require context, and measure the false-positive rate on the real corpus — it was
+measurable immediately. **Matching stays inside the entity's own sources**: a company's books are
+reconciled against its bank, its invoices and its mailbox, never the owner's personal accounts
+unless asked. An amount and a date that coincide across that line read as evidence, and one was
+carried into a reply to the accountant and raised twice more after the owner had answered.
+
+### both-answers
+
+A process test matched an unanchored name that system services also carry, so it answered "still
+running" forever. A completeness test written as an equality could never pass once the agent itself
+had renamed files. Exercise both answers once before relying on either. **A guard's pattern is
+tested for what it lets through, not only what it catches**: an unanchored "0 errors" matched "10
+errors", and the guard waved the failure through.
+
+### scheduler-path
+
+A dry run called the send script directly, bypassing the entry script the job actually launches,
+which still read the attachment list in its old format; the mail did not go.
+
+### read-back
+
+`open(p, 'w').write(open(p).read()…)` empties the file before reading it and raises nothing; a notes
+file was committed empty that way, twice, and the agent then blamed a parallel session instead of
+reading the file's history. Read into a variable first, write, then check the file. And a check
+through the same path as the write proves nothing: text put on the clipboard and read back with the
+same wrong encoding was declared fine. **A generated file is checked for its content, not only its
+shape**: search the output for the template's own delimiters, since an interpolation that never
+happened passes every overflow and contrast check (a placeholder for a non-breaking space reached a
+slide thirty-seven times). A machine-read format (vector paths, JSON, CSV) is validated with that
+format's own parser, never by eye at thumbnail size: a rounding that dropped a minus sign broke
+eight paths nobody saw.
+
+### generator-twice
+
+**A generator that reads its own previous output is run twice in a row before it is called done**,
+and the second run must change nothing. Phrases appended again on every rebuild, rounding applied on
+top of rounding, a one-off conversion left active: each passed its first run.
+
+### open-document
+
+A workbook was rewritten six times while the owner read a stale copy on screen, and one save from
+that window would have erased every correction. What the owner just did in it is read from the
+application too, never from the file on disk: an unsaved manual reordering of rows was lost twice
+when the file was rewritten from the saved copy.
+
+### desktop-apps
+
+Check which app is in front in a separate command before acting, and never take the foreground while
+they work: their keystrokes went into a message field. Open a spreadsheet on a title cell, never a
+formula cell. Never answer a dialog another session owns, tell a neighbour session before using an
+app you share, and respect a refused screen access instead of routing around it.
+
+### visual-everywhere
+
+Inverting a deck's dominant colour left its headline figures dark on dark, contrast 1.26, on the
+published version; a full sweep then found thirty more texts below the threshold. Measure every
+element, not the component you suspect.
+
+### suspect-instrument
+
+When a check disagrees with something that just worked, reproduce the result a second way before
+fixing the code. Assert that each scripted substitution matched exactly once, since a pattern that
+matched nothing is a silent no-op that ships; and a count of one says the pattern is unique, not
+that it sits where you think, so read the markup it produced (a class landed outside its attribute,
+another on a breadcrumb four slides share). A check's conclusion is computed from what it checked: a
+reassurance a script prints unconditionally is not a result. The shell may be zsh, where an unquoted
+`$list` is not split into words and a variable named `path` overwrites `PATH`.
+
+### exit-code
+
+**A test suite's verdict is its exit code**, read with no pipe in between, never the presence or
+absence of a pattern in its output. A filter that assumes it knows every failure format needs only
+one new format to turn a failure into silence, and a confirmation written beside the command turns
+that silence into a positive claim. **The step that publishes depends on that exit code, and so does
+the commit that records an edit**: chain them (`set -e`, `&&`), or a script that crashed on its
+second file leaves a valid half-change that builds, tests green, and goes out under a message
+describing the whole. Before pushing, hold the message against the diff's file list.
+
+### exemption
+
+An exemption list is where a check stops looking, and a false positive filed there becomes
+"someone's decision" nobody can trace. Read each exemption against its criterion when you touch the
+list, and before acting on a recorded debt, open the thing it names: the note may be the stale part.
+**Never switch a check off without doing its job yourself**: a duplicate check disabled to avoid a
+dialog let the duplicates in.
+
+## 6 · Handover and the relationship
+
+### you-draft
+
+Told where the rule lives: `source/formats/message.md` ▸ *Three rules, whatever the message*.
+
+### app-not-document
+
+A standalone note ages the moment a number moves, and gets lost. If the information is not reachable
+in its place in the app, the work is not done.
+
+### decision-reraised
+
+Told where the rule lives: `source/formats/todo.md` ▸ *Why `#decide` exists*.
+
+### decision-as-data
+
+Once a decision is *taken*, writing it in the minutes is not landing it: people read the dashboard,
+not the minutes. A general assembly voted that any payment above a threshold counted as the annual
+membership fee; two days later the tool still filed fifty-four of those people under "gave without
+joining", and anyone preparing a mailing would have chased members as defaulters. Put the rule where
+the tool reads it — one row per period, carrying its threshold, its date and its source — and **fail
+the build on a value that is neither yes nor no, and on a yes with no threshold**, because that
+column decides who votes. As data rather than code, it stays editable by the people who decide and
+visible to the people it affects. And keep the history honest: a payment counted as a fee by
+decision is displayed as its own thing, not repainted as a membership, or the error being repaired
+disappears from the record.
+
+### only-they-can
+
+The cost of a bad instruction is not symmetric: you lose a turn, they lose an afternoon. Probe
+first, then act yourself where you can.
+
+### talking-out
+
+In the same incident the owner stood down a message she was about to send her IT support, on the
+strength of the agent's analysis. The analysis was wrong and her message was justified — the block
+did come back after the reboot, as a freshly reformatted disk then demonstrated. The disk was the
+visible cost; the real one was a decision she took on a false premise. Advising against something is
+not the safe direction by default: an argument that stops someone acting needs the evidence an
+action would have needed.
+
+### delegated-judgement
+
+"Tell me when the upload is finished" for something they cannot observe is a refusal dressed as a
+question. Put the criterion in code, and trigger the next step yourself.
+
+### no-jargon
+
+Define every technical term at first use, in the sentence, and name things by what they do. Keep the
+formal reference after the explanation, as proof, never as the explanation.
+
+### definite-article
+
+"The ten documents" means nothing to a reader who was never shown ten documents.
+
+### next-steps-today
+
+Something that cannot be known yet is a wait: it belongs on a date. Something a contract or a
+process already imposes is a date to verify, not a task. Filter every line through both tests before
+showing the list.
+
+### reconcile-questions
+
+Present a question as open only after checking it was not answered elsewhere, and close it *with its
+answer and source* rather than deleting it, so it does not come back next week.
+
+### wrong-answer-visible
+
+Deleting it costs the owner the ability to trust the rest.
+
+### settings-screen
+
+**A settings screen at a provider is never handed to the owner** (`AGENTS.md` ▸ *You run all the
+git*): look for the path that avoids the screen, or send one mail saying what to click and why.
+
+### problem-behind-instruction
+
+Told where the rule lives: `docs/complex-tasks.md` ▸ *A · The objectives and the constraints*.
+
+### alert-exception
+
+A finding is read by whoever runs the tool next, and that may be a parallel session that holds none
+of the reasoning for ignoring it. "12 instances will never announce an update. Run the update-kit
+skill in each" is an instruction, not an observation: at one in the morning a session obeyed it
+literally and installed the framework into ten repos designed to carry none of it, giving an
+organization eleven copies of something that existed once. The owner had reasoned the opposite and
+was right; her reasoning was in an email the session could not read. So: state the exception in the
+same breath as the finding, tell the reader to ask the owner where the map is silent, and never
+prescribe one action across N repos in a single pass. The corollary is the owner's, and it is the
+more important half — **a reason to not follow the tool has to live in the repo.** In an exchange it
+protects one session; in the map it protects every session. The same holds for an instruction you
+write to someone else's agent: **name an operation and you have assumed a state**, so say what to do
+when that state does not hold. "Pull this repo and do nothing else in it" was unexecutable on a
+clone that had diverged — the pull needed a merge, and merging a shared repo is not "nothing else".
+The agent stopped and said so, which was right, but only because it read the intent behind the verb
+rather than the verb.
+
+### chain-ends
+
+A feature was checked through the compiled module and the remote repo state, both fine — while a
+layout change had squeezed the control the whole feature depends on down to a few pixels wide. Still
+functional, impossible to aim at. A feature is not verified until the gesture has been made from the
+screen, or the server-side log shows the request arriving.
+
+### absolute-number
+
+Told where the rule lives: `source/brand/voice.md` ▸ *Rules*.
+
+### project-has-app
+
+For them a project and its app are the same thing, so the sentence lands as "there is nothing for
+this". What can be missing is a purpose-built tool — a simulator, a timeline, a set of documents —
+and that is what to call it.
+
+### one-question
+
+When a request can name two surfaces ("my site" for a public page or a private app), two levels
+(each section or each page), or points at a model ("like that one"), say in one line which you read
+and which property you borrow; weigh the clues in the message and the target's own guide first. A
+redesign was built for the wrong one of two sites. And a correction to a record rests on a fact the
+owner stated, or it waits: "the document I sent" misread spread to a registry, a check and a pull
+request in twenty minutes, and all of it was reverted.
+
+### decision-question
+
+"Pending the owner's answer" followed by a field name made her ask twice in one night which question
+she was meant to answer.
+
+### every-route
+
+She found the variant the law allows herself, and asked why it had not been proposed.
+
+### template-blanks
+
+A signature line left as dots under a sentence carrying another date was filled in with that date.
+
+### procedure-how
+
+A form and an address sent by an employer were filed as a fact, and the owner had to raise it again
+two days later.
+
+### name-from-login
+
+Those are abbreviations chosen by an IT department or by the person. If the full name is not found,
+write the identifier.
+
+### private-link
+
+The host answers "not found", not "forbidden". Say that access is needed, or send the document
+itself. A cost on your side (an attachment that is expensive to encode) is never moved onto the
+recipient and presented as a choice: the owner received "this page does not exist" and sent the file
+himself.
+
+### flattened-signatures
+
+A viewer stored them as form fields some readers do not display, and the recipient saw an unsigned
+page in a file identical, byte for byte, to the one that had been checked.
+
+### message-id
+
+A subject line is edited, trimmed and translated on its way, so a lookup by subject finds nothing
+and the automation sends again. Put an id in the message, search by it, and read "sent or not" from
+the sent folder, never from the screen that was supposed to send it.
+
+### field-interface
+
+When a neighbour repo reads a page's `<title>`, a date in a file name or a frontmatter key, changing
+it is changing an API: change the reader in the same commit, or leave the field alone. **Before
+renaming a label, a sheet, a heading or a note, search every program and every check that finds it
+by its text**, and accept both forms for one transition: a renamed sheet tab made an import read
+nothing, and report it as an empty month. **Moving or archiving a file in a shared space is a rename
+for whoever reads it**, so search its readers first. And a pipeline checks at its start that its
+source exists, and names what is missing: one produced nothing for a day, silently, after another
+session archived the folder it read.
+
+### wait-has-end
+
+A decision on a printer's quote waited on the printer's answer, with no date. Three weeks later the
+line still said "waiting on the printer", and the event had moved inside the print lead time. A line
+with a `due:` and `#revisit` would have come up at session start on the day the silence became the
+answer.
+
+### tasks-destination
+
+Asked to "add my tasks from the call", a session wrote them into the project's shared to-do file and
+pushed. The owner kept her own tasks in a personal list, and the shared file now showed her items to
+the whole team. She had said yes to the push; nobody had asked where.
+
+## 7 · Parallel sessions
+
+### commit-named
+
+A blanket `git add` has carried away another session's work in progress.
+
+### staged-belongs
+
+The index is shared state between sessions, so staging without committing is a trap for a
+well-behaved neighbour: a narrow `git add <their file>` followed by a plain `git commit` carries
+away everything already staged, and the work lands under a message describing something else
+entirely. Two framework files were published that way inside commits about two unrelated people, and
+the session that lost them had staged them itself, half an hour earlier, and moved on. Stage right
+before you commit, and treat `git checkout <ref> -- <file>` as a staging command, because that is
+what it is.
+
+### read-staged-diff
+
+Two sessions can edit the same file, and then naming the path stages the neighbour's lines with
+yours: a one-line correction to a to-do file went out carrying eight of a neighbour's edits under
+its own title. Read the body of `git diff --cached` before every commit. A `--stat` is not a
+reading: it says a file changed, never whose lines are in it, and the sessions in that case had been
+reading exactly that. Do not filter the body either: `grep '^[-+][^-+]'`, a common way to drop the
+`+++`/`---` headers, also drops every changed markdown bullet (a removed `- item` shows as `--
+item`), and a report's diff looked like a date bump that way. `git commit --only -- <paths>` still
+keeps whatever a neighbour staged in other files out of your commit (a new file needs its `git add`
+first); nothing but the reading keeps their lines in your file out. A move between two files lands
+in one commit, destination included, or the deletion can ship in a neighbour's commit while the
+addition is still untracked.
+
+### head-moves
+
+A session read a clean staged diff, and in the seconds before its commit a neighbour committed and
+pushed from the same checkout; the commit landed on top and silently reverted the neighbour's
+correction. Where another session may be committing, commit from a worktree of your own: `git
+worktree add --detach <dir> origin/main`, commit there, `git push origin HEAD:main`. Before any
+push, `git log -2`: the parent must be the commit you started from.
+
+### stash-shared
+
+Every worktree of a repo reads the same stash list. A session stashed in a shared checkout, popped
+onto a `HEAD` that had moved, and pushed a file with its conflict markers and rows doubled; two more
+sessions spent their time cleaning it. Never stash in a checkout you share.
+
+### branch-switch
+
+A session working on a pull-request branch had the checkout moved to `main` by a neighbour, and its
+next commit went straight to `main`: the host printed a bypassed-rule warning and took it. `git
+branch --show-current` before you stage, every time, not only at the start, and read the push output
+rather than trusting a quiet push.
+
+### ownership-history
+
+Read it before editing something outside your own scope, and tell the session that actually owns it.
+
+### one-subject
+
+Two sessions started the same import within minutes, one from a spreadsheet export the owner had
+handed it, the other from the system's API. The second saw the first's untracked files before
+writing a record, stopped, and proposed a split the owner approved in two words: the API is the
+source, and the export is only a set of totals the import must reconcile with. Before anything that
+writes records in bulk, look at the untracked files and the running sessions.
+
+### claim-note
+
+When more than one session is running, a two-column note in the repo (who decides what, who writes
+where) is enough, and it has to exist before the collision. A claim is one line in it: these files,
+this session, until pushed; the commit that pushes them removes the line and says what changed in
+them. Sessions cannot message each other by default, so the note is the channel, or the owner relays
+the line. On a live day three sessions changed the same app for hours without overwriting each
+other, with one claim and one hand-back each, and each pulled before its next edit. Before claiming,
+look for a neighbour already on the file: `git fetch`, then `git log --oneline
+@{upstream}..origin/main` for what landed, and `gh pr list --search <file>` for what waits on a
+branch, which `main` never shows. A file that does not look like what you expected may be their
+deliberate rewrite: `git log --oneline -3 -- <path>` before calling it stale.
+
+### shared-consumers
+
+**After changing anything shared** — tokens, a stylesheet, a helper — check every consumer of it.
+
+### one-door
+
+Two sessions each building their own complete home page produces two pages that will disagree on the
+same figures by tomorrow.
+
+### reread-inputs
+
+In a repo with several hands, the state changes faster than a session reads it: a register meant to
+settle every fact recorded a major document as missing while a neighbouring session had read it that
+morning, and it contradicted several conclusions. Re-read the inputs immediately before writing, not
+once at the beginning, and above all before asking the owner a question: another session may have
+settled it since. That error happened while building the very tool meant to prevent it, which is the
+clearest sign it is structural rather than careless.
+
+### scope-confidential
+
+Full details of a private transaction were sent to a session that was not on the file, on an
+identification taken second-hand from another session — in a workshop where such attributions had
+already proved wrong several times that day. Confirm the recipient yourself first, with a routing
+message carrying no content at all ("are you the session holding X?"), and never by reusing someone
+else's identification. One message against an irreversible disclosure.
+
+### publish-working-tree
+
+A session ran publish because an end-of-session hook asked it to, on a note another session had
+written, while a third had uncommitted server files, an unrun migration and half-written tests on
+disk. It would have put all of that into production. An unconditional instruction in a hook is
+written for the session that just wrote the thing. Before publishing a change you did not write,
+look at the state of the workshop and tell the session that owns it rather than going in its place.
+
+### sent-today
+
+A parallel session had already sent the same request in her name half an hour earlier.
+
+### repair-shared
+
+A second session was handed a repair the first was already holding, and an index was rebuilt by hand
+under a session opened to rebuild it.
+
+### byte-serialisation
+
+A register re-indented with one space instead of two turned a one-entry change into thousands of
+lines, burying two other sessions' uncommitted additions. Read the size of the diff before moving
+on.
+
+### resume-read
+
+A task struck through but left unticked by another session still read as "to do", and the
+instruction it carried outlived the decision that cancelled it. **A message from a parallel session
+says what its sender knew when it wrote**: check it against the day's decisions log before putting
+it in front of the owner. A figure was relayed an hour after the owner had withdrawn the line it
+rested on.
