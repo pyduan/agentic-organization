@@ -7,7 +7,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { classify, toOwnAddresses, restrictedPush } from '../.claude/hooks/send-guard.mjs';
+import { classify, toOwnAddresses, restrictedPush, sharedIndex } from '../.claude/hooks/send-guard.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), '..', '.claude', 'hooks', 'send-guard.mjs');
 const send = (to, extra = {}) => ({ tool_name: 'mcp__mail__send_message', tool_input: { to, ...extra } });
@@ -54,5 +54,33 @@ test('with nobody attending: own address passes, internal and others are refused
   const push = { tool_name: 'Bash', tool_input: { command: 'git push' }, cwd: '/w/acme-finance' };
   assert.equal(run(push, alone, dir), 'deny');
   assert.equal(run(push, {}, dir), 'none', 'attended, the push is the person\'s');
+  rmSync(dir, { recursive: true });
+});
+
+test('a git command that sweeps or rewrites the shared index is named; one that stages paths is not', () => {
+  const sweeps = {
+    'git add -A': 'git add -A', 'cd site && git add --all && git commit -m x': 'git add --all', 'git add .': 'git add .',
+    'git -C ../site add -A': 'git -C ../site add -A', 'git commit -am "fix"': 'git commit -am', 'git commit -a -m x': 'git commit -a',
+    'git stash': 'git stash', '(cd site; git stash pop)': 'git stash',
+  };
+  for (const [cmd, named] of Object.entries(sweeps)) assert.equal(sharedIndex(cmd), named, cmd);
+  for (const cmd of ['git add src/a.js docs/b.md', 'git add ./src', 'git commit -m "use the -a flag"', 'git commit --amend -m x',
+    'git stash list', 'echo git add -A', 'git status', "git commit -F - <<'EOF'\nadd -A in a message\nEOF"]) {
+    assert.equal(sharedIndex(cmd), '', cmd);
+  }
+});
+
+test('the shared-index question is asked when attended, and a project can turn it off', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'sg-'));
+  mkdirSync(join(dir, '.claude'));
+  const add = { tool_name: 'Bash', tool_input: { command: 'git add -A && git commit -m "x"' }, cwd: dir };
+  const out = execFileSync('node', [HOOK, dir], { input: JSON.stringify(add), encoding: 'utf8' });
+  const j = JSON.parse(out).hookSpecificOutput;
+  assert.equal(j.permissionDecision, 'ask');
+  assert.match(j.permissionDecisionReason, /`git add -A` works on the index every session in this clone shares/);
+  assert.match(j.permissionDecisionReason, /"sharedIndex": false/);
+  assert.equal(run(add, { CLAUDE_CODE_SESSION_ATTENDED: '0' }, dir), 'none', 'nobody to ask');
+  writeFileSync(join(dir, '.claude', 'turn-checks.json'), JSON.stringify({ sharedIndex: false }));
+  assert.equal(run(add, {}, dir), 'none');
   rmSync(dir, { recursive: true });
 });

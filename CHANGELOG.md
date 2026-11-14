@@ -10,6 +10,16 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · Your agent asks before sweeping changes from every session into one commit
+
+`git add -A`, `git add .`, `git commit -a` and `git stash` now wait for your yes, with the reason:
+every session working in the same folder shares what is staged, so these commands can commit or
+hide another session's unfinished files. Your agent stages the files it changed by name instead
+(`.claude/hooks/send-guard.mjs`).
+
+**What you need to do:** nothing. If only one session ever works in your project at a time, you
+can turn the question off with `"sharedIndex": false` in `.claude/turn-checks.json`.
+
 ## 2026-11-14 · MINOR · The end-of-turn check judges each claim on the call it is about
 
 Your agent's end-of-turn check is stricter where it was too easy and quieter where it was wrong.

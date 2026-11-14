@@ -235,7 +235,9 @@ counting every new incident in a guarded family read new mistakes as failed fixe
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an
 unchecked claim, and check every repository for unsaved work at the end. Opted in, they also hold a
-commit carrying a trailer the project forbids. They can refuse a sentence in another language than
+commit carrying a trailer the project forbids. They ask before `git add -A`, `git commit -a` or
+`git stash`, which reach into the index every session in a clone shares (opt-out:
+`"sharedIndex": false`). They can refuse a sentence in another language than
 the owner's, including the narration between tool calls. A success claim is judged on the call
 it names (the last push, deploy, test run, merge or send), and `turn-check.mjs --list` prints
 what a project runs: judged on whatever ran last, the check fired on twenty-one of 6,459 real

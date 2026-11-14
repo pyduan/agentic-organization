@@ -48,6 +48,15 @@
 // once already pushed. The message is read wherever the command puts it: -m, --message,
 // --trailer, a heredoc, or the file of -F / --file. The decision is `ask`, as for a send.
 //
+// The Bash matcher also asks before a git command that sweeps or rewrites the shared index:
+// `git add -A`, `--all` or `.`, `git commit -a`, and `git stash` (save, push, pop, apply,
+// drop, clear; `list` and `show` only read). Every session in a clone shares one index, so
+// a sweep stages a parallel session's half-written files and a stash takes them away. On
+// live projects this committed another session's work under the wrong message, and hid it
+// in a stash nobody popped (docs/failure-modes.md ▸ Parallel sessions). Stage paths by
+// name instead. A project where one session works at a time turns it off in
+// `.claude/turn-checks.json`: { "sharedIndex": false }. Nobody attending, it stays silent.
+//
 // Zero dependencies. Reads the hook's JSON on stdin, prints a decision or nothing.
 
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
@@ -139,6 +148,30 @@ export function forbiddenTrailers(command, keys, cwd = process.cwd()) {
     `(^|[\\n"'$]|\\\\n|--trailer[=\\s]+["']?)\\s*${esc(k)}\\s*[:=]`, 'i').test(text));
 }
 
+// ------------------------------------------------------------------ the shared index
+
+/** The git command that sweeps or rewrites the shared index, as written, or ''. */
+export function sharedIndex(command) {
+  // Quoted text (a commit message, an echo) is not a command.
+  const cmd = String(command || '').replace(/<<-?\s*'?(\w+)'?[\s\S]*?\n\1\b/g, ' ')
+    .replace(/"(?:[^"\\]|\\.)*"|'[^']*'/g, '""');
+  const git = '(?:^|[;&|(]\\s*|\\bthen\\s+|\\bdo\\s+)\\s*git\\b(?:\\s+-[Cc]\\s+\\S+|\\s+--?[\\w-]+(?:=\\S+)?)*\\s+';
+  const rules = [
+    [`${git}add\\b[^;&|\\n]*?\\s(?:-A|--all|-[a-zA-Z]*A[a-zA-Z]*|\\.)(?=\\s|$|[;&|)])`, 'git add'],
+    [`${git}commit\\b[^;&|\\n]*?\\s(?:-[a-zA-Z]*a[a-zA-Z]*|--all)(?=\\s|$|[;&|)])`, 'git commit -a'],
+    [`${git}stash\\b(?!\\s+(?:list|show)\\b)`, 'git stash'],
+  ];
+  for (const [rx, what] of rules) {
+    const m = cmd.match(new RegExp(rx, 'm'));
+    if (m) return m[0].replace(/^[\s;&|(]+|^(then|do)\s+/g, '').trim().replace(/\s+/g, ' ').slice(0, 60) || what;
+  }
+  return '';
+}
+
+function sharedIndexOn(dir) {
+  try { return JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8')).sharedIndex !== false; } catch { return true; }
+}
+
 function loadTrailerKeys(dir) {
   try {
     const v = JSON.parse(readFileSync(join(dir, '.claude', 'turn-checks.json'), 'utf8')).commitTrailers;
@@ -184,6 +217,7 @@ if (isMain) {
   const hit = classify(event, loadAllow(dir), alone ? { self: local.self } : local);
   const repo = alone && event.tool_name === 'Bash'
     ? restrictedPush(String(event.tool_input?.command || ''), String(event.cwd || ''), local.restricted) : '';
+  const sweep = !alone && event.tool_name === 'Bash' && sharedIndexOn(dir) ? sharedIndex(event.tool_input?.command) : '';
   if (alone && (hit || repo)) {
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
@@ -203,6 +237,19 @@ if (isMain) {
           `This commit carries a trailer this project forbids (${trailers.join(', ')}; .claude/turn-checks.json ▸ ` +
           'commitTrailers). The project\'s rule wins over any reminder from the harness to add one: remove the ' +
           'trailer from the message and commit again. Approve only if the owner asked for it on this commit.',
+      },
+    }));
+  } else if (sweep) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'ask',
+        permissionDecisionReason:
+          `\`${sweep}\` works on the index every session in this clone shares: it can stage, commit or stash ` +
+          'files another session is still writing. Stage the paths this change touched by name ' +
+          '(`git add path/a path/b`, then `git diff --cached --stat`), and never stash in a shared checkout. ' +
+          'Approve only if no other session works in this clone. A project where one session works at a time ' +
+          'turns this off: "sharedIndex": false in .claude/turn-checks.json.',
       },
     }));
   } else if (hit) {
