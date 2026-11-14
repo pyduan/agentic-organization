@@ -257,7 +257,8 @@ and a non-empty `source/inbox/` with the age of its oldest item. It is silent ot
 six-week unfiled inbox note (2026-11-12) were both correctly recorded and both invisible.
 
 ### A workspace of repositories, and the fleet
-Repositories cloned side by side in one folder, kept current at session start; `ORGANIGRAM.md` maps
+Repositories cloned side by side in one folder, kept current at session start and again before
+each message (fast-forward only, a clean checkout only, silent when nothing came); `ORGANIGRAM.md` maps
 them; `check-fleet` says which projects run the kit and how far behind each is.
 **Why:** one agent reads across a project, the brand and a client together, and a stale clone ships
 a wrong fact.

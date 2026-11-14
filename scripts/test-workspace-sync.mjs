@@ -11,7 +11,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { decide, run, syncReport, statusReport } from './workspace-sync.mjs';
+import { decide, lock, promptReport, run, syncReport, statusReport } from './workspace-sync.mjs';
 
 const KIT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ID = ['-c', 'user.name=Sam', '-c', 'user.email=sam@example.com', '-c', 'init.defaultBranch=main'];
@@ -252,5 +252,57 @@ test('from the command line: JSON out, and exit 1 only when a sync failed for a 
     assert.equal(cli('sync').status, 1);
     assert.equal(cli('status', '--offline').status, 0, 'status always exits 0');
     assert.equal(cli('pull').status, 1, 'an unknown command is refused');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+// ------------------------------------------------------------------ before each prompt
+
+test('before a prompt: a clean clone is pulled and says so; nothing new says nothing', async () => {
+  const area = scratch(['| `acme/shop` | `satellite` | the shop |']);
+  try {
+    const shop = repoFor(area, 'shop');
+    const said = {};
+    assert.equal(promptReport(await run(area.org, { command: 'prompt' }), said), '', 'nothing to pull: silent');
+    // Within the minute, origin is not asked again: a new commit waits for the next fetch.
+    pushFromElsewhere(shop, 'price.md', '12\n');
+    assert.equal(promptReport(await run(area.org, { command: 'prompt' }), said), '');
+    writeFileSync(join(shop.dir, '.git/workspace-sync.fetched'), '0');
+    const text = promptReport(await run(area.org, { command: 'prompt' }), said);
+    assert.match(text, /^git \(shop\): pulled 1 new commit just now\. Work from what is there now/);
+    assert.equal(readFileSync(join(shop.dir, 'price.md'), 'utf8'), '12\n');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+test('before a prompt: a clone that cannot take the commits is named once, and left exactly as it was', async () => {
+  const area = scratch(['| `acme/shop` | `satellite` | the shop |']);
+  try {
+    const shop = repoFor(area, 'shop');
+    pushFromElsewhere(shop, 'README.md', '# shop, renamed\n');
+    writeFileSync(join(shop.dir, 'README.md'), '# shop, my draft\n');
+    const said = {};
+    const first = promptReport(await run(area.org, { command: 'prompt' }), said);
+    assert.match(first, /git \(shop\): 1 new commit on main, and uncommitted changes in the way, so nothing was pulled\./);
+    assert.equal(readFileSync(join(shop.dir, 'README.md'), 'utf8'), '# shop, my draft\n');
+    writeFileSync(join(shop.dir, '.git/workspace-sync.fetched'), '0');
+    assert.equal(promptReport(await run(area.org, { command: 'prompt' }), said), '', 'the same situation is not said twice');
+  } finally { rmSync(area.top, { recursive: true, force: true }); }
+});
+
+test('before a prompt: a clone another pull holds, or where git is busy, is skipped', async () => {
+  const area = scratch(['| `acme/shop` | `satellite` | the shop |']);
+  try {
+    const shop = repoFor(area, 'shop');
+    pushFromElsewhere(shop, 'price.md', '12\n');
+    const release = await lock(shop.dir);
+    assert.ok(release, 'the lock is free at first');
+    const held = await run(area.org, { command: 'prompt' });
+    assert.equal(byName(held, 'shop').state, 'busy');
+    assert.equal(promptReport(held, {}), '', 'busy says nothing before a prompt');
+    assert.ok(!existsSync(join(shop.dir, 'price.md')));
+    release();
+    writeFileSync(join(shop.dir, '.git/index.lock'), '');
+    assert.equal(byName(await run(area.org, { command: 'prompt' }), 'shop').state, 'busy');
+    rmSync(join(shop.dir, '.git/index.lock'));
+    assert.equal(byName(await run(area.org, { command: 'prompt' }), 'shop').state, 'updated');
   } finally { rmSync(area.top, { recursive: true, force: true }); }
 });

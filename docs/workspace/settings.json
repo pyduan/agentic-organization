@@ -66,6 +66,21 @@
         ]
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/scripts/workspace-sync.mjs",
+              "prompt",
+              "--siblings"
+            ]
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "mcp__.*|Bash",

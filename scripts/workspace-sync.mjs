@@ -27,6 +27,19 @@
 //
 //   node scripts/workspace-sync.mjs status [--json] [--offline] [--siblings]
 //   node scripts/workspace-sync.mjs sync   [--json] [--quiet]   [--siblings]
+//   node scripts/workspace-sync.mjs prompt [--siblings]          (the UserPromptSubmit hook)
+//
+// `prompt` pulls again before each message the person sends, because a session that runs for an
+// hour works from a start-of-session copy while another session corrects the facts it relies on.
+// It does what sync does (fast-forward only, a clean default branch only, never a merge, a
+// rebase or a stash) and says only what changed: the commits it pulled and their Retroactive:
+// trailers, or, once per new situation, why it could not pull. Nothing to pull: nothing said.
+// It asks origin at most once a minute per clone (the start's sync counts), and a clone another
+// sync, another session's hook or git itself is busy in is skipped for that prompt: two pull
+// hooks on one checkout fight over git's lock, and the loser reports a conflict that does not
+// exist. So there is one pull mechanism per checkout, this one: a project that wired its own
+// prompt-time pull removes it. The start's sync stays, since it does more (the siblings' trailers,
+// git identity, machine settings), and it runs before the first prompt, never beside it.
 //
 // --quiet prints only what needs a person, so a session start with nothing to say says
 // nothing. With --siblings, the hook of a workspace or a satellite, the sync also says when the
@@ -42,7 +55,7 @@
 // never waits on a password prompt.
 
 import { execFile } from 'node:child_process';
-import { existsSync, realpathSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, realpathSync, rmdirSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { gitOrigin, isRepoRoot, locatedRepos, originSlug, siblingRepos } from '../lib/workspace.mjs';
@@ -91,7 +104,7 @@ export function decide({ branch, defaultBranch, dirty, ahead, behind }) {
 }
 
 /** States that need a person. Everything else is a clone that is current. */
-export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'unreadable', 'refused']);
+export const ATTENTION = new Set(['other-branch', 'diverged', 'local-changes', 'ahead', 'no-remote', 'not-fetched', 'unreachable', 'unreadable', 'refused', 'busy']);
 /** States where the sync failed for a reason nobody chose. */
 export const FAILED = new Set(['unreachable', 'unreadable', 'refused']);
 
@@ -111,7 +124,10 @@ export async function inspect(dir, { fetch = false } = {}) {
   const defaultBranch = await defaultBranchOf(dir);
   if (fetch) {
     try { await git(dir, ['fetch', '--quiet', 'origin', defaultBranch], FETCH_TIMEOUT_MS); }
-    catch (e) { return { state: 'unreachable', merge: false, defaultBranch, detail: `could not reach origin (${reason(e)})` }; }
+    catch (e) {
+      if (LOCKED.test(String(e.stderr))) return { state: 'busy', merge: false, defaultBranch, detail: 'another git command is running in it' };
+      return { state: 'unreachable', merge: false, defaultBranch, detail: `could not reach origin (${reason(e)})` };
+    }
   }
   if (!(await tryGit(dir, ['rev-parse', '--verify', '--quiet', `refs/remotes/origin/${defaultBranch}`]))) {
     return { state: 'not-fetched', merge: false, defaultBranch, detail: `origin/${defaultBranch} has never been fetched here` };
@@ -145,9 +161,44 @@ export async function retroactive(dir, range, n = neighbour(dir, { self: true })
   catch (e) { return e instanceof ReadRefused ? null : []; }
 }
 
+// ------------------------------------------------------------------ one pull at a time per clone
+
+const LOCK_STALE_MS = 2 * 60 * 1000;
+// What git prints when another git process holds the lock it needs.
+const LOCKED = /index\.lock|cannot lock ref|Unable to create '[^']*\.lock'|another git process/i;
+const FETCH_EVERY_MS = 60 * 1000;
+const gitDirOf = async (dir) => {
+  const d = await tryGit(dir, ['rev-parse', '--absolute-git-dir']);
+  return d || null;
+};
+
+/** Takes the clone's sync lock; returns its release, or null when another pull holds it or git is busy. */
+export async function lock(dir) {
+  const gd = await gitDirOf(dir);
+  if (!gd) return () => {};
+  if (existsSync(join(gd, 'index.lock'))) return null;
+  const path = join(gd, 'workspace-sync.lock');
+  try { mkdirSync(path); } catch {
+    try { if (Date.now() - statSync(path).mtimeMs < LOCK_STALE_MS) return null; } catch { return null; }
+    try { rmdirSync(path); mkdirSync(path); } catch { return null; }
+  }
+  return () => { try { rmdirSync(path); } catch { /* gone */ } };
+}
+
+const stampFile = async (dir, name) => { const gd = await gitDirOf(dir); return gd ? join(gd, name) : null; };
+async function fetchedRecently(dir, now = Date.now()) {
+  const f = await stampFile(dir, 'workspace-sync.fetched');
+  try { return f && now - Number(readFileSync(f, 'utf8')) < FETCH_EVERY_MS; } catch { return false; }
+}
+async function markFetched(dir, now = Date.now()) {
+  const f = await stampFile(dir, 'workspace-sync.fetched');
+  try { if (f) writeFileSync(f, String(now)); } catch { /* read-only */ }
+}
+
 /** Fetches, and fast-forwards when decide() allows it. Says where the clone stands after. */
-export async function syncRepo(dir, n = neighbour(dir, { self: true })) {
-  const found = await inspect(dir, { fetch: true });
+export async function syncRepo(dir, n = neighbour(dir, { self: true }), { fetch = true } = {}) {
+  const found = await inspect(dir, { fetch });
+  if (fetch && found.state !== 'unreachable') await markFetched(dir);
   if (!found.merge) return found;
   try {
     const before = await git(dir, ['rev-parse', 'HEAD']);
@@ -159,7 +210,9 @@ export async function syncRepo(dir, n = neighbour(dir, { self: true })) {
     };
   } catch (e) {
     // An untracked file where a new commit adds one, or another session's git holding the
-    // index: git refuses, and the clone is exactly as it was.
+    // index: git refuses, and the clone is exactly as it was. A lock held by someone else's
+    // pull (a hook of another tool firing at the same prompt) is no refusal: the clone is busy.
+    if (LOCKED.test(String(e.stderr))) return { ...found, state: 'busy', merge: false, detail: 'another git command is running in it' };
     return { ...found, state: 'refused', merge: false, detail: `git refused the fast-forward (${reason(e)}), nothing changed` };
   }
 }
@@ -187,7 +240,7 @@ export async function targets(root, { siblings = false } = {}) {
   return { repos, missing };
 }
 
-/** One status or sync over every target, in parallel. */
+/** One status, sync or prompt-time pull over every target, in parallel. */
 export async function run(root, { command = 'status', fetch = true, siblings = false } = {}) {
   const { repos, missing } = await targets(root, { siblings });
   const results = await Promise.all(repos.map(async (r) => {
@@ -195,9 +248,40 @@ export async function run(root, { command = 'status', fetch = true, siblings = f
     if (n.level === 'none') {
       return { ...r, consent: 'none', state: 'not-read', merge: false, detail: `declares none in ${CONSENT_FILE}, so it is not touched from here` };
     }
-    return { ...r, consent: n.level, ...(command === 'sync' ? await syncRepo(r.dir, n) : await inspect(r.dir, { fetch })) };
+    if (command === 'status') return { ...r, consent: n.level, ...await inspect(r.dir, { fetch }) };
+    const release = await lock(r.dir);
+    if (!release) return { ...r, consent: n.level, state: 'busy', merge: false, detail: 'another pull or git command is running in it' };
+    try {
+      const again = command === 'sync' || !(await fetchedRecently(r.dir));
+      return { ...r, consent: n.level, ...await syncRepo(r.dir, n, { fetch: again }) };
+    } finally { release(); }
   }));
-  return { root, command, fetched: command === 'sync' || fetch, at: new Date().toISOString(), repos: results, missing };
+  return { root, command, fetched: command !== 'status' || fetch, at: new Date().toISOString(), repos: results, missing };
+}
+
+/**
+ * What the prompt-time pull tells the agent: the commits pulled and their trailers, and why a
+ * clone could not be pulled, each said once until the situation changes. `said` maps a clone to
+ * what was last said about it, and is updated. Empty when there is nothing new.
+ */
+export function promptReport(result, said = {}) {
+  const out = [];
+  for (const r of result.repos) {
+    if (r.state === 'updated') {
+      out.push(`git (${r.name}): pulled ${r.detail.replace(/^pulled /, '')} just now. Work from what is there now, and reread a file you read before this message.`);
+      for (const x of r.retroactive || []) out.push(`• ${r.name} ${x.sha.slice(0, 8)} ${x.subject}: ${x.sweep}. Fix the existing files it names.`);
+      delete said[r.dir];
+      continue;
+    }
+    // Only a clone with new commits it could not take is worth a word, and once per situation.
+    const blocked = ['local-changes', 'diverged', 'refused'].includes(r.state) || (r.state === 'other-branch' && r.behind > 0);
+    if (!blocked) { if (r.state !== 'busy') delete said[r.dir]; continue; }
+    const line = `git (${r.name}): ${r.detail}, so nothing was pulled.${ADVICE[r.state] ? ` ${ADVICE[r.state]}` : ''}`;
+    if (said[r.dir] === line) continue;
+    said[r.dir] = line;
+    out.push(line);
+  }
+  return out.join('\n');
 }
 
 // What to tell the person, per state that needs one.
@@ -271,7 +355,7 @@ export async function workspaceNotice(root) {
     'and a session started after it runs the router\'s current hooks and offers its current skills.';
 }
 
-const MARK = { 'not-read': '·', 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
+const MARK = { busy: '·', 'not-read': '·', 'up-to-date': '✓', updated: '✓', behind: '↓', ahead: '↑', 'other-branch': '▲', diverged: '▲', 'local-changes': '▲', 'no-remote': '·', 'not-fetched': '·', unreachable: '✘', unreadable: '✘', refused: '✘' };
 
 export function statusReport(result) {
   const width = Math.max(4, ...result.repos.map((r) => r.name.length));
@@ -308,12 +392,26 @@ const isMain = (() => {
 if (isMain) {
   const [command = 'status', ...rest] = process.argv.slice(2);
   const flags = new Set(rest);
-  if (!['status', 'sync'].includes(command)) {
+  if (!['status', 'sync', 'prompt'].includes(command)) {
     console.error('Usage: node scripts/workspace-sync.mjs status [--json] [--offline] [--siblings]\n' +
-      '       node scripts/workspace-sync.mjs sync [--json] [--quiet] [--siblings]');
+      '       node scripts/workspace-sync.mjs sync [--json] [--quiet] [--siblings]\n' +
+      '       node scripts/workspace-sync.mjs prompt [--siblings]');
     process.exit(1);
   }
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  if (command === 'prompt') {
+    // A hook before each message never holds the person up and never fails: whatever happens, exit 0.
+    try {
+      const result = await run(root, { command: 'prompt', siblings: flags.has('--siblings') });
+      const file = await stampFile(root, 'workspace-sync.said.json');
+      let said = {};
+      try { said = JSON.parse(readFileSync(file, 'utf8')); } catch { /* first prompt */ }
+      const text = promptReport(result, said);
+      try { if (file) writeFileSync(file, JSON.stringify(said)); } catch { /* read-only */ }
+      if (text) console.log(text);
+    } catch { /* nothing pulled this time */ }
+    process.exit(0);
+  }
   const result = await run(root, { command, fetch: !flags.has('--offline'), siblings: flags.has('--siblings') });
   if (flags.has('--json')) console.log(JSON.stringify(result, null, 2));
   else {

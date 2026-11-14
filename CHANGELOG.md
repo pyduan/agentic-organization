@@ -10,6 +10,20 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MAJOR · Your repos are brought up to date before each message, not only at the start
+
+A long session used to work from the copy it pulled when it started, while another session
+corrected the facts it relied on. Now, each time you send a message, your agent's checkouts take
+the new commits first, the same safe way as at the start: only when nothing is modified, never by
+merging or setting anything aside, at most one check with the server a minute. It says so only
+when something came in, or once when a checkout could not take it (`scripts/workspace-sync.mjs`,
+`.claude/settings.json`).
+
+**What you need to do:** if you open sessions on the folder that holds your repos, have your agent
+run `node scripts/install-workspace.mjs` (and `--satellites` if you use them) so those sessions do
+it too. If your project or your own settings already pull before each message with a hook of their
+own, remove it: two pulls on one checkout at the same moment fight over git's lock.
+
 ## 2026-11-14 · MAJOR · Every push runs your project's check first
 
 Setting up the workspace (`node scripts/install-workspace.mjs`) now adds a git hook to each of
