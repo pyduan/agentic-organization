@@ -28,7 +28,7 @@ import { execFileSync } from 'node:child_process';
 const ROOT = resolve(process.cwd());
 const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
-const OFFLINE = args.includes('--offline');
+const OFFLINE = args.includes('--offline') || process.env.CHECK_OFFLINE === '1'; // the pre-push gate sets it
 const AS_JSON = args.includes('--json');
 const LOCAL_PASSES = new Set(['stale', 'ignored', 'sources', 'derived']); // need no network, so --offline keeps them
 const wants = (pass) => (only.length === 0 || only.includes(pass)) && !(OFFLINE && !LOCAL_PASSES.has(pass));

@@ -38,7 +38,7 @@ const manualOf = (n) => (n.exists('AGENTS.md') ? 'AGENTS.md' : n.exists('CLAUDE.
 
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
-const OFFLINE = args.includes('--offline');
+const OFFLINE = args.includes('--offline') || process.env.CHECK_OFFLINE === '1'; // the pre-push gate sets it
 const QUIET = args.includes('--quiet');
 const rootFlag = (() => {
   const i = args.indexOf('--root');

@@ -36,7 +36,7 @@ function workspace() {
   cpSync(join(KIT, 'docs/workspace'), join(router, 'docs/workspace'), { recursive: true });
   cpSync(join(KIT, '.claude/hooks'), join(router, '.claude/hooks'), { recursive: true });
   // The start runs the router's sync, which reads the map through lib/workspace.mjs.
-  for (const f of ['scripts/workspace-sync.mjs', 'scripts/check-workspace.mjs', 'scripts/install-workspace.mjs', 'lib/workspace.mjs', 'lib/neighbour.mjs', 'lib/setup-stage.mjs']) {
+  for (const f of ['scripts/workspace-sync.mjs', 'scripts/check-workspace.mjs', 'scripts/install-workspace.mjs', 'scripts/pre-push.mjs', 'lib/workspace.mjs', 'lib/neighbour.mjs', 'lib/setup-stage.mjs']) {
     cpSync(join(KIT, f), join(router, f));
   }
   return { ws, router };

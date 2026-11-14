@@ -10,6 +10,18 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MAJOR · Every push runs your project's check first
+
+Setting up the workspace (`node scripts/install-workspace.mjs`) now adds a git hook to each of
+your repos that has a check: before anything is pushed, `npm run check` runs, without the
+network, and a failure stops the push with what failed. Your agent then fixes what it reports and
+pushes again; it never skips the check. A hook of this kind that you or a tool already set up is
+left alone (`scripts/pre-push.mjs`).
+
+**What you need to do:** on each machine, have your agent run `node scripts/install-workspace.mjs`
+once (a session opened on the folder that holds your repos asks for it at its start). From then
+on, a push from that machine runs the check.
+
 ## 2026-11-14 · MINOR · A copy built from a source says where it comes from, and is flagged when it falls behind
 
 A public version of an internal page, an export, a page rebuilt from a spreadsheet: once

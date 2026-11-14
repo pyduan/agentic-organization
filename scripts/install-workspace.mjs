@@ -26,6 +26,11 @@
 //                                    agent to the real file; the first repo to define a name
 //                                    wins, this one first.
 //
+//   <repo>/.git/hooks/pre-push       in this repo and each repo beside it that has a `check` script:
+//                                    the repo's check before every push (scripts/pre-push.mjs). A
+//                                    pre-push hook this script did not write is never replaced, and
+//                                    a repo with core.hooksPath set is left alone; both are reported.
+//
 // And, with --satellites, each repo the map (ORGANIGRAM.md) declares a `satellite` gets
 // <satellite>/.claude/settings.json: one hook per event of the workspace template, which finds
 // this repo beside the satellite and runs .claude/hooks/satellite.mjs, so a session opened in
@@ -50,11 +55,12 @@
 // macOS, Linux and Windows. Zero dependencies, Node built-ins and git.
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmdirSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { setupStage } from '../lib/setup-stage.mjs';
+import { checkOf, hookText as prePushHook, MARK } from './pre-push.mjs';
 
 export class Stop extends Error {}
 
@@ -218,6 +224,32 @@ function relaySteps(routerDir) {
   return steps;
 }
 
+// ------------------------------------------------------------------ pre-push gates
+
+/** The pre-push hook of this repo and of each repo beside it that has a check: steps like the others. */
+export function prePushSteps(routerDir) {
+  const dir = real(routerDir);
+  const router = basename(dir);
+  const workspace = dirname(dir);
+  let names = [];
+  try { names = readdirSync(workspace).filter((n) => !n.startsWith('.') && isRepo(join(workspace, n))).sort(); } catch { /* unreadable */ }
+  const want = prePushHook(router);
+  return [router, ...names.filter((n) => n !== router)].flatMap((repo) => {
+    const root = join(workspace, repo);
+    if (!isRepo(root) || !checkOf(root)) return [];
+    const path = join(root, '.git', 'hooks', 'pre-push');
+    const step = { kind: 'pre-push', repo, template: 'scripts/pre-push.mjs', target: `${repo}/.git/hooks/pre-push`, path, want, mode: 0o755 };
+    let hooksPath = '';
+    try { hooksPath = execFileSync('git', ['-C', root, 'config', '--get', 'core.hooksPath'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { /* unset */ }
+    if (hooksPath) return [{ ...step, state: 'different', lacks: `its hooks live in ${hooksPath} (core.hooksPath), so the gate is not installed there` }];
+    if (!existsSync(path)) return [{ ...step, state: 'missing' }];
+    const have = readFileSync(path, 'utf8');
+    if (have === want) return [{ ...step, state: 'current' }];
+    if (have.includes(MARK)) return [{ ...step, state: 'stale' }];
+    return [{ ...step, state: 'different', lacks: 'a pre-push hook of its own, which is left as it is' }];
+  });
+}
+
 /**
  * What would change, without changing it. Each step is { target, path, want, state, lacks? },
  * state being missing, current, stale (an earlier rendering of ours), partial (a settings file
@@ -261,7 +293,7 @@ export function plan({ routerDir, home = homedir() }) {
       lacks: [added.length ? added.join(', ') : '', removed.length ? `drop ${removed.join(', ')} (no longer in this repo)` : ''].filter(Boolean).join('; '),
     };
   });
-  return [...files, ...relaySteps(routerDir)];
+  return [...files, ...relaySteps(routerDir), ...prePushSteps(routerDir)];
 }
 
 // ------------------------------------------------------------------ satellites
@@ -393,6 +425,7 @@ export function apply(steps) {
     if (!['missing', 'stale', 'partial'].includes(s.state)) continue;
     mkdirSync(dirname(s.path), { recursive: true });
     writeFileSync(s.path, s.want);
+    if (s.mode) { try { chmodSync(s.path, s.mode); } catch { /* Windows: git runs it through sh anyway */ } }
     written.push(s);
   }
   return written;
@@ -411,7 +444,7 @@ if (isMain) {
     throw e;
   }
   const written = check ? [] : apply(steps);
-  for (const s of steps.filter((x) => x.kind !== 'relay')) {
+  for (const s of steps.filter((x) => x.kind !== 'relay' && x.kind !== 'pre-push')) {
     const done = written.includes(s);
     if (done && s.state === 'partial') console.log(`  ✓ ${s.path}: ${s.lacks}`);
     else if (done) console.log(`  ✓ wrote ${s.path}`);
@@ -430,6 +463,14 @@ if (isMain) {
   if (!relayDone.length && !relayLeft.length && skillCount) console.log(`  ✓ .claude/skills: ${skillCount} skill(s) reachable from ${dirname(real(routerDir))}`);
   for (const s of relays.filter((x) => x.state === 'different')) console.log(`  · ${s.path} is a skill of its own, so ${s.template} is not reachable under that name from the workspace`);
 
+  const gates = steps.filter((x) => x.kind === 'pre-push');
+  const gateDone = gates.filter((s) => written.includes(s));
+  const gateLeft = gates.filter((s) => ['missing', 'stale'].includes(s.state) && !written.includes(s));
+  if (gateDone.length) console.log(`  ✓ pre-push check: ${gateDone.map((s) => `${s.state === 'stale' ? 'refreshed' : 'installed'} in ${s.repo}`).join(', ')}`);
+  if (gateLeft.length) console.log(`  ▲ pre-push check: ${gateLeft.map((s) => `${s.state} in ${s.repo}`).join(', ')}`);
+  if (!gateDone.length && !gateLeft.length && gates.some((s) => s.state === 'current')) console.log(`  ✓ pre-push check: in place in ${gates.filter((s) => s.state === 'current').map((s) => s.repo).join(', ')}`);
+  for (const s of gates.filter((x) => x.state === 'different')) console.log(`  · ${s.repo}: ${s.lacks}`);
+
   const sats = await planSatellites({ routerDir });
   const satDone = check || !wire ? [] : apply(sats);
   for (const s of sats) {
@@ -445,6 +486,6 @@ if (isMain) {
   // The same next step the bootstrap scripts and setup-status give, read from the files.
   console.log(`Next: ${setupStage(routerDir).next}.`);
   const left = [...steps, ...(check || wire ? sats : [])]
-    .filter((s) => !['current', ...(s.kind === 'relay' ? ['different'] : [])].includes(s.state) && !written.includes(s) && !satDone.includes(s));
+    .filter((s) => !['current', ...(['relay', 'pre-push'].includes(s.kind) ? ['different'] : [])].includes(s.state) && !written.includes(s) && !satDone.includes(s));
   process.exit(left.length ? 1 : 0);
 }

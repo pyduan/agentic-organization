@@ -265,7 +265,7 @@ export async function workspaceNotice(root) {
   try { steps = (await import(pathToFileURL(installer).href)).plan({ routerDir: root }); } catch { return null; }
   const due = steps.filter((s) => ['missing', 'stale', 'partial', 'orphan'].includes(s.state));
   if (!due.length) return null;
-  const what = [...new Set(due.map((s) => (s.kind === 'relay' ? '.claude/skills' : s.target)))];
+  const what = [...new Set(due.map((s) => (s.kind === 'relay' ? '.claude/skills' : s.kind === 'pre-push' ? `the pre-push check of ${s.repo}` : s.target)))];
   return `▲ The workspace's own files are missing or out of date (${what.join(', ')}): run ` +
     `\`node ${basename(root)}/scripts/install-workspace.mjs\` from ${dirname(root)}. It rewrites only what it wrote, ` +
     'and a session started after it runs the router\'s current hooks and offers its current skills.';

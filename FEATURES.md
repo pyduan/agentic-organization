@@ -244,6 +244,9 @@ it names (the last push, deploy, test run, merge or send), and `turn-check.mjs -
 what a project runs: judged on whatever ran last, the check fired on twenty-one of 6,459 real
 turns and nearly all were wrong; judged per claim it fires about as often and catches failures
 it used to miss (2026-11-14).
+A git pre-push hook, installed by `install-workspace` in each repo with a check, runs
+`npm run check` offline before every push and refuses a failing one; the agent fixes it, never
+`--no-verify`.
 **Why:** a rule in prose is re-read by someone who already believes it; a hook says no.
 
 ### What waits on a person, raised at session start

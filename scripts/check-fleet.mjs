@@ -33,7 +33,7 @@ import { neighbour, CONSENT_FILE } from '../lib/neighbour.mjs';
 const run = promisify(execFile);
 const args = process.argv.slice(2);
 const AS_JSON = args.includes('--json');
-const OFFLINE = args.includes('--offline');
+const OFFLINE = args.includes('--offline') || process.env.CHECK_OFFLINE === '1'; // the pre-push gate sets it
 const ROOT = resolve(process.cwd());
 
 // The folder whose direct children are the fleet. Never its parent: see below.
