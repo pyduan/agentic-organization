@@ -99,6 +99,8 @@ pages is checked both ways: every served page is listed, and every listed link a
 - Read the words once more against the voice guide, and check any figure or name against
   `source/content/` and `source/facts/`. Nothing invented ever ships.
 - If copy changed in a non-default language, do the native-reader pass from the voice guide.
+- `node scripts/check-leaks.mjs` passes: no repo path, command, `.md` name, `^id`, note-to-self
+  comment or unfilled marker on a public page (a how-to that needs them says `check-leaks: internals-ok`).
 
 ## Things that need a human decision
 

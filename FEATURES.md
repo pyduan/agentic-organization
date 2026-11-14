@@ -270,7 +270,8 @@ manifest of hashes, and refuses a pull that would take them back to an older com
 other.
 
 ### Checks for what leaves
-`check:leaks` (names that must not travel, from a list never committed), `check:ai-tics` (what reads
+`check:leaks` (names that must not travel, from a list never committed, and traces of the workshop
+on a public page: a repo path, a command, a note-to-self, a marker left unfilled), `check:ai-tics` (what reads
 as machine-written), `check:retired` (a route a decision retired), `check:contrast`, and the freshness
 sweep of what is published.
 **Why:** each one was a mistake that reached a reader before it had a check.

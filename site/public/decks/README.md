@@ -1,3 +1,4 @@
+<!-- check-leaks: internals-ok, since this note describes the folder to whoever edits the repo. -->
 # Decks
 
 Published presentations live here, one folder per deck, each a self-contained

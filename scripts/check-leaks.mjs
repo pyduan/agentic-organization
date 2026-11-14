@@ -13,12 +13,25 @@
 // that glob matches (`scope: shared/**`), so a term can be fine at home and refused
 // in the folder another party reads.
 //
-//   node scripts/check-leaks.mjs                 the default outgoing paths
-//   node scripts/check-leaks.mjs <path>...       these files or folders
-//   node scripts/check-leaks.mjs --json
+// A second pass needs no list: what a public page must never carry whoever it names. A path
+// into the repo, a command, a markdown file's name, a to-do line's ^id, an HTML comment, a marker
+// left unfilled (TODO, {{NAME}}, "seed, to confirm") all say "internal draft" to a reader, and
+// none breaks a build. A sharing site built from an organization's intranet showed three of them
+// in one page's script, a repo slug, an `npm run` command and a script path, read by the people
+// the page was for. It reads the public pages (PUBLIC below: the site's pages, content and public
+// folder, and its build when there is one), or the pages given as arguments. A page that names
+// these on purpose (a how-to, a placeholder telling the owner where to drop files) says so once,
+// anywhere in it: `check-leaks: internals-ok`, in a comment or the front matter, or
+// <meta name="check-leaks" content="internals-ok">.
 //
-// Exit 0 when clean or when no list exists (it says so), 1 on a hit.
+//   node scripts/check-leaks.mjs                 the default outgoing paths, and the public pages
+//   node scripts/check-leaks.mjs <path>...       these files or folders, for both
+//   node scripts/check-leaks.mjs --json
+//   node scripts/check-leaks.mjs --no-internals  the list of terms only
+//
+// Exit 0 when clean (a missing list is said, and only skips the terms), 1 on a hit.
 
+import { execFileSync } from 'node:child_process';
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, relative, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -30,6 +43,67 @@ const LIST = join(ROOT, '.leak-terms');
 const DEFAULT = ['site/src', 'site/public', 'decks', 'apps', 'shared'];
 const SKIP = new Set(['node_modules', 'dist', '.astro', '.wrangler', '.check', '.git']);
 const TEXT = /\.(md|mdx|astro|html|js|mjs|ts|json|css|txt|svg|csv|yml|yaml)$/i;
+// What a visitor reads: the site's pages and content, its public folder (published decks
+// included), and its build.
+export const PUBLIC = ['site/src/pages', 'site/src/content', 'site/public', 'site/dist'];
+const PAGE = /\.(html?|astro|mdx?)$/i;
+
+// [pattern, what it is]. Read line by line, after the URLs are taken out: a link to a public
+// repository's README is a link, not a leak.
+export const INTERNALS = [
+  [/(?<![\w/.-])(?:source|scripts|lib|packs|\.claude)\/[\w.-]+/, 'a path into the repo'],
+  [/(?<![\w/.-])[\w-]+(?:\/[\w.-]+)*\.mdx?\b/, 'a markdown file\'s name'],
+  [/\bnpm run\b|\bnpx [\w@]|\bnode (?:--\S+ )*(?:scripts|lib|\.claude)\//, 'a command'],
+  [/(?:^|\s)\^[a-z0-9]{4,8}\b/i, 'a to-do line\'s ^id'],
+  [/\bTODO\b|\bFIXME\b|\{\{\s*[A-Z][A-Z0-9_ .-]*\s*\}\}|seed, to confirm|\(to confirm\)/, 'a marker left unfilled'],
+];
+const OPT_OUT = /check-leaks:\s*internals-ok|name=["']check-leaks["'][^>]*content=["']internals-ok/;
+
+/** The repo's own `owner/name`, from its origin, as one more internal a page must not name. */
+export function slugPattern(root = ROOT) {
+  let url = '';
+  try { url = execFileSync('git', ['-C', root, 'remote', 'get-url', 'origin'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim(); } catch { return null; }
+  const m = url.replace(/\.git$/, '').match(/([\w.-]+)\/([\w.-]+)$/);
+  return m ? [new RegExp(`(?<![\\w./-])${`${m[1]}/${m[2]}`.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'i'), 'the repo\'s name'] : null;
+}
+
+const blank = (m) => m.replace(/[^\n]/g, '');
+const lineAt = (text, i) => text.slice(0, i).split('\n').length;
+
+/** What internal a page carries: [{ line, what, text }], or [] when it opts out. */
+export function internals(text, file = '', extra = []) {
+  if (OPT_OUT.test(text)) return [];
+  const hits = [];
+  let body = text;
+  if (/\.astro$/i.test(file)) {
+    // What the build drops never reaches a visitor: the front matter (server code), the HTML and
+    // JS comments, and the styles, whose comments the minifier removes. Measured on ten sites
+    // built from the kit, their built pages carried none of the 103 comments in their sources.
+    body = body.replace(/^---\r?\n[\s\S]*?\r?\n---[ \t]*(?=\r?\n|$)/, blank)
+      .replace(/<!--[\s\S]*?-->|<style\b[\s\S]*?<\/style>|\{\/\*[\s\S]*?\*\/\}/g, blank);
+  } else {
+    // An HTML comment ships. In markdown it is a note to self (`<!-- verify -->`); in a page, one
+    // that holds a sentence is, while a deck's section labels (`<!-- COVER -->`, `<!-- PAGE 3 ·
+    // the team and the plan -->`) say nothing: on ten sites built from the kit, the labels
+    // were all under eight words or in capitals.
+    const md = /\.mdx?$/i.test(file);
+    const note = (c) => (c.match(/[\p{L}\p{N}'’-]+/gu) || []).length >= 8 && c.replace(/[^\p{Ll}]/gu, '').length > c.replace(/[^\p{Lu}]/gu, '').length;
+    for (const m of body.matchAll(/<!--([\s\S]*?)(?:-->|$)/g)) {
+      if (md || note(m[1])) {
+        hits.push({ line: lineAt(body, m.index), what: 'an HTML comment', text: m[0].replace(/\s+/g, ' ').slice(0, 80) });
+      }
+    }
+    body = body.replace(/<!--[\s\S]*?(?:-->|$)/g, blank);
+  }
+  body.split('\n').forEach((raw, i) => {
+    const l = raw.replace(/\bhttps?:\/\/[^\s"'<>)]+/g, ' ');
+    for (const [re, what] of [...INTERNALS, ...extra]) {
+      const m = re.exec(l);
+      if (m) hits.push({ line: i + 1, what, text: m[0].trim() });
+    }
+  });
+  return hits.sort((a, b) => a.line - b.line);
+}
 
 export function parseTerms(text) {
   const rules = [];
@@ -74,18 +148,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
   const targets = args.filter((a) => !a.startsWith('--'));
-  if (!existsSync(LIST)) {
-    const msg = 'check-leaks: no .leak-terms on this machine, nothing checked (see the header of this script)';
-    console.log(json ? JSON.stringify({ checked: false, hits: [] }) : msg);
-    process.exit(0);
-  }
-  const rules = parseTerms(readFileSync(LIST, 'utf8'));
+  const listed = existsSync(LIST);
+  const rules = listed ? parseTerms(readFileSync(LIST, 'utf8')) : [];
   const files = (targets.length ? targets : DEFAULT).flatMap((t) => walk(resolve(ROOT, t)));
-  const hits = scan(files, rules);
-  if (json) console.log(JSON.stringify({ checked: true, files: files.length, terms: rules.length, hits }, null, 2));
-  else {
+  const hits = listed ? scan(files, rules) : [];
+  const pages = args.includes('--no-internals') ? []
+    : [...new Set((targets.length ? targets : PUBLIC).flatMap((t) => walk(resolve(ROOT, t))))].filter((f) => PAGE.test(f));
+  const slug = slugPattern();
+  const inside = pages.flatMap((f) => internals(readFileSync(f, 'utf8'), f, slug ? [slug] : []).map((h) => ({ file: relative(ROOT, f), ...h })));
+  if (json) {
+    console.log(JSON.stringify({ checked: listed, files: files.length, terms: rules.length, hits, pages: pages.length, internals: inside }, null, 2));
+  } else {
     for (const h of hits) console.log(`${h.file}:${h.line}: names “${h.term}”`);
-    console.log(`check-leaks: ${files.length} file(s), ${rules.length} term(s), ${hits.length} hit(s)`);
+    for (const h of inside) console.log(`${h.file}:${h.line}: ${h.what} on a public page: “${h.text}”`);
+    if (inside.length) {
+      console.log('  Take it out of the page, or, if the page names it on purpose, mark the page `check-leaks: internals-ok` (see the header of this script).');
+    }
+    console.log(listed ? `check-leaks: ${files.length} file(s), ${rules.length} term(s), ${hits.length} hit(s)`
+      : 'check-leaks: no .leak-terms on this machine, no names checked (see the header of this script)');
+    if (!args.includes('--no-internals')) console.log(`check-leaks: ${pages.length} public page(s), ${inside.length} internal(s) showing`);
   }
-  process.exit(hits.length ? 1 : 0);
+  process.exit(hits.length || inside.length ? 1 : 0);
 }

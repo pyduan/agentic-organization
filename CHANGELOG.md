@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · Public pages are checked for traces of the workshop
+
+`npm run check` now refuses a public page (your site's pages, its public folder and its build)
+that shows a path into your repo, a command, the name of a `.md` file, a to-do's `^id`, a
+note-to-self comment, or a marker nobody filled in (TODO, `{{NAME}}`, "seed, to confirm"). None
+of these breaks a build, and every one tells a visitor they are reading a draft. A page that
+names them on purpose, such as a how-to, says `check-leaks: internals-ok` once
+(`scripts/check-leaks.mjs`).
+
+**What you need to do:** run `npm run check` after updating. For each page it lists, take the
+trace out, or mark the page if it is meant to show it. Run on ten sites built from the kit, it
+found such traces in published decks and pages of two of them.
+
 ## 2026-11-14 · MINOR · The company intranet catches a bullet that would show "[object Object]"
 
 A bullet such as `- Budget: 5k` in the header of any file the intranet reads is taken as a
