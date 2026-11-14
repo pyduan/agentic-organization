@@ -10,6 +10,17 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · The company intranet catches a bullet that would show "[object Object]"
+
+A bullet such as `- Budget: 5k` in the header of any file the intranet reads is taken as a
+field rather than a line of text, and the page prints "[object Object]" in its place. The
+intranet's content check now finds it in every file, not only in the few fields it named before,
+and says how to quote the line (`intranet/scripts/check-content.mjs`, `intranet/scripts/colon-maps.mjs`).
+
+**What you need to do:** if you run the company pack's intranet, copy the two files from
+`packs/company/templates/intranet/scripts/` into your intranet's `scripts/`, then run
+`npm run check` there and quote the lines it lists.
+
 ## 2026-11-14 · MINOR · Shared files are never pulled back to an older version
 
 `node scripts/vendor-sync.mjs pull` now refuses when the shared repo's clone is at a commit that

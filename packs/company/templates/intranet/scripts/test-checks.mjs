@@ -56,3 +56,14 @@ test('a scoped term is refused only where its glob matches, and scope: * goes ba
   assert.deepEqual(scan([home, sent], rules, top).map((h) => h.file), ['customers/decks/offer/deck.mdx']);
   assert.equal(rules[1].scope, null);
 });
+
+test('a bullet holding ": " that YAML read as a map is found; a list of records is not', async () => {
+  const { colonMaps } = await import('./colon-maps.mjs');
+  // What gray-matter returns for `- Revenue: 2M` among plain bullets, for a phrase key alone, and for real records.
+  assert.deepEqual(colonMaps({ key_facts: [{ Revenue: '2M' }, 'Founded in 2019'] }), ['key_facts[0]']);
+  assert.deepEqual(colonMaps({ points: [{ 'Next step for the bakery': 'a call' }] }), ['points[0]']);
+  assert.deepEqual(colonMaps({ points: [{ Owner: 'Sam' }, { Budget: '5k' }] }), ['points[0]', 'points[1]']);
+  assert.deepEqual(colonMaps({ links: [{ label: 'Site', href: 'https://acme.example' }, { label: 'Deck', href: '/d' }] }), []);
+  assert.deepEqual(colonMaps({ people: [{ name: 'Sam' }, { name: 'Alex' }] }), [], 'one shared key: a list of records');
+  assert.deepEqual(colonMaps({ milestones: [{ date: '2026-09', text: 'Kickoff', notes: ['plain', { Risk: 'low' }] }] }), ['milestones[0].notes[1]']);
+});

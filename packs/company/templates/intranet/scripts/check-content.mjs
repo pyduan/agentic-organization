@@ -10,6 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import { company, model, repos, centralPaths } from "../config.mjs";
+import { colonMaps, colonMapProblem } from "./colon-maps.mjs";
 
 const ROOT = path.resolve(process.cwd(), "..");
 
@@ -160,7 +161,9 @@ if (!company.central) {
 // to parse on the exact trap this script was written for, a bare ": " inside an unquoted value, and
 // `npm run check` said Content OK because it had never heard of the file.
 //
-// gray-matter throws rather than returning a broken object, so simply reading each file is the test.
+// gray-matter throws rather than returning a broken object, so simply reading each file is the test
+// for an unquoted single value. A list item holding ": " parses, as a map, and is caught after the
+// read (scripts/colon-maps.mjs), in every file rather than only in the fields named above.
 // The central repo is the kit instance: only what the intranet reads from it is walked.
 for (const repo of [repos.strategy, repos.customers, repos.administrative, path.join(repos.central, "source")]) {
   const dir = path.join(ROOT, repo);
@@ -174,7 +177,11 @@ for (const repo of [repos.strategy, repos.customers, repos.administrative, path.
       const raw = fs.readFileSync(full, "utf8");
       if (!raw.startsWith("---")) continue;
       try {
-        matter(raw);
+        const { data } = matter(raw);
+        const at = (p) => p.split(/[.[\]]/).filter(Boolean).reduce((o, k) => o?.[k], data);
+        const name = path.relative(ROOT, full);
+        // A list the checks above already read (key_facts, tags) says it once, not twice.
+        for (const p of colonMaps(data)) if (!problems.includes(`${name}: ${p} is object, not a string. A bullet containing ": " must be quoted, or YAML reads it as a map.`)) fail(name, colonMapProblem(p, at(p)));
       } catch (err) {
         fail(path.relative(ROOT, full), `frontmatter YAML does not parse: ${String(err.message).split("\n")[0]}`);
       }
