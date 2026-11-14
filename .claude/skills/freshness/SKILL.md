@@ -23,7 +23,8 @@ for weeks, while looking perfect.
 ```sh
 node scripts/check-freshness.mjs                      # everything
 node scripts/check-freshness.mjs --only=links         # just dead links
-node scripts/check-freshness.mjs --offline            # no network: placeholders only
+node scripts/check-freshness.mjs --offline            # no network: placeholders, ignore rules, sources, copies
+node scripts/check-freshness.mjs --only=derived       # copies in derived.json left behind by their source
 node scripts/check-freshness.mjs --json               # for a script or a routine
 ```
 

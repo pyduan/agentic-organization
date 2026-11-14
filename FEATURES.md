@@ -273,7 +273,8 @@ other.
 `check:leaks` (names that must not travel, from a list never committed, and traces of the workshop
 on a public page: a repo path, a command, a note-to-self, a marker left unfilled), `check:ai-tics` (what reads
 as machine-written), `check:retired` (a route a decision retired), `check:contrast`, and the freshness
-sweep of what is published.
+sweep of what is published, which also names a copy declared in `derived.json` whose source moved
+after it (the end-of-turn hook proposes its rebuild).
 **Why:** each one was a mistake that reached a reader before it had a check.
 
 ### Installing the kit for someone else

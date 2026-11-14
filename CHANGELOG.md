@@ -10,6 +10,19 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-14 · MINOR · A copy built from a source says where it comes from, and is flagged when it falls behind
+
+A public version of an internal page, an export, a page rebuilt from a spreadsheet: once
+committed, the copy stays as it was while its source moves on. List each one in a
+`derived.json` at the root of your repo (the copy, the files it is built from, the command that
+rebuilds it). The freshness sweep then names every copy whose source changed after the copy was
+last committed, and at the end of a turn that changed such a source, your agent proposes the
+rebuild instead of running it, since a rebuilt copy is often public (`lib/derived.mjs`,
+`scripts/check-freshness.mjs`, `.claude/hooks/derived.mjs`).
+
+**What you need to do:** nothing, unless you keep such copies: then ask your agent to write
+`derived.json` for them. Without the file, nothing changes.
+
 ## 2026-11-14 · MINOR · Public pages are checked for traces of the workshop
 
 `npm run check` now refuses a public page (your site's pages, its public folder and its build)

@@ -95,6 +95,13 @@
             "type": "command",
             "command": "node",
             "args": [
+              "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/derived.mjs"
+            ]
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": [
               "${CLAUDE_PROJECT_DIR}/{{ROUTER}}/.claude/hooks/turn-check.mjs",
               "${CLAUDE_PROJECT_DIR}/{{ROUTER}}"
             ]

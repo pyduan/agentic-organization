@@ -5,16 +5,19 @@
 // published still there, and is what we wrote about it still true". Those rot silently:
 // no file is wrong, no build fails, and nobody notices for weeks.
 //
-// Four passes, each independently skippable:
-//   links   every URL in the repo's markdown and in the built site still resolves
-//   hosts   every hostname the docs claim is live actually serves
-//   mail    MX / SPF / DMARC match what freshness.json says they should be
-//   stale   unresolved placeholders, and dated notes that have aged past their promise
+// Passes, each independently skippable:
+//   links    every URL in the repo's markdown and in the built site still resolves
+//   hosts    every hostname the docs claim is live actually serves
+//   mail     MX / SPF / DMARC match what freshness.json says they should be
+//   stale    unresolved placeholders, and dated notes that have aged past their promise
+//   ignored  a .gitignore rule that files already in git contradict
+//   sources  a tool's declared documents (sources.json) still the ones it read
+//   derived  a copy declared in derived.json whose source has changed since the copy's last commit
 //
 // Zero dependencies, Node built-ins only, so it runs on any machine with no install.
 // Config is optional: without freshness.json it still does links and stale.
 //
-// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale,ignored,sources] [--offline] [--json]
+// Usage:  node scripts/check-freshness.mjs [--only=links,hosts,mail,stale,ignored,sources,derived] [--offline] [--json]
 
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -27,7 +30,7 @@ const args = process.argv.slice(2);
 const only = (args.find((a) => a.startsWith('--only=')) || '').slice(7).split(',').filter(Boolean);
 const OFFLINE = args.includes('--offline');
 const AS_JSON = args.includes('--json');
-const LOCAL_PASSES = new Set(['stale', 'ignored', 'sources']); // need no network, so --offline keeps them
+const LOCAL_PASSES = new Set(['stale', 'ignored', 'sources', 'derived']); // need no network, so --offline keeps them
 const wants = (pass) => (only.length === 0 || only.includes(pass)) && !(OFFLINE && !LOCAL_PASSES.has(pass));
 
 const findings = [];      // { severity: 'fail'|'warn'|'info', pass, what, detail }
@@ -434,6 +437,29 @@ if (wants('sources')) {
   }
 }
 
+// ---------------------------------------------------------------- pass: derived
+
+// Is every declared copy still the copy of its source? A public version of an internal page, an
+// export, a page rebuilt from a spreadsheet: the source moves on and the copy, committed once,
+// stays as it was. derived.json says what each copy comes from and how it is rebuilt
+// (lib/derived.mjs); this pass compares the source's newest commit with the copy's last one.
+// Uncommitted edits to a source are not counted: the end-of-turn hook (.claude/hooks/derived.mjs)
+// speaks for those. A warning, never a failure: the rebuild may publish, and waits for a yes.
+
+if (wants('derived')) {
+  const { readDerived, standing, FILE } = await import('../lib/derived.mjs');
+  let copies = [];
+  try { copies = readDerived(ROOT); } catch (e) { add('fail', 'derived', FILE, e.message); }
+  if (!copies.length && existsSync(join(ROOT, FILE)) === false) {
+    add('info', 'derived', `no ${FILE} here`, 'nothing here declares itself a copy of something else');
+  }
+  for (const c of standing(copies)) {
+    const how = c.rebuild ? ` Rebuild with \`${c.rebuild}\`, then commit ${c.copy}.` : ` Rebuild it, then commit ${c.copy}.`;
+    if (c.state === 'behind' || c.state === 'never-built') add('warn', 'derived', c.copy, `${c.detail}${c.why ? `; ${c.why}` : ''}.${how}`);
+    else add('info', 'derived', c.copy, c.detail);
+  }
+}
+
 // ---------------------------------------------------------------- report
 
 const fails = findings.filter((f) => f.severity === 'fail');
@@ -443,7 +469,7 @@ if (AS_JSON) {
   console.log(JSON.stringify({ ok: fails.length === 0, fails: fails.length, warns: warns.length, findings }, null, 2));
 } else {
   const icon = { fail: '✘', warn: '▲', info: '·' };
-  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale', 'ignored', 'sources']) {
+  for (const pass of ['config', 'links', 'hosts', 'mail', 'stale', 'ignored', 'sources', 'derived']) {
     const rows = findings.filter((f) => f.pass === pass);
     if (!rows.length) continue;
     console.log(`\n${pass}`);
