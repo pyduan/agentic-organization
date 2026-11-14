@@ -48,7 +48,7 @@ Find every row that matches the task at hand and read those files before produci
 | **The intranet**: its home page, the banner's quickstart and philosophy, who waits on what, the tools cards; or any **private page only the owner (and whoever they name) may open** | `source/formats/dashboard.md` — the banner's words are `source/content/intranet-home.md` and the tools `source/content/intranet-tools.md`; it publishes as its own Access-gated Worker, never a public URL, and `npm run intranet` builds it. Views of this organization's own (a tab, a page, a home section) go in `apps/intranet-extend/`, never in `apps/dashboard/` (*Adding your own views*) |
 | A page **someone outside the organization** must read or answer (a relative, a partner, an accountant) | `source/formats/webapp.md` ▸ *Opening a page to someone outside the organization* — Access with their address and a one-time code, set by `scripts/protect-access.mjs`; a secret link only as a dated fallback |
 | An **analysis**, or any task with several moving parts where being wrong costs something | `docs/complex-tasks.md` — objectives and constraints first, plans checked back against them, the task cut into judgeable subtasks, and `node scripts/preflight.mjs` before delivery |
-| About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made, and the rule each one produced |
+| About to act on **real files, real money, or anything irreversible**; or a figure or claim is about to leave this repo | `docs/failure-modes.md` — seven families of mistake this framework has actually made: each rule one claim and one test, the cases behind it in `docs/failure-cases.md` |
 | The owner corrects you, pushes back, or you catch a mistake of your own that cost something | `.claude/skills/feedback/SKILL.md` — log it in `source/quality/incidents.json`; that is what lets the framework's maintainer fix the default that allowed it |
 | Who may change or approve what, or which repos the organization spans and who can access them | `ORGANIGRAM.md` (governance + repo map; solo-owner by default, fill in as the team grows). The `Kind` column says `router` or `satellite` per repo, and it is what stops the tools demanding a satellite carry a framework it deliberately does not hold |
 | **Infrastructure**: which service holds which function, proposing a new one, "can we just use X" | `STACK.md` first: one row per brick with its way out. Never infer this organization's setup from another project's stack |
@@ -76,16 +76,15 @@ Find every row that matches the task at hand and read those files before produci
 - **A page is worked on locally, then published in its own repo, and the person gets its link.** The owner and the people they work with are not technical: they never see a branch, a merge or a command. A page, a deliverable or a document is iterated first on this machine, on a `localhost` preview the kit serves (`npm run intranet:preview` for the intranet, `npm run preview -- <folder>` for a built deck or document, `npm run dev` inside `site/` for the website), as many rounds as it takes. When the person says "publish", push to `main` of the repo where the page lives, with no pull request, and give them the link that matches who will read it: the intranet, for the whole organization; a page behind its own Access list (`scripts/protect-access.mjs`), for a narrower circle; the public site, only for a document they validated and marked as shareable. A repo the person cannot write to (`ORGANIGRAM.md` ▸ *Who may do what*) gets a proposal to its owner, an issue with the text ready to paste, never a push. And until that repo deploys on push (the rule above), say that the page will be live at the next deploy and name who runs it, instead of handing over a link that still serves the old version. Full route: `docs/deploy-cloudflare.md` ▸ *From preview to link*.
 - **You run all the git, never the owner.** Most owners aren't technical. Never ask them to open a terminal, run a command, or touch branches, commits, or deploys — and never paste a command for them to copy. You do the whole thing: stage, commit, push, publish, merge. If a git action is blocked by a permission, ask them to **approve the permission**, then do it yourself; don't hand the git back to them. **The same holds for a settings screen at a provider** — a hosting dashboard, a DNS panel, an access rule. When the command line looks closed, look for the engineering path that avoids the screen before you write a single numbered step: on a live project it took three failed handovers (numbered steps, a login page opened in a panel they couldn't see, then eye-on-screen guidance) before anyone noticed that path had been available all along. Failing that, send one mail saying exactly what to click and why. Click-by-click guidance is not a fallback option. **When the harness itself refuses** (auto mode on a permission change or a secret write), do not route around it: hand over one deep link to the exact setting, then read the setting back yourself (`docs/troubleshooting.md` ▸ *Auto mode refused a command*).
 - **This repo is public, and every example in it is invented.** ⚠ Sessions that touch this template usually have other repos open too — the owner's own site, a client's project, an employer's internal repos. Never take an example from one of them, and never paste a line out of whatever file happens to be open: a person's name, a client, an internal project code, a supplier's situation are real information about real people, and a public template is the worst place for them. Write `@sam`, a printer, a brochure. Before committing, read the diff for names, clients and project codes that came from somewhere else, comments and test fixtures included: code copied from a private repo carries the comments written for it. **If you are unsure which project a change belongs to, say so and ask rather than guessing** — the repos in a workspace have different audiences, and the boundary only holds if it is checked deliberately.
-- **A recorded decision is closed. Do not re-adjudicate it.** Once something is written down in `source/decisions.md` — or confirmed by the owner and recorded anywhere in the repo — it is settled, and a later session treats it as a premise rather than an open question. The failure is specific and it compounds: re-raising a closed choice as "have you considered", re-adding a hedge or a "to be confirmed" to a fact the owner already confirmed, or quietly re-opening a debate because this session would have chosen differently. That makes the owner argue for the same decision several times, which is exactly the cost the file exists to remove. Re-open one only if the owner asks, or if something genuinely new turns up — and then it is a new dated entry saying what changed, never a silent reversal. A choice you made on the owner's behalf goes in as (proposed) until a person confirms it (`source/decisions.md` ▸ *Only a person settles*). **Maintaining that file is part of the job, not an optional extra**: a decision taken in conversation and not written down will be re-litigated, so write it down the day it is taken.
+- **A recorded decision is closed. Do not re-adjudicate it.** Closed means recorded with the owner's own words and what they covered, in `source/decisions.md` or anywhere in the repo; anything else, an "ok" on a direction included, is (proposed) (`docs/failure-modes.md#ok-not-decision`). A closed decision is settled, and a later session treats it as a premise rather than an open question. The failure is specific and it compounds: re-raising a closed choice as "have you considered", re-adding a hedge or a "to be confirmed" to a fact the owner already confirmed, or quietly re-opening a debate because this session would have chosen differently. That makes the owner argue for the same decision several times, which is exactly the cost the file exists to remove. Re-open one only if the owner asks, or if something new turns up, a fallen fact it cites included (`docs/failure-modes.md#screen-decisions`), and then it is a new dated entry saying what changed, never a silent reversal. A choice you made on the owner's behalf goes in as (proposed) until a person confirms it (`source/decisions.md` ▸ *Only a person settles*). **Maintaining that file is part of the job, not an optional extra**: a decision taken in conversation and not written down will be re-litigated, so write it down the day it is taken.
 - **Strip the AI tells before anything ships.** Everything here is written by a machine, so prose that reads as machine-written is the default outcome rather than an accident, and it costs the owner their credibility. The full list is in `source/brand/voice.md` ▸ *AI tics*; the three that appear without fail are the antithesis ("not just X, it's Y"), the triad ("faster, simpler, better"), and the evenly-weighted bolded bullet list standing in for an argument. Then run `node scripts/check-ai-tics.mjs` on it (a file, a folder, or `--stdin` for a draft not on disk yet): it reads the same list from `voice.md`, and `--strict` fails on the tells that are nearly always an edit. Read a draft aloud before shipping it. Do not over-correct into stilted prose either: the goal is writing a person would have written, not writing that avoids a word list.
 - **Build from the three libraries.** Whatever gets built here (a page, a deck, an app, a document, a script that stores something) is assembled from three libraries the repository already holds, never from scratch: **the design system** (`source/brand/design.md` and `source/brand/tokens.css`: colors, type, spacing), **the components** (the deck components in `scripts/deck/` and `source/brand/deck/`, the shadcn/ui components of `webapp.md`, the page patterns of `website.md`), and **the stack** (`STACK.md`: where records, files, relational data, identity and secrets live, and on which provider). Start from the playbook and what is already here; bespoke is the last resort, and even then it is built from the tokens and the approved bricks, never as a parallel system. A brick `STACK.md` does not list (a new database, a new host, a second sign-in) is a proposal for a person to approve there first, not something an agent adds on its own. Where the organization runs on another provider, the same roles apply with that provider's bricks, recorded in the same table.
 - **Never write a confirmation next to a command. Deduce it from the result.** Reported twice from a live project on the same day: a publish announced as done, and a test suite announced green while it was failing — caught by a parallel session, not by the one that wrote the sentence. The failure is not carelessness, it is that "ran the command" and "the command succeeded" feel like one act while writing. So: read the exit code, read the output, fetch the live URL, count the passing tests. If you did not look, say you did not look. A confidently wrong "done" costs the owner more than an honest "I ran it, here is the output, I am not sure".
 - **Two hooks hold what these rules could not.** A message leaving in someone's name waits for a
-  person's yes at the moment it leaves (`.claude/hooks/send-guard.mjs`), and a turn cannot end on an
-  absence nobody searched for, a silence nobody checked, a verification nobody ran, two figures said
-  to agree with nothing computed, a success over a failing command, or a source cited after reading
-  only part of it (`.claude/hooks/turn-check.mjs`).
-  When one blocks, do the check or say exactly what you did and did not look at; never argue past it.
+  person's yes at the moment it leaves (`.claude/hooks/send-guard.mjs`), and a turn cannot end on a
+  claim its own calls do not support (`.claude/hooks/turn-check.mjs`; `node
+  .claude/hooks/turn-check.mjs --list` prints the checks active here). When one blocks, do the check
+  or say exactly what you did and did not look at; never argue past it.
   A project tunes the second in `.claude/turn-checks.json` (example: `source/quality/turn-checks.example.json`),
   where it can also hold every sentence to the owner's language (`"language"`) and hold a commit
   carrying a trailer it forbids (`"commitTrailers"`). A project's rule there wins over a reminder
@@ -112,13 +111,14 @@ Find every row that matches the task at hand and read those files before produci
 - **Never commit secrets, and keep sensitive content out of the repo.** No API keys, passwords, or personal data beyond what the site itself publishes. For material that shouldn't be public but is worth keeping and versioning (financial models, runway/funding figures, private notes, a draft not ready to share), don't rely on "just don't publish it": add it to `.gitignore` so it's never committed, pushed, or deployed, and keep it in a **local-only copy** — a git-ignored folder, or its own separate local repo on the owner's machine. The public repo stays shareable; the sensitive layer never leaves the machine.
 - **On a complex task, the objectives come before the plan, and the plan gets checked back against
   them.** Write down what the work is for and what it must respect before deciding how to do it, and
-  ask rather than assume when two readings would produce materially different work. Then hold every
+  ask before building when the wrong reading would cost more than one round of rework, and otherwise
+  state your reading in one line and proceed (`docs/failure-modes.md#one-question`). Then hold every
   plan against that: a step serving no objective comes out, however satisfying it is to do. Cut the
   task into subtasks the owner can judge one at a time, each with its own governing guide and its
   own checks, because a task delivered whole to a non-technical owner gets accepted whole or not at
   all. And before delivering, run the known failures as a test suite rather than trusting memory:
-  `node scripts/preflight.mjs --task "…"` prints the families from `docs/failure-modes.md` that
-  apply plus everything this project has already got wrong in them. **Repeating something already in
+  `node scripts/preflight.mjs --task "…"` prints the rules from `docs/failure-modes.md` the task
+  touches, plus what this project has already got wrong in their families. **Repeating something already in
   the register is worse than a new mistake**, because it says the register is not working. The
   recipe is `docs/complex-tasks.md`.
 - **A change other instances must act on gets its `CHANGELOG.md` entry in the same commit.** This
@@ -134,18 +134,12 @@ Find every row that matches the task at hand and read those files before produci
   corpus actually say. Then build, from the files. The `fact-finding` skill is that recipe, and it is
   as true for a new area in this repo as for a new project.
 - **Search before you ask, and before you build.** The answer to most questions is already in this
-  repo, the owner's files, or the project's history. When something seems missing, assume you
-  searched badly rather than that it does not exist, and search by question rather than by topic.
-  Before writing any tool that moves, deletes or transforms files, inventory what is actually there.
-- **A safeguard must not depend on the thing it protects against, and that is the first check, not
-  the last.** Name what it protects against, list what it needs in order to work, and confirm the
-  two lists do not intersect — one minute, before the first line of code. A real case: an archive
-  built to survive the loss of a work account, verified for days hash by hash, mirrored to an
-  external drive, and stored in cloud storage whose login was that same work account. It protected
-  against nothing, and the owner found it themselves. Every internal axis had been checked and no
-  external one had: checking a great deal stood in for checking what mattered, and the profusion
-  produced a confidence nothing supported. The same test applies to a watchdog (does it run on its
-  own clock, or on the owner being at the keyboard?), a recovery path, and a fallback.
+  repo, the owner's files, or the project's history; search by question rather than by topic, and
+  inventory what is there before writing any tool that moves, deletes or transforms files.
+- **Something that seems missing was searched for badly, and no search proves an absence**
+  (`docs/failure-modes.md#absence`).
+- **A safeguard must not depend on the thing it protects against**, checked before the first line
+  of code (`docs/failure-modes.md#safeguard-axis`).
 - **Never trust a safety guarantee you have not tested, and never act in bulk on the strength of
   one.** Test on one item, verify the real state independently, then scale. Any destructive option
   needs a copy taken first — and prefer renaming aside to deleting, since it is instant, costs no
@@ -153,30 +147,10 @@ Find every row that matches the task at hand and read those files before produci
   the safety net is disqualified, not merely riskier. Nothing is "in place" until you have seen it
   produce its effect once: a check that never fires leaves no trace, so its silence proves nothing.
   The whole list is `docs/failure-modes.md` ▸ *Actions on files*.
-- **No search proves an absence.** Not a keyword sweep, not an index, not a filtered inventory —
-  each tells you a term is present, never that a thing does not exist. Before concluding from an
-  empty result, calibrate on a case you know should appear; if your known case does not show up
-  either, the instrument is at fault and not the data. And retrieving is not reading: before writing
-  *missing* or *to request*, open what the project already holds on the subject.
-- **A number the machine knows is never written in prose.** Count it where it is displayed, or
-  phrase the sentence to stay true without it. This covers anything that depends on an order too —
-  a rank, a maximum, "the main one", "the second most" — which is worse, because those read as words
-  rather than as figures and survive the regrouping that makes them false. And when a fact falls,
-  sweep every occurrence of it — other files, other repos, the deployed app, and the decisions that
-  rested on it — not only the place you noticed.
-- **A term of art the owner uses is an input to check, not a given, and the correction has to
-  teach.** People name a thing with the word they have, and in law, tax, contracts, medicine or
-  engineering the neighbouring word is a different thing: a *replica* is not a *backup*, money a
-  founder puts in as a *loan* is not *capital*, a *deposit* is not a *down payment*. Nobody
-  announces the substitution, so the term arrives with the rank of an established fact and
-  everything built on it — a file, a plan, an application, a piece of advice — then describes an
-  arrangement that does not exist. So when a term carries a definition, verify it before building
-  on it — look the definition up against a source rather than recalling it, since a confident near
-  miss is the whole failure, and bank it in `source/facts/` if the distinction will come up again.
-  When it is the wrong one, say which is right, why the distinction exists and what changes because
-  of it, so the owner learns the distinction instead of receiving a silent fix. They are the one who
-  will use the word in a meeting where you are not there. Asked for by an owner running this kit who
-  had built a whole file on the wrong one of two neighbouring legal terms.
+- **A number or a rank the machine knows is never written in prose**, and a fact that falls is swept
+  everywhere it was copied (`docs/failure-modes.md#number-in-prose`, `#sweep-fallen-fact`).
+- **A term of art the owner uses is checked against its definition before you build on it**, and a
+  wrong one comes back with the right term and what it changes (`docs/failure-modes.md#term-of-art`).
 - **When a subject needs a tool, propose the tool. Do not wait to be asked.** The owner does not
   know an app is on the menu, so a subject that should have become one stays a rolling conversation:
   the same arithmetic redone by hand every session, from whatever the transcript kept, no two
@@ -203,9 +177,10 @@ Find every row that matches the task at hand and read those files before produci
   have chosen otherwise, and a feature nobody listed gets rebuilt beside the one that exists. Read
   it before proposing to change how something works. Decisions about the organization itself
   (positioning, hypotheses) stay in `source/decisions.md`.
-- **A rule lands where the work it governs happens, at full length.** Write it into the playbook the
-  building session will read, or beside the code that obeys it, and keep the clause that says why:
-  a rule recorded at half its length gets implemented as a paraphrase that dropped the mechanism.
+- **A rule lands at full length in one home, and elsewhere as a claim plus a pointer.** The home is
+  the playbook the building session will read, or the code that obeys it, and it keeps the clause
+  that says why: a rule recorded at half its length gets implemented as a paraphrase that dropped
+  the mechanism, and a second full copy drifts from the first.
   A commit message is not a place you can do work: never let one claim a change, a mirror or a
   follow-up that was not made in that commit.
 - **A registry gets a read path, not only a write path.** A log, a register or a table of links is
@@ -288,7 +263,8 @@ scripts/bootstrap-*          one-command install (mac + windows): a new organiza
 docs/deploy-cloudflare.md    hosting and DNS, step by step
 docs/troubleshooting.md      the install/hosting FAQ (living: add solved problems to it)
 docs/how-it-works.md         the mental model, for humans
-docs/failure-modes.md        the seven ways this goes wrong, and the rule each one produced
+docs/failure-modes.md        the seven ways this goes wrong: each rule a claim, a test, and the mechanism holding it
+docs/failure-cases.md        the incidents behind each rule, under the same id
 docs/complex-tasks.md        the recipe for an analysis: objectives, plan check, subtasks, preflight
 source/formats/dashboard.md  the intranet: what its home page shows, and why one and not one per repo
 source/quality/              the incident register (the AI's own mistakes) + its schema

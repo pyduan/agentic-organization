@@ -135,8 +135,9 @@ value, so the first reader sees the caveat and the second copies only the number
   threshold's date is the day it is crossed.** Test: the date written down is the one the document
   says binds.
 - <a id="term-of-art"></a>**A term of art is a classification, and the owner's is unverified until
-  checked against its definition.** Test: the definition is cited from a source, and a wrong term
-  comes back with the right one, the distinction and what it changes.
+  checked against its definition.** Test: the definition is cited from a source, not recalled; a
+  wrong term comes back with the right one, the distinction and what it changes; a distinction that
+  will come up again is banked in `source/facts/`.
 - <a id="ok-not-decision"></a>**An "ok" on a direction is not a decision on a result, and a
   decision carrying an order or an amount is read back in one line before it is written.** Test: the
   record quotes the owner's words and what they covered; on law, tax or a calculation it cites the

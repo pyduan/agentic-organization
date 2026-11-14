@@ -646,11 +646,10 @@ by asking the common-sense question: *when the account goes, do I lose this too?
 backup, every recovery path, every alert, every fallback: name what it protects against, then list
 what it needs in order to work, and check the two lists do not intersect.
 
-**Thoroughness is not coverage, and it disguises the gap.** The starkest incident in that register
-was an archive verified for days — hash by hash, restart, throughput, disk — and parked in cloud
-storage whose login was the very account the archive existed to survive. Every internal axis was
-checked and no external one was. Checking a great deal stood in for checking what mattered, and the
-profusion produced a confidence nothing supported.
+**Thoroughness is not coverage, and it disguises the gap.** The archive had been verified for days,
+hash by hash, restart, throughput, disk. Every internal axis was checked and no external one was.
+Checking a great deal stood in for checking what mattered, and the profusion produced a confidence
+nothing supported.
 
 ### ships-inside
 

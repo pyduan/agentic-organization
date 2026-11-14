@@ -26,7 +26,10 @@ So, concretely, once something is recorded here:
   organization's own facts and is not grounds for doubting the owner about their own life or work.
 - **Reversal is allowed, silence is not.** New information, a changed constraint or the owner
   changing their mind all justify re-opening — as a new dated entry that says what changed and why.
-  Never edit the old entry away.
+  A fact the entry cites that has since fallen counts as new information. Never edit the old entry
+  away.
+- **Settled means recorded with the owner's words and what they covered.** An "ok" on a direction,
+  or another session's paraphrase of the owner, is (proposed) until those words are in the entry.
 
 The mirror obligation is on the writing side: **a decision taken in conversation and left unwritten
 will be re-litigated.** Record it the day it is taken. That is the whole mechanism.

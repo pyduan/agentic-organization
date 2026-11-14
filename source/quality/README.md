@@ -12,8 +12,10 @@ It exists for three different readers, which is why it is data and not prose:
   report from those lines alone, ready to send, so the next person who installs this kit inherits
   what went wrong here without learning anything about you.
 - **The next session, before it delivers.** `node scripts/preflight.mjs --task "…"` prints the
-  general failure families that a task touches alongside every entry logged here in those families,
-  each with what guards it. That is what turns this file from a diary into a test suite, and it is
+  rules a task touches, the entries logged here in their families (one per `generic`, the
+  unguarded first) with what guards each, and the mistakes repeated most, counted from `repeat_of`.
+  A `guard.where` naming a rule by its id (`docs/failure-modes.md#absence`) lets that ranking say
+  which rule did not hold. That is what turns this file from a diary into a test suite, and it is
   why the `generic` and `guard` fields are worth writing carefully. Repeating something already in
   here is worse than a new mistake: it says the register is not working. See `docs/complex-tasks.md`.
 

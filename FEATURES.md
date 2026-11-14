@@ -219,8 +219,9 @@ view nobody edits; most organizations need neither, so it stays out of the defau
 
 ### The quality loop
 An incident register (`source/quality/incidents.json`), the failure families it is filed under
-(`docs/failure-modes.md`), a preflight before delivery, and an anonymized report for the kit's
-maintainer.
+(`docs/failure-modes.md`: each rule one claim, one test and the mechanism that holds it, with the
+cases behind it in `docs/failure-cases.md`), a preflight before delivery, and an anonymized report
+for the kit's maintainer.
 **Why:** the rules record what to do; the register records what went wrong, which is the only way
 to know whether the rules work. The report names in its headline any entry whose severity the
 schema does not define, and the anonymized form refuses to be written when it holds the project's
@@ -231,6 +232,9 @@ sends back the write that drifts: a detector named outside the five had counted 
 framework, flattering the one figure that has to come down (2026-11-14). Whether a guard held is
 read from `repeat_of` links, per mechanism, never from a family: a family is a wide bucket, and
 counting every new incident in a guarded family read new mistakes as failed fixes (2026-11-14).
+Preflight picks rules one by one, not whole families, and caps what it prints: matched by family, a
+two-line task printed over a hundred lines, which nobody reads; the most-broken ranking is computed
+from `repeat_of` on every run so it cannot go stale as a list in a guide would (2026-11-14).
 
 ### Guards that refuse
 Hooks hold a message leaving in someone's name for a person's yes, refuse to end a turn on an

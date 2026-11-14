@@ -273,7 +273,7 @@ need, ask for it in the kit rather than patching around it.
   short version reads as "there is nothing for this".
 - **Say what is unfinished, in the data.** An item that cannot be acted on today is not a to-do:
   it is a wait, and it belongs on a date, not in a list of tasks. A figure that is not established
-  carries its status next to it (see `docs/failure-modes.md`).
+  carries its status next to it (`docs/failure-modes.md#status-field`).
 
 ## Where it lives, and why it is one dashboard and not one per repo
 

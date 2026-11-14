@@ -42,7 +42,7 @@ settled. Two tags are different, because two kinds of item are invisible exactly
 | Tag | What it means | When it is raised |
 |---|---|---|
 | `#decide` | an open decision that waits only on a gesture from a person, not on work | **every session**, until the line is ticked |
-| `#revisit` | a hypothesis, or a choice forced by a constraint, to look at again | once its `due:` date has passed |
+| `#revisit` | a hypothesis, a choice forced by a constraint, or a wait on a third party, to look at again; for a wait, `due:` is the day silence becomes the answer | once its `due:` date has passed |
 
 `node scripts/open-decisions.mjs` prints them, and the SessionStart hook runs it, so they arrive
 before the session starts working rather than in a summary at the end. It prints **nothing** when
@@ -266,8 +266,7 @@ solved.
 
 Between agent *sessions* it is ordinary git divergence, resolved the ordinary way. The rule that
 prevents most of it sits upstream of any merge UI: pull before you write, commit narrowly, push
-immediately. An agent that reads a file, thinks for ten minutes and writes it back is working from
-a stale copy.
+immediately (`AGENTS.md` ▸ *Pull before you write*).
 
 ## One app, several projects
 

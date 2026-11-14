@@ -15,10 +15,10 @@ Write down what the work is for before deciding how to do it.
 it to be worth anything. **Constraints**: what it must respect. Money, time, data that must not
 move, people who must not be contacted, a legal or contractual limit, a promise already made.
 
-**Ask rather than assume.** Ambiguity resolved silently is a choice made on the owner's behalf and
-not reported. If two readings of the request lead to materially different work, that is a question,
-and it is far cheaper before the work than after it. Routine judgement calls stay yours; a fork that
-changes the deliverable is theirs.
+**Ask, or say how you read it.** Ambiguity resolved silently is a choice made on the owner's behalf
+and not reported. One test decides which: ask before building when the wrong reading would cost more
+than one round of rework; otherwise state your reading in one line and proceed
+(`docs/failure-modes.md#one-question`).
 
 What this prevents is not a wrong answer. It is a right answer to the wrong question. A real case:
 a machine's disk was full, and the instruction was to move a large folder to cloud storage. The work
@@ -41,10 +41,8 @@ best-executed analysis in one incident register was withdrawn at the end because
 depended on its result. Every safeguard had checked that the number was true. Not one of them
 checked that it was useful.
 
-Then check again at handover. A deliverable written over several hours freezes what was known at the
-moment each sentence was typed, so its opening paragraph knows less than its closing one. Three
-signals mean re-read a passage before it goes: it asks for something already obtained, it claims
-ignorance, or it quotes a figure that came from somewhere else.
+Then check again at handover: a long deliverable is re-read whole before it goes
+(`docs/failure-modes.md#reread-deliverable`).
 
 ## C · Subdivide, because the owner may not be technical
 
@@ -74,11 +72,13 @@ Before delivering anything where being wrong costs something, run both lists:
 node scripts/preflight.mjs --task "check the price adjustment and publish it"
 ```
 
-It prints the general families from `docs/failure-modes.md` that the task touches, and every
-incident this project has already logged in those families from `source/quality/incidents.json`,
-each with what now guards it. Name the families directly (`node scripts/preflight.mjs numbers
-destructive`) when you already know which ones apply, and add `--full` for the whole rule rather
-than its claim.
+It prints the rules from `docs/failure-modes.md` the task touches, at most fifteen, the ones a
+mechanism already holds on one line, and the incidents this project has logged in their families
+from `source/quality/incidents.json`, one per lesson, the unguarded first, each with what now guards
+it. Above them, the mistakes this project repeated most, computed from the register's `repeat_of`
+links (`--broken` for the whole ranking). Name the families directly (`node scripts/preflight.mjs
+numbers destructive`) when you already know which ones apply, add `--full` for each rule's test, and
+`--all` to lift the caps.
 
 The project's own incidents print first, and they are the reason the command exists. The general
 list is what every project running this kit has learned. The register is what **this owner** has

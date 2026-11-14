@@ -106,7 +106,8 @@ source. Either the number is sourced and named, or it does not appear. See the s
 
 **Chatbot residue.** Nothing from a conversation with an assistant survives into copy: "here is
 a…", "I hope this helps", "let me explain", "want me to expand?", "as of my last update", "great
-question". And no speculative filler written to paper over a gap in the sources.
+question", nor its service formulas: "let me know if you have any questions", "happy to discuss".
+And no speculative filler written to paper over a gap in the sources.
 
 **The trailing coda.** A sentence that has finished, then a comma and two words for punch: "and it
 works, every time", "built to scale, effortlessly", "we ship, always". Delete the coda. The sentence

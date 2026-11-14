@@ -32,6 +32,9 @@ block below for whoever is sending it.
   for every channel that carries someone's name, chat and instant messaging included. The harness
   backs this up: `.claude/hooks/send-guard.mjs` holds every send-like tool call and shell command for
   a person's approval, so the approval is given at the moment the message leaves, on the exact call.
+  A new message whose every recipient is on the organization's own domains
+  (`source/organization-policy.json` ▸ `internalDomains`) is not held by send-guard: the person's
+  reread before it leaves is then the only check, and the rule above still binds.
 
   **"Send this:" ending on a colon, or followed by text that may still come, waits for the rest.**
   When you are unsure what will leave, ask. A draft went out a minute before the owner pasted her own
@@ -125,10 +128,8 @@ The register, on top of `voice.md`:
 
 - **Matter of fact.** What is, what is needed, by when. No enthusiasm, no reassurance, no softening
   a real deadline into a preference.
-- **No counted summaries.** Never "two things for you and one for Sam", "here are the 4 topics". The
-  list is right there, and the count goes false the moment the list moves.
-- **No chatbot residue and no service formulas.** No "hope this helps", "let me know if you have any
-  questions", "happy to discuss". The message ends when the last useful line ends.
+- **No counted summaries and no chatbot residue** (`source/brand/voice.md` ▸ *AI tics*). The
+  message ends when the last useful line ends.
 - **No labels that repeat their own bullet.** "Context: the review slipped a week" says "context"
   for nothing. Label a line only when the label carries something the sentence does not.
 - **No structure for the look of it.** No headings on a six-line message, no emoji added for
