@@ -1,0 +1,24 @@
+/* Brand-independent rules every page and app of the kit loads, whatever the brand.
+   They live here, in lib/, because the kit owns this folder and kit-sync updates it: an owner's
+   source/brand/tokens.css is replaced at setup and never synced, so a rule written there reaches
+   no instance. The intranet build prepends this file to intranet.css; any other page or app links
+   it (or copies it at build time) before its own stylesheet (source/formats/webapp.md). */
+
+/* Dropdowns: one chevron for every <select>, in every page and app that loads this file.
+   The browser's own arrow sits wherever each engine puts it: a few pixels from the edge in Chrome,
+   off-centre by up to 2px in a tall or pill-shaped field, and with its own size in Safari, which also
+   ignores the field's padding. One drawn chevron, centred by background-position, replaces it.
+   The selector outweighs a plain `select` or `.x select` rule, so a page's own padding cannot
+   push the text under the chevron. A list box (`multiple`, `size`) keeps the browser's look. */
+:root {
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23666666' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+select:not([multiple]):not([size]) {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: var(--select-chevron);
+  background-repeat: no-repeat;
+  background-position: right 0.85em center;
+  background-size: 1em 1em;
+  padding-right: 2.4em;
+}

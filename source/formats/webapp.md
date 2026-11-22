@@ -248,8 +248,10 @@ Two corollaries, because people get this wrong in both directions:
 One app = one self-contained folder at `apps/<slug>/` (see `apps/README.md`). Three shapes, chosen
 by the test above rather than by taste:
 
-Whatever the shape, a `<select>` takes its chevron from `source/brand/tokens.css` (*Dropdowns*):
-an app that copies the token values copies that rule too, and never styles the arrow itself.
+Whatever the shape, a `<select>` takes its chevron from `lib/base.css`, which every page and app
+loads before its own stylesheet (linked, or copied at build time), and never styles the arrow
+itself. Not from `source/brand/tokens.css`: an instance replaces its brand file at setup and
+kit-sync never touches it, so a rule kept there reached no instance (22/11/2026).
 
 1. **A single static folder** — `index.html` + inline or co-located CSS/JS, no build step, no
    framework. Right for a **public** tool that computes and forgets; a single file someone could

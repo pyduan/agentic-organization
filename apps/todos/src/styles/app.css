@@ -11,7 +11,7 @@
   --color-late: #b3261e;
 }
 
-/* The dropdown chevron, copied from source/brand/tokens.css ▸ Dropdowns: the same drawn arrow,
+/* The dropdown chevron, copied from lib/base.css ▸ Dropdowns: the same drawn arrow,
    centred, in every browser. Unlayered, so Tailwind's padding utilities do not undo it. */
 select:not([multiple]):not([size]) {
   -webkit-appearance: none;

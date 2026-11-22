@@ -228,7 +228,9 @@ const today = new Date().toISOString().slice(0, 10);
 const extension = await loadExtension({ root: ROOT, data, today, file: EXTEND, local: LOCAL });
 const kitCss = (name) => readFile(fileURLToPath(new URL(`../apps/dashboard/${name}`, import.meta.url)), 'utf8');
 // The pieces an extension's views use (many tabs, a sidebar's groups) only when there is one.
-const css = extension ? `${await kitCss('intranet.css')}\n${await kitCss('extension.css')}` : await kitCss('intranet.css');
+// lib/base.css first: the brand-independent rules (the dropdown chevron) that no brand file may carry.
+const baseCss = await readFile(fileURLToPath(new URL('../lib/base.css', import.meta.url)), 'utf8');
+const css = `${baseCss}\n${extension ? `${await kitCss('intranet.css')}\n${await kitCss('extension.css')}` : await kitCss('intranet.css')}`;
 
 // Rendered before the folder is wiped, so a page that fails leaves the last build in place.
 const files = renderIntranet({ data, home, tools, css, today, extension });

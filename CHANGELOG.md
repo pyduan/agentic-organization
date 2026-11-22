@@ -10,6 +10,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-22 · MINOR · Dropdown arrows are right in every app, not only in the kit's own pages
+The drawn chevron for dropdowns moved from your brand file to `lib/base.css`, which the kit keeps
+up to date: your brand file is yours and is never synced, so the fix of 5 November never reached an
+installed project, and each new app showed the browser's misplaced arrow again. The intranet loads
+it automatically. **What you need to do:** nothing for the intranet; an app your agent built before
+today links `lib/base.css` (or copies it) at its next change.
+
 ## 2026-11-14 · MAJOR · Your corrections are written down when you make them, and every session that worked reflects once
 
 When your message corrects your agent ("non, c'est pas ça", "je t'avais dit", "you forgot",

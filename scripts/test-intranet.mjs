@@ -180,6 +180,10 @@ test('the build: npm run intranet on an invented workspace writes every page', (
     for (const f of ['index.html', 'intranet.css', 'tokens.css', 'data.json', 'projects/index.html', 'projects/brochure/index.html']) {
       assert.ok(existsSync(join(dist, f)), f);
     }
+    // The dropdown chevron comes from lib/base.css, even with a brand file that knows nothing of it.
+    writeFileSync(join(dir, 'source/brand/tokens.css'), ':root{--color-ink:#111}\n');
+    execFileSync(process.execPath, [join(ROOT, 'scripts/dashboard-data.mjs')], { cwd: dir, encoding: 'utf8' });
+    assert.match(readFileSync(join(dist, 'intranet.css'), 'utf8'), /select:not\(\[multiple\]\):not\(\[size\]\)\s*\{[^}]*appearance: none/);
     const home = readFileSync(join(dist, 'index.html'), 'utf8');
     assert.match(home, /Riverside Co-op/);
     assert.match(home, /Welcome\./);
