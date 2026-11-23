@@ -310,6 +310,19 @@ documents' languages) for pages that are only an image. A few seconds per scanne
 anywhere. A figure or a date read by OCR still gets checked against the page image before anything
 relies on it. `textutil` (also built in) turns `.doc` and `.docx` into text.
 
+To make a scanned PDF searchable rather than only read it, write the recognised lines back as
+invisible text (PyMuPDF, render mode 3) at the positions Vision gives, and leave the page images
+untouched. Two traps. A page with a `/Rotate` entry is written in its unrotated frame: positions
+measured on the page as displayed must be de-rotated (`page.derotation_matrix`) and the text turned
+by the page's angle, or half the lines land sideways and off the page while the file still looks
+fine. And Vision alone skips what sits in shaded cells or under a signature on forms and tables:
+send those pages to a layout-aware model, and measure on two or three pages against a
+transcription made by eye before trusting any of it.
+
+For photos of paper documents, Vision's document segmentation finds the page edges far more often
+than a contour search in OpenCV, which tends to return the whole frame when a page sits in a
+binder. Propose the corners, then let someone correct the wrong ones by hand.
+
 ## A workbook import shows dates where there should be codes
 
 A spreadsheet's columns are often formulas (a lookup into another tab), and the file stores both the
