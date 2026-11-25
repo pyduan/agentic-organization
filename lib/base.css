@@ -22,3 +22,9 @@ select:not([multiple]):not([size]) {
   background-size: 1em 1em;
   padding-right: 2.4em;
 }
+
+/* Structured data never breaks across a line. An identifier, a code, a reference or a format
+   (PRV-<act number>-<rank>, D-01932, 373486B, an API route) is set as inline code, and a line
+   break inside it makes it unreadable and impossible to copy right: source/brand/voice.md ▸
+   *Structured data*. Code blocks (<pre>) keep their own wrapping. */
+:not(pre) > code, kbd, samp { white-space: nowrap; }

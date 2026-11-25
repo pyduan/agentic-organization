@@ -57,7 +57,8 @@ html, body { margin: 0; background: var(--color-bg, #f4f4f2); }
 .doc-prose th { text-align: left; font-size: 10.5px; letter-spacing: .05em; text-transform: uppercase; border-bottom: 1.5px solid var(--doc-ink); padding: 4px 6px; }
 .doc-prose td { border-bottom: 1px solid var(--doc-line); padding: 5px 6px; vertical-align: top; }
 .doc-prose blockquote { margin: 0 0 12px; padding-left: 12px; border-left: 2px solid var(--doc-line); color: var(--doc-muted); }
-.doc-prose code { font-size: .9em; background: var(--doc-sunken); padding: 0 3px; border-radius: 3px; }
+.doc-prose code { font-size: .9em; background: var(--doc-sunken); padding: 0 3px; border-radius: 3px; white-space: nowrap; }
+.doc-prose pre code { white-space: pre-wrap; }
 .doc-prose pre { background: var(--doc-sunken); padding: 8px 10px; border-radius: 6px; font-size: 11px; white-space: pre-wrap; }
 .doc-prose a { color: var(--doc-accent); }
 .doc-check { margin-right: 6px; }

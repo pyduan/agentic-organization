@@ -224,6 +224,14 @@ a « : » or a « ? » left alone at the start of a line reads as a typo. Decks,
 and a French intranet (`intranet.locale('fr-FR')`) apply it at build time
 (`scripts/deck/text.mjs` ▸ `typo`); text typed anywhere else follows the same rule by hand.
 
+**Structured data is inline code, and never breaks.** An identifier, a code, a reference, a number
+with a fixed shape or a format a reader will type or copy (`PRV-<act number>-<rank>`, `D-01932`, a
+matricule, a 6-digit code, an API route, a file name) is written as inline code, in every language:
+in a deck, a document, a page, an app, and in a message when its channel renders code. A line break
+inside one makes it unreadable and impossible to copy right, so the kit's sheets set inline code
+`white-space: nowrap` (`lib/base.css`, `scripts/doc/doc.css`, `scripts/deck/theme.css`). In an app,
+the same data takes the same look: one class for it, never a plain bold.
+
 ## Notation
 
 TODO: how the project's name is written, exactly, including capitalization and any punctuation that is part of the mark. Add other named things (product names, series titles) as they appear. These notations are non-negotiable; the AI applies them everywhere without exception.

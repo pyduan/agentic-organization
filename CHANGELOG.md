@@ -10,6 +10,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-25 · MINOR · Identifiers, codes and references never break across a line
+A structured piece of data (an identifier such as `PRV-<act number>-<rank>`, a reference such as
+`D-01932`, a six-digit code, a route) is written as inline code, and the kit's sheets now keep inline
+code on one line in decks, documents, the intranet and any app that loads `lib/base.css`. Cut in two,
+it could not be read or copied right. The rule is in `source/brand/voice.md` ▸ *Structured data is
+inline code*. **What you need to do:** nothing; your agent writes such data as code from now on.
+
 ## 2026-11-22 · MINOR · Dropdown arrows are right in every app, not only in the kit's own pages
 The drawn chevron for dropdowns moved from your brand file to `lib/base.css`, which the kit keeps
 up to date: your brand file is yours and is never synced, so the fix of 5 November never reached an

@@ -25,6 +25,7 @@ beside its tokens, with what was inferred rather than given marked *to confirm*.
 
 - TODO: display face, text face, and where each is used. The kit starts on system fonts; if the owner picks webfonts, self-host them (put files in `site/public/fonts/`, declare with `font-display: optional`) so the site never flashes or jumps on load.
 - One type scale, defined in tokens, used everywhere. Resist per-page font sizes.
+- Structured data (an identifier, a code, a reference, a format such as `PRV-<act number>-<rank>`) is inline code, in the mono face, and never breaks across a line (`lib/base.css`, and the deck and document sheets). See `voice.md` ▸ *Structured data*.
 
 ## Layout and components
 

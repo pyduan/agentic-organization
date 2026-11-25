@@ -212,6 +212,7 @@
   .prose th { text-align: left; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); padding: var(--space-2) var(--space-3) ; background: var(--surface-sunken); }
   .prose td { padding: var(--space-2) var(--space-3); border-top: 1px solid var(--hairline); vertical-align: top; }
   .prose code {
+    white-space: nowrap;
     font-family: var(--font-mono);
     font-size: 13px;
     background: var(--surface-sunken);
