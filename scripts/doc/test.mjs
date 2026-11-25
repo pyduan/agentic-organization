@@ -65,6 +65,13 @@ test('a letter: the letterhead in two columns, the signature to the right, no ti
   assert.deepEqual(r.blanks, ['number', 'date', 'name']);
 });
 
+test('a letter numbered in roman: the pages carry the flag, a plain letter does not', () => {
+  const roman = renderDocument(['---', 'title: Note', 'type: letter', 'numbering: roman', '---', '', '## First', '', 'Text.'].join('\n'));
+  assert.match(roman.html, /data-letter data-roman/);
+  const plain = renderDocument(['---', 'title: Note', 'type: letter', '---', '', '## First', '', 'Text.'].join('\n'));
+  assert.doesNotMatch(plain.html, /data-letter data-roman/);
+});
+
 const chrome = findChrome();
 test('in Chrome: a long document paginates with nothing taller than a page, a one-pager that runs over is caught', { skip: !chrome && 'no Chrome on this machine' }, async () => {
   const long = Array.from({ length: 80 }, (_, i) => `- Item ${i}: a line long enough to take some room on the page.`).join('\n');

@@ -59,9 +59,13 @@ deck.
 
 ### Documents on real A4 pages
 `documents/<slug>/document.md`, paginated in the browser into physical pages, checked in Chrome,
-printed to PDF from the same build. Blanks stay visible until filled.
+printed to PDF from the same build. Blanks stay visible until filled. A page that stops on purpose
+(a `:::pagebreak`, or a last page without a signature) spreads its free height between its blocks,
+and `numbering: roman` numbers a letter's headings I., II.
 **Why:** what the screen shows is what the printer produces, and a value nobody gave is never
-filled with a guess (`source/formats/document.md`).
+filled with a guess (`source/formats/document.md`). An annex page that leaves its bottom two thirds
+empty reads as unfinished; the cap of 28 px a share keeps a short page from looking stretched
+(owner, 2026-11-25).
 
 ### The intranet, a home page before anything else
 A private home page (`apps/dashboard/`, `npm run intranet`): a banner with a quickstart and how the

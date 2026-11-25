@@ -10,6 +10,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-25 · MINOR · A document page that stops on purpose uses its height
+A page closed by `:::pagebreak`, and the last page of a document when it carries no signature, now
+spread their free height between their sections (at most 28 px a gap) instead of leaving everything
+at the top. A letter can number its headings I., II. with `numbering: roman`, and a title no longer
+opens on "The" (`source/formats/document.md`). **What you need to do:** nothing; rebuild a document
+to see it.
+
 ## 2026-11-25 · MINOR · Identifiers, codes and references never break across a line
 A structured piece of data (an identifier such as `PRV-<act number>-<rank>`, a reference such as
 `D-01932`, a six-digit code, a route) is written as inline code, and the kit's sheets now keep inline

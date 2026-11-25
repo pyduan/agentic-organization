@@ -18,6 +18,7 @@
     page.className = 'doc-page';
     if (root.hasAttribute('data-onepager')) page.classList.add('is-onepager');
     if (root.hasAttribute('data-letter')) page.classList.add('is-letter');
+    if (root.hasAttribute('data-roman')) page.classList.add('is-roman');   // a signed note numbers its headings I., II.
     page.innerHTML = '<header class="doc-page-run"><span class="doc-page-mark"><i></i><span></span></span><span class="doc-page-kicker"></span></header>'
       + '<div class="doc-page-body doc-prose"></div>'
       + '<footer class="doc-page-foot"><span class="doc-page-left"></span><span class="doc-page-num"></span></footer>';
@@ -70,7 +71,7 @@
       const block = queue.shift();
       // A page break asked for (:::pagebreak): what follows starts a new page, unless the page is
       // still empty or nothing follows. The marker itself goes on no page.
-      if (block.hasAttribute('data-pagebreak')) { if (body.children.length && queue.length) next(); continue; }
+      if (block.hasAttribute('data-pagebreak')) { if (body.children.length && queue.length) { page.dataset.spread = ''; next(); } continue; }
       body.append(block);
       if (fits()) continue;
       block.remove();
@@ -101,10 +102,32 @@
     }
 
     const all = [...pages.children];
+    // The last page of a document that ends on an annex (no signature on it) is spread the same way.
+    const last = all[all.length - 1];
+    if (last && all.length > 1 && !last.querySelector('.doc-signature')) last.dataset.spread = '';
+    all.filter((p) => 'spread' in p.dataset).forEach(spread);
     all.forEach((p, i) => { p.querySelector('.doc-page-num').textContent = `${i + 1} / ${all.length}`; });
     root.dataset.overflow = String(pages.querySelectorAll('[data-overflow]').length);
     root.dataset.pages = String(all.length);
     fit(root);
+  }
+
+  /** A page closed by an asked-for break (:::pagebreak), or the last page when it carries no signature,
+   * would leave its bottom empty: its free height is spread between its blocks, two shares above a
+   * heading and one elsewhere, at most 28 px a share, so the sections breathe instead of huddling at
+   * the top. What the cap leaves stays at the bottom. A page that ends because it is full is never
+   * touched. */
+  function spread(page) {
+    const body = page.querySelector('.doc-page-body');
+    const blocks = [...body.children];
+    if (blocks.length < 2) return;
+    const free = body.getBoundingClientRect().bottom - blocks[blocks.length - 1].getBoundingClientRect().bottom - 4;
+    if (free < 12) return;
+    const shares = blocks.slice(1).map((b) => (HEADING.test(b.tagName) ? 2 : 1));
+    const share = Math.min(28, free / shares.reduce((a, b) => a + b, 0));
+    blocks.slice(1).forEach((b, i) => {
+      b.style.marginTop = (parseFloat(getComputedStyle(b).marginTop) || 0) + share * shares[i] + 'px';
+    });
   }
 
   /** On screen the pages shrink to the window's width; in print they are at 100%. */

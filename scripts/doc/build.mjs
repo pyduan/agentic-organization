@@ -54,7 +54,7 @@ export function renderDocument(src, { tokens = '' } = {}) {
 <html lang="${esc(lang)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex"><title>${esc(meta.title || 'Document')}</title>
 <style>${tokens}\n${css}</style></head>
-<body><div class="doc-shell doc-paged"${meta.brand ? ` data-brand="${esc(meta.brand)}"` : ''}${onepager ? ' data-onepager' : ''}${letter ? ' data-letter' : ''} data-mark="${esc(meta.mark || meta.title || '')}" data-kicker="${esc(meta['running-head'] || '')}" data-foot="${esc(meta.foot || '')}">
+<body><div class="doc-shell doc-paged"${meta.brand ? ` data-brand="${esc(meta.brand)}"` : ''}${onepager ? ' data-onepager' : ''}${letter ? ' data-letter' : ''}${meta.numbering === 'roman' ? ' data-roman' : ''} data-mark="${esc(meta.mark || meta.title || '')}" data-kicker="${esc(meta['running-head'] || '')}" data-foot="${esc(meta.foot || '')}">
 ${todo.length ? `<aside class="doc-todo"><b>To complete before this leaves</b><ul>${todo.map((x) => `<li>${inline(x, { lang })}</li>`).join('')}</ul></aside>` : ''}
 <div class="doc-flow">${hero}\n${content}</div><div class="doc-pages"></div></div>
 <script>${js}</script></body></html>`;

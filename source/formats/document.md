@@ -11,18 +11,19 @@ node scripts/doc/build.mjs <slug> [--pdf]            # build, check in Chrome, p
 node scripts/doc/build.mjs --all --strict            # before anything leaves
 ```
 
-## The file
+## File
 
 Frontmatter, then markdown:
 
 | Key | What it does |
 |---|---|
-| `title`, `subtitle` | the title block. A title is a label: no dash splitting it, no comma outside a list |
+| `title`, `subtitle` | the title block. A title is a label: no dash splitting it, no comma outside a list, no definite article opening it (*Fees*, not *The fees*) |
 | `type` | `document` (default), `one-pager`, which must fit on one page in two columns, or `letter`, on the sender's paper: no title block and no running head |
 | `lang` | the typography (French spaces, curly apostrophes) |
 | `kicker`, `author`, `date` | the lines around the title |
 | `mark`, `running-head`, `foot` | the running head on every page, and the footer's left side |
 | `brand` | a second brand's tokens (`[data-brand="x"]` in `source/brand/tokens.css`) |
+| `numbering` | `roman` numbers a letter's `##` headings I., II., as a signed note to a head of government does |
 | `to-complete` | what is still missing, shown above the pages on screen and never printed |
 
 `##` opens a numbered band, `###` and `####` go below it. Lists, tables, quotes and code work as
@@ -45,6 +46,15 @@ two items, never inside one, and a table repeats its header on the next page. A 
 a page, and neither does a sentence ending in a colon: both leave with what they announce. A block
 taller than a whole page is placed anyway and flagged, and the check fails on it: split it.
 
+A page that stops on purpose uses its height. A page closed by `:::pagebreak`, and the last page of
+a document of several pages when it carries no signature, spread their free height between their
+blocks: two shares above a heading, one elsewhere, at most 28 px a share. What the cap leaves stays
+at the bottom, and a page that ends because it is full does not move. A chart or a table alone on
+an annex page then sits in the page instead of huddling at its top.
+
+A letter to a head of state or of government fits on one page, signature included; the evidence
+goes in an annex after a `:::pagebreak`.
+
 ## Blanks: visible, never invented
 
 A value nobody has given you is written `[what goes here]`. It is highlighted on screen, it prints
@@ -52,7 +62,7 @@ without the highlight, and the build counts it. A price nobody wrote is "to be s
 a step without a contract says "none". The `to-complete` list says what the document still waits
 for, and `--strict` fails while either one is non-empty, which is the run to do before it leaves.
 
-## The check
+## Check
 
 The build opens every document in Chrome and waits for the pagination. It fails when the
 pagination never finishes, when the page throws an error, when a block is taller than a page, and
