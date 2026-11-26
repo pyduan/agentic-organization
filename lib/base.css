@@ -5,22 +5,29 @@
    it (or copies it at build time) before its own stylesheet (source/formats/webapp.md). */
 
 /* Dropdowns: one chevron for every <select>, in every page and app that loads this file.
-   The browser's own arrow sits wherever each engine puts it: a few pixels from the edge in Chrome,
-   off-centre by up to 2px in a tall or pill-shaped field, and with its own size in Safari, which also
-   ignores the field's padding. One drawn chevron, centred by background-position, replaces it.
-   The selector outweighs a plain `select` or `.x select` rule, so a page's own padding cannot
-   push the text under the chevron. A list box (`multiple`, `size`) keeps the browser's look. */
+   The chevron sits as far from the right edge as the text sits from the left one, whatever the
+   field's size, radius or font: both insets are the same `--select-inset`, in em, so they scale
+   together. It used to sit at a fixed distance from the right edge, inside an icon with empty
+   margins, while each component set its own left padding: in a pill, a large field or a small one
+   the two never matched, which is why it never looked aligned (2026-11-26). The drawn chevron fills
+   its box edge to edge, so its ink is where the inset says. `!important` because an app's own
+   `background:` or `padding:` shorthand, at any specificity, used to erase the chevron or slide the
+   text under it. A page that wants a wider or narrower field changes `--select-inset`, never the
+   padding. A list box (`multiple`, `size`) keeps the browser's look. */
 :root {
-  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23666666' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --select-chevron: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1.25 1.75 6 6.25l4.75-4.5' fill='none' stroke='%23666666' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --select-inset: 0.75em;
 }
 select:not([multiple]):not([size]) {
-  -webkit-appearance: none;
-  appearance: none;
-  background-image: var(--select-chevron);
-  background-repeat: no-repeat;
-  background-position: right 0.85em center;
-  background-size: 1em 1em;
-  padding-right: 2.4em;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-image: var(--select-chevron) !important;
+  background-repeat: no-repeat !important;
+  background-size: 0.75em auto !important;
+  background-position: right var(--select-inset) center !important;
+  padding-left: var(--select-inset) !important;
+  padding-right: calc(var(--select-inset) * 2 + 0.75em) !important;
+  text-overflow: ellipsis;
 }
 
 /* Structured data never breaks across a line. An identifier, a code, a reference or a format

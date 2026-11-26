@@ -10,6 +10,13 @@ a new app, a new file format, a rule that changes how their agent behaves. Every
 
 ---
 
+## 2026-11-26 · MINOR · Dropdown arrows line up with the text, in every field
+The arrow of a dropdown now sits as far from the right edge as the text from the left one, in a
+small field, a large one or a pill, and an app's own background or padding can no longer erase it
+or slide the text under it. It used to sit at a fixed distance from the edge, which never matched
+the text. **What you need to do:** nothing for the intranet; an app that copied the old rule from
+`lib/base.css` takes the new one at its next change.
+
 ## 2026-11-25 · MINOR · A document page that stops on purpose uses its height
 A page closed by `:::pagebreak`, and the last page of a document when it carries no signature, now
 spread their free height between their sections (at most 28 px a gap) instead of leaving everything
